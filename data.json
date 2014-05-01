@@ -1,0 +1,7 @@
+{
+  "name": "Hannibal",
+  "description": "agentx' first 0 A.D ai/bot.",
+  "moduleName" : "HANNIBAL",
+  "constructor": "Hannibal",
+  "useShared": true
+}
