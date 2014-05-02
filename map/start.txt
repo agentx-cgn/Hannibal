@@ -1,1 +1,0 @@
-D:\Projects\Osiris\ps\trunk\binaries\system\pyrogenesis.exe  -quickstart -autostart=aitest02 -autostart-ai=1:hannibal
