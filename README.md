@@ -37,7 +37,7 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Roadmap ###
 
-** A17 **
+**A17**
 
 * Saved games, given engine support
 * Shared, dynamic and exclusive buildings
@@ -48,12 +48,12 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 * Takes advantage of all available technologies 
 * Basic attack plans
 
-** A18 **
+**A18**
 
 * Walls, palisades
 * Advanced attack plans
 
-** A19**
+**A19**
 
 * Seafaring, naval operation
 
@@ -77,3 +77,5 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 
 ## License ##
+
+tbd
