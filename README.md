@@ -31,9 +31,7 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
   
 ### Progress ###
 
-* There is a web interface at 
-
-
+* The web interface generates basic plans
 
 ### Roadmap ###
 
