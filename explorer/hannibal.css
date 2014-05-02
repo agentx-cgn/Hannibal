@@ -1,0 +1,129 @@
+html, body {
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  background: #ddd;
+  font-family: "Bitstream Vera Sans Mono", "Helvetica Neue",Helvetica,"Lucida Grande","Lucida Sans Unicode",sans-serif;
+}
+
+body {overflow-y: scroll;}
+
+br {clear: left;}
+
+a {
+  color: #ddd;
+  text-decoration: none;
+}
+
+.menu {
+  list-style-type: none; 
+  background: #888; 
+  margin: 0;
+  padding: 3px 0 0px 0; 
+}
+
+.menu ul {
+  margin: 0 0 8px 0;
+  list-style-type: none;
+}
+
+.menu li {
+  color: #ddd;
+  font-weight: 800;
+  font-size: 16px;
+  display: inline;
+  padding: 0 4px 2px 4px;
+  cursor: pointer; 
+}
+.menu li:hover {
+  color: #fff;
+}
+
+.panel {display: none;}
+
+#jsonTECH {
+  font-size: 10px;  
+  background: #f4f4f4;
+}
+
+
+.content {width: 800px; margin: 0 auto; background: #ccc; padding: 2px;}
+.results {width: 800px; margin: 0 auto; background: #eee; padding: 2px;}
+.timing  {width: 800px; margin: 0 auto; background: #ddd; padding: 2px;}
+#debug   {width: 800px; margin: 8px auto; color: #a33; font-weight: 800;}
+
+/*thead {border-bottom: 1px solid white;}*/
+thead td {font-weight: 800; font-size: 12px; border-bottom: 2px solid black;}
+
+td {
+  font-size: 10px;
+  vertical-align: top;
+}
+
+td.hr {
+  text-align: right;
+}
+td.hl {
+  text-align: left;
+}
+td.bd {
+  font-weight: 800;
+}
+td.cl {
+  cursor: pointer;
+  color: #33b;
+}
+td.el {
+  text-overflow: ellipsis;
+}
+td.nw {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow:hidden;
+}
+
+table {
+  width: 100%;
+  table-layout: fixed;  
+}
+
+textarea.f11 {font-size: 11px;}
+span.f80 {font-size: 80%;}
+
+#ifoResult {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  font-weight: 400;
+  background: rgba(233, 234, 255, 1);
+}
+
+textarea, select {
+  background: #eee;
+  border: 1px solid #999;
+  font-size: 12px;
+  font-family: "Bitstream Vera Sans Mono", Fixed, monospace;
+  margin: 2px 0;
+  float: left; 
+}
+
+button {
+  color: white;
+  background: #666;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 3px;
+  border: 1px solid white;
+  padding-bottom: 1px;  
+  margin-left: 2px;
+}
+
+label {
+  font-size: 12px;
+  vertical-align: middle;
+  display: block;
+  width: 60px;
+  float: left;  
+  text-align: right;
+  padding-right: 4px;
+  padding-top: 2px;
+}

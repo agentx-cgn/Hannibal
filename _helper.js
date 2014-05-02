@@ -72,7 +72,7 @@ extend(H, {
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},
-  toFixed:    function (a,n){ n=n||1;return a.map(function(n){return n.toFixed(1);})},
+  toFixed:    function (a,n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
   rotate:     function (a,n){return a.concat(a.splice(0,n));},
   // unique:     function (a){var u=[];a.forEach(function(i){if(u.indexOf(i)===-1){u.push(i);}});return u;},
   sample:     function (a,n){var l=a.length;n=n||1;return H.range(n).map(function(){return a[~~(Math.random() * l)];});},

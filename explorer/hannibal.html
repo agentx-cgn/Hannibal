@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" >
+  <head>
+    <title>HSE</title>
+    <meta http-equiv="Content-Type" content="application/xml+xhtml; charset=UTF-8" />
+    <meta name="description" content="HANNIBAL - Store Explorer" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+    
+    <script type="text/javascript">
+
+      if (typeof console === "undefined") {
+        console = { log:function(){}, warn:function(){}, error:function(){} };
+      }
+
+      window.performance = window.performance || {};
+      // window.performance.timing = window.performance.timing || {};
+
+      window.performance.now = 
+        window.performance.now ||
+        window.performance.webkitNow || 
+        (function(){var t = Date.now(); return function(){return Date.now() - t;};})();
+
+      window.performance.timing.navigationStart = 
+        window.performance.timing.navigationStart || 
+        Date.now();
+
+      window.local = !window.location.host;
+
+      var TIM = (function(){
+        
+        var t0   = window.performance.timing.navigationStart, // || Date.now()||+new Date(), 
+            fill = new Array(18).join(" "), 
+            pad  = function(s){return (s+fill).substr(0, fill.length);},
+            now  = function( ){return parseInt(window.performance.now()*10, 10)/10000;}
+
+        return {
+          // Now:  now,
+          step: function(key, com){
+            console.log (pad(key), "-", now() + " sec", (com) ? com : "-");
+          }
+        };
+        
+      })();
+
+      TIM.step(window.location.host || "Local", 
+        (navigator.online ? "online" : "offline") + 
+        " - " + document.location.href
+      );
+
+    </script>
+
+    <link rel="shortcut icon"  href="favicon.ico" />
+    <link rel="stylesheet" href="hannibal.css" type="text/css" />
+
+  </head>
+
+  <body>
+
+    <div class="content" >
+
+      <div class="menu">
+        <ul>
+          <li id="menASM">ASM</li>
+          <li id="menHQC">HCQ</li>
+          <li id="menHTN">HTN-TEST</li>
+          <li id="menHTN0AD">HTN-0AD</li>
+          <li id="menMMAP"><a target="_blank" href="../Hannibal%201.01.pdf">MMAP</a></li>
+          <li id="menTECH">TECH</li>
+          <li id="menRFH" style="float: right;" onclick="location.reload();">reload</li>
+        </ul>
+      </div>
+
+
+      <!-- ASM -->
+
+      <div class="contASM panel">
+        <div>
+          asm.js links: <a href="https://blog.mozilla.org/luke/2014/01/14/asm-js-aot-compilation-and-startup-performance/">cache</a>
+        </div>   
+        <br />
+        <label for="slcRepeats">Repeat</label>
+        <select id="slcRepeats">
+          <option>1</option>
+          <option>2</option>
+          <option selected>4</option>
+          <option>8</option>
+        </select>
+        <label for="slcLoops">Loops</label>
+        <select id="slcLoops">
+          <option>1.000</option>
+          <option selected>10.000</option>
+          <option>100.000</option>
+          <option>1.000.000</option>
+        </select>
+        <button id="btnASMGo1" onclick="H.ASMTEST()">emp()</button>        
+        <button id="btnASMGo2" onclick="H.ASMTEST1()">sin()</button>        
+        <button onclick="H.Display.clear()">Clear</button>     
+      </div>
+
+
+      <!-- HCQ -->
+
+      <div class="contHCQ panel">
+
+        <div>
+          <label for="slcCivs">Load Civ</label>
+          <select id="slcCivs"></select>
+          <span id="spnCiv"></span>
+          <br />
+        </div>
+
+        <div>
+          <label for="slcVerbs">Insert Verb</label>
+          <select id="slcVerbs"></select>
+          <label for="slcNodes">Node</label>
+          <select id="slcNodes"></select>
+          <button id="btnAnalyze">Analyze</button>
+          <br />
+        </div>
+        
+        <div>
+          <label for="slcExams">Examples</label>
+          <select id="slcExams"></select>
+          <br />
+        </div>
+        
+        <div>
+          <label for="txtHQC" style="vertical-align: top">Query</label>
+          <textarea id="txtHQC" maxlength="1000" cols="100" rows="4"></textarea>        
+          <br />
+          <button style="float: right; margin-right: 17px;" id="btnClear">Clear</button>
+        </div>
+
+        <label for="slcModes">Display</label>
+        <select id="slcModes">
+          <option>info</option>
+          <option>json</option>
+        </select>
+
+        <button id="btnGoHCQ">Go</button>
+
+        <!-- <table id="results"></table> -->
+
+      </div>
+
+
+      <!-- HTN TEST -->
+
+      <div class="contHTN panel">
+
+        <label for="slcVerbose">Verbosity</label>
+        <select id="slcVerbose">
+          <option>0</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+        <button id="btnExample1" onclick="H.HTN.Blocks.example1('slcVerbose');">Test1</button>
+        <button id="btnExample2" onclick="H.HTN.Blocks.example2('slcVerbose');">Test2</button>
+        <button id="btnExample2" onclick="H.HTN.Blocks.example3('slcVerbose');">Stress</button>
+
+      </div>
+
+
+      <!-- MMAP-->
+
+      <div class="contMMAP panel">
+
+        <svg id="mmap" width="800" height="800" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+          <!-- <script xlink:href="SVGPan.js" /> -->
+          <image x="0" y="0" width="800" height="800" xlink:href="Hannibal.svg" />
+        </svg>
+
+      </div>
+
+      <!-- TECH-->
+
+      <div class="contTECH panel">
+        <div id="jsonTECH">
+        </div>
+      </div>
+
+
+      <!-- HTN 0 A.D. -->
+
+      <div class="contHTN0AD panel">
+        <div>
+          <label for="txtState" style="vertical-align: top">State</label>
+          <textarea id="txtState" class="f11" maxlength="1000" cols="44" rows="6">
+"ress": {"food": 300, "wood": 300},
+"ents": {
+  "structures.athen.civil.centre": 1},
+"tech": ["phase.village"]
+         </textarea>        
+
+          <label for="txtGoal" style="vertical-align: top">Goal</label>
+          <textarea id="txtGoal" class="f11" maxlength="1000" cols="44" rows="6">
+"ress": {},
+"ents": {
+  "structures.athen.field": 1},
+"tech": ["gather.wicker.baskets"]
+        </textarea>        
+
+        </div>
+        <br />
+        <label for="slc0ADVerbose">Verbosity</label>
+        <select id="slc0ADVerbose">
+          <option>0</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+        </select>
+        <button id="btnHTN0ADT1" style="float:left">Test Ops.</button>
+        <button id="btnHTN0ADT2" style="float:left">Test Meth.</button>
+        <button id="btnHTN0ADT3" style="float:left">Test3</button>
+        <button id="btnHTN0ADGO" style="float:left">GO</button>
+        <div style="float:left">
+          <label for="slcStress">Loops</label>
+          <select id="slcStress">
+            <option>10</option>
+            <option selected>100</option>
+            <option>1.000</option>
+            <option>10.000</option>
+          </select>
+          <button id="btnHTN0ADSTRESS">Stress</button>
+        </div>
+        <button onclick="H.Display.clear()">Clear</button>             
+
+      </div>
+
+    </div>
+
+
+    <!-- Footer -->
+
+    <div id="debug">
+    </div>
+
+    <div class="results">
+      <table id="tblResult"></table>
+    </div>
+
+    <div class="timing">
+      <div id="ifoResult"></div>
+    </div>
+
+    <div>
+      <script>
+
+        window.onerror = function(e, f, l){
+          var error = "Error occured.<br />";
+          error += "<span style='font-weight: 400;'>[" + e + "]<span><br />";
+          error += "<span style='font-weight: 400;'>[" + f + ":" + l + "]<span><br />";
+          document.getElementById("debug").innerHTML += error;
+          console.log(error);
+        }
+
+        // fake bot environment 
+        var $ = document.getElementById.bind(document),
+            $$ = document.querySelector.bind(document),
+            HANNIBAL = {},
+            H = HANNIBAL,
+            deb = function(){
+              var args = arguments;
+              if (args.length === 0) {args = ["**"];}
+              if (args.length === 1) {args = ["%s", args[0]];}
+              console.log(H.format.apply(H, args));
+            };
+
+        H.Bot = {ticks: false};
+
+      </script>
+      <script type="text/javascript" src="data/store-json.export"></script>
+      <script type="text/javascript" src="data/techs-json.export"></script>
+      <script type="text/javascript" src="../_helper.js"></script>
+      <script type="text/javascript" src="../config.js"></script>
+      <script type="text/javascript" src="../data.js"></script>
+      <script type="text/javascript" src="../economy.js"></script>
+      <script type="text/javascript" src="../store.js"></script>
+      <script type="text/javascript" src="../asm.js"></script>
+      <script type="text/javascript" src="../htn-planner.js"></script>
+      <script type="text/javascript" src="../htn-operators.js"></script>
+      <script type="text/javascript" src="../htn-methods.js"></script>
+      <script type="text/javascript" src="htn-hannibal-examples.js"></script>
+      <script type="text/javascript" src="htn-blocks-methods.js"></script>
+      <script type="text/javascript" src="htn-blocks-methods2.js"></script>
+      <script type="text/javascript" src="htn-blocks-operators.js"></script>
+      <script type="text/javascript" src="htn-blocks-examples.js"></script>
+      <script type="text/javascript" src="display.js"></script>
+      <script>
+
+        // shortcut
+        H.HCQ = H.Store.Query;
+        H.QRY = function(hcq, debug){return new H.HCQ(H.store, hcq, debug);};
+
+        window.onload = function(){
+          var error = "";
+          try {
+            // throw "error";
+            H.prepare();
+            H.Display.import();
+            H.Display.init();
+            H.Display.hide();
+            menHTN0AD.onclick(); //menHTN0AD, menAsm, menTECH
+            TIM.step("Ready1");
+          } catch(e){
+            error += "Browser not supported. Try this one ";
+            error += "<a href='http://www.mozilla.org/en-US/firefox/channel/#aurora'>Firefox</a>, ";
+            error += "<a href='https://developer.mozilla.org/en-US/Firefox/Releases/30'>why</a> ";
+            error += "and come back soon, thx.<br />";
+            error += "<span style='font-weight: 400;'>[" + e + "]<span>";
+            document.getElementById("debug").innerHTML = error;
+          }
+        };
+        
+      </script>
+    </div>
+ 
+  </body>
+</html>

@@ -32,6 +32,20 @@ HANNIBAL = (function(H){
 
     },
 
+    del_entity: function (state, ent, amount) {
+
+      if (state.ents[ent] >= amount){
+
+        state.ents[ent] -= amount;
+        return state;
+
+      } else {
+        deb("Warn: can't del_entity: %s %s", ent, amount);
+        return null;
+      }
+
+    },
+
     inc_resource: function (state, res, amount) {
 
       if (true){

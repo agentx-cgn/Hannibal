@@ -165,8 +165,9 @@ var HANNIBAL = (function() {
     deb();
     deb("     A:              width: %s [  ]", sharedScript.passabilityMap.width);
     deb("     A:             height: %s [  ]", sharedScript.passabilityMap.height);
-    deb("     A:       territoryMap: width: %s, height: %s", ss.territoryMap.width, ss.territoryMap.height);
+    deb("     A:           circular: %s [  ]", sharedScript.circularMap);
     deb("     A:           cellsize: %s [  ]", gs.cellSize);
+    deb("     A:       territoryMap: width: %s, height: %s", ss.territoryMap.width, ss.territoryMap.height);
     deb("     A:         _templates: %s [  ]", H.count(ss._templates));
     deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
     deb("     A:          _entities: %s [  ]", H.count(ss._entities));

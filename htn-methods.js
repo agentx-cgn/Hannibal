@@ -49,24 +49,22 @@ HANNIBAL = (function(H){
 
     init: function(state, goal){
 
-      // sanitize state
+      // sanitizes state
 
-      var hcq = "";
-
-      state.civ  = state.civ  || "athen"
+      state.civ  = state.civ  || "athen";
 
       state.ress = state.ress || {};
-      state.ress.time   = state.ress.time  || 0;
-      state.ress.wood   = state.ress.food  || 0;
-      state.ress.food   = state.ress.food  || 0;
-      state.ress.metal  = state.ress.metal || 0;
-      state.ress.stone  = state.ress.stone || 0;
-      state.ress.pop    = state.ress.pop || 0;
-      state.ress.popmax = state.ress.popmax || 300;
-      state.ress.popcap = state.ress.popcap || 0;
-
       state.ents = state.ents || {};
       state.tech = state.tech || [];
+
+      state.ress.time   = state.ress.time   || 0;
+      state.ress.wood   = state.ress.food   || 0;
+      state.ress.food   = state.ress.food   || 0;
+      state.ress.metal  = state.ress.metal  || 0;
+      state.ress.stone  = state.ress.stone  || 0;
+      state.ress.pop    = state.ress.pop    || 0;
+      state.ress.popmax = state.ress.popmax || 300;
+      state.ress.popcap = state.ress.popcap || 0;
 
       // autoresearch
       if (state.tech.indexOf("phase.village") === -1) {
@@ -82,7 +80,7 @@ HANNIBAL = (function(H){
             state.ress.pop -= node.costs.population;
           }
         }
-      })
+      });
 
       return [['start', goal]];
 
@@ -92,8 +90,18 @@ HANNIBAL = (function(H){
 
       var debug = 0, 
           diff  = 0, 
-          availTechs = [], 
-          tasks = [];
+          node, 
+          availTechs = [], tasks = [];
+
+      // population
+      if (goal.popcap !== undefined){
+        diff = goal.popcap - (state.popcap || 0);
+        if (diff > 0){
+          node = H.QRY("house CONTAIN").first();
+          diff  = ~~(diff / node.population * -1 + 1);
+          tasks.push(['produce', node.name, diff]);
+        }
+      }
 
       // resources
       if (goal.ress !== undefined){
@@ -117,20 +125,17 @@ HANNIBAL = (function(H){
 
       // techs
       if (goal.tech !== undefined && goal.tech.length){
-
         availTechs = (!state.tech && !state.tech.length) ? availTechs : state.tech;
-        
         goal.tech.forEach(function(name){
-
           if (availTechs.indexOf(name) === -1){
             tasks.push(['produce', name]);
           }
-
         });
       }
 
       // come back, if not finished
       if (tasks.length){tasks.push(['start', goal]);}
+
       if (debug > 0) {deb(" Start: %s", prit(tasks));}
 
       // returns [] if nothing to do
@@ -149,8 +154,10 @@ HANNIBAL = (function(H){
       var debug  = 0,
           tasks  = [], 
           found  = false, 
-          operator, product, producers, candidates, 
-          diff, costs, techs, ress = [];
+          operator,                                           // strings
+          node, nodes, product, producers,                    // nodes       
+          costs, techs, ress = [], candidates,                // gen. objects && arrays
+          diff = 0, counter = 0, dels = 0, delCounter = 0;    // numbers
 
       if(debug > 0) {deb(" produce: in: name: %s, %s", name, amount);}
 
@@ -204,6 +211,41 @@ HANNIBAL = (function(H){
         return tasks;
       }
 
+      // check popmax
+      if (product.population && product.population > 0){
+        diff = state.pop + product.population * amount - state.popmax;
+        if (diff > 0){
+          dels = 0;
+          counter = 0; 
+          candidates = {};
+          // enough females to destroy ?
+          H.QRY("female CONTAIN").forEach(function(node){
+            if (state.ents[node.name] && state.ents[node.name] > 0){
+              counter += state.ents[node.name];
+              candidates[node.name] = state.ents[node.name];
+            }
+          });
+          if (counter < diff){
+            deb("ERROR: hit popmax : can't produce %s %s", name, amount);
+            return null; // plan fails
+          } else {
+            H.each(dels, function(name, num){
+              delCounter = num < (diff - delCounter) ? num : (diff - delCounter);
+              tasks.push(['produce', node.name, delCounter]);
+            });
+          }
+        }
+      }
+
+      // check popcap
+      if (product.population && product.population > 0){
+        diff = state.pop + product.population * amount - state.popcap;
+        if (diff > 0){
+          node = H.QRY("house CONTAIN").first();
+          diff = ~~(diff / product.population * -1 + 1);
+          tasks.push(['produce', node.name, diff]);
+        }
+      }
 
       // search unmet technical requirements
       techs = H.QRY(name + " REQUIRE")
@@ -215,7 +257,7 @@ HANNIBAL = (function(H){
         techs.forEach(function(node){
           tasks.push(['produce', node.name]);
         });
-        if(debug > 0) {deb(" produce: must research: %s", prit(tech.map(t => t.name)));}        
+        if(debug > 0) {deb(" produce: must research: %s", prit(techs.map(t => t.name)));}        
         return tasks;
       }
 

@@ -45,9 +45,13 @@ HANNIBAL = (function(H){
     operators[name] = operator;
   }
 
-  function addMethods(name /* functions */){
-    methods[name] = H.toArray(arguments).slice(1);
+  function addMethods(name, method){
+    methods[name] = method;
   }
+
+  // function addMethods(name /* functions */){
+  //   methods[name] = H.toArray(arguments).slice(1);
+  // }
 
   function Goal(name, json){
     this.name = name;
@@ -72,7 +76,7 @@ HANNIBAL = (function(H){
       if (k === 'ress') {
         H.each(v, function(k, v){
           akku.push(k + ": " + v);
-        })
+        });
         html += "<tr><td>&nbsp;&nbsp;ress: { " + akku.join(", ") + " }</td></tr>";
 
       } else if (k === 'tech') {
@@ -109,6 +113,8 @@ HANNIBAL = (function(H){
     addMethods:  addMethods,
     Goal:        Goal,
     State:       State,    
+    depth:       function(){return maxDepth;},
+    iterations:  function(){return cntIterate;}
   });
 
   H.HTN.Planner = H.HTN.Planner || {};
@@ -143,9 +149,7 @@ HANNIBAL = (function(H){
     },
     plan:        function(state, tasks, verbose){
 
-      var self = H.HTN.Planner, 
-          result, newState, 
-          t0 = 0, t1 = 0;
+      var self = H.HTN.Planner, result, newState, t0 = 0, t1 = 0;
 
       verbose = verbose || 0;
 
@@ -166,16 +170,11 @@ HANNIBAL = (function(H){
     },
     seekPlan: function seekPlan (state, tasks, plan, depth, verbose){
 
-      var self = H.HTN.Planner, 
-          task, task1, newTasks,
-          anyTasks, anyQueue, anyPointer, anyTask, 
-          operator, params, method, relevant, 
-          newState, solution, subtasks;
+      var self = H.HTN.Planner, task1, solution;
 
       verbose = verbose || 0;
       maxDepth = (depth > maxDepth) ? depth : maxDepth;
 
-      cntIterate += 1;
       if (cntIterate > maxIterate){
         tasks = [];
         deb("   HTN:   FAILED, too much iterations");
@@ -227,7 +226,7 @@ HANNIBAL = (function(H){
 
         solution = self.seekAnyMethod(tasks, state, plan, depth, verbose);
         if (solution !== null){
-          return solution;;
+          return solution;
         }
 
         if (verbose > 2){deb("   HTN: D:%s, [ANY] solution: %s", depth, prit(solution));}
@@ -250,14 +249,17 @@ HANNIBAL = (function(H){
           anyTasks    = tasks[1],
           anyPointer  = 0,
           anyTask     = anyTasks[anyPointer],
-          relevant, method, params, subtasks, newTasks, solution = null;
+          method, params, subtasks, newTasks, solution = null;
 
       while (anyTask) {
 
-        relevant = methods[anyTask[0]];
-        for (method of relevant){
+        // relevant = methods[anyTask[0]];
+        // for (method of relevant){
 
-          params = [state].concat(anyTask.slice(1));
+          cntIterate += 1;
+  
+          method   = methods[anyTask[0]];
+          params   = [state].concat(anyTask.slice(1));
           subtasks = method.apply(null, params);
 
           if (verbose > 2){deb("   HTN:   D:%s, ANY subtasks: %s => %s", depth, params, subtasks);}
@@ -276,7 +278,7 @@ HANNIBAL = (function(H){
               solution = self.seekPlan(state, newTasks, plan, depth +1, verbose);
               // if (verbose > 2){deb("   HTN: D:%s, [ANY] solution: %s", depth, prit(solution));}
               if (solution !== null){
-                return solution;;
+                return solution;
               }
 
             }
@@ -285,7 +287,7 @@ HANNIBAL = (function(H){
           anyPointer += 1;
           anyTask = anyTasks[anyPointer];
 
-        }
+        // }
       }
 
       return null;
@@ -295,28 +297,28 @@ HANNIBAL = (function(H){
     seekMethod: function(tasks, state, plan, depth, verbose){
 
       var self      = H.HTN.Planner,
+          solution  = null,
           task1     = tasks[0],
-          relevant  = methods[task1[0]],
-          method, params, subtasks, newTasks, solution = null;
+          method    = methods[task1[0]],
+          params    = [state].concat(task1.slice(1)),
+          subtasks  = method.apply(null, params),
+          newTasks;
 
-      for (method of relevant){
-
-        params   = [state].concat(task1.slice(1));
-        subtasks = method.apply(null, params);
+      cntIterate += 1;
         
-        if (verbose > 2){deb("   HTN:   D:%s, subtasks: %s", depth, prit(subtasks));}
+      if (verbose > 2){deb("   HTN:   D:%s, subtasks: %s", depth, prit(subtasks));}
 
-        if(subtasks !== null){
-          newTasks = subtasks.concat(tasks.slice(1))
-          solution = self.seekPlan(state, newTasks, plan, depth +1, verbose);
+      if(subtasks !== null){
 
-          if (verbose > 2){deb("   HTN: D:%s, [meth] solution: %s", depth, prit(solution));}
+        newTasks = subtasks.concat(tasks.slice(1));
+        solution = self.seekPlan(state, newTasks, plan, depth +1, verbose);
 
-          if (solution !== null){
-            return solution;
-          }
+        if (verbose > 2){deb("   HTN: D:%s, [meth] solution: %s", depth, prit(solution));}
 
+        if (solution !== null){
+          return solution;
         }
+
       }
 
       return null;
@@ -333,6 +335,8 @@ HANNIBAL = (function(H){
 
       if (verbose > 2){deb("   HTN: D:%s, state: %s", depth, prit(newState));}
 
+      cntIterate += 1;
+
       if (newState){
         solution = self.seekPlan(newState, tasks.slice(1), plan.concat([task1]), depth +1, verbose);
       }
@@ -346,42 +350,6 @@ HANNIBAL = (function(H){
 return H; }(HANNIBAL));
 
 /*
-
-Task: Destroy Building
-
-  prerequisites:
-    are there obstacles?
-      if trees or narrow terrain, drop siege engines
-      if walls replace building with a wall segment, start over
-      if military building close to path, replace building with that, start over
-    determine hitpoints of building
-    estimate attack potential of building (garrison or empty)
-      if in doubt, send scouts
-    determine population of enemy
-    estimate hitpoints of defenders
-    estimate attack potential of defenders
-      if in doubt, send scouts
-    calculate amount of ranged units
-    calculate amount of meelee units
-    calculate amount of siege
-
-  build army
-  find path to building
-  move to building
-  attack building
-  attack defender
-  return to own civil centre
-  heal army
-
-Implementation
-  Horn clauses vs. PyHop
-
-
-Testing
-What are criteria to decide testing is over
-random map generation, log out plan
-Crysis has a hundreds of consoles running
-
 
 This is the algorithm, as described by Nau et al.:
 
