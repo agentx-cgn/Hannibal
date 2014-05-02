@@ -1,10 +1,10 @@
-# Hanninbal #
+# Hannibal #
 
-## An AI/Bot for 0 A.D ##
+## An AI/Bot for 0 A.D. ##
 
 ### Intro ###
 
-The Hannibal AI/Bot is a new approach to reduce the complexity of programming a bot for 0 A.D., a free, open-source, cross-platform real-time strategy game under development by Wildfire Games. Hanninbal was started in February 2014 by agentx. This git will be updated once a week until the project technically matured enough to support full git based development.
+Hannibal is a new approach to reduce the complexity of programming a bot for 0 A.D., a free, open-source, cross-platform real-time strategy game under development by Wildfire Games. Development started in February 2014 by agentx. This git will be updated once a week until the project technically matured enough to support full git based development.
 
 ### Features ###
 
@@ -37,7 +37,7 @@ The Hannibal AI/Bot is a new approach to reduce the complexity of programming a 
 
 ### Roadmap ###
 
-__ A17 __
+** A17 **
 
 * Saved games, given engine support
 * Shared, dynamic and exclusive buildings
@@ -48,12 +48,12 @@ __ A17 __
 * Takes advantage of all available technologies 
 * Basic attack plans
 
-__ A18 __
+** A18 **
 
 * Walls, palisades
 * Advanced attack plans
 
-__ A19__
+** A19**
 
 * Seafaring, naval operation
 
