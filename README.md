@@ -41,17 +41,17 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 * Saved games, given engine support
 * Shared, dynamic and exclusive buildings
-* Builds a plan based economy taking resource 
-  availability into account
+* plan based economy taking resource availability into account
 * Advanced map analysis
-* Fortified cities (walls?) 
-* Takes advantage of all available technologies 
-* Basic attack plans
+* Fortified cities (towers, walls?) 
+* Take advantage of all available technologies 
+* Basic attack plans and execution
 
 **A18**
 
 * Walls, palisades
 * Advanced attack plans
+* Policies via SWOT analysis
 
 **A19**
 
@@ -64,16 +64,16 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Project Links ###
 
-* web based development
+* Web based development
   http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html
 
 
 ### Further Readings and Links ###
 
+* 0 A.D. http://play0ad.com/
+* 0 A.D. http://en.wikipedia.org/wiki/0_A.D._%28video_game%29
 * pyhop https://bitbucket.org/dananau/pyhop
 * SHOP http://www.cs.umd.edu/projects/shop/
-* 0 A.D. http://en.wikipedia.org/wiki/0_A.D._%28video_game%29
-* 0 A.D. http://play0ad.com/
 
 
 ## License ##
