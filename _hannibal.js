@@ -270,7 +270,7 @@ var HANNIBAL = (function() {
       H.Config.deb = 0;
     }
 
-    if (true){
+    if (false){
       // activate to log templates
       // this.culture.store.exportAsLog(["athen"]);
       this.culture.store.exportAsLog(["athen", "mace", "hele"]); // 10.000 lines
@@ -291,7 +291,18 @@ var HANNIBAL = (function() {
     this.frame = this.behaviour.frame;
     this.lastFrame = this.frame;
 
-    deb(" FRAME: starting in %s", this.frame.name);
+    deb("     F: starting in %s", this.frame.name);
+
+
+    /* run scripted actions, can shadow H.Config.sequence */
+
+    deb();
+    deb();
+    H.Tester.activate();
+    deb();
+
+    /* end scripter */
+
 
 
     // testing Triple Store
@@ -359,6 +370,8 @@ var HANNIBAL = (function() {
       // logObject(ss._techTemplates['heal_range'], "heal_range");
       // logObject(ss._techTemplates['heal_temple'], "heal_temple");
 
+       // logObject(H.Templates["units/athen_support_female_citizen"], "units/athen_support_female_citizen");
+
       // logObject(ss._techTemplates, "ss._techTemplates");
       // logObject(sharedScript, "sharedScript");
       // logObject(sharedScript.events, "events");
@@ -378,15 +391,6 @@ var HANNIBAL = (function() {
     } catch(e){logError(e, "playfield");} 
     // end playfield
 
-
-    /* run scripted actions */
-
-    deb();
-    deb();
-    H.Tester.activate("aitest03");
-    deb();
-
-    /* end scripter */
 
     this.initialized = this.initGame();
 

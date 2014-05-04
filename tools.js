@@ -12,12 +12,19 @@
 */
 
 
-var HANNIBAL = (function(H) {
+HANNIBAL = (function(H) {
 
 
   // a NOP function
   H.FNULL = function(){};
 
+
+  H.saniTemplateName = function(nameTemplate){
+      nameTemplate = H.replace(nameTemplate,  "|", ".");
+      nameTemplate = H.replace(nameTemplate,  "_", ".");
+      nameTemplate = H.replace(nameTemplate,  "/", ".");
+      return nameTemplate.toLowerCase();
+  };
 
   H.Damper = function(fnDamper){
     this.level = 0;
@@ -80,3 +87,4 @@ var HANNIBAL = (function(H) {
   }());
 
 return H;}(HANNIBAL));
+

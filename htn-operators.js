@@ -17,30 +17,47 @@ HANNIBAL = (function(H){
   H.HTN = H.HTN || {};                       
   H.HTN.Hannibal = H.HTN.Hannibal || {};
 
+  // helper
+
+  function applyCosts(state, costs, multiplier){
+
+      ['food', 'wood', 'metal', 'stone'].forEach(function(res){
+        state.ress[res] -= (costs[res]) ? costs[res] * multiplier : 0;
+      });
+
+      state.ress.pop    += (costs.population > 0) ? costs.population * multiplier : 0;
+      state.ress.popcap -= (costs.population < 0) ? costs.population * multiplier : 0;
+
+  }
+
   H.HTN.Hannibal.operators = {
 
     wait_secs: function (state, secs) {
 
       if (true){
 
-        state.ress = state.ress || {};
-        state.ress.time = state.ress.time || 0;
-        state.ress.time += secs;
+        state.cost.time += secs;
+
         return state;
 
       } else {return null;}
 
     },
 
-    del_entity: function (state, ent, amount) {
+    del_entity: function (state, entity, amount) {
 
-      if (state.ents[ent] >= amount){
+      if (state.ents[entity] >= amount){
 
-        state.ents[ent] -= amount;
+        state.ents[entity] -= amount;
+
+        if (state.ents[entity] === 0) {
+          delete state.ents[entity];
+        }
+
         return state;
 
       } else {
-        deb("Warn: can't del_entity: %s %s", ent, amount);
+        deb("WARN  : can't del_entity: %s %s", entity, amount);
         return null;
       }
 
@@ -50,9 +67,11 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        state.ress = state.ress || {};
-        state.ress[res] = state.ress[res] || 0;
         state.ress[res] += amount;
+        
+        if (!state.cost[res]) {state.cost[res] = 0;}
+        state.cost[res] += amount;
+
         return state;
 
       } else {return null;}
@@ -65,25 +84,11 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        amount = amount || 1;
         unit = H.QRY(name).first();
-
-        if (unit.costs){
-          state.ress = state.ress || {};
-          ['food', 'wood', 'metal', 'stone'].forEach(function(res){
-            if (unit.costs[res]) {
-              state.ress[res] = state.ress[res] || 0;
-              state.ress[res] -= amount * unit.costs[res];
-            }
-          });
-          if (unit.costs.population > 0){
-            state.ress.pop += unit.costs.population;
-          }
-        } 
-
-        state.ents = state.ents || {};
+        applyCosts(state, unit.costs, amount);
         state.ents[name] = state.ents[name] || 0;
         state.ents[name] += amount;
+
         return state;
 
       } else {return null;}
@@ -96,26 +101,11 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        amount = amount || 1;
         struc = H.QRY(name).first();
-
-        if (struc.costs){
-          state.ress = state.ress || {};
-          ['food', 'wood', 'metal', 'stone'].forEach(function(res){
-            if (struc.costs[res]) {
-              state.ress[res] = state.ress[res] || 0;
-              state.ress[res] -= amount * struc.costs[res];
-            }
-          });
-          if (struc.costs.population < 0){
-            state.ress.popcap -= struc.costs.population;
-          }
-
-        } 
-
-        state.ents = state.ents || {};
+        applyCosts(state, struc.costs, amount);
         state.ents[name] = state.ents[name] || 0;
         state.ents[name] += amount;
+
         return state;
 
       } else {return null;}
@@ -124,12 +114,17 @@ HANNIBAL = (function(H){
 
     research_tech: function (state, name) {
 
+      var tech;
+
       if (true){
 
-        state.tech = state.tech || [];
-        if (state.tech.indexOf(name) === -1){
-          state.tech.push(name);
-        }
+        tech = H.QRY(name).first();
+        applyCosts(state, tech.costs, 1);
+        state.tech.push(name);
+
+        if (name === 'phase.town.athen'){state.tech.push('phase.town');}
+        if (name === 'phase.city.athen'){state.tech.push('phase.city');}
+
         return state;
 
       } else {return null;}

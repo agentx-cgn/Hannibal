@@ -10,9 +10,29 @@ body {overflow-y: scroll;}
 
 br {clear: left;}
 
+
+#debug a {
+  color: red;
+  text-decoration: none;
+}
+
 a {
   color: #ddd;
   text-decoration: none;
+}
+
+div#contMenu {
+  position: fixed;
+  top: 0px;
+  width: 100%;  
+}
+
+div.menu {
+  height: 22px;
+  margin: 0 auto;  
+  width: 800px;  
+  border-bottom: 2px solid rgba(250, 250, 250, 0.5);
+  padding: 4px 2px 0px 2px;
 }
 
 .menu {
@@ -25,6 +45,7 @@ a {
 .menu ul {
   margin: 0 0 8px 0;
   list-style-type: none;
+  padding: 0 0 0 20px;
 }
 
 .menu li {
@@ -35,28 +56,57 @@ a {
   padding: 0 4px 2px 4px;
   cursor: pointer; 
 }
+
 .menu li:hover {
   color: #fff;
 }
 
-.panel {display: none;}
+select#slcCivs {
+  float: none;
+  background: none repeat scroll 0% 0% #555;
+  color: #F8F8F8;
+  font-weight: 800;
+  padding: 1px;
+  vertical-align: top;
+  margin: 0;  
+}
+
+select#slcVerbose {
+  float: none;
+  background: none repeat scroll 0% 0% #555;
+  color: #F8F8F8;
+  font-weight: 800;
+  padding: 1px;
+  vertical-align: top;
+  margin: 0;  
+}
+
+.content {width: 100%; margin: 0 auto; background: #ccc; margin-top: 26px;}
+.trenner {clear: both;}
+
+.panel   {width: 800px; margin: 0 auto; display: none;  padding-top: 8px;}
+.content {width: 800px; margin: 0 auto; background: #ccc; padding: 2px; margin-top: 26px;}
+.results {width: 800px; margin: 0 auto; background: rgba(249, 249, 249, 1); padding: 2px;}
+.timing  {width: 800px; margin: 0 auto; background: #ddd; padding: 2px;}
+#debug   {width: 800px; margin: 8px auto; color: #a33; font-weight: 800;}
 
 #jsonTECH {
   font-size: 10px;  
   background: #f4f4f4;
 }
+#ifoResult {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  font-weight: 400;
+  background: rgba(233, 234, 255, 1);
+}
 
-
-.content {width: 800px; margin: 0 auto; background: #ccc; padding: 2px;}
-.results {width: 800px; margin: 0 auto; background: #eee; padding: 2px;}
-.timing  {width: 800px; margin: 0 auto; background: #ddd; padding: 2px;}
-#debug   {width: 800px; margin: 8px auto; color: #a33; font-weight: 800;}
 
 /*thead {border-bottom: 1px solid white;}*/
 thead td {font-weight: 800; font-size: 12px; border-bottom: 2px solid black;}
 
 td {
-  font-size: 10px;
+  font-size: 10.5px;
   vertical-align: top;
 }
 
@@ -90,13 +140,6 @@ table {
 textarea.f11 {font-size: 11px;}
 span.f80 {font-size: 80%;}
 
-#ifoResult {
-  margin: 4px 0 0 0;
-  font-size: 11px;
-  font-weight: 400;
-  background: rgba(233, 234, 255, 1);
-}
-
 textarea, select {
   background: #eee;
   border: 1px solid #999;
@@ -106,8 +149,11 @@ textarea, select {
   float: left; 
 }
 
-button {
+button:hover {
   color: white;
+}
+button {
+  color: #eee;
   background: #666;
   font-size: 12px;
   font-weight: 800;
@@ -125,5 +171,5 @@ label {
   float: left;  
   text-align: right;
   padding-right: 4px;
-  padding-top: 2px;
+  padding-top: 4px;
 }

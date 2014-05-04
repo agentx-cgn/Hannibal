@@ -1,10 +1,10 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals Engine, HANNIBAL, H, deb */
 
-/*--------------- P L A N N E R -----------------------------------------------
+/*--------------- D I S P L A Y -----------------------------------------------
 
-  Port of the file: blocks_world_examples.py + the helper function from 
-  the method files
+  manages explorer interface
+
 
 
   tested with 0 A.D. Alpha 15 Osiris
@@ -15,27 +15,7 @@
 HANNIBAL = (function(H){
 
   var gid = document.getElementById.bind(document),
-      store, 
-      firstCiv, 
-      loadedCivs = [],
-      civs     = {
-        'athen': {},
-         // 'brit': {},
-        //  'cart': {},
-        //  'celt': {},
-        //  'gaul': {},
-        //  'gaia': {},
-         'hele': {},
-        //  'iber': {},
-         'mace': {},
-        //  'maur': {},
-        //  'pers': {},
-        //  'ptol': {},
-        //  'rome': {},
-        //  'sele': {},
-        // 'spart': {},
-        //  'theb': {}
-      },
+      availableCivs = [],
       modes    = [
         "info", 
         "cost", 
@@ -154,21 +134,6 @@ HANNIBAL = (function(H){
 
   }
 
-  H.prepare = function(){
-
-    H.each(civs, function(civ, obj){
-      if (window["store_" + civ]){
-        firstCiv = !firstCiv ? civ : firstCiv;
-        loadedCivs.push(civ);
-        obj.store  = window["store_" + civ] || {};
-        // loadCult(civ, obj);
-      } else {
-        console.log("did not load", civ);
-      }
-    });
-
-  };
-
   H.analyze = function (name){
 
     var t0 = Date.now(),
@@ -213,7 +178,7 @@ HANNIBAL = (function(H){
         }
         switch (mode) {
           case "info" :        
-            append(H.format("<tr><td></td><td></td><td class='cl' onclick='H.analyze(\"%s\")'>%s</td><td class='el' >%s</td></tr>", node.name, node.name, node.info));
+            append(H.format("<tr><td></td><td></td><td class='cl' onclick='H.analyze(\"%s\")'>%s</td><td class='el' >%s</td></tr>", node.name, node.name, node.info || "undefined"));
           break;
           case "json" :
             append(H.format("<tr><td></td><td></td><td class='cl' onclick='H.analyze(\"%s\")'>%s</td><td></td><td></td></tr>", node.name, node.name));
@@ -239,7 +204,7 @@ HANNIBAL = (function(H){
 
     ifoResult.innerHTML = H.format(
       "store: %s, nodes: %s, edges: %s, queries: %s, length: %s, %s ops, %s msecs", 
-      slcCivs.value, nodes.stats.nodes, nodes.stats.edges, nodes.stats.verbs, s.length, s.ops, s.msecs
+      H.Bot.civ, nodes.stats.nodes, nodes.stats.edges, nodes.stats.verbs, s.length, s.ops, s.msecs
     );
 
 
@@ -248,27 +213,43 @@ HANNIBAL = (function(H){
 
   H.Display = {
 
-    import: function(civ){
-      civ = civ || firstCiv;
-      store = window["store_" + civ];
-      H.store = new H.Store;
-      H.store.importFromJSON(store);
-      TIM.step("loaded", civ);
+
+    prepare: function(){
+
+      H.each(H.Data.Civilisations, function (civ, value) {
+        if (window["store_" + civ]){
+          availableCivs.push(civ);
+        }
+      });
+      this.populateSelectBox($("slcCivs"), availableCivs);
+
     },
 
+    import: function(civ){
+      var s;
+      $("slcCivs").value = civ;
+      H.store = new H.Store;
+      H.store.importFromJSON(window["store_" + civ]);
+      s = H.store;
+      $("ifoResult").innerHTML = H.format("store: %s, nodes: %s, edges: %s", civ, H.count(s.nodes), s.edges.length);      
+      H.Bot.civ = civ;
+      TIM.step("loaded", civ);
+    },  
+
     hide: function(){
-      contASM.style.display = "none";
-      contHTN.style.display = "none";
-      contHCQ.style.display = "none";
-      contHTN0AD.style.display = "none";      
-      contMMAP.style.display = "none";      
+      $("menVerbose").style.display = "none";
+      // $("contASM").style.display = "none";
+      // $("contHTN").style.display = "none";
+      $$(".contHCQ").style.display = "none";
+      $$(".contHTN0AD").style.display = "none";      
+      $$(".contMMAP").style.display = "none";      
       $$(".contTECH").style.display = "none";    
     },
 
-    clear: function(){
+    clear: function(notifo){
       debug.innerHTML = "";
       tblResult.innerHTML = "";
-      ifoResult.innerHTML = "";
+      if (notifo) {$("ifoResult").innerHTML = "";}
     },
 
     init: function(){
@@ -276,17 +257,17 @@ HANNIBAL = (function(H){
       var HD = H.Display;
 
       // polluting global on purpose
-      contHTN0AD = document.querySelector(".contHTN0AD");
-      contASM    = document.querySelector(".contASM");
-      contHTN    = document.querySelector(".contHTN");
-      contHCQ    = document.querySelector(".contHCQ");
-      contMMAP   = document.querySelector(".contMMAP");
-      menASM     = gid("menASM");
-      menHQC     = gid("menHQC");
-      menHTN     = gid("menHTN");
+      // contHTN0AD = document.querySelector(".contHTN0AD");
+      // contASM    = document.querySelector(".contASM");
+      // contHTN    = document.querySelector(".contHTN");
+      // contHCQ    = document.querySelector(".contHCQ");
+      // contMMAP   = document.querySelector(".contMMAP");
+      // menASM     = gid("menASM");
+      // menHQC     = gid("menHQC");
+      // menHTN     = gid("menHTN");
       menHTN0AD  = gid("menHTN0AD");
       txtHQC     = gid("txtHQC");
-      slcCivs    = gid("slcCivs");
+      // slcCivs    = gid("slcCivs");
       slcVerbs   = gid("slcVerbs");
       slcNodes   = gid("slcNodes");
       slcModes   = gid("slcModes");
@@ -299,9 +280,9 @@ HANNIBAL = (function(H){
       ifoResult  = gid("ifoResult");
       debug      = gid("debug");
 
-      this.populateSelectBox(slcCivs,  loadedCivs);
-      this.populateSelectBox(slcVerbs, store.verbs.map(String.toUpperCase));
-      this.populateSelectBox(slcNodes, H.attribs(store.nodes));
+      
+      this.populateSelectBox(slcVerbs, H.store.verbs.map(String.toUpperCase));
+      this.populateSelectBox(slcNodes, H.attribs(H.store.nodes));
       this.populateSelectBox(slcExams, examples);
       // this.populateSelectBox(slcModes, modes);
 
@@ -311,42 +292,44 @@ HANNIBAL = (function(H){
       //   contMMAP.style.display = "block";
       // }
 
-      gid("menTECH").onclick = function(){
-        HD.hide();HD.clear();
+      gid("menTECH").onclick = function(notifo){
+        HD.hide();HD.clear(notifo);
         tblResult.style.tableLayout = "fixed";
         $$(".contTECH").style.display = "block";
         $("jsonTECH").innerHTML = pritJSON(techTemplates);
       }
 
-      menASM.onclick = function(){
-        HD.hide();HD.clear();
-        tblResult.style.tableLayout = "fixed";
-        contASM.style.display = "block";
-      }
+      // $("menASM").onclick = function(){
+      //   HD.hide();HD.clear();
+      //   tblResult.style.tableLayout = "fixed";
+      //   contASM.style.display = "block";
+      // }
 
-      menHQC.onclick = function(){
-        HD.hide();HD.clear();
+      menHQC.onclick = function(notifo){
+        HD.hide();HD.clear(notifo);
         tblResult.style.tableLayout = "auto";
-        contHCQ.style.display = "block";
+        $$(".contHCQ").style.display = "block";
       }
 
-      menHTN.onclick = function(){
-        HD.hide();HD.clear();
+      // menHTN.onclick = function(){
+      //   HD.hide();HD.clear();
+      //   tblResult.style.tableLayout = "fixed";
+      //   contHTN.style.display = "block";
+      // }
+
+      menHTN0AD.onclick = function(notifo){
+        HD.hide();HD.clear(notifo);
+        $("menVerbose").style.display = "block";
         tblResult.style.tableLayout = "fixed";
-        contHTN.style.display = "block";
+        $$(".contHTN0AD").style.display = "block";
       }
 
-      menHTN0AD.onclick = function(){
-        HD.hide();HD.clear();
-        tblResult.style.tableLayout = "fixed";
-        contHTN0AD.style.display = "block";
-      }
-
-      slcCivs.onchange = slcCivs.onselect = function(){
-        tblResult.innerHTML = "";
-        H.Display.import(slcCivs.value);
+      $("slcCivs").onchange = $("slcCivs").onselect = function(){
+        H.Bot.civ = $("slcCivs").value;
+        HD.clear();
+        H.Display.import(H.Bot.civ);
         slcNodes.innerHTML = "";
-        H.Display.populateSelectBox(slcNodes, H.attribs(store.nodes));
+        H.Display.populateSelectBox(slcNodes, H.attribs(H.store.nodes));
       }
 
       slcExams.onchange = slcExams.onselect = function(){
@@ -366,13 +349,13 @@ HANNIBAL = (function(H){
       };
 
       gid("btnHTN0ADT1").onclick = function(){
-        H.HTN.Hannibal.Example1(~~(gid("slc0ADVerbose").value));
+        H.HTN.Hannibal.Example1(~~(gid("slcVerbose").value));
       };
       gid("btnHTN0ADT2").onclick = function(){
-        H.HTN.Hannibal.Example2(~~(gid("slc0ADVerbose").value));
+        H.HTN.Hannibal.Example2(~~(gid("slcVerbose").value));
       };
       gid("btnHTN0ADT3").onclick = function(){
-        H.HTN.Hannibal.Example3(~~(gid("slc0ADVerbose").value));
+        H.HTN.Hannibal.Example3(~~(gid("slcVerbose").value));
       };
 
       btnHTN0ADSTRESS.onclick = function(){
@@ -396,7 +379,7 @@ HANNIBAL = (function(H){
           return;
         }
 
-        verbose = ~~(gid("slc0ADVerbose").value)
+        verbose = ~~(gid("slcVerbose").value)
         loops   = ~~(gid("slcStress").value.split(".").join(""))
 
         H.HTN.Hannibal.runStress(state, goal, loops);
@@ -404,29 +387,68 @@ HANNIBAL = (function(H){
       };
 
 
+      btnPlan.onclick = function(){
+
+        var state = "", goal = "", node, centre;
+
+        $("debug").innerHTML = "";
+
+        state += '{';
+        state += '"ress": {},';
+        state += '"ents": {"structures.%s.civil.centre": 1},';          // Node
+        state += '"tech": ["phase.village"]';
+        state += '}';
+
+        goal  += '{';
+        goal  += '"ress": {},';
+        goal  += '"ents": {"%s": 1},';           // CC
+        goal  += '"tech": []';        
+        goal  += '}';
+
+        $("txtHQC").value = $("slcNodes").value;
+        try {
+          state = JSON.parse(H.format(state, H.Bot.civ));
+        } catch(e){
+          $("debug").innerHTML  = "Error: Check JSON of state<br />";
+          $("debug").innerHTML += "<span class='f80'>[" + e + "]</span>";
+          return;
+        }
+
+        try {
+          goal = JSON.parse(H.format(goal,  $("slcNodes").value));
+        } catch(e){
+          $("debug").innerHTML  = "Error: Check JSON of goal<br />";
+          $("debug").innerHTML += "<span class='f80'>[" + e + "]</span>";
+          return;
+        }
+
+        H.HTN.Hannibal.runExample(state, goal, ~~(gid("slcVerbose").value), $("slcNodes").value);
+
+      };
+
       btnHTN0ADGO.onclick = function(){
 
-        var state, goal, verbose,
-            debug = document.getElementById("debug");
+        var state, goal;
+
+        $("debug").innerHTML = "";
 
         try {
           state = JSON.parse("{" + gid("txtState").value.trim() + "}");
         } catch(e){
-          debug.innerHTML = "Error: Check JSON of state<br />";
-          debug.innerHTML += "<span class='f80'>[" + e + "]</span>";
+          $("debug").innerHTML = "Error: Check JSON of state<br />";
+          $("debug").innerHTML += "<span class='f80'>[" + e + "]</span>";
           return;
         }
 
         try {
           goal = JSON.parse("{" + gid("txtGoal").value.trim() + "}");
         } catch(e){
-          debug.innerHTML = "Error: Check JSON of goal<br />";
-          debug.innerHTML += "<span class='f80'>[" + e + "]</span>";
+          $("debug").innerHTML = "Error: Check JSON of goal<br />";
+          $("debug").innerHTML += "<span class='f80'>[" + e + "]</span>";
           return;
         }
 
-        verbose = ~~(gid("slc0ADVerbose").value)
-        H.HTN.Hannibal.runExample(state, goal, verbose);
+        H.HTN.Hannibal.runExample(state, goal, ~~(gid("slcVerbose").value));
 
       };
       btnAnalyze.onclick = function(){
@@ -445,6 +467,7 @@ HANNIBAL = (function(H){
             counter = 1, counter1 = 0;
 
         tblResult.innerHTML = "";
+        $("debug").innerHTML = "";
 
         switch (mode) {
           case "info" : 
@@ -481,7 +504,7 @@ HANNIBAL = (function(H){
         s = nodes.stats;
         ifoResult.innerHTML = H.format(
           "store: %s, nodes: %s, edges: %s, length: %s, %s ops, %s msecs, cached: %s, hits: %s", 
-          slcCivs.value, s.nodes, s.edges, s.length, s.ops, s.msecs, s.cached, s.hits
+          H.Bot.civ, s.nodes, s.edges, s.length, s.ops, s.msecs, s.cached, s.hits
         );
 
         tblResult.innerHTML = html;

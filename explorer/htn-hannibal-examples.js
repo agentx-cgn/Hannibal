@@ -24,7 +24,12 @@ HANNIBAL = (function(H){
         var args = arguments,
             html = "";
         if (args.length === 0) {args = ["**"];}
-        if (args.length === 1) {args = ["%s", args[0]];}
+        if (args.length === 1) {
+          switch (args[0]){
+            case "<trenner>": tblResult.innerHTML += "<tr style='line-height: 5px'><td>&nbsp;</td></tr>"; return; 
+          }
+          args = ["%s", args[0]];
+        }
         html += H.format("<tr><td class='nw'>%s</td></tr>", H.format.apply(H, args));
         tblResult.innerHTML += html;
       };
@@ -58,28 +63,21 @@ HANNIBAL = (function(H){
     deb();
     state.ress = {food: 100};
 
-    deb('\n- these operators should succeed:');
-    plan(state, [['inc_resource', 'food', 50]], verbose);
-    plan(state, [['train_units', 'units.athen.support.female.citizen']], verbose);
-    plan(state, [['build_structures', 'structures.athen.farmstead']], verbose);
-    plan(state, [['research_tech', 'armor.ship.hullsheathing']], verbose);
-    plan(state, [['wait_secs', 10]], verbose);
+    deb('\n- <b style="color: #383">these operators should succeed:');
+    plan(state, [['init', goal], ['inc_resource', 'food', 50]], verbose);
+    plan(state, [['init', goal], ['train_units', 'units.athen.support.female.citizen']], verbose);
+    plan(state, [['init', goal], ['build_structures', 'structures.athen.farmstead']], verbose);
+    plan(state, [['init', goal], ['research_tech', 'armor.ship.hullsheathing']], verbose);
+    plan(state, [['init', goal], ['wait_secs', 10]], verbose);
     deb();
 
-    deb('\n- this method should succeed:');
-    plan(state, [['start', goal]], verbose);
-    // plan(state, [['produce', 'structures.athen.barracks']], verbose);
-    // deb();
+    deb('\n- <b style="color: #833">this method should fail (empty task list, init only):</b>');
+    plan(state, [['init', goal]], verbose);
+
+    deb('\n- <b style="color: #833">this method should fail (no solution):</b>');
+    plan(state, [['init', goal], ['produce', 'structures.athen.barracks']], verbose);
+    deb();
   
-    // deb();
-    // deb('\n- these should succeed:');
-    // deb("- Define state: food = 100");
-    // deb("- Define  goal: food = 300");deb();
-    // state.ress = {food: 100};
-    // goal.ress  = {food: 200};
-
-    // plan(state, [['start', goal]], verbose);
-
     deb('\n- done');
 
   };  
@@ -104,6 +102,8 @@ HANNIBAL = (function(H){
       "****************************************"
     );
 
+    deb();
+    deb('\n- <b style="color: #383">All tests should succeed:');
     deb();
     deb("- Define state: food: 100");
     deb("- Define goal: food: 200");
@@ -160,9 +160,11 @@ HANNIBAL = (function(H){
     );
 
     deb();
+    deb('\n- <b style="color: #383">All tests should succeed:');
+    deb();
     deb("- Goal: train units.athen.support.female.citizen: 1");
     deb();
-    deb(H.HTN.pritObj(goal));
+    deb(H.HTN.Helper.pritObj(goal));
     deb();
     
     plan(state, [['start', goal]], verbose);
@@ -185,7 +187,7 @@ HANNIBAL = (function(H){
     });
 
     deb();
-    deb(H.HTN.pritObj(goal));
+    deb(H.HTN.Helper.pritObj(goal));
     deb();
     
     plan(state, [['start', goal]], verbose);
@@ -211,12 +213,12 @@ HANNIBAL = (function(H){
     deb = newDeb;
     deb();
     deb("FireFox warns, if scripts run longer than 1 sec!");
-    deb("initializes goal with autoresearch, population cap, etc");
+    deb();
     deb("running planner * %s, please wait ...", loops);
 
     function logCache(){
       deb();
-      deb("Cache usage:");
+      deb("<b>Cache usage:</b>");
       H.each(H.store.cache, function(q, o){
         deb("&nbsp;&nbsp;%s, %s", tab(o.hits, 4), q);
       });
@@ -235,7 +237,7 @@ HANNIBAL = (function(H){
       infoM = H.store.cacheMiss  - infoM;
 
       deb();
-      deb("Finished:")
+      deb("<b>Finished:</b>")
       deb('&nbsp;&nbsp;%s msecs, avg: %s, iterations: %s, depth: %s, queries: %s, cacheHit: %s, cacheMiss: %s', 
           t1-t0, ((t1-t0)/loops).toFixed(1), H.HTN.iterations(), H.HTN.depth(), infoQ, infoH, infoM
       );
@@ -243,12 +245,12 @@ HANNIBAL = (function(H){
       deb('\n- done');
       deb = oldDeb;
 
-    }, 10);
+    }, 300);
 
     // deb("running planner * %s, please wait ...", loops);
 
   };
-  H.HTN.Hannibal.runExample = function(oState, oGoal, verbose){
+  H.HTN.Hannibal.runExample = function(oState, oGoal, verbose, info){
 
     var logState = H.HTN.logState,
         state = new H.HTN.State("state", oState),
@@ -256,6 +258,7 @@ HANNIBAL = (function(H){
         prit  = H.prettify;
 
     verbose = verbose || 0;
+    info    = info    || "";
 
     // H.HTN.Hannibal.init();
     H.each(H.HTN.Hannibal.operators, H.HTN.addOperator);
@@ -263,11 +266,15 @@ HANNIBAL = (function(H){
 
     clear();
     deb = newDeb;
+
+    if (info){
+      deb();deb("<b>Planning for Entity: %s</b>", info);
+    }
     deb();
-    deb("initializes goal with autoresearch, population cap, etc");
-    deb("state: %s", prit(state));
-    deb("goal:");
-    deb(H.HTN.pritObj(goal));
+    deb("<b>state:</b>");
+    deb(H.HTN.Helper.pritObj(state));
+    deb("<b>goal:</b>");
+    deb(H.HTN.Helper.pritObj(goal));
 
     H.HTN.Planner.plan(state, [['init', goal]], verbose);
 

@@ -4,6 +4,8 @@
 /*--------------- T E S T E R -------------------------------------------------
 
   fires a set of functions at given tick, useful to test bot on specific maps
+  sequence keys are documented in maps/readme-maps.md
+  active sequence comes from 
 
 
 
@@ -17,54 +19,62 @@ HANNIBAL = (function(H){
   function destroy(id){Engine.PostCommand(H.Bot.id, {"type": "delete-entities", "entities": [id]});}
   function chat(msg)  {Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});}
 
-  // active subset
-  var active = "";
-
-  // check maps/readme-maps.md
-  var config = {
-    'aitest03': {
-       '1': ["Running Tester"],
-       '2': [H.Groups.launch.bind(null, "g.grainpicker", 44), "launching group grainpicker #1"], 
-       '3': [H.Groups.launch.bind(null, "g.grainpicker", 44), "launching group grainpicker #2"],
-      '28': [destroy.bind(null, 221), "destroying female unit"],
-      '29': [destroy.bind(null, 222), "destroying female unit"],
-      '22': [destroy.bind(null, 216), "destroying field"],
-    }
-  };
+  var self, 
+      tick = 0, 
+      sequence = "", // sequence subset
+      // if any of these evaluates to a string, it gets chatted
+      sequences = {
+        'aitest03': {
+           '1': [() => "Running Tester with: " + sequence],
+           '2': [H.Groups.launch.bind(null, "g.grainpicker", 44), "launching group grainpicker #1"], 
+           '3': [H.Groups.launch.bind(null, "g.grainpicker", 44), "launching group grainpicker #2"],
+          '22': [destroy.bind(null, 216), "destroying field"],
+          '28': [destroy.bind(null, 221), "destroying female unit"],
+          '29': [destroy.bind(null, 222), "destroying female unit"],
+        }
+      };
 
   // fires functions at give tick num, 
   H.Tester = (function(){
 
-    var self, t0, triggers, tick = 0;
+    var t0, triggers;
     
     return {
       init:     function(){self = this; return self;},
-      activate: function(item){
-        active = item;
-        deb("TESTER: activated: %s", active);
+      activate: function(seq){
+        sequence = seq || H.Config.sequence;
+        deb("TESTER: activated sequence: %s", sequence);
       },
       log:      function(){
-        var cnt = H.count(config[active]),
-            lst = H.attribs(config[active]);
+        var cnt = H.count(sequences[sequence]),
+            lst = H.attribs(sequences[sequence]).join(",");
         deb();
         deb();
-        deb("******: TESTER active with %s ticks at %s", cnt, lst);
+        deb("******: TESTER running sequence: %s with %s ticks [%s]", sequence, cnt, lst);
         deb();
         deb();
+      },
+      evaluate: function(item){
+        return (
+          typeof item === "string"   ? chat(H.format("# %s %s", tick, item)) :
+          typeof item === "function" ? self.evaluate(item()) :
+            undefined
+        );
       },
       tick:     function(secs){
         t0 = Date.now();
-        if (config[active] && tick === 0){self.log();}
-        if (config[active] && config[active][+tick]){
-          triggers = config[active][+tick];
-          deb("      T: firing: %s, tick: %s", active, tick);
-          triggers.forEach(function(item){
-            if (typeof item === "string"){
-              chat(item);
-            } else if (typeof item === "function"){
-              item();
-            }
-          });
+        if (sequences[sequence]){
+          if (tick === 0){self.log();}  
+          if (sequences[sequence][+tick]){
+
+            deb("      T: firing: %s, tick: %s", sequence, tick);
+            
+            triggers = sequences[sequence][+tick];
+            triggers.forEach(function(item){
+              self.evaluate(item);
+            });
+
+          }
         }
         tick += 1;
         return Date.now() - t0;

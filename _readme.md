@@ -4,6 +4,129 @@
 
 structures.athen.field, structures.athen.dock WITH cost.population === 0
 
+## fun with planning ##
+
+At game start or load a bot is thrown into cold water. He might discover a very hostile environment in terms of resources, units, buildings and enemies. Interestingly game start and end can be very similar, meaning eveything is low, if the human opponnent has victory within his grasp. But a bot doesn't give up, as long there is a small chance of success - he takes it, right?
+
+What is the worst case? Let's say no civic centers. That's close to ground zero in 0 A.D., because without CC you lack the territory to build any other structure. So, naturally the very first questions in this case are: Can I build a CC? And if not, what can I do at all? It turns out, these are very complex questions.
+
+Let's start with some simple conditions:
+
+  has only resources    
+    -> whiteflag
+  has only buildings    
+    -> whiteflag
+  has only units    
+    -> whiteflag or fight like hell
+
+Ok, that's not so difficult. And it looks translatable into straight forward JavaScript, too. Here comes the next level:
+
+  has buildings, units, no resources
+    has no CC
+      has no CC builder
+        can not train CC builder
+          -> whiteflag or fight like hell
+        can train CC builder
+          -> gather resources
+          -> train CC builder
+          -> construct CC
+      has CC builder
+        -> gather resources
+        -> construct CC
+
+
+Actually that's only the surface. It assumes the units are not champions and the needed resources are available. Here are a few more:
+
+  has buildings, resources, no units
+    has no CC
+      can train CC builder
+        -> train CC builder
+        -> construct CC
+      can not train CC builder
+        -> whiteflag
+
+  has units, resources, no buildings
+    has no CC
+      has no CC builder
+        -> whiteflag or fight like hell
+      has CC builder
+        -> construct CC
+
+and finally:
+
+  has units, resources, buildings
+    has no CC
+      has CC builder
+        -> construct CC
+      has no CC builder
+        can train CC builder
+          -> train builder
+          -> construct CC
+        can not train CC builder
+          -> whiteflag or fight like hell
+
+Can you imagine how many conditions the bot has to check just to find out he has definetly lost? Now add more edge cases, mixin technologies, multiply with all buildings and all factions and you'll end up with tens of thousands lines of code, hard to read, difficult to maintain and taking months to write.
+
+That's where planners jump in. They know which conditions to check and how to answer them. Ontop they come up with a list of actions to reach your goal or none if your goal is unreachable.
+
+HTN (hierarchical task network) planners are conceptually fairly simple, but extremely powerful. They define a state, that's the starting point, a goal and operators and methods, the latter are just functions. Operators can change the state and methods result in more methods or operators. 
+
+So, you initialize a planner with a state, your goal and then call the first method. From there it tries to decompose the problem until only an ordered list of operators is left - that's your plan.
+
+A 0 A.D example:
+
+state = {
+  resources: {food: 300, wood: 300},
+  entities: {
+    structures.athen.civil.centre: 1
+    },
+  technologies: [phase.village]
+};
+
+goal = {
+  resources: {},
+  entities: {
+    structures.athen.field: 1},
+  technologies: [gather.wicker.baskets]
+}
+
+The goal basically says: I don't care about resources and the civic centre, but in any case I want a field and foragers better equipped. Do you see the two traps? 
+
+Here's the plan:
+
+HTN: SUCCESS, actions: 8, 1 msecs
+  op:   1, train_units ( units.athen.support.female.citizen, 1 )
+  op:   2, wait_secs ( 10 )
+  op:   3, build_structures ( structures.athen.farmstead, 1 )
+  op:   4, wait_secs ( 45 )
+  op:   5, build_structures ( structures.athen.field, 1 )
+  op:   6, wait_secs ( 100 )
+  op:   7, research_tech ( gather.wicker.baskets, 1 )
+  op:   8, wait_secs ( 40 )
+
+See how the planner automatically found out he needs a builder for the field and the farmstead for the technology.
+
+And the final state:
+
+resources: { food: 250, wood: 150, time: 195, metal: 0, stone: 0, pop: 1, popmax: 300, popcap: 20 }
+entities: {
+  structures.athen.civil.centre: 1
+  units.athen.support.female.citizen: 1
+  structures.athen.farmstead: 1
+  structures.athen.field: 1
+}
+technologies: [phase.village, gather.wicker.baskets]
+
+... which can be used for your next goal. HTN Planners are well used in RTS games. The net has a few nice presentations, google them. Some games have highly optimized ones, checking hundreds of plans each tick, looking for the optimal strategy to keep the human opponent entertained.
+
+So far this planner lacks a few features, he needs a better awareness of time e.g. calculate how long it takes to get a given amount of resources and more challenging learns the concept of parallel tasks.
+
+I'll continue when it produces heros :)
+
+
+
+
+
 
 ### Balance Sheet
 
@@ -251,24 +374,5 @@ have 2 civs, 13 verbs, 342 nodes, 2172 edges
           -> construct CC
         can not train CC builder
           -> whiteflag or fight like hell
-
-
-
-
-
-
-
-### hot keys ###
-
-Alt + G: Hide/show the GUI
-Alt + D: Show/hide developer overlay (with developer options)
-Alt + W: Toggle wireframe mode (press once to get wireframes overlaid over the textured models, twice to get just the wireframes colored by the textures, thrice to get back to normal textured mode)
-Alt + S: Toggle unit silhouettes (might give a small performance boost)
-Alt + Z: Hide/show sky
-Space: If timewarp mode enabled (in the developer overlay), speed up the game
-Backspace: If timewarp mode enabled (in the developer overlay), go back to an earlier point in the game
-Alt + K: Show the 0 A.D. logo and copyright notice as a watermark for images.
-~ or F9: Show/hide the Javascript console.
-
 
 

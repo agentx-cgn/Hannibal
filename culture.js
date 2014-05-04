@@ -613,6 +613,12 @@ HANNIBAL = (function(H){
           // <MaxRange>5.0</MaxRange>
           // <MinRange>0.0</MinRange>
         // </Charge>
+        // <Slaughter>
+        //   <Hack>25.0</Hack>
+        //   <Pierce>0.0</Pierce>
+        //   <Crush>0.0</Crush>
+        //   <MaxRange>4.0</MaxRange>
+        // </Slaughter>        
       // </Attack>    
     },
     getModifications: function(template){
@@ -742,8 +748,9 @@ HANNIBAL = (function(H){
           TC = template.Cost, // ents
           tc = template.cost; // tech
       if (TC !== undefined){
-        if (TC.Population)       {costs.population =  ~~TC.Population;} 
-        if (TC.PopulationBonus)  {costs.population = -~~TC.PopulationBonus;} 
+        costs.population = ~~TC.Population || -~~TC.PopulationBonus || 0
+        // if (TC.Population)       {costs.population =  ~~TC.Population;} 
+        // if (TC.PopulationBonus)  {costs.population = -~~TC.PopulationBonus;} 
         if (TC.BuildTime)        {costs.time       =  ~~TC.BuildTime;}
         if (TC.ResearchTime)     {costs.time       =  ~~TC.ResearchTime;}
         if (TC.Resources){

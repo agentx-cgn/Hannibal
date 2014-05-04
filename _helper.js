@@ -79,6 +79,19 @@ extend(H, {
   removeAll:  function (a,v){var i,j,l;for(i=0,j=0,l=a.length;i<l;i++) {if(a[i]!==v){a[j++]=a[i];}}a.length=j;},
   remove:     function (a,e){var i=a.indexOf(e); if (i!==-1){a.splice(i, 1);}},
   flatten:    function (a){return Array.prototype.concat.apply([], a);},
+  pushUnique: function (a,e){if(a.indexOf(e)===-1){a.push(e);};return a;},
+
+  intersect:  function(a,b){
+    var ai=0,bi=0,al=a.length,bl=b.length,r=[];a=a.sort();b=b.sort();
+    while( (ai < al) && (bi < bl) ){
+      if      (a[ai] < b[bi] ){ ai++; }
+      else if (a[ai] > b[bi] ){ bi++; }
+      else /* they're equal */ {
+        r.push(a[ai]);
+        ai++;
+        bi++;
+    }}return r;
+  },
 
   // ES6 Suite
   unique:     function (a){return [...(new Set(a))];},

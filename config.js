@@ -17,13 +17,19 @@ HANNIBAL = (function(H){
   H.Config = {
 
     //logging 0=zero, 1=errors, 2=errors+warnings, 3=everything
-    deb:   3,                   // enables messages to dbgView via _xdebug.js.deb()
-    con:   1,                   // enables messages to the in game console via _xdebug.js.con()
+    deb:      3,                   // enables messages to dbgView via _xdebug.js.deb()
+    con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
-    brag:  true,  // enable psy-ops
+    // "" disables H.Tester
+    sequence: "aitest03",
 
-    angle: 3 * Math.PI/4,       // depends on first CC
-    seed:  1234,                // random
+    // enable psy-ops
+    brag:     true,  
+
+    angle:    3 * Math.PI/4,       // depends on first CC
+
+    // seed for H.Random
+    seed:     1234,                
 
     data:                    {
       civs:                  ['athen', 'brit', 'cart', 'celt', 'gaia', 'gaul', 'hele', 'iber', 'mace', 

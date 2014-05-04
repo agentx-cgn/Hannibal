@@ -68,6 +68,7 @@ HANNIBAL = (function(H){
         }
       });
 
+      this.cntNodes -= 1;
       delete this.nodes[name];
 
     },
@@ -218,6 +219,10 @@ HANNIBAL = (function(H){
     filter: function(fn, format, debug, debmax, comment){
       var nodes = this.execute(format, debug, debmax, comment);
       return nodes.filter(fn);
+    },
+    map: function(fn, format, debug, debmax, comment){
+      var nodes = this.execute(format, debug, debmax, comment);
+      return nodes.map(fn);
     },
     execute: function(format, debug, debmax, comment){
 

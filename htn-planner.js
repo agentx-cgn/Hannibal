@@ -14,7 +14,7 @@
 
 HANNIBAL = (function(H){
 
-  var maxIterate = 100,
+  var maxIterate = 500,
       maxDepth   = 0,
       cntIterate = 0,
 
@@ -49,64 +49,24 @@ HANNIBAL = (function(H){
     methods[name] = method;
   }
 
-  // function addMethods(name /* functions */){
-  //   methods[name] = H.toArray(arguments).slice(1);
-  // }
-
-  function Goal(name, json){
+  function Goal(name, obj){
     this.name = name;
-    H.extend(this, json || {});
+    H.extend(this, obj || {});
   }
 
-  function State(name, json){
+  function State(name, obj){
     this.name = name;
-    H.extend(this, json || {});
+    H.extend(this, obj || {});
   }
 
-  function pritObj(o, depth){
-
-    depth = depth || 0;
-
-    var html = "";
-
-    H.each(o, function(k, v){
-
-      var akku = [];
-
-      if (k === 'ress') {
-        H.each(v, function(k, v){
-          akku.push(k + ": " + v);
-        });
-        html += "<tr><td>&nbsp;&nbsp;ress: { " + akku.join(", ") + " }</td></tr>";
-
-      } else if (k === 'tech') {
-        html += "<tr><td>&nbsp;&nbsp;" + k + ": [</td></tr>";
-        html += pritObj(v, depth +2);
-        html += "<tr><td>&nbsp;&nbsp;]</td></tr>";
-
-      } else if (typeof v === 'object'){
-        html += "<tr><td>&nbsp;&nbsp;" + k + ": {</td></tr>";
-        html += pritObj(v, depth +2);
-        html += "<tr><td>&nbsp;&nbsp;}</td></tr>";
-
-      } else if (k === 'name') {
-        // do nothing
-      } else {
-        html += "<tr><td>&nbsp;&nbsp;" + H.mulString("&nbsp;", depth) + k + ": " + v + "</td></tr>";
-      }
-
-    });
-
-    return html + "<tr></tr>";
-
-  }
 
   H.HTN = H.HTN || {};
 
   H.extend(H.HTN, {
+    // wating for extended literal objects landing in SM
     logState:    logState,
     logGoal:     logGoal,
-    pritObj:     pritObj,
+    // pritObj:     pritObj,
     methods:     methods,
     operators:   operators,
     addOperator: addOperator,
@@ -120,40 +80,16 @@ HANNIBAL = (function(H){
   H.HTN.Planner = H.HTN.Planner || {};
 
   H.extend(H.HTN.Planner, {
-    logStart:    function(state, tasks, verbose){
-      deb("   HTN:    name: %s, verbose: %s", state.name, verbose);
-      deb("   HTN:   tasks: %s", prit(tasks));
-      deb("   HTN:   state: %s", prit(state));
-    },
-    logFinish:   function(plan, state, msecs){
-      deb();
-      if (Array.isArray(plan) && plan.length > 0){
-        deb("<b>   HTN:  SUCCESS actions: %s, %s msecs</b>", plan.length, msecs);
-        plan.forEach(function(action, i){
 
-          deb("&nbsp;&nbsp;op: %s, <b style='color: #444'>%s</b> ( %s )", tab(i+1, 3), action[0], action.slice(1).join(", "));
+    // this is the enry point
 
-        });
-        deb();
-        deb("<b>   HTN:   new state:</b>");
-        deb(pritObj(state));
-        deb();
-      } else {
-        deb();
-        deb("<b>   HTN:  FAILURE plan: [], %s msecs</b>", plan, msecs); 
-        deb();
-        deb("<b>   HTN:  state: %s</b>", pritObj(state));
-        deb();
-      }
-
-    },
-    plan:        function(state, tasks, verbose){
+    plan: function(state, tasks, verbose){
 
       var self = H.HTN.Planner, result, newState, t0 = 0, t1 = 0;
 
       verbose = verbose || 0;
 
-      if (verbose > 0){self.logStart(state, tasks, verbose);}
+      if (verbose > 0){H.HTN.Helper.logStart(state, tasks, verbose);}
       
       cntIterate = 0;
       
@@ -162,12 +98,15 @@ HANNIBAL = (function(H){
       t1 = Date.now();
 
       if ((document && verbose > -1) || verbose > 0){
-        self.logFinish(result, newState,  t1 - t0);
+        H.HTN.Helper.logFinish(result, newState,  t1 - t0, cntIterate, maxDepth);
       }
 
       return result;
 
     },
+
+    // this the workhorse
+
     seekPlan: function seekPlan (state, tasks, plan, depth, verbose){
 
       var self = H.HTN.Planner, task1, solution;
@@ -176,8 +115,8 @@ HANNIBAL = (function(H){
       maxDepth = (depth > maxDepth) ? depth : maxDepth;
 
       if (cntIterate > maxIterate){
-        tasks = [];
-        deb("   HTN:   FAILED, too much iterations");
+        deb("   HTN:   FAILED, too much iterations ( %s )", maxIterate);
+        return [plan, state];
       }
 
       if (verbose > 1){deb("   HTN:   D:%s, tasks: %s", depth, prit(tasks));}
@@ -243,6 +182,31 @@ HANNIBAL = (function(H){
       }
 
     },
+    addUnique: function(task, taskList){
+
+      // fast and ugly
+
+      var i  = taskList.length,
+          tl = task.length;
+
+      while (i--) {
+        if (tl === 1){
+          if (task[0] === taskList[i][0]){return;}
+        } else if (tl === 2) {
+          if (task[0] === taskList[i][0] && 
+              task[1] === taskList[i][1]){return;}
+        } else if (tl === 3) {
+          if (task[0] === taskList[i][0] && 
+              task[1] === taskList[i][1] && 
+              task[2] === taskList[i][2]){return;}
+        } else {
+          deb("ERROR : HTN.addUnique needs %s cases", tl);
+        }
+      }
+
+      taskList.push(task);
+
+    },
     seekAnyMethod: function(tasks, state, plan, depth, verbose){
 
       var self        = H.HTN.Planner,
@@ -251,45 +215,42 @@ HANNIBAL = (function(H){
           anyTask     = anyTasks[anyPointer],
           method, params, subtasks, newTasks, solution = null;
 
+      // search in a growing list
+      
       while (anyTask) {
 
-        // relevant = methods[anyTask[0]];
-        // for (method of relevant){
+        cntIterate += 1;
 
-          cntIterate += 1;
-  
-          method   = methods[anyTask[0]];
-          params   = [state].concat(anyTask.slice(1));
-          subtasks = method.apply(null, params);
+        // deb("ANY: %s, %s", anyPointer, prit(anyTask));
 
-          if (verbose > 2){deb("   HTN:   D:%s, ANY subtasks: %s => %s", depth, params, subtasks);}
-          
-          if(subtasks !== null){
+        method   = methods[anyTask[0]];
+        params   = [state].concat(anyTask.slice(1));
+        subtasks = method.apply(null, params);
 
-            if (subtasks[0] === "ANY"){
+        if (verbose > 2){deb("   HTN:   D:%s, ANY subtasks: %s => %s", depth, params, subtasks);}
+        
+        if(subtasks !== null){
 
-              // TODO: make unique
-              subtasks.slice(1)[0].forEach(function(task){
-                anyTasks.push(task);
-              });
+          if (subtasks[0] === "ANY"){
+            subtasks.slice(1)[0].forEach(task => self.addUnique(task, anyTasks));
 
-            } else {
-              newTasks = subtasks.concat(tasks.slice(2));
-              solution = self.seekPlan(state, newTasks, plan, depth +1, verbose);
-              // if (verbose > 2){deb("   HTN: D:%s, [ANY] solution: %s", depth, prit(solution));}
-              if (solution !== null){
-                return solution;
-              }
-
+          } else {
+            newTasks = subtasks.concat(tasks.slice(2));
+            solution = self.seekPlan(state, newTasks, plan, depth +1, verbose);
+            // if (verbose > 2){deb("   HTN: D:%s, [ANY] solution: %s", depth, prit(solution));}
+            if (solution !== null){
+              return solution;
             }
-          }    
 
-          anyPointer += 1;
-          anyTask = anyTasks[anyPointer];
+          }
+        }    
 
-        // }
+        anyPointer += 1;
+        anyTask = anyTasks[anyPointer];
+
       }
 
+      deb("ERROR : Planner: run out of %s AnyTasks: [%s]", anyPointer, anyTasks.map(t=>t[0]+": "+t[1]).join(", ")); // console.log(anyTasks)
       return null;
 
 
