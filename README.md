@@ -52,13 +52,13 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Progress ###
 
-* The [http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html](web interface) generates basic plans
+* The [web interface](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html) generates basic plans
 
 ### Roadmap ###
 
 **A17**
 
-* Saved games, given engine support ([http://trac.wildfiregames.com/ticket/2495#comment:15](cancelled), for the time beeing)
+* Saved games, given engine support ([cancelled](http://trac.wildfiregames.com/ticket/2495#comment:15), for the time beeing)
 * Shared, dynamic and exclusive buildings
 * plan based economy taking resource availability into account
 * Advanced map analysis
@@ -83,7 +83,7 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Project Links ###
 
-* [http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html](Web based development)
+* [Web based development](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html)
   
 
 ### Videos ###

@@ -5,6 +5,7 @@
 
   An AI/Bot for 0 A.D.
   Partially inspired by Waitii's excellent Aegis Bot.
+  Home: https://github.com/noiv/Hannibal/blob/master/README.md
 
   tested with 0 A.D. Alpha 15 Osiris
   V: 0.1, agentx, CGN, Feb, 2014
