@@ -88,7 +88,7 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Videos ###
 
-[![Demos grainpicker groups](https://i.ytimg.com/vi/i-bJwUk_obk/3.jpg)](http://www.youtube.com/watch?v=i-bJwUk_obk)
+* [![Demos grainpicker groups](https://i.ytimg.com/vi/i-bJwUk_obk/3.jpg)](http://www.youtube.com/watch?v=i-bJwUk_obk) Grainpicker groups
 
 ### Further Readings and Links ###
 
