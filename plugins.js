@@ -162,7 +162,7 @@ H.Plugins = {
         
         if (this.dropsite.match(resource)){
           this.position = resource;
-          this.economy.request(5, this.units);
+          this.economy.request(1, this.units);
 
         } else if (this.field.match(resource)){
           this.position = resource;
@@ -172,6 +172,7 @@ H.Plugins = {
         } else if (this.units.match(resource)){
 
           if (!this.field.isRequested){     // test for field
+            this.economy.request(4, this.units);
             this.economy.request(1, this.field, this.dropsite);
 
           } else if (this.field.isFoundation){

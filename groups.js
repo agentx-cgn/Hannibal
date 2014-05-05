@@ -209,7 +209,7 @@ HANNIBAL = (function(H){
 
         });
 
-        deb("   GRP: launching group: %s  ...", instance.name);
+        deb("   GRP: launching group: %s for cc: %s", instance.name, ccid);
 
         // call and activate
         instance.listener.onLaunch();

@@ -8,26 +8,26 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Features ###
 
-* a state machine to handle game phases
-  like village, town, city, attack, defense, reconstruction, etc. 
+* a **state machine** to handle game phases, like  
+  village, town, city, attack, defense, reconstruction, etc. 
 
-* a triple store to link features of the cultures,  
-  like who can gather fields, can a healer melee? 
+* a **triple store** to link features of the cultures, like  
+  who can gather fields, can a healer melee? 
 
-* a simple query language to retrieve information from the triple store  
+* a **simple query language** to retrieve information from the triple store  
   "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food" 
 
-* a plugin system describing the behavior of groups of units  
+* a **plugin system** describing the behavior of groups of units  
   (grain-picker, hunter, warrior, guerrilla, miner, etc) 
 
-* a domain specific language used for the plugins  
+* a **domain specific language** used for the plugins  
   to allow non programmer to define a group's behavior 
 
-* an economy model with an order queue, a cost analyzer  
-  and a simple statistic module providing metrics based on resource flows. 
+* an **economy model** with an order queue, a cost analyzer and  
+  a simple statistic module providing metrics based on resource flows. 
 
-* a HTN PLanner to calculate economic development  
-  and attack strategies
+* a **HTN PLanner** to calculate economic development and  
+    attack strategies
   
 ### Try Out ###
 
@@ -35,7 +35,7 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 * Locate \binaries\data\mods\public\ folder within 0 A.D. installation
 * Create \simulation\ai\hannibal within \public
-* Extract all files into \hannibal keeping directory structure intact
+* Extract [all files](https://github.com/noiv/Hannibal/archive/master.zip) into \hannibal keeping directory structure intact
 
 **Play**
 
@@ -52,13 +52,13 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Progress ###
 
-* The web interface generates basic plans
+* The [http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html](web interface) generates basic plans
 
 ### Roadmap ###
 
 **A17**
 
-* Saved games, given engine support
+* Saved games, given engine support ([http://trac.wildfiregames.com/ticket/2495#comment:15](cancelled), for the time beeing)
 * Shared, dynamic and exclusive buildings
 * plan based economy taking resource availability into account
 * Advanced map analysis
@@ -83,9 +83,12 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Project Links ###
 
-* Web based development
-  http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html
+* [http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html](Web based development)
+  
 
+### Videos ###
+
+[![Demos grainpicker groups](http://img.youtube.com/vi/i-bJwUk_obk/0.jpg)](http://www.youtube.com/watch?v=i-bJwUk_obk)
 
 ### Further Readings and Links ###
 

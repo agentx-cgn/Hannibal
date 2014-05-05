@@ -16,23 +16,39 @@
 
 HANNIBAL = (function(H){
 
-  function destroy(id){Engine.PostCommand(H.Bot.id, {"type": "delete-entities", "entities": [id]});}
-  function chat(msg)  {Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});}
-
-  var self, 
+  var T = H.T || {},
+      self, 
       tick = 0, 
-      sequence = "", // sequence subset
-      // if any of these evaluates to a string, it gets chatted
-      sequences = {
-        'aitest03': {
-           '1': [() => "Running Tester with: " + sequence],
-           '2': [H.Groups.launch.bind(null, "g.grainpicker", 44), "launching group grainpicker #1"], 
-           '3': [H.Groups.launch.bind(null, "g.grainpicker", 44), "launching group grainpicker #2"],
-          '22': [destroy.bind(null, 216), "destroying field"],
-          '28': [destroy.bind(null, 221), "destroying female unit"],
-          '29': [destroy.bind(null, 222), "destroying female unit"],
-        }
-      };
+      sequence = "", sequences, // sequence subset
+      chat = function(msg){Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});};
+
+
+  H.extend(T, {
+
+    destroy: function(ids){ 
+      ids = Array.isArray(ids) ? ids : arguments.length > 1 ? H.toArray(arguments) : [ids];
+      return () => Engine.PostCommand(H.Bot.id, {"type": "delete-entities", "entities": ids});
+    },
+    launch: function(group /*, ... */){
+      return H.toArray(arguments).slice(1).map((id) => () => H.Groups.launch(group, id));
+    }
+
+  });
+
+  // if any of these evaluates to a string, it gets chatted
+  sequences = {
+    'aitest03': {
+       '1': [() => "< - START: " + sequence + " - >"],
+       '2': [T.launch("g.grainpicker", 44, 44), "launching 2 grainpickers"], 
+      '10': [() => "please wait a moment"],
+      '22': [T.destroy(216), "destroying field"],
+      '30': [T.destroy(223, 224, 225), "destroying female units"],
+      '44': [() => "ACTION"],
+      '50': [T.launch("g.grainpicker", 44, 44, 44, 44, 44), "launching 5 grainpickers"], 
+      '210': [() => "< - FINIS: " + sequence + " - >"],
+    }
+  };
+
 
   // fires functions at give tick num, 
   H.Tester = (function(){
@@ -58,6 +74,7 @@ HANNIBAL = (function(H){
         return (
           typeof item === "string"   ? chat(H.format("# %s %s", tick, item)) :
           typeof item === "function" ? self.evaluate(item()) :
+          Array.isArray(item) ? void (item.map(fn => fn())) :
             undefined
         );
       },
@@ -66,14 +83,11 @@ HANNIBAL = (function(H){
         if (sequences[sequence]){
           if (tick === 0){self.log();}  
           if (sequences[sequence][+tick]){
-
             deb("      T: firing: %s, tick: %s", sequence, tick);
-            
             triggers = sequences[sequence][+tick];
             triggers.forEach(function(item){
               self.evaluate(item);
             });
-
           }
         }
         tick += 1;
