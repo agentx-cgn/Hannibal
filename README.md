@@ -81,18 +81,18 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 * SpiderMonkey 29
 * Javascript 1.85 + partially ES6
 
-### Use Hotkeys ### 
+### Useful Hotkeys ### 
 
-F11:        Enable/disable real-time profiler (toggles through the displays of information)
-F12:        Show time elapsed since the beginning of the game
-F2:         Take screenshot (in .png format, location is displayed in the top left of the GUI
-Alt + F:    Show/hide frame counter (FPS)
-Alt + K:    Show the 0 A.D. logo and copyright notice as a watermark for images.
-Alt + G:    Hide/show the GUI
-Alt + D:    Show/hide developer overlay (with developer options)
-Space:      If timewarp mode enabled (in the developer overlay), speed up the game
-Backspace:  If timewarp mode enabled (in the developer overlay), go back to an earlier point in the game
-More:       http://trac.wildfiregames.com/wiki/HotKeys
+* F11:        Enable/disable real-time profiler (toggles through the displays of information)
+* F12:        Show time elapsed since the beginning of the game
+* F2:         Take screenshot (in .png format, location is displayed in the top left of the GUI
+* Alt + F:    Show/hide frame counter (FPS)
+* Alt + K:    Show the 0 A.D. logo and copyright notice as a watermark for images.
+* Alt + G:    Hide/show the GUI
+* Alt + D:    Show/hide developer overlay (with developer options)
+* Space:      If timewarp mode enabled (in the developer overlay), speed up the game
+* Backspace:  If timewarp mode enabled (in the developer overlay), go back to an earlier point in the game
+* More:       http://trac.wildfiregames.com/wiki/HotKeys
 
 
 
