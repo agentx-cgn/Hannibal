@@ -43,16 +43,21 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 **Test**
 
-* Copy the maps to the [map folder](http://trac.wildfiregames.com/wiki/GameDataPaths)
+* Copy the maps to your [map folder](http://trac.wildfiregames.com/wiki/GameDataPaths)
 * start 0 A.D. with params: -quickstart -autostart=aitest03 -autostart-ai=1:hannibal
 
-**HTML Explorer**
+**HTML Data Explorer**
 
-* Open \hannibal\explorer\hannibal.html
+* [Web Interface](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html)
+
+### Testing ###
+
+Hannibal extensively logs against standard output until switched off in config.js. On Windows best seen using [DebugView](http://technet.microsoft.com/en-us/sysinternals/bb896647.aspx) with option carriage returns unforced.
 
 ### Progress ###
 
-* The [web interface](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html) generates basic plans
+* The [web interface](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html) aka explorer generates basic plans
+* Added data browsing to explorer
 
 ### Roadmap ###
 
@@ -80,8 +85,9 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 * SpiderMonkey 29
 * Javascript 1.85 + partially ES6
+* FF30+
 
-### Useful Hotkeys ### 
+### Useful Ingame Hotkeys ###
 
 * F11:        Enable/disable real-time profiler (toggles through the displays of information)
 * F12:        Show time elapsed since the beginning of the game
@@ -94,11 +100,10 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 * Backspace:  If timewarp mode enabled (in the developer overlay), go back to an earlier point in the game
 * More:       http://trac.wildfiregames.com/wiki/HotKeys
 
-
-
 ### Project Links ###
 
-* [Web based development](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html)
+* [Data Explorer](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html)
+* [Hannibal @ Trac](http://trac.wildfiregames.com/wiki/HannibalBot)
   
 
 ### Videos ###
@@ -109,11 +114,23 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 ### Further Readings and Links ###
 
-* 0 A.D. http://play0ad.com/
-* 0 A.D. http://en.wikipedia.org/wiki/0_A.D._%28video_game%29
-* pyhop https://bitbucket.org/dananau/pyhop
-* SHOP http://www.cs.umd.edu/projects/shop/
+* [0 A.D. - Home](http://play0ad.com/)
+* [0 A.D. - Wikipedia](http://en.wikipedia.org/wiki/0_A.D._%28video_game%29)
+* [pyhop - Python Planner](https://bitbucket.org/dananau/pyhop)
+* [SHOP - Algo](http://www.cs.umd.edu/projects/shop/)
 
+### Literature ###
+
+* [Artificial Intelligence: A Modern Approach](http://books.google.de/books?id=8jZBksh-bUMC)  
+  Stuart Jonathan Russell, Peter Norvig
+* [A review of computational intelligence in RTS games](http://www.lcc.uma.es/~ccottap/papers/lara13review.pdf)  
+  Raul Lara-Cabrera, Carlos Cotta, Antonio J. Fernandez-Leiva
+* [Planning with Hierarchical Task Networks in Video Games](http://icaps07-satellite.icaps-conference.org/workshop8/Planning%20with%20Hierarchical%20Task%20Networks%20in%20Video%20Games.pdf)  
+  John-Paul Kelly, Adi Botea, Sven Koenig
+* [A HTN Planner For A Real-Time Strategy Game](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.406.8722&rep=rep1&type=pdf)  
+  Jasper Laagland
+* [Wall Building in RTS Games](www.cse.lehigh.edu/~munoz/CSE497/classes/Patrick2.ppt‎)  
+  Patrick Schmid
 
 ## License ##
 
