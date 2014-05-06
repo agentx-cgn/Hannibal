@@ -43,7 +43,7 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 **Test**
 
-* Copy the maps to the map folder
+* Copy the maps to the [map folder](http://trac.wildfiregames.com/wiki/GameDataPaths)
 * start 0 A.D. with params: -quickstart -autostart=aitest03 -autostart-ai=1:hannibal
 
 **HTML Explorer**
@@ -81,12 +81,29 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 * SpiderMonkey 29
 * Javascript 1.85 + partially ES6
 
+### Use Hotkeys ### 
+
+F11:        Enable/disable real-time profiler (toggles through the displays of information)
+F12:        Show time elapsed since the beginning of the game
+F2:         Take screenshot (in .png format, location is displayed in the top left of the GUI
+Alt + F:    Show/hide frame counter (FPS)
+Alt + K:    Show the 0 A.D. logo and copyright notice as a watermark for images.
+Alt + G:    Hide/show the GUI
+Alt + D:    Show/hide developer overlay (with developer options)
+Space:      If timewarp mode enabled (in the developer overlay), speed up the game
+Backspace:  If timewarp mode enabled (in the developer overlay), go back to an earlier point in the game
+More:       http://trac.wildfiregames.com/wiki/HotKeys
+
+
+
 ### Project Links ###
 
 * [Web based development](http://noiv.pythonanywhere.com/agentx/0ad/explorer/hannibal.html)
   
 
 ### Videos ###
+
+* [Playlist](https://www.youtube.com/playlist?list=PLX5qMUEZ8pAr9fTaVkGStzj1xWWvMHV2e)
 
 * [![Demos grainpicker groups](https://i.ytimg.com/vi/i-bJwUk_obk/3.jpg)](http://www.youtube.com/watch?v=i-bJwUk_obk) Grainpicker groups
 
@@ -101,3 +118,5 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 ## License ##
 
 tbd
+
+

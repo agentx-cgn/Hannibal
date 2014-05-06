@@ -1,6 +1,6 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1398453497362" ID="ID_1266014818" MODIFIED="1399108480605" TEXT="Hannibal">
+<node CREATED="1398453497362" ID="ID_1266014818" MODIFIED="1399288344371" TEXT="Hannibal">
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -10,7 +10,8 @@
       &#160;planning domain definition language directly implemented into sources
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="20"/>
 <node CREATED="1398453538142" ID="ID_1368991740" MODIFIED="1398453892275" POSITION="right">
 <richcontent TYPE="NODE"><html>
@@ -224,6 +225,13 @@
 <node CREATED="1398454104354" ID="ID_598470057" MODIFIED="1398454108547" TEXT="Researching"/>
 </node>
 </node>
+<node CREATED="1399288389316" ID="ID_1203607493" MODIFIED="1399288403455" TEXT="City Planning">
+<node CREATED="1399288406846" ID="ID_320291639" MODIFIED="1399288456439" TEXT="health">
+<node CREATED="1399288476707" ID="ID_937795770" MODIFIED="1399288481586" TEXT="hitpoints"/>
+</node>
+<node CREATED="1399288459976" ID="ID_538407568" MODIFIED="1399288473450" TEXT="used resources"/>
+</node>
+<node CREATED="1399288595378" ID="ID_1854801045" MODIFIED="1399288604206" TEXT="Army Generator"/>
 </node>
 <node CREATED="1398454001157" ID="ID_247245142" MODIFIED="1398782814421" POSITION="left" TEXT="Planner">
 <font BOLD="true" NAME="SansSerif" SIZE="14"/>
@@ -352,8 +360,7 @@
       Knowledge
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1398690327867" ID="ID_907110039" MODIFIED="1398690334246" TEXT="Triple Store">
 <node CREATED="1398690339665" ID="ID_178672074" MODIFIED="1398690343236" TEXT="Verbs"/>
 <node CREATED="1398690344009" ID="ID_1700129230" MODIFIED="1398690346183" TEXT="Nodes"/>
@@ -443,8 +450,7 @@
       Building
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1398782612312" ID="ID_1577311087" MODIFIED="1399102370344" TEXT="Prerequisites:">
 <node CREATED="1398782612312" MODIFIED="1398782612312" TEXT="are there obstacles?">
 <node CREATED="1398782612312" MODIFIED="1398782612312" TEXT="if trees or narrow terrain, drop siege engines"/>
@@ -499,8 +505,7 @@
       Sheet
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1399108501926" ID="ID_1591240933" MODIFIED="1399108501926" TEXT="Fortify - Claim"/>
 <node CREATED="1399108501929" ID="ID_140630456" MODIFIED="1399108501929" TEXT="Defense - Attack"/>
 <node CREATED="1399108501932" ID="ID_334758333" MODIFIED="1399109007892" TEXT="Gather  - Barter/Trade"/>
@@ -521,8 +526,7 @@
       Civlisations
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1399108603853" ID="ID_253776419" MODIFIED="1399108609452" TEXT="pop max"/>
 <node CREATED="1399108619331" ID="ID_1310812427" MODIFIED="1399108622572" TEXT="siege"/>
 <node CREATED="1399108819313" ID="ID_830811702" MODIFIED="1399108828678" TEXT="wall building capability"/>

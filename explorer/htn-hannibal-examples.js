@@ -196,6 +196,83 @@ HANNIBAL = (function(H){
 
 
   };  
+  H.HTN.Hannibal.runCiv = function(civ){
+
+    var t0, t1, counter,
+        infoQ = H.store.cntQueries,
+        infoH = H.store.cacheHit,
+        infoM = H.store.cacheMiss,
+        prit  = H.prettify,
+        tab   = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
+        zero  = function () {return {ress: {}, ents: {}, tech: []};},
+        config = {
+          techs: {qry: "REQUIRE DISTINCT", com: "", counter: 0},
+          bldgs: {qry: "BUILD DISTINCT",   com: "", counter: 0},
+          units: {qry: "TRAIN DISTINCT",   com: "", counter: 0}
+        },
+        solutions = [], nodes, patState = "", patGoal = "", info;
+
+    clear(); deb = newDeb; deb();
+    $('tblResult').style.tableLayout = "auto";
+    deb("running planner on all entities of %s, preparing ...", civ);
+
+    H.each(config, function(name, props){
+      H.QRY(props.qry).forEach(function(node){
+        var goal = zero(), 
+            start = zero(),
+            cc = H.format("structures.%s.civil.centre", civ);
+
+        start.ents[cc] = 1;
+        if (name === 'techs') {
+          goal.tech.push(node.name);
+        } else {
+          goal.ents[node.name] = 1;
+        }
+        solutions.push([node.name, function(){
+          var solution = new H.HTN.Solution(start, goal);
+          return solution.evaluate();
+        }]);
+        config[name].counter += 1;
+      });
+
+    });
+
+    info = H.transform(config, function(k,v){return [k, v.counter];})
+    deb("created %s solutions: %s", solutions.length, prit(info));
+    deb();
+    deb("evaluating: <span id='worker'></span>");
+
+    (function runner (pointer) {
+      var sol = solutions[pointer];
+      if (sol) {
+        sol[2] = sol[1]();
+        $("worker").innerHTML = H.format("%s/%s %s, %s", pointer +1, solutions.length, tab(sol[2].length, 4), sol[0]);
+        setTimeout(()=> runner(pointer +1), 20);
+      } else {finish(solutions);}
+    })(0);
+
+    function finish(sols){
+
+      var sorted = sols.sort((a,b)=> a[2].details.depth - b[2].details.depth),
+          r    = "time, food, wood, stone, metal".split(", "),
+          ress = "<td class='hr'>%s</td><td class='hr'>%s</td><td class='hr'>%s</td><td class='hr'>%s</td><td class='hr'>%s<td>",
+          head = "<thead><td class='hr'>%s</td><td class='hr'>%s</td><td class='hr'>%s</td><td class='hr'>%s</td><td>%s</td>%s</thead>",
+          line = "<tr><td class='hr'>%s</td><td class='hr'>%s</td><td class='hr'>%s</td><td class='hr'>%s</td><td>%s</td>%s</tr>";
+
+      $("tblResult").innerHTML = "";
+      deb(head, 'D', 'I', 'M', 'L', 'Name', r.reduce((a,b)=>a + "<td class='hr'>"+b+"</td>",""));
+      sorted.forEach(function(sol){
+        var d = sol[2].details,
+            c = d.costs,
+            rr = r.map(r => c[r]);
+        deb(line, d.depth, d.iters, d.msecs, d.actions.length, sol[0], rr.reduce((a,b)=>a+"<td class='hr'>"+(b||'')+"</td>",""));
+      });
+
+      deb("- done");
+
+
+    }
+  };
   H.HTN.Hannibal.runStress = function(oState, oGoal, loops){
 
     var t0, t1, counter = loops +1,

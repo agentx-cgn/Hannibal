@@ -15,9 +15,8 @@
 HANNIBAL = (function(H){
 
   // helper
-  var mul  = function(n){return new Array(n || 2).join(" ");},
+  var mul  = function (n){return new Array(n || 2).join(" ");},
       tab  = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");};
-
 
   H.HTN = H.HTN || {};
   H.HTN.Helper = H.HTN.Helper || {};
@@ -161,8 +160,31 @@ HANNIBAL = (function(H){
 
     },
 
+    addUnique: function(task, taskList){
 
+      // fast and ugly, may modify taskList
 
+      var i  = taskList.length,
+          tl = task.length;
+
+      while (i--) {
+        if (tl === 1){
+          if (task[0] === taskList[i][0]){return;}
+        } else if (tl === 2) {
+          if (task[0] === taskList[i][0] && 
+              task[1] === taskList[i][1]){return;}
+        } else if (tl === 3) {
+          if (task[0] === taskList[i][0] && 
+              task[1] === taskList[i][1] && 
+              task[2] === taskList[i][2]){return;}
+        } else {
+          deb("ERROR : HTN.addUnique needs %s cases", tl);
+        }
+      }
+
+      taskList.push(task);
+
+    },
 
 
   })

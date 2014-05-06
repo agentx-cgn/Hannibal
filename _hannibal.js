@@ -4,7 +4,6 @@
 /*--------------- H A N N I B A L  --------------------------------------------
 
   An AI/Bot for 0 A.D.
-  Partially inspired by Waitii's excellent Aegis Bot.
   Home: https://github.com/noiv/Hannibal/blob/master/README.md
 
   tested with 0 A.D. Alpha 15 Osiris

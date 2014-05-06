@@ -426,6 +426,9 @@ HANNIBAL = (function(H){
 
       };
 
+      btnHTN0ADTC.onclick = function(){
+        H.HTN.Hannibal.runCiv(H.Bot.civ);
+      };
       btnHTN0ADGO.onclick = function(){
 
         var state, goal;

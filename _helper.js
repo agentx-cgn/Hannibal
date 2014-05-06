@@ -69,6 +69,9 @@ extend(H, {
   isEmpty:    function (o){var p;for(p in o){if(o.hasOwnProperty(p)){return false;}}return true;},
   prettify:   function (o){return JSON.stringify(o).split('"').join("");},
   map:        function (o,fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},
+  transform:  function (o, fn){
+    var r={}; H.each(o,function(k,v){var [ra,rv]=fn(k,v);r[ra]=rv;});return r;
+  },
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},

@@ -38,6 +38,11 @@ HANNIBAL = (function(H){
   // if any of these evaluates to a string, it gets chatted
   sequences = {
     'aitest03': {
+        '1': [() => "< - START: " + sequence + " - >"],
+        '5': [T.launch("g.grainpicker", 44, 44, 44, 44, 44), "launching 5 grainpickers"], 
+      '210': [() => "< - FINIS: " + sequence + " - >"],
+    },
+    'Xaitest03': {
        '1': [() => "< - START: " + sequence + " - >"],
        '2': [T.launch("g.grainpicker", 44, 44), "launching 2 grainpickers"], 
       '10': [() => "please wait a moment"],
