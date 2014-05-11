@@ -8,12 +8,12 @@ html, body {
 
 body {overflow-y: scroll;}
 
-br {clear: left;}
-
-
-#debug a {
-  color: red;
-  text-decoration: none;
+br {clear: both;}
+.trenner {clear: both;}
+.trenner2 {clear: both; height:2px;}
+.trenner4 {clear: both; height:4px;}
+.trenner.topmgn {
+  margin-top: 30px;
 }
 
 a {
@@ -21,18 +21,141 @@ a {
   text-decoration: none;
 }
 
-div#contMenu {
+span.f80 {font-size: 80%;}
+
+textarea, select {
+  background: rgba(234, 234, 234, 1);
+  border: 1px solid #999;
+  font-size: 12px;
+  font-family: "Bitstream Vera Sans Mono", Fixed, monospace;
+  margin: 2px 0;
+  float: inherit; 
+  line-height: 100%;
+  border: 0;
+}
+select {padding: 1px 0 0 0;}
+textarea {padding: 3px;}
+textarea.f11 {font-size: 11px;}
+
+button {
+  color: #EEE;
+  background: none repeat scroll 0% 0% #666;
+  font-size: 12px;
+  font-weight: 800;
+  border-radius: 3px;
+  border: 1px solid #FFF;
+  padding-bottom: 1px;
+  margin: 1px 2px;
+  float: inherit;
+}
+button:hover {
+  color: white;
+}
+
+button:disabled {
+  background: none repeat scroll 0% 0% darkgrey;
+  color: grey;
+}
+
+label {
+  float: inherit;
+  display: block;
+  width: 60px;
+  font-size: 12px;
+  vertical-align: middle;
+  text-align: right;
+  padding-right: 4px;
+  padding-top: 4px;
+  color: rgba(87, 87, 87, 1);
+  font-weight: 800;  
+}
+
+
+div.cont {margin: 0px; padding:0px;}
+div.mgn2 {margin: 2px; padding:0px;}
+div.mgn4 {margin: 4px; padding:0px;}
+div.mgn8 {margin: 8px; padding:0px;}
+
+.left {float: left;}
+.right {float: right;}
+
+
+.content {width: 100%; margin: 0 auto; background: #ccc; margin-top: 26px;}
+.bar     {width: 800px; margin: 4px auto 0 auto; display: none;  margin-top: 4px;}
+
+#menu.bar {
+  display: block;
+}
+
+div.container {
+  margin-top: 6px;
+  background: rgba(192, 192, 192, 1);
+}
+
+.browser.bar {
+  background: rgba(225, 211, 207, 1); 
+  margin-top: 4px;
+}
+.info.bar {
+  background: rgba(131, 168, 159, 1); 
+}
+.error.bar {
+  background: rgba(255, 184, 175, 1);
+}
+
+.results.bar {
+  background: #F9F9F9;
+}
+
+#cInfo {
+  padding: 0 8px 0 0;
+  text-align: right;
+  font-size: 80%;
+  color: white;
+}
+
+#cError {
+  padding: 0px 0px 0px 8px;
+  text-align: left;
+  font-size: 100%;
+  font-weight: 800;
+  color: rgba(95, 0, 0, 1);
+  line-height: 100%;
+}
+
+#cError a {
+  color: red;
+  text-decoration: none;
+}
+
+
+#divResult {
+  font-size: 11px;  
+}
+
+
+#txtHCQ   {width: 720px;}
+#txtGoal  {width: 324px;}
+#txtState {width: 324px;}
+#slcExams {width: 726px;}
+#slcNodes {width: 533px;}
+
+
+
+/*div#contMenu {
   position: fixed;
   top: 0px;
   width: 100%;  
-}
+}*/
 
 div.menu {
   height: 22px;
   margin: 0 auto;  
   width: 800px;  
   border-bottom: 2px solid rgba(250, 250, 250, 0.5);
-  padding: 4px 2px 0px 2px;
+  /*padding: 4px 2px 0px 2px;*/
+  position: fixed;
+  top: 0px;  
 }
 
 .menu {
@@ -43,9 +166,9 @@ div.menu {
 }
 
 .menu ul {
-  margin: 0 0 8px 0;
+  margin: 0;
   list-style-type: none;
-  padding: 0 0 0 20px;
+  padding: 0px 8px 0px 16px;
 }
 
 .menu li {
@@ -68,7 +191,7 @@ select#slcCivs {
   font-weight: 800;
   padding: 1px;
   vertical-align: top;
-  margin: 0;  
+  margin: 0px 0px 2px 0px;
 }
 
 select#slcVerbose {
@@ -82,11 +205,11 @@ select#slcVerbose {
 }
 
 .content {width: 100%; margin: 0 auto; background: #ccc; margin-top: 26px;}
-.trenner {clear: both;}
 
-.panel   {width: 800px; margin: 0 auto; display: none;  padding-top: 8px;}
+.panel   {width: 800px; margin: 0 auto; display: none;  padding: 8px 0 8px 0;}
+
 .content {width: 800px; margin: 0 auto; background: #ccc; padding: 2px; margin-top: 26px;}
-.results {width: 800px; margin: 0 auto; background: rgba(249, 249, 249, 1); padding: 2px;}
+/*.results {width: 800px; margin: 0 auto; background: rgba(249, 249, 249, 1);}*/
 .timing  {width: 800px; margin: 0 auto; background: #ddd; padding: 2px;}
 #debug   {width: 800px; margin: 8px auto; color: #a33; font-weight: 800;}
 
@@ -102,12 +225,23 @@ select#slcVerbose {
 }
 
 
+  
+table {
+  width: 100%;
+  table-layout: auto;  
+}
 /*thead {border-bottom: 1px solid white;}*/
 thead td {font-weight: 800; font-size: 12px; border-bottom: 2px solid black;}
 
+
+td:last-child {
+  width: 1px; 
+  white-space: nowrap;
+}
 td {
   font-size: 10.5px;
   vertical-align: top;
+  padding: 1px 8px 1px 1px;
 }
 
 td.hr {
@@ -132,44 +266,3 @@ td.nw {
   overflow:hidden;
 }
 
-table {
-  width: 100%;
-  table-layout: fixed;  
-}
-
-textarea.f11 {font-size: 11px;}
-span.f80 {font-size: 80%;}
-
-textarea, select {
-  background: #eee;
-  border: 1px solid #999;
-  font-size: 12px;
-  font-family: "Bitstream Vera Sans Mono", Fixed, monospace;
-  margin: 2px 0;
-  float: left; 
-}
-
-button:hover {
-  color: white;
-}
-button {
-  color: #eee;
-  background: #666;
-  font-size: 12px;
-  font-weight: 800;
-  border-radius: 3px;
-  border: 1px solid white;
-  padding-bottom: 1px;  
-  margin-left: 2px;
-}
-
-label {
-  font-size: 12px;
-  vertical-align: middle;
-  display: block;
-  width: 60px;
-  float: left;  
-  text-align: right;
-  padding-right: 4px;
-  padding-top: 4px;
-}

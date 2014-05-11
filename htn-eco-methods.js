@@ -1,9 +1,9 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, deb */
 
-/*--------------- P L A N N E R -----------------------------------------------
+/*--------------- DOMAIN: E C O N O M Y  --------------------------------------
 
-  first attempt for 0 A.D. methods
+  Methods
 
 
 
@@ -15,7 +15,7 @@
 HANNIBAL = (function(H){
 
   H.HTN = H.HTN || {};                       
-  H.HTN.Hannibal = H.HTN.Hannibal || {};
+  H.HTN.Economy = H.HTN.Economy || {};
 
   // In each Pyhop planning method, the first argument is the current state (this is analogous to Python methods, in which the first argument is the class instance). The rest of the arguments must match the arguments of the task that the method is for. For example, ('pickup', b1) has a method get_m(state,b1), as shown below.
 
@@ -28,24 +28,65 @@ HANNIBAL = (function(H){
 
   function getProducers (name){
 
-    var found = false, producers, operator;
+    var verb, producers;
 
-    ['TRAINEDBY', 'BUILDBY', 'RESEARCHEDBY'].forEach(function(verb){
-      if (!found){
-        producers = H.QRY(name + " " + verb).execute();
-        if (producers.length){
-          operator = mapper[verb];
-          found = true;
-        }
-      }
-    });
-    return [producers, operator];
+    for (verb of Object.keys(mapper)){
+      producers = H.QRY(name + " " + verb).execute();
+      if (producers.length) {return [producers, mapper[verb]];}
+    }
+
+    return [null, null];
+
   }
 
-  H.HTN.Hannibal.init = function(){
+  H.HTN.Economy.init = function(){
   };
 
-  H.HTN.Hannibal.methods = {
+  H.HTN.Economy.methods = {
+
+    // meta
+
+    any: function(state, methods){
+
+      var operators, method, self = H.HTN.Economy;
+
+      for (method of methods){
+        operators = self.methods[method[0]].apply(null, [state, ...method[1]]);
+        if (operators !== null){return operators;}
+      }
+
+      return null;
+
+    },
+
+    all: function(state, methods){
+
+      var res, operators = [], method, self = H.HTN.Economy;
+
+      for (method of methods){
+        res = self.methods[method[0]].apply(null, [state, ...method[1]]);
+        if (res !== null){operators.push(res);}
+      }
+
+      return operators.length ? operators : null;
+
+    },
+
+    filter: function(state, methods){
+
+      var res, operators = [], method, self = H.HTN.Economy;
+
+      for (method of methods){
+        res = self.methods[method[0]].apply(null, [state, ...method[1]]);
+        if (res !== null){operators.push(res);}
+      }
+
+      return operators.length ? operators : null;
+
+    },
+
+
+    // domain
 
     init: function(state, goal){
 
@@ -175,7 +216,7 @@ HANNIBAL = (function(H){
 
       */
 
-      var tech, buildings, entities, req,
+      var debug = 0, tech, buildings, entities, req,
           klass, amount, inter, have, house, costs, diff,
           tasks = [], ress = [];
 
@@ -249,7 +290,7 @@ HANNIBAL = (function(H){
           } else {
             deb("ERROR : advance requires class WTF");
           }
-          if(debug > 0) {deb(" advance: must produce %s houses/towers", diff);}        
+          if (debug > 0){deb(" advance: must produce %s houses/towers", diff);}
           return [['produce', house, diff]];
         }
 
@@ -318,7 +359,7 @@ HANNIBAL = (function(H){
       [producers, operator] = getProducers(name);
 
       // this we can't do
-      if (!producers.length){
+      if (!producers || !producers.length){
         // slaves ??
         if(debug > 0) {deb(" produce: no producer found for %s", name);}
         return null;

@@ -50,24 +50,25 @@ HANNIBAL = (function(H){
         deb("   GRP: registered group: %s", name);
 
       },
-      request: function(/* arguments: [amount,] resource [,locResource] */){
+      request: function(/* arguments: [amount,] asset [,locasset] */){
         
         // sanitize args
         var args      = H.toArray(arguments),
             aLen      = args.length,
             hasAmount = H.isInteger(args[0]), 
             amount    = hasAmount  ? args[0] : args[0].amount,
-            resource  = hasAmount  ? args[1] : args[0],
+            asset     = hasAmount  ? args[1] : args[0],
             locRes    = aLen === 3 ? args[2] : aLen === 2 && !hasAmount ? args[1] : undefined,
-            loc       = locRes ? resource.getLocNear(locRes) : undefined,
-            type      = resource.type;
+            // loc       = locRes ? asset.getLocNear(locRes) : undefined,
+            loc       = locRes ? locRes.location() : undefined,
+            type      = asset.type;
 
         // Eco requests are postponed one tick
-        resource.isRequested = true;
-        H.Triggers.add(H.Economy.request.bind(H.Economy, amount, resource.toOrder(), loc), -1);
+        asset.isRequested = true;
+        H.Triggers.add(H.Economy.request.bind(H.Economy, amount, asset.toOrder(), loc), -1);
 
-        // deb("   GRP: request: args: %s, amount: %s, loc: %s, res: %s", args, amount, locRes, resource);
-        deb("   GRP: request: args: %s", args);      
+        deb("   GRP: requesting: (%s)", args);    
+
       },
       appointAll: function(){
 
@@ -96,7 +97,7 @@ HANNIBAL = (function(H){
         H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
 
         instance.structure = [1, "private", nodename];
-        instance.structure = H.CreateResource(instance, 'structure');
+        instance.structure = H.CreateAsset(instance, 'structure');
         instance.assets.push(instance.structure);
         // H.Events.registerListener(id, group.structure.listener); //??
         instance.listener.onLaunch();
@@ -107,7 +108,7 @@ HANNIBAL = (function(H){
         return instance;
 
       },
-      moveSharedResource: function(resource, id, operator){
+      moveSharedAsset: function(resource, id, operator){
 
         // overwrites former group resource with the operator's one 
         // creates downlink via onConnect
@@ -173,9 +174,10 @@ HANNIBAL = (function(H){
           assets:     [],
           toString:   function(){return H.format("[group %s]", instance.name);},
           economy:    {
-            request: function(/* arguments: [amount,] resource [,locResource] */){
-              H.Groups.request.apply(null, arguments);
-            },
+            // request: function( arguments: [amount,] resource [,locResource] ){
+            //   H.Groups.request.apply(null, arguments);
+            // },
+            request: H.Groups.request,
             barter:  function(sell, buy, amount){
               H.Economy.barter(instance, sell, buy, amount);
             }
@@ -185,7 +187,7 @@ HANNIBAL = (function(H){
           },
           register: function(/* arguments */){
             H.toArray(arguments).forEach(function(prop){
-              instance[prop] = H.CreateResource(instance, prop);
+              instance[prop] = H.CreateAsset(instance, prop);
               instance.assets.push(instance[prop]);
               // deb("   GRP: registered resource %s for %s", prop, instance.name);
             });

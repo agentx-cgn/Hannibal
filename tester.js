@@ -27,10 +27,13 @@ HANNIBAL = (function(H){
 
     destroy: function(ids){ 
       ids = Array.isArray(ids) ? ids : arguments.length > 1 ? H.toArray(arguments) : [ids];
-      return () => Engine.PostCommand(H.Bot.id, {"type": "delete-entities", "entities": ids});
+      return () => Engine.PostCommand(H.Bot.id, {type: "delete-entities", "entities": ids});
     },
     launch: function(group /*, ... */){
       return H.toArray(arguments).slice(1).map((id) => () => H.Groups.launch(group, id));
+    },
+    research: function(tpl, id){
+      return () => Engine.PostCommand(H.Bot.id, {type: 'research', entity: id, template: tpl}); 
     }
 
   });
@@ -39,8 +42,9 @@ HANNIBAL = (function(H){
   sequences = {
     'aitest03': {
         '1': [() => "< - START: " + sequence + " - >"],
-        '5': [T.launch("g.grainpicker", 44, 44, 44, 44, 44), "launching 5 grainpickers"], 
-      '210': [() => "< - FINIS: " + sequence + " - >"],
+        '2': [T.research("phase_town_athen", 44), "research phase_town_athen"], 
+        '3': [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 
+      '241': [() => "< - FINIS: " + sequence + " - >"],
     },
     'Xaitest03': {
        '1': [() => "< - START: " + sequence + " - >"],
@@ -50,7 +54,7 @@ HANNIBAL = (function(H){
       '30': [T.destroy(223, 224, 225), "destroying female units"],
       '44': [() => "ACTION"],
       '50': [T.launch("g.grainpicker", 44, 44, 44, 44, 44), "launching 5 grainpickers"], 
-      '210': [() => "< - FINIS: " + sequence + " - >"],
+     '210': [() => "< - FINIS: " + sequence + " - >"],
     }
   };
 

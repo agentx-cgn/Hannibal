@@ -1,10 +1,10 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, Engine, deb, logObject */
 
-/*--------------- R E S O U R C E ---------------------------------------------
+/*--------------- A S S E T S -------------------------------------------------
 
-  handles a group's resources like estate, units, techs, buildings
-
+  handles a group's resources like estate, units, techs, buildings.
+  Assets consist of one of more resources like units or strutures
 
 
   V: 0.1, agentx, CGN, Feb, 2014
@@ -20,15 +20,16 @@ HANNIBAL = (function(H){
         "RESEARCHEDBY": "research"
       };
 
-  function getResType(res){
+  function getAssetType(asset){
 
     var found = false, hcq, type, nodes;
 
-    if (typeof res[2] === "object"){
+    if (typeof asset[2] === "object"){
+
       return "claim";
 
-    } else if (typeof res[2] === "string") {
-      nodes = H.QRY(res[2], 0).execute("", 0, 0, "getResType"); // enforce no debug info
+    } else if (typeof asset[2] === "string") {
+      nodes = H.QRY(asset[2], 0).execute("", 0, 0, "getAssetType"); // enforce no debug info
       nodes.forEach(function(node){
         "TRAINEDBY, BUILDBY, RESEARCHEDBY".split(", ").forEach(function(verb){
           if (!found){
@@ -43,7 +44,7 @@ HANNIBAL = (function(H){
       return type;
 
     } else {
-      return deb("ERROR : getResType: strange resource: %s", res[2]);
+      return deb("ERROR : getAssetType: strange resource: %s", asset[2]);
 
     }
   }
@@ -60,16 +61,16 @@ HANNIBAL = (function(H){
 
     if (token && instance[token] !== undefined){
       hcq = H.replace(hcq, "<" + token + ">", instance[token].hcq);
-      // deb("   RES: expandHQC: %s", hcq);
+      // deb("   AST: expandHQC: %s", hcq);
     } else if (token) {
-      deb(" ERROR : %s/%s or its hcq not found to build: %s", instance, token, hcq);
+      deb("ERROR : AST: %s/%s or its hcq not found to build: %s", instance, token, hcq);
     }
 
     return hcq;
 
   }
 
-  H.CreateResource = function(instance, nameProp){
+  H.CreateAsset = function(instance, nameProp){
 
     // Object Factory
 
@@ -83,19 +84,19 @@ HANNIBAL = (function(H){
         shared      = (definition[1] === "shared"),  
         dynamic     = (definition[1] === "dynamic"),
         hcq         = expandHQC(definition[2], instance),
-        type        = !dynamic ? getResType(definition) : "unknown",  // dynamics are not ordered
+        type        = !dynamic ? getAssetType(definition) : "unknown",  // dynamics are not ordered
         claim       = definition[2],
-        resources   = [],                 // these are entity ids
+        resources   = [],                 // these are entity ingame ids
         users       = [];                 // these are group listeners
 
-    // deb("   RES: have type: %s FOR %s/%s", type, instance.name, prop);
+    // deb("   AST: have type: %s FOR %s/%s", type, instance.name, prop);
 
 
     Object.defineProperty(self, 'health', {enumerable: true, get: function(){
       var curHits = 0, maxHits = 0;
       resources.forEach(function(id){
         if (!H.Entities[id]){
-          deb("Error: Health: id: %s in resources, but not in entities", id);
+          deb("ERROR : AST: Health: id: %s in resources, but not in entities", id);
         } else {
           curHits += H.Entities[id].hitpoints();
           maxHits += H.Entities[id].maxHitpoints();
@@ -115,9 +116,9 @@ HANNIBAL = (function(H){
       instance:   instance, 
       resources:  resources, 
       isRequested: false,
-      toString:   function(){return H.format("[resource %s]", name);},
+      toString:   function(){return H.format("[asset %s]", name);},
       toLog:      function(){
-        return "    RES: " + self + " " + JSON.stringify(self, null, "      : ");
+        return "    AST: " + self + " " + JSON.stringify(self, null, "      : ");
       },
       toOrder:    function(){
         return {
@@ -139,7 +140,7 @@ HANNIBAL = (function(H){
           garrison:   self.garrison.bind(null, id),
           destroy:    self.destroy.bind(null, id),
           toOrder:    self.toOrder,
-          toString:   function(){return H.format("[res %s]", name);}
+          toString:   function(){return H.format("[resource %s]", name);}
         };
       },
       tick: function(time){
@@ -182,26 +183,29 @@ HANNIBAL = (function(H){
           resources = nodes.sort(sortFunc).map(function(node){return node.id;});
         }
 
-        deb("   RES: %s sort/%s: value: %s, resources: old: %s, new: %s", self, prop, sortPosition, H.prettify(old), H.prettify(resources));
+        deb("   AST: %s sort/%s: value: %s, resources: old: %s, new: %s", self, prop, sortPosition, H.prettify(old), H.prettify(resources));
 
       },
-      // first:      function(who){return resources.length === 1;}, //TODO: very first
-      match:      function(who){
-        // deb("   RES: %s match who: %s with id(): %s, ress: %s", name, who, who.id, resources);
-        return resources.indexOf(who.id) !== -1;
-      },
+      match:      function(who){return resources.indexOf(who.id) !== -1;},
       length:     function(){return resources.length;},
+      state:      function(){
+        var state = {};
+        resources.forEach(function(id){
+          state[id] = H.Entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
+        });
+        return state;
+      },
       location:   function(id){
 
         var loc = [];
 
         if (id) {
           loc = H.Map.getCenter([id]);
-          deb("   RES: location id: %s of %s, loc: %s", id, self, loc);
+          deb("   AST: location id: %s of %s, loc: %s", id, self, loc);
 
         } else if (self.position){
           loc = self.position.location();
-          deb("   RES: location self.position: %s of %s, loc: %s", self.position, self, loc);
+          deb("   AST: location self.position: %s of %s, loc: %s", self.position, self, loc);
 
         } else if (users.length) { // priotize shared, 
           loc = H.Map.centerOf(users.map(function(listener){
@@ -212,26 +216,19 @@ HANNIBAL = (function(H){
               return [];
             }
           }));
-          deb("   RES: location users: %s of %s, loc: %s", H.prettify(users), self, loc);
+          deb("   AST: location users: %s of %s, loc: %s", H.prettify(users), self, loc);
 
         } else if (resources.length){
           loc = H.Map.getCenter(resources);
-          deb("   RES: location resources: %s of %s, loc: %s", H.prettify(resources), self, loc);
+          deb("   AST: location resources: %s of %s, loc: %s", H.prettify(resources), self, loc);
 
         } else {
-          deb("   RES: Error: found no location for %s", self);
+          deb("   AST: Error: found no location for %s", self);
 
         }
 
         return loc;
 
-      },
-      state:      function(){
-        var state = {};
-        resources.forEach(function(id){
-          state[id] = H.Entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
-        });
-        return state;
       },
       getLocNear: function(where){
 
@@ -240,7 +237,7 @@ HANNIBAL = (function(H){
         var pos, tpl, loc;
 
         if (!where){
-          deb("ERROR : getLocNear NO where %s", self);
+          deb("ERROR : AST etLocNear NO where %s", self);
           return null;
         } // that's ok if group has no location yet.
 
@@ -252,7 +249,7 @@ HANNIBAL = (function(H){
         tpl = H.QRY(hcq).first().key; //"node", 5, 10, "getLocNear").key;
         loc = H.Map.findGoodPosition(tpl, pos);
 
-        deb("   RES: getLocNear: loc: %s, pos: %s, tpl: %s", H.prettify(loc), pos, tpl);
+        deb("   AST: getLocNear: loc: %s, pos: %s, tpl: %s", H.prettify(loc), pos, tpl);
 
         return loc;
 
@@ -266,12 +263,12 @@ HANNIBAL = (function(H){
           entities: who
         });
 
-        deb("   RES: destroy who: %s", who);
+        deb("   AST: destroy who: %s", who);
 
       },
       garrison:     function(asset){
 
-        deb("   RES: garrison.in: %s", asset);
+        deb("   AST: garrison.in: %s", asset);
         logObject(asset, "asset");
 
         var who   = resources,
@@ -283,8 +280,7 @@ HANNIBAL = (function(H){
           queued:   false
         });
 
-        deb("   RES: garrison who: %s, where: %s", who, where);
-        // deb("   RES: garrison who: %s, where: %s, %s", who, where, H.Entities[where]._templateName);
+        deb("   AST: garrison who: %s, where: %s", who, where);
 
       },
       gather:     function(/* arguments: [who], what */){
@@ -299,7 +295,7 @@ HANNIBAL = (function(H){
           queued:   false
         });
 
-        deb("   RES: gather who: %s, what: %s, %s", who, what, H.Entities[what]._templateName);
+        deb("   AST: gather who: %s, what: %s, %s", who, what, H.Entities[what]._templateName);
 
       },
       repair:     function(/* arguments: [who], what */){
@@ -315,25 +311,15 @@ HANNIBAL = (function(H){
           queued: false
         });
 
-        deb("   RES: repair who: %s, what: %s, %s", who, what, (what ? H.Entities[what]._templateName : "???"));
+        deb("   AST: repair who: %s, what: %s, %s", who, what, (what ? H.Entities[what]._templateName : "???"));
 
       },
 
 
       listener: function(msg, id, evt){
 
-        var tpln, // operator,
-            meta = H.MetaData[id],
+        var tpln, meta = H.MetaData[id],
             resource = self.toResource(id);
-            // resource = {
-            //   id:       id,
-            //   name:     name,
-            //   shared:   shared,
-            //   gather:   self.gather.bind(null, id),
-            //   repair:   self.repair.bind(null, id),
-            //   toOrder:  self.toOrder,
-            //   toString: function(){return H.format("[res %s %s]", id, name);}
-            // };
 
         switch (msg){
 
@@ -342,12 +328,7 @@ HANNIBAL = (function(H){
           case "TrainingFinished":
 
             if (shared){
-              H.Groups.moveSharedResource(self, id, H.Objects(meta.opid));
-              // operator = H.Objects(meta.opid);
-              // operator.listener.onConnect(instance.listener);
-              // instance[nameRes] = operator.structure;
-              // instance.listener.onAssign(operator.structure.toResource(id));
-              // deb("   RES: patched shared res: %s onto: %s", self, operator.name);
+              H.Groups.moveSharedAsset(self, id, H.Objects(meta.opid));
 
             } else {
 
@@ -371,19 +352,11 @@ HANNIBAL = (function(H){
                 }
               }
 
-              deb("   RES: #%s, id: %s, meta: %s, shared: %s, tpl: %s", id, msg, H.prettify(meta), shared, tpln);
+              deb("   AST: #%s, id: %s, meta: %s, shared: %s, tpl: %s", id, msg, H.prettify(meta), shared, tpln);
 
-              // allows match
+              // finalize
               resources.push(id);
-
-              // connect to H.Events or operator
-              // if (shared){
-              //   operator = H.Objects(meta.opid);
-              //   operator.listener.onConnect(self.listener);
-              // } else {
-                H.Events.registerListener(id, self.listener);
-              // }
-
+              H.Events.registerListener(id, self.listener);
               instance.listener.onAssign(resource);
 
             }
@@ -391,7 +364,7 @@ HANNIBAL = (function(H){
           break;
           
           case "Garrison":
-            deb("   RES: msg: %s, id: %s, evt: %s", msg, id, H.prettify(evt));
+            deb("   AST: msg: %s, id: %s, evt: %s", msg, id, H.prettify(evt));
 
           break;
 
@@ -401,13 +374,13 @@ HANNIBAL = (function(H){
             resources.push(evt.newentity);
             resource.id = evt.newentity;
             instance.listener.onAssign(resource);
-            deb("   RES: msg: %s, id: %s, evt: %s", msg, id, H.prettify(evt));
+            deb("   AST: msg: %s, id: %s, evt: %s", msg, id, H.prettify(evt));
 
           break;
           
           case "Destroy":
 
-            deb("   RES: in %s id: %s, name: %s, have: %s", msg, id, name, resources);
+            deb("   AST: in %s id: %s, name: %s, have: %s", msg, id, name, resources);
 
             // no need to tell group about foundations
             if (!evt.SuccessfulFoundation){
@@ -434,14 +407,10 @@ HANNIBAL = (function(H){
 
     });
 
-    // if(dynamic){self.update();}
-    
     // debug
     self.listener.callsign = name;
 
     return self;
-
-
 
   };
 

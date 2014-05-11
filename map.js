@@ -11,6 +11,25 @@
 
 */
 
+// sharedScript.passabilityClasses
+//   pathfinderObstruction: NUMBER (1)
+//   foundationObstruction: NUMBER (2)
+//   building-land: NUMBER (4)
+//   building-shore: NUMBER (8)
+//   default: NUMBER (16)
+//   ship: NUMBER (32)
+//   unrestricted: NUMBER (64)
+
+// sharedScript.passabilityMap
+//   data: OBJECT (0, 1, 2, 3, 4, ...)[65536]
+//   height: NUMBER (256)
+//   width: NUMBER (256)
+
+// sharedScript.territoryMap
+//   data: OBJECT (0, 1, 2, 3, 4, ...)[65536]
+//   height: NUMBER (256)
+//   width: NUMBER (256)
+
 
 HANNIBAL = (function(H){
 
@@ -45,7 +64,7 @@ HANNIBAL = (function(H){
   };
 
   H.Map.centerOf = function(poss){
-    deb("   MAP: centerOf.in %s", pritShort(poss));
+    // deb("   MAP: centerOf.in %s", pritShort(poss));
     var out = [0, 0], len = poss.length;
     poss.forEach(function(pos){
       if (pos.length){
@@ -60,7 +79,7 @@ HANNIBAL = (function(H){
 
   H.Map.getCenter = function(entids){
 
-    deb("   MAP: getCenter: %s", H.prettify(entids));
+    // deb("   MAP: getCenter: %s", H.prettify(entids));
 
     if (!entids || entids.length === 0){
       return deb("ERROR : MAP getCenter with unusable param: %s", entids);
@@ -367,72 +386,49 @@ HANNIBAL = (function(H){
 return H; }(HANNIBAL));
 
 
-/*
+// for (a of Object.getOwnPropertyNames(Math)){console.log(a)}
 
-  sharedScript.passabilityClasses
-    pathfinderObstruction: NUMBER (1)
-    foundationObstruction: NUMBER (2)
-    building-land: NUMBER (4)
-    building-shore: NUMBER (8)
-    default: NUMBER (16)
-    ship: NUMBER (32)
-    unrestricted: NUMBER (64)
+// "toSource"
+// "abs"
+// "acos"
+// "asin"
+// "atan"
+// "atan2"
+// "ceil"
+// "cos"
+// "exp"
+// "floor"
+// "imul"
+// "fround"
+// "log"
+// "max"
+// "min"
+// "pow"
+// "random"
+// "round"
+// "sin"
+// "sqrt"
+// "tan"
+// "log10"
+// "log2"
+// "log1p"
+// "expm1"
+// "cosh"
+// "sinh"
+// "tanh"
+// "acosh"
+// "asinh"
+// "atanh"
+// "hypot"
+// "trunc"
+// "sign"
+// "cbrt"
+// "E"
+// "LOG2E"
+// "LOG10E"
+// "LN2"
+// "LN10"
+// "PI"
+// "SQRT2"
+// "SQRT1_2"
 
-
-  sharedScript.passabilityMap
-    data: OBJECT (0, 1, 2, 3, 4, ...)[65536]
-    height: NUMBER (256)
-    width: NUMBER (256)
-
-  sharedScript.territoryMap
-    data: OBJECT (0, 1, 2, 3, 4, ...)[65536]
-    height: NUMBER (256)
-    width: NUMBER (256)
-
-for (a of Object.getOwnPropertyNames(Math)){console.log(a)}
-
-"toSource"
-"abs"
-"acos"
-"asin"
-"atan"
-"atan2"
-"ceil"
-"cos"
-"exp"
-"floor"
-"imul"
-"fround"
-"log"
-"max"
-"min"
-"pow"
-"random"
-"round"
-"sin"
-"sqrt"
-"tan"
-"log10"
-"log2"
-"log1p"
-"expm1"
-"cosh"
-"sinh"
-"tanh"
-"acosh"
-"asinh"
-"atanh"
-"hypot"
-"trunc"
-"sign"
-"cbrt"
-"E"
-"LOG2E"
-"LOG10E"
-"LN2"
-"LN10"
-"PI"
-"SQRT2"
-"SQRT1_2"
-
-*/

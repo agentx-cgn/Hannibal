@@ -11,7 +11,7 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 * a **state machine** to handle game phases, like  
   village, town, city, attack, defense, reconstruction, etc. 
 
-* a **triple store** to link features of the cultures, like  
+* a **triple store** to interfere features of cultures, like  
   who can gather fields, can a healer melee? 
 
 * a **simple query language** to retrieve information from the triple store  
@@ -123,12 +123,16 @@ Hannibal extensively logs against standard output until switched off in config.j
 
 * [Artificial Intelligence: A Modern Approach](http://books.google.de/books?id=8jZBksh-bUMC)  
   Stuart Jonathan Russell, Peter Norvig
+
 * [A review of computational intelligence in RTS games](http://www.lcc.uma.es/~ccottap/papers/lara13review.pdf)  
   Raul Lara-Cabrera, Carlos Cotta, Antonio J. Fernandez-Leiva
+
 * [Planning with Hierarchical Task Networks in Video Games](http://icaps07-satellite.icaps-conference.org/workshop8/Planning%20with%20Hierarchical%20Task%20Networks%20in%20Video%20Games.pdf)  
   John-Paul Kelly, Adi Botea, Sven Koenig
+
 * [A HTN Planner For A Real-Time Strategy Game](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.406.8722&rep=rep1&type=pdf)  
   Jasper Laagland
+  
 * [Wall Building in RTS Games](www.cse.lehigh.edu/~munoz/CSE497/classes/Patrick2.ppt‎)  
   Patrick Schmid
 

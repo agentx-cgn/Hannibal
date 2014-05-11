@@ -55,6 +55,7 @@ extend(H, {
   letterRange:function (r){return H.range(r.charCodeAt(0), r.charCodeAt(1)+1).map(function(i){return String.fromCharCode(i);}).join("");},
   findAll:    function (str, s){var idxs=[],idx,p=0;while((idx=str.indexOf(s,p))>-1){idxs.push(idx);p=idx+1;}return idxs;},
   tab:        function (s,l){l=l||8;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);},
+  replaceAll: function (find, replace, str) {return str.replace(new RegExp(H.escapeRex(find), 'g'), replace);},
 
   // objects
   // each:       function (o,fn){var a;for(a in o){if(o.hasOwnProperty(a)){fn(a,o[a]);}}},
@@ -83,6 +84,7 @@ extend(H, {
   remove:     function (a,e){var i=a.indexOf(e); if (i!==-1){a.splice(i, 1);}},
   flatten:    function (a){return Array.prototype.concat.apply([], a);},
   pushUnique: function (a,e){if(a.indexOf(e)===-1){a.push(e);};return a;},
+  equal:      function (a, b){return JSON.stringify(a) === JSON.stringify(b);},
 
   intersect:  function(a,b){
     var ai=0,bi=0,al=a.length,bl=b.length,r=[];a=a.sort();b=b.sort();

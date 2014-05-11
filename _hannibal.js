@@ -313,8 +313,8 @@ var HANNIBAL = (function() {
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");
     // new H.HCQ(ts, "INGAME").execute("position", 5, 10, "ingames with position");
 
-    new H.HCQ(ts, "INGAME").execute("metadata", 5, 10, "ingames with metadata");
-    new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 10, "ingame techs with metadata");
+    new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
+    new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
 
     // new H.HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food MEMBER DISTINCT HOLDBY INGAME").execute("json", 5, 10, "optional update test");
 
@@ -464,8 +464,10 @@ var HANNIBAL = (function() {
 
       Engine.ProfileStart("Hannibal (player " + this.id +")");
 
-      deb("STATUS: #%sa, %s|%s|%s, elapsed: %s secs", 
-        this.ticks, this.player, this.civ, this.frame.name, secs
+      deb("STATUS: #%sa, %s|%s|%s, elapsed: %s secs, techs: %s, food: %s", 
+        this.ticks, this.player, this.civ, this.frame.name, secs, 
+        H.count(H.Players[this.id].researchedTechs), 
+        H.GameState.playerData.resourceCounts.food
       );
 
       this.frame = this.behaviour.process(this); 
@@ -477,8 +479,8 @@ var HANNIBAL = (function() {
       this.timing.all = 0;
       this.timing.ctx = H.Context.tick(secs);
       this.timing.evt = H.Events.tick(secs);
-      this.timing.trg = H.Triggers.tick(secs);
       this.timing.tst = H.Tester.tick(secs);
+      this.timing.trg = H.Triggers.tick(secs);
       this.timing.gps = H.Groups.tick(secs);
       this.timing.sts = H.Stats.tick(secs);
       this.timing.eco = H.Economy.tick(secs);

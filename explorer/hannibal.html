@@ -56,30 +56,25 @@
 
   <body>
 
-    <!-- Menu -->
-    <div id="contMenu">
+  <!-- Menu -->
+    <div id="menu" class="bar">
       <div class="menu">
         <ul>
-          <!-- <li id="menASM">ASM</li> -->
-          <!-- <li id="menHTN">HTN-TEST</li> -->
-          <li id="menCIV">CIV
-            <span>
-              <select id="slcCivs"></select>
-            </span>
-          </li>
-          <li id="menHQC">HCQ</li>
-          <li id="menHTN0AD">HTN</li>
-          <li id="menTECH">TECH</li>
-          <li id="menMMAP"><a target="_blank" href="../docs/Hannibal-Mmap.html">MMAP</a></li>
-
-          <li id="menRFH" style="float: right;" onclick="location.reload();">reload</li>
-          <li id="menTop" style="float: right;" 
-              onclick="document.documentElement.scrollTop = 0;"
-              onmouseover="document.documentElement.scrollTop = 0;"
+          <!-- <li id="menASM" onclick="H.Browser.menu('ASM');">ASM</li> -->
+          <!-- <li id="menHTN" onclick="H.Browser.menu('HTNTEST');">HTN-TEST</li> -->
+          <li id="menCIV"       onclick="location.hash = ''">CIV</li>
+          <select id="slcCivs"  onchange="H.Browser.civ()"></select>
+          <li id="menHQC"       onclick="H.Browser.do('*;*;HCQ');" >HCQ</li>
+          <li id="menHTN"       onclick="H.Browser.do('*;*;HTN');" >HTN</li>
+          <li id="menBLOCKS"    onclick="H.Browser.do('*;*;BLOCKS');" >BLOCKS</li>
+          <li id="menTECH"      onclick="H.Browser.do('*;*;TECH');">TECH</li>
+          <li id="menMMAP"      onclick="H.Browser.menu('MMAP');">MMAP</li>
+          <li id="menLOAD"      onclick="H.Browser.menu('LOAD');" style="float: right;" >reload</li>
+          <li id="menTop"       onclick="H.Browser.menu('TOP');"  onmouseover="H.Browser.menu('TOP');" style="float: right;" 
           >top</li>
 
           <li id="menVerbose" style="float: right;">verbosity 
-            <select id="slcVerbose">
+            <select id="slcVerbose" onchange="H.Browser.verbose()">
               <option>0</option>
               <option>1</option>
               <option>2</option>
@@ -91,13 +86,122 @@
       </div>
     </div>
 
-    <!-- Content -->
-    <div class="content" >
-    
-      <div class="interface">
+    <!-- Trenner -->
+    <div class="trenner topmgn"></div>
 
-        <!-- ASM -->
-        <div class="contASM panel">
+  <!-- Interface -->
+    <div class="interface bar" >
+    
+      <div class="container">
+
+      <!-- HCQ -->
+        <div class="HCQ panel">
+          <div class="left">
+            <label for="slcVerbs">Verbs</label>
+            <select id="slcVerbs"></select>
+            <label for="slcNodes">Node</label>
+            <select id="slcNodes"></select>
+            <br />
+          </div>
+          <div class="trenner4"></div>
+          
+          <div class="left">
+            <label for="slcExams">Examples</label>
+            <select id="slcExams"></select>
+            <br />
+          </div>
+          <div class="trenner4"></div>
+          
+          <div class="left">
+            <label for="txtHCQ" style="vertical-align: top">Query</label>
+            <textarea id="txtHCQ" maxlength="1000" rows="4"></textarea>        
+          </div>
+
+          <div class="trenner2"></div>
+
+          <div class="left">
+            <label for="slcModes">Display</label>
+            <select id="slcModes">
+              <option>info</option>
+              <option>json</option>
+            </select>
+            <button id="btnQuery"   onclick="H.Browser.do('*;*;HCQ;query;txtHCQ');">Query</button>
+            <button id="btnAnalyze" onclick="H.Browser.do('*;*;HCQ;analyze;txtHCQ');">Analyze</button>
+            <button id="btnPlan"    onclick="H.Browser.do('*;*;HCQ;plan;txtHCQ');">Plan</button>
+            <button style="margin-left: 8px;" id="btnClear">Clear</button>
+          </div>
+          <div class="trenner"></div>
+
+        </div>
+
+      <!-- HTN -->
+        <div class="HTN panel">
+          <div class="left">
+            <label for="btnHTN0ADT1" style="vertical-align: top">Tests</label>
+            <button id="btnHTN0ADT1">Test 1</button>
+            <button id="btnHTN0ADT2">Test 2</button>
+            <button id="btnHTN0ADT3">Test 3</button>
+            <button id="btnHTN0ADTC" style="margin-left: 8px">Test Civ</button>
+          </div>
+          <div class="trenner4"></div>
+          <div class="left">
+
+            <label for="txtState" style="vertical-align: top">State</label>
+            <textarea id="txtState" class="f11" maxlength="1000" rows="5">
+              "ress": {},
+              "ents": {"structures.athen.civil.centre": 1},
+              "tech": ["phase.village"]
+           </textarea>        
+
+            <label for="txtGoal" style="vertical-align: top">Goal</label>
+            <textarea id="txtGoal" class="f11" maxlength="1000"  rows="5">
+              "ress": {},
+              "ents": {"units.athen.champion.marine": 1},
+              "tech": []
+            </textarea>        
+            <br />
+
+          </div>
+          <div class="trenner2"></div>
+          <div>
+
+            <div class="right" style="margin-right: 9px;">
+              <button id="btnHTN0ADGO" style="margin-left:167px">GO</button>
+              <button id="btnHTN0ADSTRESS">Stress</button>
+              <select id="slcStress">
+                <option>10</option>
+                <option selected>100</option>
+                <option>1.000</option>
+                <option>10.000</option>
+              </select>
+              <label for="slcStress">Loops</label>
+            </div>
+            <br />
+
+          </div>       
+        </div>
+
+      <!-- BLOCKS -->
+        <div class="BLOCKS left panel">
+          <label for="btnExample1" style="vertical-align: top">Blocks World</label>
+          <button id="btnBlocksExample1">Test1</button>
+          <button id="btnBlocksExample2">Test2</button>
+          <button id="btnBlocksExample3">Stress</button>
+        </div>
+        <div class="trenner"></div>
+
+      <!-- MMAP-->
+        <div class="MMAP panel">
+        </div>
+
+      <!-- TECH-->
+        <div class="TECH panel">
+          <div id="jsonTECH">
+          </div>
+        </div>
+
+      <!-- ASM -->
+        <div class="ASM panel">
           <div>
             asm.js links: <a href="https://blog.mozilla.org/luke/2014/01/14/asm-js-aot-compilation-and-startup-performance/">cache</a>
           </div>   
@@ -121,136 +225,60 @@
           <button onclick="H.Display.clear()">Clear</button>     
         </div>
 
-        <!-- HTN TEST -->
-        <div class="contHTN panel">
-          <button id="btnExample1" onclick="H.HTN.Blocks.example1('slcVerbose');">Test1</button>
-          <button id="btnExample2" onclick="H.HTN.Blocks.example2('slcVerbose');">Test2</button>
-          <button id="btnExample2" onclick="H.HTN.Blocks.example3('slcVerbose');">Stress</button>
-        </div>
-
-        <!-- HCQ -->
-        <div class="contHCQ panel">
-          <div>
-            <label for="slcVerbs">Verbs</label>
-            <select id="slcVerbs"></select>
-            <label for="slcNodes">Node</label>
-            <select id="slcNodes"></select>
-            <button id="btnAnalyze">Analyze</button>
-            <button id="btnPlan">Plan</button>
-            <br />
-          </div>
-          
-          <div>
-            <label for="slcExams">Examples</label>
-            <select id="slcExams"></select>
-            <br />
-          </div>
-          
-          <div>
-            <label for="txtHQC" style="vertical-align: top">Query</label>
-            <textarea id="txtHQC" maxlength="1000" cols="100" rows="4"></textarea>        
-            <br />
-            <button style="float: right; margin-right: 17px;" id="btnClear">Clear</button>
-          </div>
-
-          <label for="slcModes">Display</label>
-          <select id="slcModes">
-            <option>info</option>
-            <option>json</option>
-          </select>
-
-          <button id="btnGoHCQ">Go</button>
-        </div>
-
-
-        <!-- MMAP-->
-        <div class="contMMAP panel">
-        </div>
-
-        <!-- TECH-->
-        <div class="contTECH panel">
-          <div id="jsonTECH">
-          </div>
-        </div>
-
-
-        <!-- HTN 0 A.D. -->
-        <div class="contHTN0AD panel">
-
-          <div>
-            <label for="txtState" style="vertical-align: top">State</label>
-            <textarea id="txtState" class="f11" maxlength="1000" cols="44" rows="6">
-"ress": {},
-"ents": {"structures.athen.civil.centre": 1},
-"tech": ["phase.village"]
-           </textarea>        
-
-            <label for="txtGoal" style="vertical-align: top">Goal</label>
-            <textarea id="txtGoal" class="f11" maxlength="1000" cols="44" rows="6">
-"ress": {},
-"ents": {"units.athen.champion.marine": 1},
-"tech": []
-            </textarea>        
-
-          </div>
-
-          <div>
-
-            <div style="float:left; margin-left: 62px;">
-              <button id="btnHTN0ADT1" style="float:left">Test 1</button>
-              <button id="btnHTN0ADT2" style="float:left">Test 2</button>
-              <button id="btnHTN0ADT3" style="float:left">Test 3</button>
-              <button id="btnHTN0ADTC" style="float:left; margin-left: 76px">Test Civ</button>
-            </div>
-
-            <div style="float:right; margin-right: 16px;">
-              <label for="slcStress">Loops</label>
-              <select id="slcStress">
-                <option>10</option>
-                <option selected>100</option>
-                <option>1.000</option>
-                <option>10.000</option>
-              </select>
-              <button id="btnHTN0ADSTRESS" style="margin-right: 94px;" >Stress</button>
-              <button id="btnHTN0ADGO" style="margin: 0px 0px 0 14px">GO</button>
-            </div>
-
-          </div>       
-
-        </div>
-      
       </div>
-      <div class="trenner"></div>
-    
 
     </div>
 
+    <!-- Trenner -->
     <div class="trenner"></div>
 
-
-    <!-- Footer -->
-
-    <div id="debug">
+  <!-- Error -->
+    <div class="error bar">
+      <span id="cError"></span>
     </div>
+
+    <!-- Trenner -->
     <div class="trenner"></div>
 
-    <div class="results">
-      <button style="float: right;" onclick="H.Display.clear()">Clear</button>            
-      <table id="tblResult"></table>
+  <!-- Browser -->
+    <div class="browser bar">
+      <button id="cBack" class="">Back</button>
+      <button id="cNext" class="">Next</button>
+      <select id="cHist" class=""></select>
+      <span   id="cCurr" class="">replace me</span>
     </div>
+
+    <!-- Trenner -->
     <div class="trenner"></div>
 
-    <div class="timing">
-      <div id="ifoResult"></div>
+  <!-- Info -->
+    <div class="info bar">
+      <span id="cInfo"></span>
     </div>
+
+    <!-- Trenner -->
     <div class="trenner"></div>
 
+  <!-- Result -->
+    <div class="results bar">
+      <div id="results" class="mgn2">
+        <button style="float: right;" onclick="H.Browser.results.clear()">Clear</button>            
+        <table id="tblResult"></table>
+        <div   id="divResult"></div>
+        <div class="trenner"></div>
+      </div>
+    </div>
+
+    <!-- Trenner -->
+    <div class="trenner bar" style="height: 8px; background: #888; display: block"></div>
+
+  <!-- Scripts -->
     <div>
       <script>
 
-        var bInitializes = true;
+        var errors = 0, bInitializes = true;
 
-        window.onerror = function(e, f, l){
+        window.onerrorXX = function(e, f, l){
           var error = "";
           if (bInitializes){
             error += "Browser not supported. Try this one ";
@@ -258,19 +286,20 @@
             error += "<a href='https://developer.mozilla.org/en-US/Firefox/Releases/30'>why</a> ";
             error += "and come back soon, thx.<br />";
             error += "<span style='font-weight: 400;'>[" + e + "]<span>";
-            document.getElementById("debug").innerHTML = error;
+            document.getElementById("cError").innerHTML = error;
           } else {
             error += "Error occured.<br />";
             error += "<span style='font-weight: 400;'>[" + e + "]<span><br />";
             error += "<span style='font-weight: 400;'>[" + f + ":" + l + "]<span><br />";
-            document.getElementById("debug").innerHTML += error;
+            // document.getElementById("cError").innerHTML += error;
+            H.Browser.error(error);
           }
-          console.log(error);
-          error += 1;
+          console.log(e, f, l);
+          errors += 1;
         }
 
         var $  = document.getElementById.bind(document),
-            $$ = document.querySelector.bind(document),
+            $$ = function(selector){return H.toArray(document.querySelectorAll(selector));},
             // fake bot environment 
             HANNIBAL = {},
             H = HANNIBAL,
@@ -285,7 +314,7 @@
 
       </script>
 
-      <!-- simulates alphabetic loading sequence -->
+    <!-- simulates alphabetic loading sequence -->
       <script type="text/javascript" src="../_helper.js"></script>
       <script type="text/javascript" src="../asm.js"></script>
       <script type="text/javascript" src="../config.js"></script>
@@ -293,19 +322,24 @@
       <script type="text/javascript" src="../economy.js"></script>
       <script type="text/javascript" src="../store.js"></script>
       <script type="text/javascript" src="../htn-helper.js"></script>
-      <script type="text/javascript" src="../htn-methods.js"></script>
-      <script type="text/javascript" src="../htn-operators.js"></script>
+      <script type="text/javascript" src="../htn-eco-methods.js"></script>
+      <script type="text/javascript" src="../htn-eco-operators.js"></script>
       <script type="text/javascript" src="../htn-planner.js"></script>
       <script type="text/javascript" src="../tools.js"></script>
       <script type="text/javascript" src="data/store-json.export"></script>
       <script type="text/javascript" src="data/techs-json.export"></script>
       <script type="text/javascript" src="htn-hannibal-examples.js"></script>
+<!-- 
       <script type="text/javascript" src="htn-blocks-methods.js"></script>
       <script type="text/javascript" src="htn-blocks-methods2.js"></script>
       <script type="text/javascript" src="htn-blocks-operators.js"></script>
       <script type="text/javascript" src="htn-blocks-examples.js"></script>
+       -->
+      <script type="text/javascript" src="htn-blocks.js"></script>
       <script type="text/javascript" src="display.js"></script>
+      <script type="text/javascript" src="browser.js"></script>
       
+    <!--- Init -->
       <script>
 
         bInitializes = false;
@@ -314,18 +348,24 @@
           H.QRY = function(hcq, debug){return new H.HCQ(H.store, hcq, debug);};
 
         window.onload = function(){
-          var error = "";
-          // throw "error"; 
-          // shortcuts
-          H.Display.prepare();
-          H.Display.hide();
-          H.Display.import("athen");
-          H.Display.init();
-          $("menHTN0AD").onclick(true); //menHTN0AD, menAsm, menTECH, menHQC
-          TIM.step("Ready1");
+          var error = "", res ;
+
+          TIM.step("Hash", location.hash);
+
+          H.Browser.init("#!0;athen;HCQ");
+
+          if (!location.hash.contains("#!")){
+            H.Browser.do();
+          } else {
+            H.Browser.execute(location.hash);
+          }  
+
+          if (!errors){H.Browser.error("");}
+          TIM.step("ONLOAD");
         };
         
       </script>
+
     </div>
  
   </body>

@@ -134,6 +134,19 @@ HANNIBAL = function(H){
   }};
 
 
+  H.Data.Explorer = H.Data.Explorer || {};
+  H.Data.Explorer.examples = [
+    "MEMBER",
+    "MEMBER DISTINCT",
+    "siege HOLDBY",
+    "structures.athen.market REQUIRE",
+    "phase.town.athen RESEARCHEDBY",
+    "structures.athen.civil.centre RESEARCH",
+    "RESEARCH DISTINCT SORT < name",
+    "RESEARCH DISTINCT SORT < name WITH costs.metal > 0",
+    "RESEARCH DISTINCT SORT < name WITH requires.tech = 'phase.city'"
+  ]
+
   H.Data.ClassInfo = {
     'aqua':        "Vegetation on water.",
     'bow':         "Infantry Archer, Cavalry Archer.",

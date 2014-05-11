@@ -223,17 +223,19 @@ HANNIBAL = (function(H){
             if (H.Entities[event.entity].owner() === PID){
               this.dispatchEvent(type, event.entity, event);
             } else {
-              deb("!EVENT: got foreign Garrison: %s", H.prettify(event));
+              deb("WARN  : got foreign Garrison: %s", H.prettify(event));
             }
           break;
 
           case "Destroy":  // EVT: Destroy, mats: {entity, metadata, entityObj}
-            if (event.entityObj.owner() === PID){
+            if (event.entityObj && event.entityObj.owner() === PID){
               this.dispatchEvent(type, event.entity, event);
               this.removeAllListener(event.entity);
               H.Bot.culture.removeById(event.entity);
-            } else {
-              deb("!EVENT: got foreign destroy: %s", H.prettify(event));
+            } else if (!event.entityObj && event.entity) {
+              deb("ERROR : Events got strange destry for %s", event.entity);
+            } else {  
+              deb("WARN  : EVENT: got foreign destroy: %s", H.prettify(event));
             }
           break;
           
@@ -241,10 +243,14 @@ HANNIBAL = (function(H){
             
             if (event.owner === PID) {
               event.entities.forEach(function(id){
-                H.Objects(event.metadata.order).ready(1, type, id);
+                if (event.metadata && event.metadata.order){
+                  H.Objects(event.metadata.order).ready(1, type, id);
+                } else {
+                  deb("WARN : trained %s without order", id)
+                }
               });
             } else {
-              deb("!EVENT: got foreign TrainingFinished: %s", H.prettify(event));
+              deb("WARN  : got foreign TrainingFinished: %s", H.prettify(event));
             }
             
           break;
@@ -269,7 +275,7 @@ HANNIBAL = (function(H){
                 H.Bot.culture.loadById(event.id);
                 order.ready(1, type, event.id);
               } else {
-                deb("ERROR: AIMetadata no metadata.order or unkown id: %s", event.id);
+                deb("ERROR : AIMetadata no metadata.order or unkown id: %s", event.id);
               }
             }
 

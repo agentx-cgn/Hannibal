@@ -32,10 +32,7 @@ HANNIBAL = (function(H){
     seed:     1234,                
 
     data:                    {
-      civs:                  ['athen', 'brit', 'cart', 'celt', 'gaia', 'gaul', 'hele', 'iber', 'mace', 
-                              'maur', 'pers', 'ptol', 'rome', 'sele', 'skirm', 'spart', 'theb'],
-
-      sharedBuildingClasses: ['civilcentre', 'blacksmith'],
+      sharedBuildingClasses: ['civilcentre', 'blacksmith', 'farmstead'],
     },
 
     economy: {

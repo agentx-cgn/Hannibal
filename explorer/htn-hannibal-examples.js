@@ -97,13 +97,14 @@ HANNIBAL = (function(H){
     clear();
     deb(
 
-      "****************************************<br />" +
+      "**************************************** <br />" +
       "Second, test 0 A.D. planner on resources <br />" + 
       "****************************************"
     );
 
     deb();
-    deb('\n- <b style="color: #383">All tests should succeed:');
+    deb();
+    deb('- <b style="color: #383">All tests should succeed:</b>');
     deb();
     deb("- Define state: food: 100");
     deb("- Define goal: food: 200");

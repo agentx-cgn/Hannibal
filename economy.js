@@ -295,9 +295,9 @@ HANNIBAL = (function(H){
         order.stamp  = H.Bot.turn;
         order.id     = H.Objects(order);
         order.amount = amount;
-        if (position && position.x){
-          order.x = position.x;
-          order.z = position.z;
+        if (position && position.length){
+          order.x = position[0];
+          order.z = position[1];
         }
         H.Queue.append(new H.Order(order));
 
@@ -308,21 +308,22 @@ HANNIBAL = (function(H){
 
         var allocs = H.deepcopy(ress),
             allGood = false, 
-            fits = function(cost, budget){
-              return (
-                cost.food  <= budget.food  &&
-                cost.wood  <= budget.wood  &&
-                cost.stone <= budget.stone &&
-                cost.metal <= budget.metal
-              );              
-            };
+            constructs = 0; // only one construction per round
+            // fits = function(cost, budget){
+            //   return (
+            //     cost.food  <= budget.food  &&
+            //     cost.wood  <= budget.wood  &&
+            //     cost.stone <= budget.stone &&
+            //     cost.metal <= budget.metal
+            //   );              
+            // };
 
         if (!H.Queue.length){return;}
 
         H.Queue
           .forEach(function(order){order.evaluate(allocs);});
 
-        allGood = fits(allocs, H.Stats.stock);
+        allGood = self.fits(allocs, H.Stats.stock);
         // deb("    PQ: allGood: %s, allocs: %s", allGood, H.prettify(allocs));
 
 
@@ -334,7 +335,7 @@ HANNIBAL = (function(H){
                 node = order.nodes[0],
                 id = order.order.id;
 
-            if (allGood || fits(node.cost, H.Stats.stock)){
+            if (allGood || self.fits(node.cost, H.Stats.stock)){
 
               switch(order.order.type){
 
@@ -345,9 +346,14 @@ HANNIBAL = (function(H){
                 break;
 
                 case "construct":
-                  // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.order.x + "|" + order.order.z, node.key);
-                  H.Economy.execute("construct", amount, node.producer, node.key, order.order);
-                  order.executed = true;
+                  if (constructs < 1){
+                    // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.order.x + "|" + order.order.z, node.key);
+                    H.Economy.execute("construct", amount, node.producer, node.key, order.order);
+                    order.executed = true;
+                    constructs += 1;
+                  } else {
+                    deb("    PQ: postponed id: %s", id);
+                  }
                 break;
 
                 default:
@@ -370,7 +376,7 @@ HANNIBAL = (function(H){
       },
       execute: function(cmd, amount, id, template, order){
 
-        var PID = H.Bot.id, msg;
+        var PID = H.Bot.id, msg, pos;
 
         deb("    OE: #%s, cmd: %s, amount: %s, order: %s, tpl: %s", id, cmd, amount, H.prettify(order), template);
 
@@ -390,11 +396,13 @@ HANNIBAL = (function(H){
 
           if (order.x === undefined){deb("ERROR: %s without position", cmd); return;}
 
+          pos = H.Map.findGoodPosition(template, [order.x, order.z]);
+
           Engine.PostCommand(PID, { type: cmd,
               entities:     [id],
               template:     template,
-              x:            order.x, 
-              z:            order.z,
+              x:            pos.x, 
+              z:            pos.z,
               angle:        H.Config.angle,
               autorepair:   false, 
               autocontinue: false,
@@ -476,38 +484,12 @@ return H; }(HANNIBAL));
 
 /*
 
-determineAction: function(){
-
-  var self = this, nodes, found = false, 
-      hcq, db = H.Bot.cultures;
-
-  // testing each node for in game producers
-  this.nodes.forEach(function(node){
-    "TRAINEDBY, BUILDBY, RESEARCHEDBY".split(", ").forEach(function(verb){
-      if (!found){
-        hcq = H.format("%s %s INGAME", node.name, verb);
-        nodes = new H.HCQ(db, hcq).execute();
-        if (nodes.length){
-          self.order.action = self.mapper[verb];
-          deb("    OC: #%s found action: %s FOR %s", self.order.id, self.order.action, hcq);
-          found = true;
-        }
-      }
-
-    });
-  });    
-
-},
-
-
 H.Economy.barter = function(source, sell, buy, amount){
   var markets = gameState.getOwnEntitiesByType(gameState.applyCiv("structures/{civ}_market"), true).toEntityArray();
   markets[0].barter(buy,sell,100);
   Engine.PostCommand({"type": "barter", "sell" : sellType, "buy" : buyType, "amount" : amount });      
   new api this.barterPrices = state.barterPrices;
 };
-
-
 
 logObject(sharedScript.playersData[this.id].statistics);
   buildingsConstructed: NUMBER (0)

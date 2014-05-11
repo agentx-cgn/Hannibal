@@ -187,13 +187,7 @@ HANNIBAL = (function(H){
     },
 
 
-  })
-
-
-
-
-
-
+  });
 
 return H; }(HANNIBAL));
 

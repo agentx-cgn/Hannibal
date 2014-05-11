@@ -111,33 +111,36 @@ H.Plugins = {
         to help with nearby repair
     */
 
-    // variables available in listener with this. All optional
+    // variables available in listener with *this*. All optional
 
-    active:         true,           // prepared for init/launch ...
+    active:         true,           // ready to init/launch ...
     description:    "test group",   // text field for humans 
-    civilisations:  ["*"],          // 
+    civilisations:  ["*"],          // lists all supported cics
 
     interval:       10,             // call onInterval every x ticks
     parent:         "",             // inherit useful features
 
-    objectives:     "+food",        // give the economy a hint what this group provides.
+    capabilities:   "2 food/sec",   // (athen) give the economy a hint what this group provides.
 
 
     // this got initialized by launcher
     position:       null,           // coords of the group's position/activities
 
-    // groups can claim space for buildings or activities
-    space:          [1, {width: 30, depth: 30, near: "<dropsite>"}],
-
-
-    // resources either trained or build or researched
-    // make sure units can construct, repair and work on resources
+    // ASSETS
+    // either trained or build or researched or claimed
+    // make sure units can construct, repair and work on assets
+    // dynamic: merely an updateable list (e.g. the current centre, shelter)
+    // shared: needed, but shared with other groups (e.g. dropsites, temples)
+    // exclusive: fully managed by this group (e.g. fields, units)
 
     centre:         [1, "dynamic",   "civilcentre INGAME"],
     units:          [5, "exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food"],
     field:          [1, "exclusive", "food.grain PROVIDEDBY"],
     dropsite:       [1, "shared",    "food ACCEPTEDBY"],
-    refuges:        [1, "dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 5"],
+    shelter:        [1, "dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 5"],
+
+    // groups can claim space for structures or activities
+    space:          [1, {width: 30, depth: 30, near: "<dropsite>"}],
 
 
     // message queue sniffer
@@ -147,9 +150,9 @@ H.Plugins = {
       // game started, something launched this group
       onLaunch: function(){
 
-        this.register("dropsite", "units", "field", "refuges"); // turn res definitions into res objects
+        this.register("dropsite", "units", "field", "shelter"); // turn res definitions into res objects
         this.economy.request(1, this.dropsite);                 // assuming a CC exists
-        this.refuges.sort("< distance");
+        this.shelter.sort("< distance");
 
       },
 
@@ -222,8 +225,8 @@ H.Plugins = {
 
         } else if (this.units.match(resource)){
           deb("     G: %s health: %s", resource, this.units.health);
-          if (this.units.health < 50 && this.refuges.first()) { 
-            this.units.garrison(this.refuges);
+          if (this.units.health < 50 && this.shelter.first()) { 
+            this.units.garrison(this.shelter);
           }
         }
 
@@ -265,8 +268,8 @@ H.Plugins = {
         deb("     G: %s onInterval,  state: %s", this, H.prettify(this.units.state()));
         deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
 
-        // update to nearest refuges
-        this.refuges.sort("< distance");
+        // update to nearest shelter
+        this.shelter.sort("< distance");
 
       },
       // defined by this.interval

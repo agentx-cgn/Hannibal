@@ -1,9 +1,9 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, deb */
 
-/*--------------- P L A N N E R -----------------------------------------------
+/*--------------- DOMAIN: E C O N O M Y  --------------------------------------
 
-  first attempt for 0 A.D. methods
+  Operators
 
 
 
@@ -15,7 +15,7 @@
 HANNIBAL = (function(H){
 
   H.HTN = H.HTN || {};                       
-  H.HTN.Hannibal = H.HTN.Hannibal || {};
+  H.HTN.Economy = H.HTN.Economy || {};
 
   // helper
 
@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
 
   }
 
-  H.HTN.Hannibal.operators = {
+  H.HTN.Economy.operators = {
 
     wait_secs: function (state, secs) {
 
