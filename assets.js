@@ -102,7 +102,7 @@ HANNIBAL = (function(H){
           maxHits += H.Entities[id].maxHitpoints();
         }
       });
-      return (curHits / maxHits).toFixed(1);
+      return (curHits / maxHits * 100).toFixed(1);
     }});    
 
 
@@ -191,7 +191,11 @@ HANNIBAL = (function(H){
       state:      function(){
         var state = {};
         resources.forEach(function(id){
-          state[id] = H.Entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
+          if (!!H.Entities[id]._entity.unitAIState){ //??
+            state[id] = H.Entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
+          } else {
+            state[id] = undefined;
+          }
         });
         return state;
       },

@@ -134,6 +134,7 @@ HANNIBAL = (function(H){
             });
           };
 
+      deb();
       deb("     C: loadEntities from game: %s total", H.count(H.Entities));
 
       H.each(H.Entities, function(id, ent){
@@ -143,26 +144,30 @@ HANNIBAL = (function(H){
 
         if (ent.owner() === H.Bot.id){
 
-          if (ent.hasClass("Unit")){
-            ent.setMetadata(H.Bot.id, "opname", "none");
-            deb("     C:   set opname to 'none' %s", ent);
+          // if (ent.hasClass("Unit")){
+          //   ent.setMetadata(H.Bot.id, "opname", "none");
+          //   // deb("     C:   set opname to 'none' %s", ent);
 
-          } else if (ent.hasClass("Structure")){
+          // } else if (ent.hasClass("Structure")){
 
-            if (isShared(ent)){
-              ent.setMetadata(H.Bot.id, "opname", "g.custodian");
-              deb("     C:   set opname to 'custodian' for %s", ent);
+          //   if (isShared(ent)){
+          //     ent.setMetadata(H.Bot.id, "opname", "g.custodian");
+          //     deb("     C:   set opname to 'custodian' for %s", ent);
             
-            } else {
-              ent.setMetadata(H.Bot.id, "opname", "none");
-              deb("     C:   set opname to 'none' for %s", ent);
+          //   } else if (ent.hasClass("civilcentre")){
+          //     ent.setMetadata(H.Bot.id, "opname", "g.mayor");
+          //     deb("     C:   set opname to 'custodian' for %s", ent);
+
+          //   } else {
+          //     ent.setMetadata(H.Bot.id, "opname", "none");
+          //     deb("     C:   set opname to 'none' for %s", ent);
             
-            }
+          //   }
 
-          } else {
-            deb("ERROR : loadEntities unhandled entity: %s classes: %s", ent, ent.classes());
+          // } else {
+          //   deb("ERROR : loadEntities unhandled entity: %s classes: %s", ent, ent.classes());
 
-          }
+          // }
 
           targetNodes.push(self.addNode(name, key, ent._template, +id));
           cntNodes += 1;
@@ -171,7 +176,7 @@ HANNIBAL = (function(H){
 
       });
 
-      deb("     C: loaded %s nodes for game entities", H.tab(cntNodes, 4));
+      deb("     C: created %s nodes for game entities", H.tab(cntNodes, 4));
 
       targetNodes.forEach(function(nodeTarget){
 

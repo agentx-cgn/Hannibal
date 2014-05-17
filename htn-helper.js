@@ -23,6 +23,12 @@ HANNIBAL = (function(H){
 
   H.extend(H.HTN.Helper, {
 
+    fmt: function fmt(){
+      var c=0, a=Array.prototype.slice.call(arguments);
+      a.push("");
+      return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
+    },
+
     pritObj: function (o, depth){
 
       // makes pretty html from states and goals
@@ -101,12 +107,12 @@ HANNIBAL = (function(H){
                 if (o.cost[cost]){
                   html += indent + "&nbsp;&nbsp;" +  tab(cost, 5) + " : " + tab(o.cost[cost], 4) + lf;
                 }
-              })
+              });
               html += indent + "}" + lf;
             }
 
         } else {
-          html += indent + H.mulString("&nbsp;", depth) + k + ": " + v + "" + lf;
+          html += indent + H.mulString("&nbsp;", depth) + k + ": " + v + lf;
         }
 
       });

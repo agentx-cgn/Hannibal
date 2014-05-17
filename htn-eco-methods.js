@@ -19,12 +19,13 @@ HANNIBAL = (function(H){
 
   // In each Pyhop planning method, the first argument is the current state (this is analogous to Python methods, in which the first argument is the class instance). The rest of the arguments must match the arguments of the task that the method is for. For example, ('pickup', b1) has a method get_m(state,b1), as shown below.
 
-  var prit, sani,
+  var m, o, planner,
+      prit, sani, fmt,
       mapper = {
         'BUILDBY':       'build_structures',
         'TRAINEDBY':     'train_units',
         'RESEARCHEDBY':  'research_tech'
-      };
+      };      
 
   function getProducers (name){
 
@@ -32,68 +33,25 @@ HANNIBAL = (function(H){
 
     for (verb of Object.keys(mapper)){
       producers = H.QRY(name + " " + verb).execute();
-      if (producers.length) {return [producers, mapper[verb]];}
+      if (producers.length) {return [producers, o[mapper[verb]]];}
     }
 
     return [null, null];
 
   }
 
-  H.HTN.Economy.init = function(){
+  H.HTN.Economy.initialize = function(oPlanner){
+    planner = oPlanner;
+    m = H.HTN.Economy.methods;
+    o = H.HTN.Economy.operators;
+    fmt = H.HTN.Helper.fmt;
+    prit = H.prettify;
+    sani = H.saniTemplateName;
   };
 
   H.HTN.Economy.methods = {
 
-    // meta
-
-    any: function(state, methods){
-
-      var operators, method, self = H.HTN.Economy;
-
-      for (method of methods){
-        operators = self.methods[method[0]].apply(null, [state, ...method[1]]);
-        if (operators !== null){return operators;}
-      }
-
-      return null;
-
-    },
-
-    all: function(state, methods){
-
-      var res, operators = [], method, self = H.HTN.Economy;
-
-      for (method of methods){
-        res = self.methods[method[0]].apply(null, [state, ...method[1]]);
-        if (res !== null){operators.push(res);}
-      }
-
-      return operators.length ? operators : null;
-
-    },
-
-    filter: function(state, methods){
-
-      var res, operators = [], method, self = H.HTN.Economy;
-
-      for (method of methods){
-        res = self.methods[method[0]].apply(null, [state, ...method[1]]);
-        if (res !== null){operators.push(res);}
-      }
-
-      return operators.length ? operators : null;
-
-    },
-
-
-    // domain
-
-    init: function(state, goal){
-
-      // makes some shortcuts available
-
-      prit = H.prettify;
-      sani = H.saniTemplateName;
+    init: function init(state, goal){
 
       // sanitizes state
 
@@ -133,11 +91,12 @@ HANNIBAL = (function(H){
         });
       }
 
-      return [['start', goal]];
+      return [[m.start, goal]];
 
 
     },
-    start: function(state, goal){
+
+    start: function start(state, goal){
 
       var debug = 0, 
           diff  = 0, 
@@ -150,7 +109,7 @@ HANNIBAL = (function(H){
         if (diff > 0){
           node = H.QRY("house CONTAIN").first();
           diff  = ~~(diff / node.population * -1 + 1);
-          tasks.push(['produce', node.name, diff]);
+          tasks.push([m.produce, node.name, diff]);
         }
       }
 
@@ -159,7 +118,7 @@ HANNIBAL = (function(H){
         H.each(goal.ress, function(name, amount){
           diff = amount - (state.ress[name] || 0 );
           if (diff > 0){
-            tasks.push(['inc_resource', name, diff]);
+            tasks.push([o.inc_resource, name, diff]);
           }
         });
       }
@@ -169,7 +128,7 @@ HANNIBAL = (function(H){
         H.each(goal.ents, function(name, amount){
           diff = amount - (state.ents[name] || 0 );
           if (diff > 0){
-            tasks.push(['produce', name, diff]);
+            tasks.push([m.produce, name, diff]);
           }
         });
       }
@@ -179,21 +138,21 @@ HANNIBAL = (function(H){
         availTechs = (!state.tech && !state.tech.length) ? availTechs : state.tech;
         goal.tech.forEach(function(name){
           if (availTechs.indexOf(name) === -1){
-            tasks.push(['produce', name]);
+            tasks.push([m.produce, name]);
           }
         });
       }
 
       // come back, if not finished
-      if (tasks.length){tasks.push(['start', goal]);}
+      if (tasks.length){tasks.push([m.start, goal]);}
 
-      if (debug > 0) {deb(" Start: %s", prit(tasks));}
+      planner.log(4, () => fmt("m.start: %s", prit(tasks)));        
 
       // returns [] if nothing to do, TODO: that's not an error !!!
       return tasks;
 
     },
-    advance: function(state, name){
+    advance: function advance(state, name){
 
       // phase_town: {
       //   genericName: "Town Phase",
@@ -230,7 +189,7 @@ HANNIBAL = (function(H){
 
       if (tech.requires && tech.requires.civ){
 
-        deb("ERROR : advance tech.requires.civ not yet implemneted, %s", tech.requires.civ);
+        planner.log(0, () => fmt("m.advance tech.requires.civ not yet implemneted, %s", tech.requires.civ));
         return null;
 
       }
@@ -240,9 +199,9 @@ HANNIBAL = (function(H){
         tasks = tech.requires.any
           .map(req => sani(req.tech))  //CHECK: there is also req.civ
           .filter(req => (state.tech.indexOf(req) === -1))
-          .map(req => ['produce', req]);
+          .map(req => [m.produce, req]);
 
-        if (tasks.length > 0){return ["ANY", tasks];}
+        if (tasks.length > 0){return [[{name: "ANY"}, tasks]];}
 
       } 
 
@@ -250,7 +209,7 @@ HANNIBAL = (function(H){
 
         req = sani(tech.requires.tech);
         if (state.tech.indexOf(req) === -1) {
-          return [['produce', req]];
+          return [[m.produce, req]];
         }
 
       }
@@ -290,8 +249,8 @@ HANNIBAL = (function(H){
           } else {
             deb("ERROR : advance requires class WTF");
           }
-          if (debug > 0){deb(" advance: must produce %s houses/towers", diff);}
-          return [['produce', house, diff]];
+          planner.log(3, () => "m.advance: must produce %s houses/towers", diff);        
+          return [[m.produce, house, diff]];
         }
 
       }
@@ -304,25 +263,25 @@ HANNIBAL = (function(H){
             if (tech.costs[resource]) {
               diff = tech.costs[resource] - state.ress[resource];
               if (diff > 0){
-                tasks.push(['inc_resource', resource, diff]);
+                tasks.push([o.inc_resource, resource, diff]);
               }
             }
           });
-          if(debug > 0) {deb(" advance: must gather resoures: %s", prit(tasks));}        
+          planner.log(3, () => "m.advance: must gather resoures: %s", prit(tasks));        
           return tasks;
         }        
       }
 
       // finally, only time left
-      tasks = [['research_tech', name]];
+      tasks = [[o.research_tech, name]];
       if (tech.costs && tech.costs.time){
-        tasks.push(['wait_secs', tech.costs.time]);
+        tasks.push([o.wait_secs, tech.costs.time]);
       }
 
       return tasks; // [['research_tech', name]];
 
     },
-    produce: function(state, name, amount){
+    produce: function produce(state, name, amount){
 
     /*
       trys to break down to matching operater.
@@ -340,18 +299,18 @@ HANNIBAL = (function(H){
           costs, techs, ress = [], candidates,                // gen. objects && arrays
           diff = 0, counter = 0, dels = 0, delCounter = 0;    // numbers
 
-      if(debug > 0) {deb(" produce: in: name: %s, %s", name, amount);}
+      planner.log(4, () => "m.produce: in: name: %s, %s", name, amount);        
 
       amount = amount || 1;
 
       // this we won't do
-      if (tokens.length > 0 && tokens[0] === 'phase'){return [['advance', name]];}
-      if (tokens.length > 1 && tokens[1] === 'phase'){return [['advance', name]];}
+      if (tokens.length > 0 && tokens[0] === 'phase'){return [[m.advance, name]];}
+      if (tokens.length > 1 && tokens[1] === 'phase'){return [[m.advance, name]];}
 
       // node from name
       product = H.QRY(name).first();
       if (!product){
-        if(debug > 0) {deb("WARN  : produce: can't produce: %s", name);}
+        planner.log(0, () => fmt("m.produce: unknwon product: %s", name));        
         return null;
       }
 
@@ -361,7 +320,7 @@ HANNIBAL = (function(H){
       // this we can't do
       if (!producers || !producers.length){
         // slaves ??
-        if(debug > 0) {deb(" produce: no producer found for %s", name);}
+        planner.log(4, () => fmt("m.produce: no producer found for %s", name));        
         return null;
       }
 
@@ -375,10 +334,10 @@ HANNIBAL = (function(H){
       if(!candidates.length){
         // if not use what ever works 
         producers.forEach(function(p){
-          tasks.push(['produce', p.name, 1]);
+          tasks.push([m.produce, p.name, 1]);
         });
-        if(debug > 0) {deb(" produce: must build ANY producer: %s", tasks.length);}
-        return ["ANY", tasks];
+        planner.log(3, () => fmt("m.produce: must build ANY producer: %s", tasks.length));        
+        return [[{name: 'ANY'}, tasks]];
       }
 
       // check popmax
@@ -397,12 +356,12 @@ HANNIBAL = (function(H){
             }
           });
           if (counter < diff){
-            deb("ERROR: hit popmax : can't produce %s %s", name, amount);
+            planner.log(0, () => fmt("m.produce: hit popmax : can't produce %s %s", name, amount));        
             return null; // plan fails
           } else {
             H.each(candidates, function(name, num){
               delCounter = num < (diff - delCounter) ? num : (diff - delCounter);
-              tasks.push(['del_entity', node.name, delCounter]);
+              tasks.push([o.del_entity, node.name, delCounter]);
             });
             return tasks;
           }
@@ -412,7 +371,7 @@ HANNIBAL = (function(H){
       // search unmet technical requirements
       tasks = H.QRY(name + " REQUIRE")
         .filter(node => (state.tech || []).indexOf(node.name) === -1)
-        .map(node => ['produce', node.name, 1]);
+        .map(node => [m.produce, node.name, 1]);
 
       if (tasks.length > 0) {
         msg = H.format("req: %s => %s", name, tasks.map(t=>t[1]));
@@ -427,7 +386,7 @@ HANNIBAL = (function(H){
           house = H.QRY("house CONTAIN").first().name;
           diff  = ~~(diff / product.population * -1 + 1);
           // deb("hit popcap");
-          return ['produce', house, diff];
+          return [m.produce, house, diff];
         }
       }
 
@@ -439,18 +398,15 @@ HANNIBAL = (function(H){
           if (costs[resource]) {
             diff = costs[resource] - state.ress[resource];
             if (diff > 0){
-              tasks.push(['inc_resource', resource, diff])
+              tasks.push([o.inc_resource, resource, diff])
             }
           }
         });
       }      
 
       if (tasks.length > 0) {
-        msg = H.format("res: %s => %s", name, tasks.map(t=>t[1]));
-        // deb(msg); 
         return tasks;
       }
-
 
 
       // from here we're safe
@@ -462,15 +418,10 @@ HANNIBAL = (function(H){
       // but plans are backwards...
 
       if (product.costs && product.costs.time){
-        tasks.push(['wait_secs', product.costs.time * amount]);
+        tasks.push([o.wait_secs, product.costs.time * amount]);
       }
 
-
-
-
-      // finally, only time left
-
-      if(debug > 0) {deb(" produce: out: %s", prit(tasks));}
+      planner.log(4, () => fmt("m.produce.out: %s", prit(tasks)));        
       return tasks;
 
     }

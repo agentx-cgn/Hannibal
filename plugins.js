@@ -16,6 +16,95 @@ HANNIBAL = (function(H){
 
 H.Plugins = {
 
+
+  "g.mayor" : {
+
+    /*
+      a group without units solely for the first CC
+
+      Behaviour: 
+        to repair after attack
+        to rebuild on destroy
+        to garrisson soldiers on attack
+        
+    */
+
+    active:         true,           // prepared for init/launch ...
+    description:    "mayor",        // text field for humans 
+    civilisations:  ["*"],          // 
+    interval:       4,              // call onInterval every x ticks
+    parent:         "",             // inherit useful features
+
+    position:       null,           // refers to the coords of the group's position/activities
+    structure:      [],             // still unkown resource, inits in Groups.appoint
+
+    attackLevel:    0,              // increases with every attack, halfs on interval
+    needsRepair:   80,              // a health level (per cent)
+    needsDefense:  10,              // an attack level
+
+    listener: {
+      onLaunch: function(){},
+      onConnect: function(listener){
+        deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
+        this.structure.users.push(listener);
+      },
+      onDisConnect: function(listener){
+        deb("     G: %s onDisConnect, callsign: %s", this, listener.callsign);
+        H.remove(this.structure.users, listener);
+      },
+      onAssign: function(resource){
+
+        deb("     G: %s onAssign %s", this, resource);
+
+        this.position = resource;
+
+        if (resource.isFoundation){
+          this.structure.users.forEach(function(listener){
+            listener.onBroadcast(this, "must-repair");
+          });
+        }
+
+      },
+      onDestroy: function(resource){
+
+        deb("     G: %s onDestroy: %s", this, resource);
+
+        this.economy.request(1, this.structure, this.structure); // better location
+
+      },
+      onAttack: function(resource, enemy, type, damage){
+
+        deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
+
+        this.attackLevel += 1;
+
+        if (this.attackLevel > this.needsDefense){
+          this.structure.users.nearest(20).forEach(function(user){
+            user.garrison(this.structure);
+          });
+        }
+
+      },
+      onBroadcast: function(){},
+      onInterval: function(){
+
+        deb("     G: interval %s, state: %s, health: %s", 
+            this.name, H.prettify(this.structure.state()), this.structure.health
+        );
+
+        this.attackLevel = ~~(this.attackLevel/2);
+
+        if (this.attackLevel === 0 && this.structure.health < this.needsRepair){
+          this.structure.users.nearest(30).forEach(function(user){
+            user.repair(this.structure);
+          });
+        }
+
+      }
+    }
+
+  },
+
   "g.custodian" : {
 
     /*
@@ -256,8 +345,12 @@ H.Plugins = {
 
         deb("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
         
-        if (msg.type === "help-repair" && this.distance(msg.resource) < 100){
+        if (msg.type === "must-repair"){
           this.units.repair(msg.resource);
+
+        } else if (msg.type === "help-repair" && this.distance(msg.resource) < 100){
+          this.units.repair(msg.resource);
+
         }
 
       },

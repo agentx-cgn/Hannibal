@@ -43,7 +43,7 @@ HANNIBAL = (function(H){
       };
 
 
-  var m, o, prit, pritObj, allBlocks, isDone, status, findIf, 
+  var m, o, pritObj, allBlocks, isDone, status, findIf, 
       copy = obj => JSON.parse(JSON.stringify(obj));
 
   H.HTN.Blocks.initialize = function(){
@@ -226,7 +226,7 @@ HANNIBAL = (function(H){
           ops.forEach(function(op){
             debLine(tab + prit(op));
           })
-        }
+        };
 
     verbose = $(verbose) ? ~~$(verbose).value : ~~verbose  || 0;
 

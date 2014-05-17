@@ -45,7 +45,6 @@ HANNIBAL = (function(H){
   H.HTN.Solution.prototype = {
     constructor: H.HTN.Solution,
     evaluate: function(tasks){
-      if (this.domain.initialize) {this.domain.initialize();}
       this.planner = new H.HTN.Planner({
         methods:   this.domain.methods,
         operators: this.domain.operators,
@@ -53,6 +52,7 @@ HANNIBAL = (function(H){
         state:     this.start,
         verbose:     this.verbose || 0
       });
+      if (this.domain.initialize) {this.domain.initialize(this.planner);}
       return this.plan = this.planner.plan(this.start, tasks);
     }
   };
@@ -62,11 +62,11 @@ HANNIBAL = (function(H){
     var defs = {
           logstack:        [],
           verbose:          0,
-          maxIterations:  100,
-          iterations:       0,
-          maxDepth:       100,
-          depth:            0,
           msecs:            0,
+          depth:            0,
+          iterations:       0,
+          maxDepth:       200,
+          maxIterations:  200,
           domain:        null,
           methods:       null,
           operators:     null,
@@ -78,21 +78,20 @@ HANNIBAL = (function(H){
 
     extend(this, defs, config || {});
 
-    if (this.domain.initialize){this.domain.initialize();}
+    if (this.domain.initialize){this.domain.initialize(this);}
     this.methods   = this.domain.methods;
     this.operators = this.domain.operators;
-
-    // H.each(this.operators, function(name, fn){fn.name = name;});
-    // H.each(this.methods,   function(name, fn){fn.name = name;});
 
   };
 
   H.HTN.Planner.prototype = {
     constructor:  H.HTN.Planner,
     log: function(verbose, msg){
+      var txt;
       if (verbose <= this.verbose){
+        txt = typeof msg !== "function" ? msg : msg();
         this.logstack.push({
-          v: verbose, d: this.depth, m: msg, now: Date.now()
+          v: verbose, d: this.depth, m: txt, now: Date.now()
         });
       }
     },
@@ -108,10 +107,10 @@ HANNIBAL = (function(H){
       this.state = state;
       this.tasks = tasks;
 
-      this.iterations = 0;
-      this.depth = 0;
       this.msecs = 0;
+      this.depth = 0;
       this.logstack = [];
+      this.iterations = 0;
       this.log(1, fmt("START: tasks: %s, state: %s", this.pritTasks(tasks), prit(state)));
       
       t0 = Date.now();
@@ -121,11 +120,17 @@ HANNIBAL = (function(H){
       this.msecs = t1 - t0;
 
       if (this.error){
-        this.log(0, fmt("FAILED: error: %s, plan: %s ops, depth: %s, iter: %s, msecs: %s",
+        this.log(0, fmt("FAILED: %s, plan: %s ops, depth: %s, iter: %s, msecs: %s",
           this.error, this.operations.length, this.depth, this.iterations, this.msecs));
+
+      } else if (!this.operations.length) {
+        this.log(0, fmt("FAILED: %s, plan: %s ops, depth: %s, iter: %s, msecs: %s",
+          "no solution found", this.operations.length, this.depth, this.iterations, this.msecs));
+
       } else {
         this.log(0, fmt("SUCCESS: plan: %s ops, depth: %s, iter: %s, msecs: %s",
           this.operations.length, this.depth, this.iterations, this.msecs));
+
       }
 
       return this;
@@ -135,46 +140,44 @@ HANNIBAL = (function(H){
 
       var name, exit, solution = null;
 
-      this.depth = depth; this.iterations += 1;
+      this.depth = depth; 
+      this.iterations += 1;
 
       exit = (
-        !tasks.length && depth  ? [plan, state] :
+        !tasks.length &&  depth ? [plan, state] :
         !tasks.length && !depth ? [plan, state, fmt("no tasks given")] :
-        this.iterations++ > this.maxIterations ? [plan, state, fmt("too many iterations ( %s )", this.iterations)] :
+        this.iterations > this.maxIterations ? [plan, state, fmt("too many iterations ( %s )", this.iterations)] :
         depth > this.maxDepth ? [plan, state, fmt("too deep ( %s )", depth)] : 
           null
       );
 
-      // if (exit){return exit;} else {
-      //   name = tasks[0][0].name;
-      //   this.log(1, fmt("seek: %s", name));
-      //   return (
-      //     this.operators[name] ? (
-      //       solution = this.seekOperator(tasks, state, plan, ++depth)) :!!solution?solution:(
-      //     this.methods[name])  ? (
-      //       solution = this.seekMethod(tasks, state, plan, ++depth))   :!!solution?solution:(
-      //     depth > 0) ? solution : solution ? solution : 
-      //       [plan, state, fmt("ERROR: no solution for task: %s, depth: %s", name, depth)]
-      //   );
-
-      // }
-
       if (exit){return exit;}
 
       name = tasks[0][0].name;
-      this.log(1, fmt("S: [%s, %s]", name, tasks[0][1]));
+      this.log(1, () => fmt("S: [%s, %s]", name, tasks[0][1]));
 
-      if (this.operators.hasOwnProperty(name)){
+      if (name === "ANY") {
+        solution = this.seekAnyMethod(tasks, state, plan, ++depth);
+        if (solution){return solution;}
+
+      } else if (this.operators.hasOwnProperty(name)){
         solution = this.seekOperator(tasks, state, plan, ++depth);
         if (solution){return solution;}
-      }
 
-      if (this.methods.hasOwnProperty(name)){
+      } else if (this.methods.hasOwnProperty(name)){
         solution = this.seekMethod(tasks, state, plan, ++depth);
+        if (solution){return solution;}
+
+      } else {
+        this.log(0, fmt("E: no op/mt for task: [%s, %s]", name, tasks[0][1]));
+        return null;
       }
 
-      return (depth > 1) ? solution : solution ? solution : [plan, state, fmt(
-        "no solution for task: [%s, %s], depth: %s", name, tasks[0][1], depth)];
+      return (
+        depth > 1 ? solution : 
+        solution  ? solution : 
+        [plan, state, fmt("no solution for task: [%s, %s], depth: %s", name, tasks[0][1], depth)]
+      );
 
     },
     seekMethod: function(tasks, state, plan, depth){
@@ -185,7 +188,7 @@ HANNIBAL = (function(H){
           subtasks = task[0].apply(null, [state].concat(task.slice(1)));
 
       if (subtasks){
-        this.log(2, fmt("M: [%s, %s]", task[0].name, task[1])); //subtasks.map(function(t){return t[0];}).join(",")
+        this.log(2, () => fmt("M: [%s, %s]", task[0].name, task[1])); //subtasks.map(function(t){return t[0];}).join(",")
         solution = this.seekPlan(
           state, 
           subtasks.concat(tasks.slice(1)), 
@@ -202,15 +205,54 @@ HANNIBAL = (function(H){
           newstate = task[0].apply(null, [copy(state)].concat(task.slice(1)));
 
       if (newstate){
-        this.log(2, fmt("O: [%s, %s]", task[0].name, task[1]));
+        this.log(2, () => fmt("O: [%s, %s]", task[0].name, task[1]));
         solution = this.seekPlan(
           newstate, 
           tasks.slice(1), 
-          plan.concat([[task[0].name, task[1]]]), 
+          plan.concat([[task[0].name].concat(task.slice(1))]), 
           depth
       );} return solution;
 
-    }
+    },
+
+    seekAnyMethod: function(tasks, state, plan, depth){
+
+      var self        = H.HTN.Planner,
+          anyTasks    = tasks[0][1],
+          anyPointer  = 0,
+          anyTask     = anyTasks[anyPointer],
+          addUnique   = H.HTN.Helper.addUnique, // TODO use Set
+          subTasks, newTasks, solution = null;
+
+      while (anyTask) {
+
+        this.log(3, () => fmt("A: (%s/%s) [%s, %s]", anyPointer, anyTasks.length, anyTask[0].name, anyTask[1]));
+
+        subTasks = anyTask[0].apply(null, [state].concat(anyTask.slice(1)));
+
+        if(subTasks){
+
+          if (subTasks[0][0].name === "ANY"){
+            subTasks[0][1].forEach(task => addUnique(task, anyTasks));
+
+          } else {
+            newTasks = subTasks.concat(tasks.slice(1));
+            solution = this.seekPlan(state, newTasks, plan, depth);
+            if (solution !== null){return solution;}
+
+          }
+        }    
+
+        anyTask = anyTasks[++anyPointer];
+
+      }
+
+      this.log(0, "run out of %s anyTasks", anyTasks.length);
+      return null;
+
+    },
+
+
   };
 
 return H; }(HANNIBAL));

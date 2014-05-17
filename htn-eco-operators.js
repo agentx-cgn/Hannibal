@@ -32,7 +32,7 @@ HANNIBAL = (function(H){
 
   H.HTN.Economy.operators = {
 
-    wait_secs: function (state, secs) {
+    wait_secs: function wait_secs(state, secs) {
 
       if (true){
 
@@ -44,7 +44,7 @@ HANNIBAL = (function(H){
 
     },
 
-    del_entity: function (state, entity, amount) {
+    del_entity: function del_entity(state, entity, amount) {
 
       if (state.ents[entity] >= amount){
 
@@ -63,7 +63,7 @@ HANNIBAL = (function(H){
 
     },
 
-    inc_resource: function (state, res, amount) {
+    inc_resource: function inc_resource(state, res, amount) {
 
       if (true){
 
@@ -78,7 +78,7 @@ HANNIBAL = (function(H){
 
     },
 
-    train_units: function (state, name, amount) {
+    train_units: function train_units(state, name, amount) {
 
       var unit;
 
@@ -95,7 +95,7 @@ HANNIBAL = (function(H){
 
     },    
 
-    build_structures: function (state, name, amount) {
+    build_structures: function build_structures(state, name, amount) {
 
       var struc;
 
@@ -112,7 +112,7 @@ HANNIBAL = (function(H){
 
     },    
 
-    research_tech: function (state, name) {
+    research_tech: function research_tech(state, name) {
 
       var tech;
 

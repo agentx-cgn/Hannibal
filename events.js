@@ -213,6 +213,7 @@ HANNIBAL = (function(H){
           case "Attacked": // might be already destroyed
             if (H.Entities[event.target] && H.Entities[event.target].owner() === PID){
               this.dispatchEvent(type, event.target, event);
+              H.Grids.record("Attacked", H.Entities[event.target].position());
             } else {
               // we get some or all of these, maybe if attacker = owned
               // deb("!EVENT: got foreign Attacked: %s", H.prettify(event));
@@ -233,9 +234,9 @@ HANNIBAL = (function(H){
               this.removeAllListener(event.entity);
               H.Bot.culture.removeById(event.entity);
             } else if (!event.entityObj && event.entity) {
-              deb("ERROR : Events got strange destry for %s", event.entity);
+              deb("ERROR : Events got strange destroy for %s", event.entity);
             } else {  
-              deb("WARN  : EVENT: got foreign destroy: %s", H.prettify(event));
+              deb("WARN  : EVENT: got foreign destroy: %s", mats); // H.prettify(event)); <= cyclic
             }
           break;
           

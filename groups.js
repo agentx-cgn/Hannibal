@@ -50,6 +50,9 @@ HANNIBAL = (function(H){
         deb("   GRP: registered group: %s", name);
 
       },
+      isLaunchable: function(groupname){
+        return !!groups[groupname];
+      },
       request: function(/* arguments: [amount,] asset [,locasset] */){
         
         // sanitize args
@@ -74,36 +77,33 @@ HANNIBAL = (function(H){
 
         // appoints a gorup to a shared structure at game start
 
-        deb("   GRP: appointing 'g.custodian' for shared structures");
+        // deb("   GRP: appointing 'g.custodian' for shared structures");
 
-        H.QRY("INGAME").forEach(function(node){
-          if (node.metadata && node.metadata.opname && node.metadata.opname === 'g.custodian'){
-            H.Groups.appoint('g.custodian', node.id);
-          }
-        });
+        // H.QRY("INGAME").forEach(function(node){
+        //   if (node.metadata && node.metadata.opname && node.metadata.opname === 'g.custodian'){
+        //     H.Groups.appoint('g.custodian', node.id);
+        //   }
+        // });
 
       },
       appoint: function(groupname, id){
 
         // launch and init a group instance to manage a shared ingame structure/building
 
-        var instance = this.launch(groupname),
+        var cc = H.MetaData[id].ccid,
+            instance = this.launch(groupname, cc),
             node  = H.QRY("INGAME WITH id = " + id, 0).first(),
             nodename  = node.name.split("#")[0];
-
-        // H.Entities[id].setMetadata(H.Bot.id, "opname", groupname);
-        // H.Entities[id].setMetadata(H.Bot.id, "opid", group.id);
 
         H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
 
         instance.structure = [1, "private", nodename];
         instance.structure = H.CreateAsset(instance, 'structure');
         instance.assets.push(instance.structure);
-        // H.Events.registerListener(id, group.structure.listener); //??
         instance.listener.onLaunch();
         instance.structure.listener("Ready", id);
 
-        deb("   GRP: appointed %s for %s, id: %s, nodename: %s", groupname, H.Entities[id], id, nodename);
+        deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", groupname, H.Entities[id], id, nodename, cc);
 
         return instance;
 
@@ -211,7 +211,7 @@ HANNIBAL = (function(H){
 
         });
 
-        deb("   GRP: launching group: %s for cc: %s", instance.name, ccid);
+        deb("   GRP: launching group: %s with cc: %s", instance.name, ccid);
 
         // call and activate
         instance.listener.onLaunch();

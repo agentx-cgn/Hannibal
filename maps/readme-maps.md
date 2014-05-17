@@ -39,3 +39,26 @@ just before phase.town
     n: 216 | {opname:none,ccid:44} | structures.athen.field#216
     n:  44 | {opname:g.custodian#1,opmode:shared,opid:1} | structures.athen.civil.centre#44
     n: 210 | {opname:g.custodian#3,ccid:44,opmode:shared,opid:3} | structures.athen.blacksmith#210
+
+
+### aitest04m ###
+
+     Q: q: 'INGAME SORT < id'
+      : c: 'ingames with metadata'
+      : i: ops:  256, nodes:  256, c: ["INGAME"]
+      : i: ops:  268, nodes:   12, c: ["SORT","< id"]
+     Q: executed: msecs: 6, records: 12, ops: 301
+     D: showing 50/12 format: 'metadata'
+     H:  ID   Meta | node
+     n:  44 | {ccid:44,opname:g.mayor} | structures.athen.civil.centre#44
+     n: 208 | {ccid:44,opname:none} | units.athen.support.female.citizen#208
+     n: 209 | {ccid:44,opname:none} | units.athen.support.female.citizen.house#209
+     n: 210 | {ccid:44,opname:g.custodian} | structures.athen.blacksmith#210
+     n: 216 | {ccid:44,opname:none} | structures.athen.field#216
+     n: 217 | {ccid:44,opname:none} | structures.athen.house#217
+     n: 218 | {ccid:44,opname:none} | structures.athen.house#218
+     n: 219 | {ccid:44,opname:none} | structures.athen.house#219
+     n: 220 | {ccid:44,opname:g.custodian} | structures.athen.farmstead#220
+     n: 221 | {ccid:44,opname:none} | units.athen.infantry.archer.b#221
+     n: 222 | {ccid:44,opname:none} | units.athen.infantry.archer.b#222
+     n: 223 | {ccid:44,opname:none} | structures.athen.house#223

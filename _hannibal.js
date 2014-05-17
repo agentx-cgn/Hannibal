@@ -201,6 +201,8 @@ var HANNIBAL = (function() {
     this.sharedScript   = sharedScript;
     this.players        = sharedScript.playersData;
 
+    H.Grids.init();
+
     // determine own, game's and all civilisations
     this.civ            = sharedScript.playersData[this.id].civ; 
     this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
@@ -233,27 +235,7 @@ var HANNIBAL = (function() {
     this.culture.finalize();                // clear up
 
 
-    // set INGAME ents metadata.ccid to nearest CC
-    cics = H.QRY("civilcentre CONTAIN INGAME").execute();
-    deb();deb();
-    deb("   BOT: organize villages for civic centres [%s]", cics.map(function(c){return c.id;}).join(", "));
-    H.QRY("INGAME").forEach(function(node){
-      var name = node.name.split("#")[0],
-          posNode = node.position,
-          posCic, dis, distance = 1e7;
-      if (H.QRY(name + " MEMBER WITH name = 'civilcentre'").execute().length === 0){
-        cics.forEach(function(cic){
-          posCic = cic.position;
-          dis = H.Map.distance(posCic, posNode);
-          if (dis < distance){
-            H.MetaData[node.id].ccid = cic.id;
-            distance = dis;
-          }
-        });
-        deb("     B:   chose cc: %s at %s for [%s %s] at %s", 
-          H.MetaData[node.id].ccid, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
-      } 
-    });
+    this.initialized = H.intialize();
 
 
     /* Export functions */
@@ -278,12 +260,6 @@ var HANNIBAL = (function() {
     }
 
     /*  End Export */
-
-
-
-    // manage shared ingame structures
-    deb();deb();
-    H.Groups.appointAll();
 
     // prepare behaviour
     H.Hannibal.Frames = H.Hannibal.Frames.initialize(this, H.Context);
@@ -313,7 +289,7 @@ var HANNIBAL = (function() {
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");
     // new H.HCQ(ts, "INGAME").execute("position", 5, 10, "ingames with position");
 
-    new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
+    // new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
     new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
 
     // new H.HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food MEMBER DISTINCT HOLDBY INGAME").execute("json", 5, 10, "optional update test");
@@ -364,6 +340,12 @@ var HANNIBAL = (function() {
       // logObject(global.Engine, "Engine");
       // logObject(this.entities, "entities");
 
+
+      // logObject(ss.resourceMaps['food'].map, "ss.resourceMaps['food'].map");
+      // logObject(ss.resourceMaps['food'], "ss.resourceMaps['food']");
+
+      // logObject(H.Bot.gameState.ai.territoryMap, "H.Bot.gameState.ai.territoryMap");
+
       // logObject(ss._techTemplates['phase_city'], "phase_city");
       // logObject(ss._techTemplates['phase_town_athen'], "phase_town_athen");
       // logObject(ss._techTemplates['pair_gather_01'], "pair_gather_01");
@@ -391,8 +373,6 @@ var HANNIBAL = (function() {
     } catch(e){logError(e, "playfield");} 
     // end playfield
 
-
-    this.initialized = this.initGame();
 
     // speed up debugging
     (function simTick(){
@@ -479,6 +459,7 @@ var HANNIBAL = (function() {
       this.timing.all = 0;
       this.timing.ctx = H.Context.tick(secs);
       this.timing.evt = H.Events.tick(secs);
+      this.timing.grd = H.Grids.tick(secs);
       this.timing.tst = H.Tester.tick(secs);
       this.timing.trg = H.Triggers.tick(secs);
       this.timing.gps = H.Groups.tick(secs);

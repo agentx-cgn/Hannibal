@@ -10,8 +10,7 @@
       &#160;planning domain definition language directly implemented into sources
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="20"/>
 <node CREATED="1398768762031" FOLDED="true" ID="ID_680425975" MODIFIED="1399687321532" POSITION="left" TEXT="Questions">
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
@@ -543,6 +542,11 @@
 <node CREATED="1399108729328" FOLDED="true" ID="ID_552238959" MODIFIED="1399687311484" TEXT="Threats">
 <node CREATED="1399108736329" ID="ID_958584017" MODIFIED="1399108746871" TEXT="Early Attacks"/>
 </node>
+</node>
+<node CREATED="1399998671296" ID="ID_1471571510" MODIFIED="1399998683328" POSITION="right" TEXT="AgentX">
+<font BOLD="true" NAME="SansSerif" SIZE="14"/>
+<node CREATED="1399998676265" ID="ID_1049519275" MODIFIED="1399998677093" TEXT="Behavioral Economics"/>
+<node CREATED="1399998726343" ID="ID_1396565490" MODIFIED="1399998728343" TEXT="http://en.wikipedia.org/wiki/List_of_cognitive_biases"/>
 </node>
 </node>
 </map>

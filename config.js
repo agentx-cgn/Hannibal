@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester
-    sequence: "aitest03",
+    sequence: "aitest04m",
 
     // enable psy-ops
     brag:     true,  
@@ -29,7 +29,9 @@ HANNIBAL = (function(H){
     angle:    3 * Math.PI/4,       // depends on first CC
 
     // seed for H.Random
-    seed:     1234,                
+    seed:     1234,           
+
+    attackRelax: 2,     
 
     data:                    {
       sharedBuildingClasses: ['civilcentre', 'blacksmith', 'farmstead'],

@@ -38,12 +38,17 @@ HANNIBAL = (function(H){
 
   });
 
-  // if any of these evaluates to a string, it gets chatted
+/*
+        '5': [() => H.Grids.dump(), "dumping maps"],
+*/
+
+
+  // if any of these evaluates to a string, it gets chatted216
   sequences = {
-    'aitest03': {
+    'aitest04m': {
         '1': [() => "< - START: " + sequence + " - >"],
-        '2': [T.research("phase_town_athen", 44), "research phase_town_athen"], 
         '3': [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 
+       '10': [T.destroy(216), "destroying field"],
       '241': [() => "< - FINIS: " + sequence + " - >"],
     },
     'Xaitest03': {
@@ -73,11 +78,11 @@ HANNIBAL = (function(H){
       log:      function(){
         var cnt = H.count(sequences[sequence]),
             lst = H.attribs(sequences[sequence]).join(",");
-        deb();
-        deb();
-        deb("******: TESTER running sequence: %s with %s ticks [%s]", sequence, cnt, lst);
-        deb();
-        deb();
+        deb("      :");
+        deb("      :");
+        deb("      : TESTER running sequence: %s with %s ticks [%s]", sequence, cnt, lst);
+        deb("      :");
+        deb("      :");
       },
       evaluate: function(item){
         return (
