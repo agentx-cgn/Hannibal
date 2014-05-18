@@ -235,7 +235,22 @@ var HANNIBAL = (function() {
     this.culture.finalize();                // clear up
 
 
+    // prepare behaviour
+    H.Hannibal.Frames = H.Hannibal.Frames.initialize(this, H.Context);
+    this.behaviour = new H.Hannibal.Behaviour(behaviour);
+    this.frame = this.behaviour.frame;
+    this.lastFrame = this.frame;
+
+    deb("     F: starting in %s", this.frame.name);
+
     this.initialized = H.intialize();
+
+
+    /*
+
+    Below is for development
+
+    */
 
 
     /* Export functions */
@@ -261,13 +276,6 @@ var HANNIBAL = (function() {
 
     /*  End Export */
 
-    // prepare behaviour
-    H.Hannibal.Frames = H.Hannibal.Frames.initialize(this, H.Context);
-    this.behaviour = new H.Hannibal.Behaviour(behaviour);
-    this.frame = this.behaviour.frame;
-    this.lastFrame = this.frame;
-
-    deb("     F: starting in %s", this.frame.name);
 
 
     /* run scripted actions, can shadow H.Config.sequence */
@@ -386,23 +394,8 @@ var HANNIBAL = (function() {
       }
     }());
 
-    print ("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-
-    // just in case ...
-    // throw "Breakpoint";
-
-  };
-
-  H.Hannibal.prototype.initGame = function() {
-
-    //--  make sure Hannibal can play at all, detect bad maps, unsupported game features, etc...
-
-    deb("**");deb("**");
-    deb("------: Hannibal.initGame");
-    deb("**");deb("**");
-
-    // for now
-    return true;
+    deb();
+    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
 
   };
 

@@ -35,14 +35,12 @@ HANNIBAL = (function(H){
       });
     }
 
+
     /*
       Organize Villages by distance to CC
     */
 
-
-    // set INGAME ents metadata.ccid to nearest CC
     nodesCics = H.QRY("civilcentre CONTAIN INGAME").forEach(function(node){
-      // set amount of citizens to zero
       cics[node.id] = 0;
     });
 
@@ -57,7 +55,7 @@ HANNIBAL = (function(H){
 
       H.MetaData[node.id] = H.MetaData[node.id] || {};
 
-      // ignore centres here
+      // the path for non CC
       if (H.QRY(name + " MEMBER WITH name = 'civilcentre'").execute().length === 0){
 
         nodesCics.forEach(function(cic){
@@ -77,6 +75,7 @@ HANNIBAL = (function(H){
       // CCs have themself as cc
       } else {
         H.MetaData[node.id].ccid = node.id;
+
       }
 
     });

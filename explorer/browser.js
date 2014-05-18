@@ -20,6 +20,7 @@ HANNIBAL = (function(H){
         'HTN':  function(){},
         'HCQ':  function(){},
         'BLOCKS':  function(){},
+        'MAPS':  function(){},
         'TECH': function(){self.results("divResult", H.Display.pritJSON(techTemplates)); return null;},
       },
       menus = {
@@ -104,6 +105,13 @@ HANNIBAL = (function(H){
           $("txtHCQ").value += " " + $("slcNodes").value;
           $("txtHCQ").onchange();
         }
+
+        $("slcMaps").onchange = $("slcMaps").onselect = function(){
+          H.Display.loadMap($("slcMaps").value);
+        }
+        $("btnMAPLoad").onclick = function(){
+          H.Display.loadMap($("slcMaps").value);
+        };
 
         $("btnClear").onclick = function(){
           $("txtHCQ").value = "";

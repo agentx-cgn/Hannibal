@@ -60,8 +60,13 @@ HANNIBAL = (function(H){
                   null;
 
     if (token && instance[token] !== undefined){
-      hcq = H.replace(hcq, "<" + token + ">", instance[token].hcq);
-      // deb("   AST: expandHQC: %s", hcq);
+
+      if (token === "id"){
+        hcq = H.replace(hcq, "<" + token + ">", instance[token]);
+      } else {
+        hcq = H.replace(hcq, "<" + token + ">", instance[token].hcq);
+      }
+
     } else if (token) {
       deb("ERROR : AST: %s/%s or its hcq not found to build: %s", instance, token, hcq);
     }
@@ -74,6 +79,8 @@ HANNIBAL = (function(H){
 
     // Object Factory
 
+    // deb("CreateAsset: %s", instance[nameProp]);
+
     var self        = {}, 
         id          = H.Objects(self),
         name        = H.format("%s:%s#%s", instance.name, nameProp, id),
@@ -84,7 +91,7 @@ HANNIBAL = (function(H){
         shared      = (definition[1] === "shared"),  
         dynamic     = (definition[1] === "dynamic"),
         hcq         = expandHQC(definition[2], instance),
-        type        = !dynamic ? getAssetType(definition) : "unknown",  // dynamics are not ordered
+        type        = !dynamic ? getAssetType(definition) : "dynamic",  // dynamics are not ordered
         claim       = definition[2],
         resources   = [],                 // these are entity ingame ids
         users       = [];                 // these are group listeners
@@ -130,17 +137,25 @@ HANNIBAL = (function(H){
       },
       toResource: function(id){
         // stripped down object of self, bind to a single entity id
+
+        // deb("toResource: id: %s, %s", id, typeof id);
+
         return {
           id:         id,
           name:       name,
+          nameDef:    nameDef, 
           shared:     shared,
+          coords:     H.Entities[id] ? H.Entities[id].position() : undefined,
           location:   self.location.bind(null, id),
           gather:     self.gather.bind(null, id),
           repair:     self.repair.bind(null, id),
           garrison:   self.garrison.bind(null, id),
           destroy:    self.destroy.bind(null, id),
           toOrder:    self.toOrder,
-          toString:   function(){return H.format("[resource %s]", name);}
+          toString:   function(){return H.format("[resource %s]", name);},
+          replace:    function(asset){
+            // logObject(asset, "replace.asset");
+          }
         };
       },
       tick: function(time){
@@ -158,7 +173,7 @@ HANNIBAL = (function(H){
         filter = filter.split(" ").filter(function(s){return !!s;});
         oper   = filter[0];
         prop   = filter[1];
-        nodes  = H.QRY(hcq).execute(); //"node", 5, 5, "resource.sort");
+        nodes  = H.QRY(hcq).execute("node", 5, 5, "resource.sort"); // ); //
 
         if (dynamic) {
           switch (prop) {
@@ -167,7 +182,10 @@ HANNIBAL = (function(H){
                 deb("ERROR : %s has no position", instance);
                 logObject(instance, "instance");
               }
-              sortPosition = instance.position.location();
+              sortPosition = (
+                Array.isArray(instance.position) ? instance.position : 
+                  instance.position.location()
+              );
               sortFunc  = function(na, nb){
 
                 // if (! (typeof na.position === "function")){

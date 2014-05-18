@@ -53,7 +53,7 @@ HANNIBAL = (function(H){
       isLaunchable: function(groupname){
         return !!groups[groupname];
       },
-      request: function(/* arguments: [amount,] asset [,locasset] */){
+      request: function(/* arguments: [amount,] asset [,loc(asset)] */){
         
         // sanitize args
         var args      = H.toArray(arguments),
@@ -61,16 +61,20 @@ HANNIBAL = (function(H){
             hasAmount = H.isInteger(args[0]), 
             amount    = hasAmount  ? args[0] : args[0].amount,
             asset     = hasAmount  ? args[1] : args[0],
+            type      = asset.type,
             locRes    = aLen === 3 ? args[2] : aLen === 2 && !hasAmount ? args[1] : undefined,
-            // loc       = locRes ? asset.getLocNear(locRes) : undefined,
-            loc       = locRes ? locRes.location() : undefined,
-            type      = asset.type;
+            loc       = (
+              locRes === undefined ? undefined :
+              locRes.location ? locRes.location() :
+              Array.isArray(locRes) ? locRes :
+                undefined
+            );
 
         // Eco requests are postponed one tick
         asset.isRequested = true;
         H.Triggers.add(H.Economy.request.bind(H.Economy, amount, asset.toOrder(), loc), -1);
 
-        deb("   GRP: requesting: (%s)", args);    
+        // deb("   GRP: requesting: (%s)", args);    
 
       },
       appointAll: function(){
@@ -89,6 +93,7 @@ HANNIBAL = (function(H){
       appoint: function(groupname, id){
 
         // launch and init a group instance to manage a shared ingame structure/building
+        // called at init and during game, if an order for a shared asset is ready
 
         var cc = H.MetaData[id].ccid,
             instance = this.launch(groupname, cc),
@@ -97,10 +102,11 @@ HANNIBAL = (function(H){
 
         H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
 
+        // instance.listener.onLaunch();
         instance.structure = [1, "private", nodename];
         instance.structure = H.CreateAsset(instance, 'structure');
         instance.assets.push(instance.structure);
-        instance.listener.onLaunch();
+        // instance.listener.onLaunch();
         instance.structure.listener("Ready", id);
 
         deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", groupname, H.Entities[id], id, nodename, cc);
@@ -122,7 +128,7 @@ HANNIBAL = (function(H){
 
         // instance.assets.push(instance[prop]);
 
-        deb("   GRP: moved shared res: %s to: %s", resource, operator);
+        deb("   GRP: %s took over %s as shared asset", operator, resource);
 
       },
       launch: function(name, ccid){
@@ -211,7 +217,7 @@ HANNIBAL = (function(H){
 
         });
 
-        deb("   GRP: launching group: %s with cc: %s", instance.name, ccid);
+        deb("   GRP: %s to launch, CC: %s", instance, ccid);
 
         // call and activate
         instance.listener.onLaunch();

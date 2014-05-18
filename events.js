@@ -230,6 +230,10 @@ HANNIBAL = (function(H){
 
           case "Destroy":  // EVT: Destroy, mats: {entity, metadata, entityObj}
             if (event.entityObj && event.entityObj.owner() === PID){
+
+              // nothing here //??
+              // logObject(event.entityObj.trainingQueue, "entityObj.trainingQueue");
+
               this.dispatchEvent(type, event.entity, event);
               this.removeAllListener(event.entity);
               H.Bot.culture.removeById(event.entity);

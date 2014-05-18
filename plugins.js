@@ -20,7 +20,7 @@ H.Plugins = {
   "g.mayor" : {
 
     /*
-      a group without units solely for the first CC
+      a group without units solely for the first/biggest CC
 
       Behaviour: 
         to repair after attack
@@ -36,14 +36,18 @@ H.Plugins = {
     parent:         "",             // inherit useful features
 
     position:       null,           // refers to the coords of the group's position/activities
-    structure:      [],             // still unkown resource, inits in Groups.appoint
+    structure:      [],             // still unkown resource, inits at game start
+
+    citizens:       [30, "dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <id>"],
 
     attackLevel:    0,              // increases with every attack, halfs on interval
     needsRepair:   80,              // a health level (per cent)
     needsDefense:  10,              // an attack level
 
     listener: {
-      onLaunch: function(){},
+      onLaunch: function(){
+        this.register("citizens");
+      },
       onConnect: function(listener){
         deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
         this.structure.users.push(listener);
@@ -54,14 +58,24 @@ H.Plugins = {
       },
       onAssign: function(resource){
 
-        deb("     G: %s onAssign %s", this, resource);
+        deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
-        this.position = resource;
+        this.position = resource.coords;
 
         if (resource.isFoundation){
-          this.structure.users.forEach(function(listener){
-            listener.onBroadcast(this, "must-repair");
-          });
+
+          logObject(this.structure, "onAssign.this.structure");
+          logObject(resource, "onAssign.resource");
+
+
+          resource.replace(this.structure);
+
+
+          this.citizens.sort("< distance");
+
+          logObject(this.citizens, "onAssign.this.citizens");
+
+          this.citizens.repair(resource);
         }
 
       },
@@ -69,7 +83,9 @@ H.Plugins = {
 
         deb("     G: %s onDestroy: %s", this, resource);
 
-        this.economy.request(1, this.structure, this.structure); // better location
+        // logObject(this.position, "onDestroy.this.position");
+
+        this.economy.request(1, this.structure, this.position); // better location, pos is array
 
       },
       onAttack: function(resource, enemy, type, damage){
@@ -94,11 +110,11 @@ H.Plugins = {
 
         this.attackLevel = ~~(this.attackLevel/2);
 
-        if (this.attackLevel === 0 && this.structure.health < this.needsRepair){
-          this.structure.users.nearest(30).forEach(function(user){
-            user.repair(this.structure);
-          });
-        }
+        // if (this.attackLevel === 0 && this.structure.health < this.needsRepair){
+        //   this.structure.users.nearest(30).forEach(function(user){
+        //     user.repair(this.structure);
+        //   });
+        // }
 
       }
     }
@@ -138,7 +154,7 @@ H.Plugins = {
       },
       onAssign: function(resource){
 
-        deb("     G: %s onAssign %s", this, resource);
+        deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
         if (this.structure.match(resource)){
           deb("     G: %s structure matches resource: %s", this, resource);
@@ -240,7 +256,7 @@ H.Plugins = {
       onLaunch: function(){
 
         this.register("dropsite", "units", "field", "shelter"); // turn res definitions into res objects
-        this.economy.request(1, this.dropsite);                 // assuming a CC exists
+        this.economy.request(1, this.dropsite, this.position);                 // assuming a CC exists
         this.shelter.sort("< distance");
 
       },
@@ -249,8 +265,8 @@ H.Plugins = {
       onAssign: function(resource){
 
         // logObject(resource, "onAssign: " + this.name);
-        
-        deb("     G: %s onAssign: %s, shared: %s", this, resource, resource.shared);
+
+        deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
         
         if (this.dropsite.match(resource)){
           this.position = resource;
@@ -290,7 +306,7 @@ H.Plugins = {
 
         if (this.field.match(resource)){
           this.position = this.units;
-          this.economy.request(1, this.field, this.dropsite);
+          this.economy.request(1, this.field, this.position);  // changed from dropsite
 
         } else if (this.units.match(resource)){
           this.economy.request(1, this.units);
@@ -362,7 +378,7 @@ H.Plugins = {
         deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
 
         // update to nearest shelter
-        this.shelter.sort("< distance");
+        // this.shelter.sort("< distance");
 
       },
       // defined by this.interval

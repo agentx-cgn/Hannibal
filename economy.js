@@ -105,7 +105,7 @@ HANNIBAL = (function(H){
     this.order.ready = function(amount, type, id){
       self.remaining -= amount;
 
-      deb("   ORD: #%s ready.in: amount/rem/tot: %s/%s/%s, hcq: %s", order.id, amount, self.remaining, self.order.amount, self.order.hcq);
+      // deb("   ORD: #%s ready.in: amount/rem/tot: %s/%s/%s, hcq: %s", order.id, amount, self.remaining, self.order.amount, self.order.hcq);
 
       if (self.order.shared){
         H.Objects(order.source).listener("Ready", id);  
@@ -308,6 +308,7 @@ HANNIBAL = (function(H){
 
         var allocs = H.deepcopy(ress),
             allGood = false, 
+            removed = [],
             constructs = 0; // only one construction per round
             // fits = function(cost, budget){
             //   return (
@@ -369,9 +370,14 @@ HANNIBAL = (function(H){
         H.Queue
           .filter(function(order){return order.executed;})
           .forEach(function(order){
+            removed.push(order.order.id);
             H.Queue.remove(order);
-            deb("    PQ: #%s removed from queue", order.order.id);
         });
+
+        if (removed.length){
+          deb("    PQ: removed from queue: %s", removed);
+        }
+
 
       },
       execute: function(cmd, amount, id, template, order){

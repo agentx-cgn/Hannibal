@@ -45,6 +45,43 @@ HANNIBAL = (function(H){
       }
       ele.value = str;
     },
+    paintMap: function(ents){
+
+      var x, z, 
+          cvs = $("cvsMap"),
+          ctx = cvs.getContext("2d");
+      
+      cvs.width = cvs.width;
+      H.toArray(ents).forEach(function(ent){
+
+        var pos = ent.getElementsByTagName("Position");
+
+        x = +pos[0].getAttribute("x")/2;
+        z = +pos[0].getAttribute("z")/2;
+        ctx.fillStyle = "rgba(200, 100, 100, 1)";
+        ctx.fillRect(x, z, 2, 2);
+      });
+
+
+    },
+    loadMap: function(url){
+      console.log('loadMap', url);
+
+      var xhr = new XMLHttpRequest();
+      xhr.onload = function() {
+        console.log(xhr.responseXML.documentElement.childNodes);
+        console.log(xhr.responseXML.getElementsByTagName("Entity") );
+        var ents = H.Display.evaluateXPath(xhr.responseXML, "//Entities/Entity");
+        ents = xhr.responseXML.getElementsByTagName("Entity");
+        H.Display.paintMap(ents);
+      }
+      xhr.onerror = function() {
+        console.log("Error while getting XML.");
+      }
+      xhr.open("GET", "http://" + url);
+      xhr.responseType = "document";
+      xhr.send();      
+    },
 
     query: function(hqc){
 
@@ -582,8 +619,18 @@ HANNIBAL = (function(H){
         box.appendChild(opt);
       });
 
+    },
+    evaluateXPath: function (aNode, aExpr) {
+      var xpe = new XPathEvaluator();
+      var nsResolver = xpe.createNSResolver(aNode.ownerDocument == null ?
+        aNode.documentElement : aNode.ownerDocument.documentElement);
+      var result = xpe.evaluate(aExpr, aNode, nsResolver, 0, null);
+      var found = [];
+      var res;
+      while ((res = result.iterateNext()))
+        found.push(res);
+      return found;
     }
-
   };
 
 
