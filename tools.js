@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, print, getAttribType, logObject, logObjectShort, logError, debug */
+/*globals Engine, HANNIBAL, deb */
 
 /*--------------- T O O L S ---------------------------------------------------
 
@@ -46,6 +46,20 @@ HANNIBAL = (function(H) {
       var diff = time - this.damper.last;
       return Math.sqrt((this.level + 1)/diff) -1;
     }
+  };
+
+
+  H.health = function(ids){
+    var curHits = 0, maxHits = 0;
+    ids.forEach(function(id){
+      if (!H.Entities[id]){
+        deb("ERROR : Tools.health: id: %s in ids, but not in entities", id);
+      } else {
+        curHits += H.Entities[id].hitpoints();
+        maxHits += H.Entities[id].maxHitpoints();
+      }
+    });
+    return (curHits / maxHits * 100).toFixed(1);
   };
 
 

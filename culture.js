@@ -369,27 +369,17 @@ HANNIBAL = (function(H){
     },
     removeById: function(id){
       
-      var hqc   = "INGAME WITH id = " + id,
-          node  = H.QRY(hqc).execute()[0],  // can only be one
-          store = this.store,
-          verbs = [];
+      var node  = H.QRY("INGAME WITH id = " + id).first(), 
+          store = this.store;
 
       if (node){
-        // deb("  CULT: trying remove id: %s, hqc: %s", id, hqc);
-
-        store.edges.forEach(function(edge){
-          if(edge[0] === node || edge[2] === node){
-            store.edges.slice(store.edges.indexOf(edge), 1);
-            verbs.push(edge[1]);
-          }
-        });
-
+        store.edges
+          .filter(edge => edge[0] === node || edge[2] === node)
+          .forEach(edge => store.edges.splice(store.edges.indexOf(edge), 1));
         delete store.nodes[node.name];
 
-        deb("     C: #%s removed name: %s, verbs: %s", id, node.name, verbs);
-
       } else {
-        deb("     C: can't removed non existing node: #%s", id);
+        deb("WARN  : removeById failed on id: %s", id);
 
       }
 
@@ -435,7 +425,7 @@ HANNIBAL = (function(H){
             return (meta === Object(meta)) ? meta : {};
           }},
           'slots': {enumerable: true, get: function(){
-            var freeSlots = this.capacity - H.Entities[id].garrisoned.length;
+            var freeSlots = node.capacity - H.Entities[id].garrisoned.length;
             return freeSlots;
           }},          
           'state': {enumerable: true, get: function(){
@@ -712,15 +702,12 @@ HANNIBAL = (function(H){
     //   }    
     //   return requirement;
     // },
-    getHealth: function(template){
-      var health;
-      if (template.Health !== undefined){
-        if (template.Health.max){
-          health = template.Health.max;
-        }
-      }
-      return health;
-
+    getHealth: function(tpl){
+      return (
+        (!!tpl.Health && ~~tpl.Health.Max) ? 
+          ~~tpl.Health.Max : 
+            undefined
+      );
     },
     getSize: function(template){
       var size = {}; // {width: 0, height: 0, depth: 0};
@@ -734,9 +721,12 @@ HANNIBAL = (function(H){
       return H.count(size) > 0 ? size : undefined;
 
     },
-    getCapacity: function(template){
-      return template.GarrisonHolder !== undefined && ~~template.GarrisonHolder.Max ? 
-        ~~template.GarrisonHolder.Max : undefined;
+    getCapacity: function(tpl){
+      return (
+        (!!tpl.GarrisonHolder && ~~tpl.GarrisonHolder.Max) ? 
+          ~~tpl.GarrisonHolder.Max : 
+            undefined
+      );
     },
     getArmour: function(template){
       var armour = {}; // {hack: 0, pierce: 0, crush: 0};

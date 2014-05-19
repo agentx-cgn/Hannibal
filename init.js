@@ -131,10 +131,6 @@ HANNIBAL = (function(H){
 
     });
 
-    // Check:
-
-    new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
-
 
     /*
       Connect plugins/groups to Buildings
@@ -152,14 +148,30 @@ HANNIBAL = (function(H){
     deb("     I: --");
 
 
+
+    /*
+      Check
+    */
+
+    H.logIngames();
+    H.Groups.log();
+
     /*
       Done
     */
 
+    deb();deb();
     deb("  INIT: done");
     return true;
 
   };
+
+  H.logIngames = function(){
+
+    new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
+  
+  };
+
 
 
 

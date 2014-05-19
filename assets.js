@@ -103,16 +103,7 @@ HANNIBAL = (function(H){
 
 
     Object.defineProperty(self, 'health', {enumerable: true, get: function(){
-      var curHits = 0, maxHits = 0;
-      resources.forEach(function(id){
-        if (!H.Entities[id]){
-          deb("ERROR : AST: Health: id: %s in resources, but not in entities", id);
-        } else {
-          curHits += H.Entities[id].hitpoints();
-          maxHits += H.Entities[id].maxHitpoints();
-        }
-      });
-      return (curHits / maxHits * 100).toFixed(1);
+      return H.health(resources);
     }});    
 
 
@@ -147,7 +138,7 @@ HANNIBAL = (function(H){
           name:       name,
           nameDef:    nameDef, 
           shared:     shared,
-          // coords:     H.Entities[id] ? H.Entities[id].position() : undefined,
+          health:     H.health([id]),
           location:   self.location.bind(null, [id]),
           garrison:   self.garrison.bind(null, [id]),
           destroy:    self.destroy.bind(null, [id]),
@@ -241,7 +232,8 @@ HANNIBAL = (function(H){
           deb("   AST: location users: %s of %s, loc: %s", H.prettify(users), self, loc);
 
         } else if (resources.length){
-          loc = H.Map.getCenter(resources);
+          // only undestroyed entities, with valid position
+          loc = H.Map.getCenter(resources.filter(id => !!H.Entities[id] && !!H.Entities[id].position() ));
           deb("   AST: location resources: %s of %s, loc: %s", H.prettify(resources), self, loc);
 
         } else {
@@ -285,7 +277,8 @@ HANNIBAL = (function(H){
       */
 
       exists: function(amount){
-        return H.QRY(hcq).execute().length >= amount || 1;
+        var hcq = expandHCQ(definition[1], instance);
+        return H.QRY(hcq).execute("node", 5, 5, "asset.exists").length >= (amount || 1);
       },
       update: function(fn){
         H.QRY(hcq).forEach(fn.bind(instance));
@@ -310,14 +303,13 @@ HANNIBAL = (function(H){
 
         deb("   AST: nearest ids: %s", ids);
 
-        // this.citizens.nearest(30).repair(resource);
-
         return {
-          location:   self.location.bind(null, ids),
-          garrison:   self.garrison.bind(null, ids),
-          destroy:    self.destroy.bind(null, ids),
-          gather:     self.gather.bind(null, ids),
-          repair:     self.repair.bind(null, ids),          
+          toString: function(){return "[dynres " + ids;},
+          location: self.location.bind(null, ids),
+          garrison: self.garrison.bind(null, ids),
+          destroy:  self.destroy.bind(null, ids),
+          gather:   self.gather.bind(null, ids),
+          repair:   self.repair.bind(null, ids),          
         };
 
         
@@ -342,21 +334,21 @@ HANNIBAL = (function(H){
         deb("   AST: destroy who: %s", who);
 
       },
-      garrison:     function(/* arguments: [who], where */){
+      garrison:     function(/* arguments: [who], whom */){
 
-        deb("   AST: garrison.in: %s", arguments);
+        deb("   AST: garrison.in: %s", H.toArray(arguments));
 
         var al = arguments.length,
-            who   = (al === 1) ? resources : arguments[0],
-            where = (al === 1) ? arguments[0].resources[0] : arguments[1].resources[0];
+            who  = (al === 1) ? resources : arguments[0][0],
+            whom = (al === 1) ? arguments[0].resources[0] : [arguments[1].id];
 
         Engine.PostCommand(H.Bot.id, {type: "garrison", 
-          entities: who, 
-          target:   where, 
+          entities: whom, // array
+          target:   who,  // id
           queued:   false
         });
 
-        deb("   AST: garrison who: %s, where: %s", who, where);
+        deb("   AST: garrison who: %s, whom: %s", who, whom);
 
       },
       gather: function(/* arguments: [who], what */){
@@ -365,13 +357,17 @@ HANNIBAL = (function(H){
             who  = (al === 1) ? resources : arguments[0],
             what = (al === 1) ? arguments[0].id : arguments[1].resources[0];
 
-        Engine.PostCommand(H.Bot.id, {type: "gather", 
-          entities: who, 
-          target:   what, 
-          queued:   false
-        });
+        if (!!H.Entities[what]){
 
-        deb("   AST: gather who: %s, what: %s, %s", who, what, H.Entities[what]._templateName);
+          Engine.PostCommand(H.Bot.id, {type: "gather", 
+            entities: who, 
+            target:   what, 
+            queued:   false
+          });
+
+        }
+
+        deb("   AST: gather who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
 
       },
       repair: function(/* arguments: [who], what */){
@@ -382,14 +378,18 @@ HANNIBAL = (function(H){
             who  = (al === 1) ? resources : arguments[0],
             what = (al === 1) ? arguments[0].id : arguments[1].id;
 
-        Engine.PostCommand(H.Bot.id, {type: "repair", 
-          entities: who,  // Array
-          target:   what, // Int
-          autocontinue: true, 
-          queued: false
-        });
+        if (!!H.Entities[what]){
 
-        deb("   AST: repair who: %s, what: %s, %s", who, what, (what ? H.Entities[what]._templateName : "???"));
+          Engine.PostCommand(H.Bot.id, {type: "repair", 
+            entities: who,  // Array
+            target:   what, // Int
+            autocontinue: true, 
+            queued: false
+          });
+
+        }
+
+        deb("   AST: repair who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
 
       },
 

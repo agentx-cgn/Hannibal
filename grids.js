@@ -109,13 +109,7 @@ HANNIBAL = (function(H){
         var [x, y] = where;
         
         if (what === "Attacked"){
-
-          x = ~~(x/cellsize);
-          y = ~~(y/cellsize);
-
-          deb(" GRIDS: record: where: %s, index: %s", where, x + y * width);
-          // logObject(grids.attacks, "grids.attacks");
-
+          x = ~~(x/cellsize); y = ~~(y/cellsize);
           grids.attacks.data[x + y * width] += 1;
         }
       },

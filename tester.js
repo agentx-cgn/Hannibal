@@ -43,12 +43,14 @@ HANNIBAL = (function(H){
 */
 
 
-  // if any of these evaluates to a string, it gets chatted216
+  // if any of these evaluates to a string, it gets chatted
   sequences = {
     'aitest04m': {
         '1': [() => "< - START: " + sequence + " - >"],
         '3': [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 
+       '10': [() => H.Groups.log(), "logging groups"],
        '12': [T.destroy(44), "destroying centre"],
+       '15': [() => H.logIngames(), "logging ingames"],
        // '10': [T.destroy(216), "destroying field"],
       '241': [() => "< - FINIS: " + sequence + " - >"],
     },

@@ -12,6 +12,16 @@
 */
 
 
+// idle
+// gathering
+// approaching
+// repairing
+// garrisoned
+// attacking
+// fleeing
+
+
+
 HANNIBAL = (function(H){
 
 H.Plugins = {
@@ -65,9 +75,13 @@ H.Plugins = {
 
           this.position = resource;
 
-          this.citizens.update(function(citizen){
-            citizen.metadata.ccid = resource.id;
+          H.QRY("INGAME WITH metadata.ccid = " + this.ccid).forEach(function(node){
+            node.metadata.ccid = resource.id;
           });
+
+          // this.citizens.update(function(citizen){
+          //   citizen.metadata.ccid = resource.id;
+          // });
           this.ccid = resource.id;
 
           this.citizens.nearest(30).repair(resource);
@@ -157,9 +171,6 @@ H.Plugins = {
         }
 
         this.position = resource;
-        // if (resource.isFoundation){
-        //   this.broadcast(this.users, {type: "help-repair"});
-        // }
 
         this.structure.users.forEach(function(listener){
           listener.onAssign(resource);
@@ -234,7 +245,7 @@ H.Plugins = {
     units:          ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food"],
     field:          ["exclusive", "food.grain PROVIDEDBY"],
     dropsite:       ["shared",    "food ACCEPTEDBY"],
-    shelter:        ["dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 5"],
+    shelter:        ["dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 1"],
 
     // groups can claim space for structures or activities
     space:          [1, {width: 30, depth: 30, near: "<dropsite>"}],
@@ -275,6 +286,7 @@ H.Plugins = {
             this.economy.request(1, this.field, this.dropsite);
 
           } else if (this.field.isFoundation){
+            // may silently fail, because field is destroyed
             resource.repair(this.field);
 
           } else if (this.field.isStructure){
@@ -320,9 +332,8 @@ H.Plugins = {
           this.units.repair(resource);
 
         } else if (this.units.match(resource)){
-          deb("     G: %s health: %s", resource, this.units.health);
-          if (this.units.health < 50 && this.shelter.exists()) { 
-            this.units.garrison(this.shelter.nearest(1));
+          if (resource.health < 50 && this.shelter.exists()) { 
+            this.shelter.nearest(1).garrison(resource);
           }
         }
 

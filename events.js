@@ -189,6 +189,9 @@ HANNIBAL = (function(H){
             case "Garrison":
               info = H.format("holder: %s,", event.holder);
             break;
+            case "UnGarrison":
+              info = H.format("holder: %s, entity: %s", event.holder, event.entity);
+            break;
           }
 
           // finally
@@ -202,18 +205,25 @@ HANNIBAL = (function(H){
           // don't care
           case "Create":  // .entity (num)
           case "EntityRenamed":
+          case "UnGarrison": 
           break;
 
 
           case "ConstructionFinished": // own: ???, meta: {}, mats: {entity, newentity},  ent: ???
-            this.copyAllListener(event.newentity, event.entity);
-            this.dispatchEvent(type, event.newentity, event);
+            if (event.newentity !== event.entity){
+              this.copyAllListener(event.newentity, event.entity);
+              this.dispatchEvent(type, event.newentity, event);
+            } else {
+              deb("     E: ConstructionFinished with double id: %s ignored", event.entity);
+            }
           break;
 
           case "Attacked": // might be already destroyed
             if (H.Entities[event.target] && H.Entities[event.target].owner() === PID){
               this.dispatchEvent(type, event.target, event);
-              H.Grids.record("Attacked", H.Entities[event.target].position());
+              if (H.Entities[event.target].position()){
+                H.Grids.record("Attacked", H.Entities[event.target].position());
+              }
             } else {
               // we get some or all of these, maybe if attacker = owned
               // deb("!EVENT: got foreign Attacked: %s", H.prettify(event));

@@ -22,6 +22,24 @@ HANNIBAL = (function(H){
 
     return {
       init : function(){self=this; return self;},
+      log: function(){
+        deb();deb();
+        deb("GROUPS: -----------");
+        H.each(groups, function(name, group){
+          deb(" GROUP: %s [%s]", name, group.instances.length);
+          group.instances.forEach(function(instance){
+            deb("     G: %s, assets: [%s]", instance.name, instance.assets.length);
+            instance.assets.forEach(function(ast){
+              deb("     G:   %s: [%s], %s, ", ast.nameDef, ast.resources.length, ast);
+              ast.resources.forEach(function(id){
+                deb("     G:      tlp:  %s", H.Entities[id]);
+                deb("     G:      meta: %s", H.prettify(H.MetaData[id]));
+              });
+            });
+          });
+        });
+        deb("     G: -----------");
+      },
       tick : function(secs){
         // delegates down to all instances of all groups
         t0 = Date.now();
@@ -201,7 +219,7 @@ HANNIBAL = (function(H){
             // set intial position, gets probably overwritten
             location: (function(){
               var pos = H.Map.getCenter([ccid]);
-              return function(){return pos;}
+              return function(){return pos;};
             }())
           }        
 

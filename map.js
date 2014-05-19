@@ -79,7 +79,7 @@ HANNIBAL = (function(H){
 
   H.Map.getCenter = function(entids){
 
-    // deb("   MAP: getCenter: %s", H.prettify(entids));
+    deb("   MAP: getCenter: %s", H.prettify(entids));
 
     if (!entids || entids.length === 0){
       return deb("ERROR : MAP getCenter with unusable param: %s", entids);
