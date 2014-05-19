@@ -38,14 +38,15 @@ H.Plugins = {
     position:       null,           // refers to the coords of the group's position/activities
     structure:      [],             // still unkown resource, inits at game start
 
-    citizens:       [30, "dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <id>"],
+    citizens:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <ccid>"],
 
     attackLevel:    0,              // increases with every attack, halfs on interval
     needsRepair:   80,              // a health level (per cent)
     needsDefense:  10,              // an attack level
 
     listener: {
-      onLaunch: function(){
+      onLaunch: function(ccid){
+        this.ccid = ccid;
         this.register("citizens");
       },
       onConnect: function(listener){
@@ -60,30 +61,22 @@ H.Plugins = {
 
         deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
-        this.position = resource.coords;
-
         if (resource.isFoundation){
 
-          logObject(this.structure, "onAssign.this.structure");
-          logObject(resource, "onAssign.resource");
+          this.position = resource;
 
+          this.citizens.update(function(citizen){
+            citizen.metadata.ccid = resource.id;
+          });
+          this.ccid = resource.id;
 
-          resource.replace(this.structure);
-
-
-          this.citizens.sort("< distance");
-
-          logObject(this.citizens, "onAssign.this.citizens");
-
-          this.citizens.repair(resource);
+          this.citizens.nearest(30).repair(resource);
         }
 
       },
       onDestroy: function(resource){
 
         deb("     G: %s onDestroy: %s", this, resource);
-
-        // logObject(this.position, "onDestroy.this.position");
 
         this.economy.request(1, this.structure, this.position); // better location, pos is array
 
@@ -238,11 +231,10 @@ H.Plugins = {
     // shared: needed, but shared with other groups (e.g. dropsites, temples)
     // exclusive: fully managed by this group (e.g. fields, units)
 
-    centre:         [1, "dynamic",   "civilcentre INGAME"],
-    units:          [5, "exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food"],
-    field:          [1, "exclusive", "food.grain PROVIDEDBY"],
-    dropsite:       [1, "shared",    "food ACCEPTEDBY"],
-    shelter:        [1, "dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 5"],
+    units:          ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food"],
+    field:          ["exclusive", "food.grain PROVIDEDBY"],
+    dropsite:       ["shared",    "food ACCEPTEDBY"],
+    shelter:        ["dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 5"],
 
     // groups can claim space for structures or activities
     space:          [1, {width: 30, depth: 30, near: "<dropsite>"}],
@@ -257,7 +249,6 @@ H.Plugins = {
 
         this.register("dropsite", "units", "field", "shelter"); // turn res definitions into res objects
         this.economy.request(1, this.dropsite, this.position);                 // assuming a CC exists
-        this.shelter.sort("< distance");
 
       },
 
@@ -309,7 +300,7 @@ H.Plugins = {
           this.economy.request(1, this.field, this.position);  // changed from dropsite
 
         } else if (this.units.match(resource)){
-          this.economy.request(1, this.units);
+          this.economy.request(1, this.units, this.position);
 
         } else if (this.dropsite.match(resource)){
           // dropsite is shared, custodian orders new one
@@ -330,8 +321,8 @@ H.Plugins = {
 
         } else if (this.units.match(resource)){
           deb("     G: %s health: %s", resource, this.units.health);
-          if (this.units.health < 50 && this.shelter.first()) { 
-            this.units.garrison(this.shelter);
+          if (this.units.health < 50 && this.shelter.exists()) { 
+            this.units.garrison(this.shelter.nearest(1));
           }
         }
 
@@ -375,7 +366,7 @@ H.Plugins = {
       onInterval: function(){
 
         deb("     G: %s onInterval,  state: %s", this, H.prettify(this.units.state()));
-        deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
+        // deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
 
         // update to nearest shelter
         // this.shelter.sort("< distance");

@@ -20,16 +20,16 @@ HANNIBAL = (function(H){
         "RESEARCHEDBY": "research"
       };
 
-  function getAssetType(asset){
+  function getAssetType(definition){
 
     var found = false, hcq, type, nodes;
 
-    if (typeof asset[2] === "object"){
+    if (typeof definition[1] === "object"){
 
       return "claim";
 
-    } else if (typeof asset[2] === "string") {
-      nodes = H.QRY(asset[2], 0).execute("", 0, 0, "getAssetType"); // enforce no debug info
+    } else if (typeof definition[1] === "string") {
+      nodes = H.QRY(definition[1], 0).execute("", 0, 0, "getAssetType"); // enforce no debug info
       nodes.forEach(function(node){
         "TRAINEDBY, BUILDBY, RESEARCHEDBY".split(", ").forEach(function(verb){
           if (!found){
@@ -41,34 +41,38 @@ HANNIBAL = (function(H){
           }
         });
       });    
-      return type;
+      if (found){
+        return type;
+      } else {
+        return deb("ERROR : getAssetType: strange resource: %s", definition);
+      }
 
     } else {
-      return deb("ERROR : getAssetType: strange resource: %s", asset[2]);
+      return deb("ERROR : getAssetType: strange resource: %s", definition);
 
     }
   }
 
-  function expandHQC(hcq, instance){
+  function expandHCQ(hcq, instance){
 
     // replaces '<xyz>' in hcq with instance.xyz.hcq
 
-    var pos1  = hcq.indexOf("<"),
+    var id,
+        pos1  = hcq.indexOf("<"),
         pos2  = hcq.indexOf(">"),
         token = (pos2 > pos1 && pos1 !== -1 && pos2 !== -1) ? 
                   hcq.substr(pos1 +1, pos2 - pos1 -1) : 
                   null;
 
-    if (token && instance[token] !== undefined){
+    if (token === "ccid"){
+      hcq = H.replace(hcq, "<" + token + ">", instance[token]);
 
-      if (token === "id"){
-        hcq = H.replace(hcq, "<" + token + ">", instance[token]);
-      } else {
-        hcq = H.replace(hcq, "<" + token + ">", instance[token].hcq);
-      }
+    } else if (token && instance[token] !== undefined){
+      hcq = H.replace(hcq, "<" + token + ">", instance[token].hcq);
 
     } else if (token) {
       deb("ERROR : AST: %s/%s or its hcq not found to build: %s", instance, token, hcq);
+
     }
 
     return hcq;
@@ -82,19 +86,18 @@ HANNIBAL = (function(H){
     // deb("CreateAsset: %s", instance[nameProp]);
 
     var self        = {}, 
+        resources   = [],                 // these are entity ingame ids
+        users       = [],                 // these are group listeners
         id          = H.Objects(self),
         name        = H.format("%s:%s#%s", instance.name, nameProp, id),
         nameDef     = nameProp,
         definition  = instance[nameDef],  // saving the original definition
-        amount      = definition[0],
-        exclusive   = (definition[1] === "exclusive"),
-        shared      = (definition[1] === "shared"),  
-        dynamic     = (definition[1] === "dynamic"),
-        hcq         = expandHQC(definition[2], instance),
+        exclusive   = (definition[0] === "exclusive"),
+        shared      = (definition[0] === "shared"),  
+        dynamic     = (definition[0] === "dynamic"),
+        hcq         = expandHCQ(definition[1], instance),
         type        = !dynamic ? getAssetType(definition) : "dynamic",  // dynamics are not ordered
-        claim       = definition[2],
-        resources   = [],                 // these are entity ingame ids
-        users       = [];                 // these are group listeners
+        claim       = definition[1];
 
     // deb("   AST: have type: %s FOR %s/%s", type, instance.name, prop);
 
@@ -118,7 +121,6 @@ HANNIBAL = (function(H){
       hcq:        hcq, 
       name:       name, 
       users:      users, 
-      amount:     amount, 
       nameDef:    nameDef, 
       instance:   instance, 
       resources:  resources, 
@@ -145,65 +147,63 @@ HANNIBAL = (function(H){
           name:       name,
           nameDef:    nameDef, 
           shared:     shared,
-          coords:     H.Entities[id] ? H.Entities[id].position() : undefined,
-          location:   self.location.bind(null, id),
-          gather:     self.gather.bind(null, id),
-          repair:     self.repair.bind(null, id),
-          garrison:   self.garrison.bind(null, id),
-          destroy:    self.destroy.bind(null, id),
+          // coords:     H.Entities[id] ? H.Entities[id].position() : undefined,
+          location:   self.location.bind(null, [id]),
+          garrison:   self.garrison.bind(null, [id]),
+          destroy:    self.destroy.bind(null, [id]),
+          gather:     self.gather.bind(null, [id]),
+          repair:     self.repair.bind(null, [id]),
           toOrder:    self.toOrder,
           toString:   function(){return H.format("[resource %s]", name);},
-          replace:    function(asset){
-            // logObject(asset, "replace.asset");
-          }
         };
       },
       tick: function(time){
-
+        // actually called
       },
-      first: function(){
-        return (resources.length === 0) ? undefined : self.toResource(resources[0]);
-      },
-      sort:     function(filter){
 
-        // updates and sort a resources of a dynmaic resource
+      // first: function(){
+      //   return (resources.length === 0) ? undefined : self.toResource(resources[0]);
+      // },
+      // sort:     function(filter){
 
-        var oper, prop, nodes, sortPosition, sortFunc, old = resources;
+      //   // updates and sort a resources of a dynmaic resource
 
-        filter = filter.split(" ").filter(function(s){return !!s;});
-        oper   = filter[0];
-        prop   = filter[1];
-        nodes  = H.QRY(hcq).execute("node", 5, 5, "resource.sort"); // ); //
+      //   var oper, prop, nodes, sortPosition, sortFunc, old = resources;
 
-        if (dynamic) {
-          switch (prop) {
-            case "distance":
-              if (!instance.position) {
-                deb("ERROR : %s has no position", instance);
-                logObject(instance, "instance");
-              }
-              sortPosition = (
-                Array.isArray(instance.position) ? instance.position : 
-                  instance.position.location()
-              );
-              sortFunc  = function(na, nb){
+      //   filter = filter.split(" ").filter(function(s){return !!s;});
+      //   oper   = filter[0];
+      //   prop   = filter[1];
+      //   nodes  = H.QRY(hcq).execute("node", 5, 5, "resource.sort"); // ); //
 
-                // if (! (typeof na.position === "function")){
-                //   logObject(na, "na in res.sort");
-                // }
+      //   if (dynamic) {
+      //     switch (prop) {
+      //       case "distance":
+      //         if (!instance.position) {
+      //           deb("ERROR : %s has no position", instance);
+      //           logObject(instance, "instance");
+      //         }
+      //         sortPosition = (
+      //           Array.isArray(instance.position) ? instance.position : 
+      //             instance.position.location()
+      //         );
+      //         sortFunc  = function(na, nb){
 
-                var aDist = H.Map.distance(na.position, sortPosition),
-                    bDist = H.Map.distance(nb.position, sortPosition);
-                return oper === '<' ? aDist - bDist : bDist - aDist;
-              };
-            break;
-          }
-          resources = nodes.sort(sortFunc).map(function(node){return node.id;});
-        }
+      //           // if (! (typeof na.position === "function")){
+      //           //   logObject(na, "na in res.sort");
+      //           // }
 
-        deb("   AST: %s sort/%s: value: %s, resources: old: %s, new: %s", self, prop, sortPosition, H.prettify(old), H.prettify(resources));
+      //           var aDist = H.Map.distance(na.position, sortPosition),
+      //               bDist = H.Map.distance(nb.position, sortPosition);
+      //           return oper === '<' ? aDist - bDist : bDist - aDist;
+      //         };
+      //       break;
+      //     }
+      //     resources = nodes.sort(sortFunc).map(function(node){return node.id;});
+      //   }
 
-      },
+      //   deb("   AST: %s sort/%s: value: %s, resources: old: %s, new: %s", self, prop, sortPosition, H.prettify(old), H.prettify(resources));
+
+      // },
       match:      function(who){return resources.indexOf(who.id) !== -1;},
       length:     function(){return resources.length;},
       state:      function(){
@@ -252,34 +252,88 @@ HANNIBAL = (function(H){
         return loc;
 
       },
-      getLocNear: function(where){
+      // getLocNear: function(where){
 
-        // assuming a lot.
+      //   // assuming a lot.
 
-        var pos, tpl, loc;
+      //   var pos, tpl, loc;
 
-        if (!where){
-          deb("ERROR : AST etLocNear NO where %s", self);
-          return null;
-        } // that's ok if group has no location yet.
+      //   if (!where){
+      //     deb("ERROR : AST etLocNear NO where %s", self);
+      //     return null;
+      //   } // that's ok if group has no location yet.
 
-        if(!where.location){
-          logObject(where, "where.location!! " + where);
-        }
+      //   if(!where.location){
+      //     logObject(where, "where.location!! " + where);
+      //   }
 
-        pos = where.location();
-        tpl = H.QRY(hcq).first().key; //"node", 5, 10, "getLocNear").key;
-        loc = H.Map.findGoodPosition(tpl, pos);
+      //   pos = where.location();
+      //   tpl = H.QRY(hcq).first().key; //"node", 5, 10, "getLocNear").key;
+      //   loc = H.Map.findGoodPosition(tpl, pos);
 
-        deb("   AST: getLocNear: loc: %s, pos: %s, tpl: %s", H.prettify(loc), pos, tpl);
+      //   deb("   AST: getLocNear: loc: %s, pos: %s, tpl: %s", H.prettify(loc), pos, tpl);
 
-        return loc;
+      //   return loc;
 
+      // },
+
+
+      /*
+
+        Functions for dynamic assets
+
+      */
+
+      exists: function(amount){
+        return H.QRY(hcq).execute().length >= amount || 1;
       },
-      move:       function(){},
-      destroy:     function(/* arguments: [who] */){
+      update: function(fn){
+        H.QRY(hcq).forEach(fn.bind(instance));
+      },
+      nearest: function(amount){
 
-        var who = (arguments.length === 1) ? resources : [arguments[0]];
+        // deb("   AST: nearest hcq: %s", expandHCQ(definition[1], instance));
+
+        var hcq = expandHCQ(definition[1], instance),
+            pos = (
+              Array.isArray(instance.position) ? instance.position : 
+                instance.position.location()
+            ),
+            sorter = function(na, nb){
+              return (
+                H.Map.distance(na.position, pos) - 
+                H.Map.distance(nb.position, pos)
+              );
+            },
+            nodes = H.QRY(hcq).execute("node", 5, 5, "nearest").sort(sorter).slice(0, amount || 1),
+            ids = nodes.map(function(node){return node.id;});
+
+        deb("   AST: nearest ids: %s", ids);
+
+        // this.citizens.nearest(30).repair(resource);
+
+        return {
+          location:   self.location.bind(null, ids),
+          garrison:   self.garrison.bind(null, ids),
+          destroy:    self.destroy.bind(null, ids),
+          gather:     self.gather.bind(null, ids),
+          repair:     self.repair.bind(null, ids),          
+        };
+
+        
+      },
+
+
+      /*
+
+        Engine commands
+
+      */
+
+      move: function(){},
+      destroy: function(/* arguments: [who] */){
+
+        var who = (arguments.length === 1) ? resources : arguments[0];
 
         Engine.PostCommand(H.Bot.id, {type: "delete-entities", 
           entities: who
@@ -288,13 +342,13 @@ HANNIBAL = (function(H){
         deb("   AST: destroy who: %s", who);
 
       },
-      garrison:     function(asset){
+      garrison:     function(/* arguments: [who], where */){
 
-        deb("   AST: garrison.in: %s", asset);
-        logObject(asset, "asset");
+        deb("   AST: garrison.in: %s", arguments);
 
-        var who   = resources,
-            where = asset.resources[0];
+        var al = arguments.length,
+            who   = (al === 1) ? resources : arguments[0],
+            where = (al === 1) ? arguments[0].resources[0] : arguments[1].resources[0];
 
         Engine.PostCommand(H.Bot.id, {type: "garrison", 
           entities: who, 
@@ -305,10 +359,10 @@ HANNIBAL = (function(H){
         deb("   AST: garrison who: %s, where: %s", who, where);
 
       },
-      gather:     function(/* arguments: [who], what */){
+      gather: function(/* arguments: [who], what */){
 
         var al = arguments.length,
-            who  = (al === 1) ? resources : [arguments[0]],
+            who  = (al === 1) ? resources : arguments[0],
             what = (al === 1) ? arguments[0].id : arguments[1].resources[0];
 
         Engine.PostCommand(H.Bot.id, {type: "gather", 
@@ -320,11 +374,13 @@ HANNIBAL = (function(H){
         deb("   AST: gather who: %s, what: %s, %s", who, what, H.Entities[what]._templateName);
 
       },
-      repair:     function(/* arguments: [who], what */){
+      repair: function(/* arguments: [who], what */){
+
+        deb("   AST: repair: %s", H.toArray(arguments));
 
         var al = arguments.length,
-            who  = (al === 1) ? resources : [arguments[0]],
-            what = (al === 1) ? arguments[0].id : arguments[1].resources[0];
+            who  = (al === 1) ? resources : arguments[0],
+            what = (al === 1) ? arguments[0].id : arguments[1].id;
 
         Engine.PostCommand(H.Bot.id, {type: "repair", 
           entities: who,  // Array
@@ -338,10 +394,15 @@ HANNIBAL = (function(H){
       },
 
 
+      /*
+
+        Listener
+
+      */
+
       listener: function(msg, id, evt){
 
-        var tpln, meta = H.MetaData[id],
-            resource = self.toResource(id);
+        var tpln, meta = H.MetaData[id], resource = self.toResource(id);
 
         switch (msg){
 

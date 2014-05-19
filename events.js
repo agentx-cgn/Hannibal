@@ -181,7 +181,7 @@ HANNIBAL = (function(H){
               info = H.format("newent: %s, oldent: %s", event.newentity, event.entity);
             break;
             case "Attacked":
-              info = H.format("target: %s,", event.target);
+              info = H.format("event: %s", H.prettify(event));
             break;
             case "TrainingFinished":
               info = H.format("ents: %s,", id);
@@ -264,12 +264,12 @@ HANNIBAL = (function(H){
 
             if (event.owner === PID) {
               if (!!event.metadata && !!event.metadata.order || !H.Entities[event.id]){
-                ent = H.Entities[event.id];
-                order = H.Objects(event.metadata.order);
+                ent    = H.Entities[event.id];
+                order  = H.Objects(event.metadata.order);
                 client = H.Objects(order.source).instance;
                 if (order.shared){
                   host = H.Groups.launch("g.custodian");
-                  host.structure = [1, "private", "INGAME WITH id = " + event.id];
+                  host.structure = ["private", "INGAME WITH id = " + event.id];
                   host.structure = H.CreateResource(host, 'structure');
                   ent.setMetadata(H.Bot.id, "opname", host.name);
                   ent.setMetadata(H.Bot.id, "opid", host.id);

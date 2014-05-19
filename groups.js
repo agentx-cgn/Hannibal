@@ -53,20 +53,15 @@ HANNIBAL = (function(H){
       isLaunchable: function(groupname){
         return !!groups[groupname];
       },
-      request: function(/* arguments: [amount,] asset [,loc(asset)] */){
+      // claim: function(/* arguments: amount, asset [,loc(asset)] */){},
+      request: function(amount, asset /* , location */ ){
         
         // sanitize args
-        var args      = H.toArray(arguments),
-            aLen      = args.length,
-            hasAmount = H.isInteger(args[0]), 
-            amount    = hasAmount  ? args[0] : args[0].amount,
-            asset     = hasAmount  ? args[1] : args[0],
-            type      = asset.type,
-            locRes    = aLen === 3 ? args[2] : aLen === 2 && !hasAmount ? args[1] : undefined,
-            loc       = (
-              locRes === undefined ? undefined :
-              locRes.location ? locRes.location() :
-              Array.isArray(locRes) ? locRes :
+        var args = H.toArray(arguments),
+            loc  = (
+              args.length === 2 ? undefined : 
+              args[2].location ? args[2].location() :
+              Array.isArray(args[2]) ? args[2] :
                 undefined
             );
 
@@ -77,6 +72,13 @@ HANNIBAL = (function(H){
         // deb("   GRP: requesting: (%s)", args);    
 
       },
+      // register: function(/* arguments */){
+      //   H.toArray(arguments).forEach(function(prop){
+      //     this[prop] = H.CreateAsset(this, prop);
+      //     this.assets.push(this[prop]);
+      //     // deb("   GRP: registered resource %s for %s", prop, instance.name);
+      //   });
+      // },      
       appointAll: function(){
 
         // appoints a gorup to a shared structure at game start
@@ -103,7 +105,7 @@ HANNIBAL = (function(H){
         H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
 
         // instance.listener.onLaunch();
-        instance.structure = [1, "private", nodename];
+        instance.structure = ["private", nodename];
         instance.structure = H.CreateAsset(instance, 'structure');
         instance.assets.push(instance.structure);
         // instance.listener.onLaunch();
@@ -176,20 +178,11 @@ HANNIBAL = (function(H){
 
         // second adds/(overwrites) support objects and functions
         H.extend(instance, {
-          positions:  [],
           assets:     [],
           toString:   function(){return H.format("[group %s]", instance.name);},
           economy:    {
-            // request: function( arguments: [amount,] resource [,locResource] ){
-            //   H.Groups.request.apply(null, arguments);
-            // },
             request: H.Groups.request,
-            barter:  function(sell, buy, amount){
-              H.Economy.barter(instance, sell, buy, amount);
-            }
-          },
-          claim: function(prop){
-            // deb("     g: claim.in resource %s by %s", prop, this.name);
+            claim:   H.Groups.claim
           },
           register: function(/* arguments */){
             H.toArray(arguments).forEach(function(prop){
@@ -197,11 +190,6 @@ HANNIBAL = (function(H){
               instance.assets.push(instance[prop]);
               // deb("   GRP: registered resource %s for %s", prop, instance.name);
             });
-          },
-          postpone: function(ticks, fn, args){
-            // this H.binda...
-            //H.Triggers.add(fn.binda(instance, args), ticks *-1);
-            deb("ERROR : binda not defined");
           },
           tick: function(secs){
             instance.assets.forEach(function(asset){
@@ -211,7 +199,10 @@ HANNIBAL = (function(H){
           },
           position: {
             // set intial position, gets probably overwritten
-            location: function(){return H.Map.getCenter([ccid]);}
+            location: (function(){
+              var pos = H.Map.getCenter([ccid]);
+              return function(){return pos;}
+            }())
           }        
 
 
@@ -220,7 +211,7 @@ HANNIBAL = (function(H){
         deb("   GRP: %s to launch, CC: %s", instance, ccid);
 
         // call and activate
-        instance.listener.onLaunch();
+        instance.listener.onLaunch(ccid);
 
         return instance;
 

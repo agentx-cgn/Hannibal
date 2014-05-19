@@ -48,7 +48,7 @@ HANNIBAL = (function(H){
     'aitest04m': {
         '1': [() => "< - START: " + sequence + " - >"],
         '3': [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 
-        '8': [T.destroy(44), "destroying centre"],
+       '12': [T.destroy(44), "destroying centre"],
        // '10': [T.destroy(216), "destroying field"],
       '241': [() => "< - FINIS: " + sequence + " - >"],
     },
@@ -98,8 +98,8 @@ HANNIBAL = (function(H){
         if (sequences[sequence]){
           if (tick === 0){self.log();}  
           if (sequences[sequence][+tick]){
-            deb("      T: firing: %s, tick: %s", sequence, tick);
             triggers = sequences[sequence][+tick];
+            deb("     T: firing: %s, tick: %s, msg: %s", sequence, tick, triggers.filter(t=>typeof t === "string")[0] || "");
             triggers.forEach(function(item){
               self.evaluate(item);
             });

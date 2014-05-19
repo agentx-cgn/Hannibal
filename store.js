@@ -147,13 +147,13 @@ HANNIBAL = (function(H){
     checkCache: function(){
 
       var result, 
-          doCheck = (
+          useCache = (
             this.query.indexOf("INGAME") === -1 &&
             this.query.indexOf("TECHINGAME") === -1 &&
             !!this.store.cache[this.query]
       );
 
-      if (doCheck){
+      if (useCache){
         result = this.store.cache[this.query].result;
         this.fromCache = true;
         this.store.cache[this.query].hits += 1;
@@ -278,7 +278,7 @@ HANNIBAL = (function(H){
       }
       function logNodes(){
         // debug
-        if (self.debug > 0 && self.fromCache){deb("     Q: %s recs from cache: %s", results.length, this.query);}
+        if (self.debug > 0 && self.fromCache){deb("     Q: %s recs from cache: %s", results.length, self.query);}
         if (self.debug > 0){deb("     Q: executed: msecs: %s, records: %s, ops: %s", t1, results.length, ops);}
         if (self.debug > 1){self.logResult(results, format, debmax);}
       }

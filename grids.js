@@ -1,7 +1,7 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals Engine, HANNIBAL, Uint8Array, Uint32Array, deb, logObject */
 
-/*--------------- G R I D -----------------------------------------------------
+/*--------------- G R I D S ---------------------------------------------------
 
   A thin API onto UintArrays, used by the map module
 
@@ -33,7 +33,7 @@ HANNIBAL = (function(H){
         obstruction: null, // Trees, Geology
         landPass: null,
         navalPass: null,
-        attack: null,
+        attacks: null,
       };
 
   function dump(name, grid, threshold){
@@ -85,7 +85,7 @@ HANNIBAL = (function(H){
         maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"];    // 2
         maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"];    // 1
 
-        grids.attack = new H.Grid(width, height, 8);
+        grids.attacks = new H.Grid(width, height, 8);
         
         deb();deb();
         deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
@@ -101,13 +101,22 @@ HANNIBAL = (function(H){
         grids.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
         grids.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
         grids.obstruction = obstructions();
-        grids.attack.divVal(H.Config.attackRelax);
+        grids.attacks.divVal(H.Config.attackRelax);
         return Date.now() - t0;
       },
       record: function(what, where){
+
         var [x, y] = where;
+        
         if (what === "Attacked"){
-          grids.attack.data[x + y * width] += 1;
+
+          x = ~~(x/cellsize);
+          y = ~~(y/cellsize);
+
+          deb(" GRIDS: record: where: %s, index: %s", where, x + y * width);
+          // logObject(grids.attacks, "grids.attacks");
+
+          grids.attacks.data[x + y * width] += 1;
         }
       },
       dump: function(){
