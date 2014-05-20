@@ -118,8 +118,9 @@ HANNIBAL = (function(H){
           grids.attacks.data[x + y * width] += 1;
         }
       },
-      dump: function(){
+      dump: function(prefix){
         H.each(grids, function(name, grid){
+          name = prefix ? prefix + "-" + name : name;
           if (grid){dump(name, grid);}
         });
       }
@@ -177,22 +178,62 @@ HANNIBAL = (function(H){
         if (obst[i] > radius && data[i] > bestVal){
           bestVal = data[i];
           bestIdx = i;
-        }
-      }      
-      return [bestIdx, bestVal];
-    }
+      }} return [bestIdx, bestVal];
 
+    },
+    findLowestNeighbor: function(posX, posY) {
+
+      // returns the point with the lowest radius in the immediate vicinity
+
+      var data  = this.data,
+          width = this.width,
+          lowestPt = [0, 0],
+          lowestCf = 99999,
+          x = ~~(posX / 4),
+          y = ~~(posY / 4),
+          xx = 0, yy = 0;
+
+      for (xx = x -1; xx <= x +1; ++xx){
+        for (yy = y -1; yy <= y +1; ++yy){
+          if (xx >= 0 && xx < width && yy >= 0 && yy < width){
+            if (data[xx + yy * width] <= lowestCf){
+              lowestCf = data[xx + yy * width];
+              lowestPt = [(xx + 0.5) * 4, (yy + 0.5) * 4];
+      }}}} return lowestPt;
+
+    }    
+    sumInfluence: function(cx, cy, radius){
+
+      var data  = this.data,
+          width = this.width,
+          x0 = Math.max(0, cx - radius),
+          y0 = Math.max(0, cy - radius),
+          x1 = Math.min(this.width, cx + radius),
+          y1 = Math.min(this.height, cy + radius),
+          radius2 = radius * radius,
+          sum = 0, y, x, r2, dx, dy;
+      
+      for ( y = y0; y < y1; ++y) {
+        for ( x = x0; x < x1; ++x) {
+          dx = x - cx;
+          dy = y - cy;
+          r2 = dx*dx + dy*dy;
+          if (r2 < radius2){
+            sum += data[x + y * width];
+      }}} return sum;
+    };
 
   };
 
   function obstructions(){
 
-    var i, len, ents, ent, 
+    var len, ents, ent, 
         x, y, xx, yy, sq, radius, pointer, value, 
         passMap = grids.passability,
         passData = passMap.data,
         obstGrid = new H.Grid(width, height, 8),
-        obstData = obstGrid.data;
+        obstData = obstGrid.data,
+        i = obstGrid.length; 
 
     /* Generated map legend:
      0 is impassable
@@ -204,8 +245,6 @@ HANNIBAL = (function(H){
      30 is "geological component", such as a mine
     */
 
-    i = length;
-
     while(i--){
       obstData[i] = (passData[i] & maskLand) ? 0 : 255;
       obstData[i] = (
@@ -216,9 +255,9 @@ HANNIBAL = (function(H){
     }
 
     ents = Object.keys(H.Entities);
-    len  = ents.length;
+    i = ents.length;
 
-    for (i=0;i<len;i++){
+    while (i--){
 
       ent = H.Entities[ents[i]];
 
@@ -256,9 +295,7 @@ HANNIBAL = (function(H){
           for (yy = -radius; yy <= radius; yy++){
             if (x+xx >= 0 && x+xx < width && y+yy >= 0 && y+yy < height){
               obstData[(x+xx) + (y+yy) * width] = obstData[(x+xx) + (y+yy) * width] === 0 ? 0 : 30; //??
-            }
-          }
-        }
+        }}}
 
       }
     }

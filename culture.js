@@ -427,7 +427,7 @@ HANNIBAL = (function(H){
           'slots': {enumerable: true, get: function(){
 
             if (!node.capacity){
-              deb("ERROR : node.slots on invalid id: %s, tpl: %s", id, H.Entities[id].templateName() || "???");
+              deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, H.Entities[id].templateName() || "???");
               return undefined;
             }
 

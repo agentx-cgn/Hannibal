@@ -243,7 +243,7 @@ HANNIBAL = (function(H){
         alreadyHasHouses = false,
         radius = 0, angle = 3 * Math.PI / 4;
 
-    deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position, tpl);
+    deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
     
     //obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
 
@@ -355,7 +355,10 @@ HANNIBAL = (function(H){
       bestVal  = bestTile[1];
     }
 
-    if (bestVal === -1) {return false;}
+    if (bestVal === -1) {
+      deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
+      return false;
+    }
 
     
     //friendlyTiles.setInfluence((bestIdx % friendlyTiles.width), Math.floor(bestIdx / friendlyTiles.width), 1, 200);
@@ -367,10 +370,12 @@ HANNIBAL = (function(H){
     if (template.hasClass("House") || 
         template.hasClass("Field") || 
         template.resourceDropsiteTypes() !== undefined){
-      secondBest = obstructionMap.findLowestNeighbor(x,z);
+      secondBest = obstructionMap.findLowestNeighbor(x, z);
     } else {
       secondBest = [x,z];
     }
+
+    deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
 
     return {
       "x" : x,

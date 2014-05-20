@@ -302,7 +302,6 @@ H.Plugins = {
           
           // postpone one tick, because field was just destroyed this tick (terrain conflict)
           this.postpone(1, this.economy.request, 1, this.field, this.position);
-          // this.economy.request(1, this.field, this.position);  // changed from dropsite
 
         } else if (this.units.match(resource)){
           this.economy.request(1, this.units, this.position);
@@ -369,6 +368,8 @@ H.Plugins = {
       // defined by this.interval
       onInterval: function(){
 
+        deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
+
         if (this.field.isFoundation){
           this.units.doing("!repairing").repair(this.field);
 
@@ -380,7 +381,6 @@ H.Plugins = {
 
         }
 
-        deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
         // deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
 
       },

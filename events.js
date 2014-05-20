@@ -30,9 +30,12 @@ HANNIBAL = (function(H){
     "RangeUpdate",
     "PlayerDefeated"
   ],
-  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s";
+  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s",
+  createEvents = {};
+
 
   H.Dispatcher = {};
+  
 
   function logDispatcher(){
     deb("  "); deb("      : Dispatcher");
@@ -65,6 +68,7 @@ HANNIBAL = (function(H){
           });
         });
         packs = [];
+        createEvents = {};
         return Date.now() - t0;
       },
       logTick: function(events){
@@ -195,9 +199,12 @@ HANNIBAL = (function(H){
         switch (type){
 
           // don't care
-          case "Create":  // .entity (num)
           case "EntityRenamed":
           case "UnGarrison": 
+          break;
+
+          case "Create":  // .entity (num)
+            createEvents[event.entity] = event;
           break;
 
 
@@ -240,7 +247,12 @@ HANNIBAL = (function(H){
               this.removeAllListener(event.entity);
               H.Bot.culture.removeById(event.entity);
             } else if (!event.entityObj && event.entity) {
-              deb("ERROR : Events got strange destroy for %s", event.entity);
+              if (createEvents[event.entity]){
+                deb("   EVT: Events got possibly failed construction with id: %s", event.entity);
+                H.Grids.dump("E" + H.Bot.ticks);
+              } else {
+                deb("ERROR : Events got strange destroy for %s", event.entity);
+              }
             } else {  
               deb("WARN  : EVENT: got foreign destroy: %s", mats); // H.prettify(event)); <= cyclic
             }
