@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
     var self, groups = {}, t0;
 
     return {
-      init : function(){self=this; return self;},
+      boot : function(){self=this; return self;},
       log: function(){
         deb();deb();
         deb("GROUPS: -----------");
@@ -39,6 +39,19 @@ HANNIBAL = (function(H){
           });
         });
         deb("     G: -----------");
+      },
+      init: function(){
+        deb();deb();
+        H.each(H.Plugins, function(name, definition){
+          if (definition.active) {
+            switch(name.split(".")[0]){
+              case "g": 
+                H.Groups.register(name, definition);
+                deb("   GRP: registered group: %s", name);
+              break;
+            }
+          }
+        });
       },
       tick : function(secs){
         // delegates down to all instances of all groups
@@ -64,8 +77,6 @@ HANNIBAL = (function(H){
           definition: definition,
           instances: []
         };
-        
-        deb("   GRP: registered group: %s", name);
 
       },
       isLaunchable: function(groupname){
@@ -113,7 +124,7 @@ HANNIBAL = (function(H){
       appoint: function(groupname, id){
 
         // launch and init a group instance to manage a shared ingame structure/building
-        // called at init and during game, if an order for a shared asset is ready
+        // called at init ??and during game??, if an order for a shared asset is ready
 
         var cc = H.MetaData[id].ccid,
             instance = this.launch(groupname, cc),
@@ -121,13 +132,22 @@ HANNIBAL = (function(H){
             nodename  = node.name.split("#")[0];
 
         H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
+        H.Entities[id].setMetadata(H.Bot.id, "opid",   instance.id);
+        H.Entities[id].setMetadata(H.Bot.id, "opname", instance.name);
 
-        // instance.listener.onLaunch();
         instance.structure = ["private", nodename];
         instance.structure = H.CreateAsset(instance, 'structure');
+        instance.structure.resources.push(id);
         instance.assets.push(instance.structure);
-        // instance.listener.onLaunch();
-        instance.structure.listener("Ready", id);
+        
+        H.Events.registerListener(id, instance.structure.listener);
+
+        //         meta.opid   = instance.id;
+        //         meta.opname = instance.name;
+        //         resources.push(id);
+        //         H.Events.registerListener(id, self.listener);
+        // SWITCH                     
+        //         instance.structure.listener("Ready", id);
 
         deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", groupname, H.Entities[id], id, nodename, cc);
 
@@ -221,8 +241,13 @@ HANNIBAL = (function(H){
               var pos = H.Map.getCenter([ccid]);
               return function(){return pos;};
             }())
-          }        
-
+          },
+          postpone: function(ticks, fn /* , args*/){
+            var args = H.toArray(arguments).slice(2);
+            // this H.binda...
+            // H.Triggers.add(fn.binda(instance, args), ticks *-1);
+            H.Triggers.add(H.binda(fn, instance, args), ticks *-1);
+          },
 
         });
 
@@ -237,7 +262,7 @@ HANNIBAL = (function(H){
 
     };  // return
 
-  }()).init();
+  }()).boot();
 
 return H; }(HANNIBAL));
 

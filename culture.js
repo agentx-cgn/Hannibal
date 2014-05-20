@@ -425,6 +425,12 @@ HANNIBAL = (function(H){
             return (meta === Object(meta)) ? meta : {};
           }},
           'slots': {enumerable: true, get: function(){
+
+            if (!node.capacity){
+              deb("ERROR : node.slots on invalid id: %s, tpl: %s", id, H.Entities[id].templateName() || "???");
+              return undefined;
+            }
+
             var freeSlots = node.capacity - H.Entities[id].garrisoned.length;
             return freeSlots;
           }},          

@@ -48,10 +48,12 @@ HANNIBAL = (function(H){
     'aitest04m': {
         '1': [() => "< - START: " + sequence + " - >"],
         '3': [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 
-       '10': [() => H.Groups.log(), "logging groups"],
        '12': [T.destroy(44), "destroying centre"],
+       '14': [() => "calling for repair help"],
        '15': [() => H.logIngames(), "logging ingames"],
-       // '10': [T.destroy(216), "destroying field"],
+       '16': [() => H.Groups.log(), "logging groups"],
+       '70': [() => H.logIngames(), "logging ingames"],
+       '71': [() => H.Groups.log(), "logging groups"],
       '241': [() => "< - FINIS: " + sequence + " - >"],
     },
     'Xaitest03': {

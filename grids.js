@@ -12,6 +12,11 @@
 
 */
 
+// Uint8ClampedArray([-1.0, 0.1, 0.45, 0.55, 0.9, 1.0, 1.1, 254.5, 255, 255.5]) = 
+// Uint8ClampedArray [ 0, 0, 0, 0, 0, 1, 1, 254, 255, 255 ]
+
+
+
 HANNIBAL = (function(H){
 
   var t0, width, height, length, cellsize, 
@@ -133,34 +138,49 @@ HANNIBAL = (function(H){
     this.length = width * height;
     this.bits = bits;
     this.data = (
-      this.bits ===  0 ? new Uint8Array(0) :
-      this.bits ===  8 ? new Uint8Array(width  * height) :
+      this.bits ===  0 ? new Uint8ClampedArray(0) :
+      this.bits ===  8 ? new Uint8ClampedArray(width  * height) :
       this.bits === 32 ? new Uint32Array(width * height) : null
-      // Uint8ClampedArray
     );
 
   };
 
   H.Grid.prototype = {
     constructor: H.Grid,
+    dump: function(name, threshold){
+      Engine.DumpImage(name || "default.png", this.map, this.width, this.height, threshold || this.maxVal);
+    },
     max:     function(){var m = 0, g=this.data, l = this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
     // all destructive
     setVal:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = val;}return this;},
     addVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;},
     mulVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
-    divVal:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = ~~(g[l]/val);}return this;},
+    divVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
     addGrid: function(grd){var g=this.data,l=this.length;while(l--){g[l] += grd[l];}return this;},
     copy: function(){
       return (
-        this.bits ===  8 ? new Uint8Array(this.data.buffer.slice()) : 
+        this.bits ===  8 ? new Uint8ClampedArray(this.data.buffer.slice()) : 
         this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : null
       );
     },
-    dump: function(name, threshold){
-      name = name || "default.png";
-      threshold = threshold || this.maxVal;
-      Engine.DumpImage(name, this.map, this.width, this.height, threshold);
-    },
+    findBestTile: function(radius, obstruction){
+      
+      // Find the best non-obstructed tile
+      
+      var bestIdx = 0,
+          bestVal = -1,
+          data = this.data,
+          obst = obstruction.data,
+          i = this.length;
+
+      while (i--) {
+        if (obst[i] > radius && data[i] > bestVal){
+          bestVal = data[i];
+          bestIdx = i;
+        }
+      }      
+      return [bestIdx, bestVal];
+    }
 
 
   };

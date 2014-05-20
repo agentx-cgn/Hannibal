@@ -20,6 +20,10 @@ HANNIBAL = (function(H){
         "RESEARCHEDBY": "research"
       };
 
+  function pritArgs(args){
+    return JSON.stringify(H.toArray(args).map(a => a.toString ? a.toString() : a));
+  }
+
   function getAssetType(definition){
 
     var found = false, hcq, type, nodes;
@@ -129,84 +133,66 @@ HANNIBAL = (function(H){
         };
       },
       toResource: function(id){
-        // stripped down object of self, bind to a single entity id
-
-        // deb("toResource: id: %s, %s", id, typeof id);
-
         return {
           id:         id,
           name:       name,
           nameDef:    nameDef, 
           shared:     shared,
           health:     H.health([id]),
+          resources:  [id],
           location:   self.location.bind(null, [id]),
           garrison:   self.garrison.bind(null, [id]),
           destroy:    self.destroy.bind(null, [id]),
           gather:     self.gather.bind(null, [id]),
           repair:     self.repair.bind(null, [id]),
           toOrder:    self.toOrder,
-          toString:   function(){return H.format("[resource %s]", name);},
+          toString:   function(){return H.format("[resource %s/%s]", name, id);},
         };
       },
-      tick: function(time){
-        // actually called
+      toSelection: function(ids){
+        return {
+          resources: ids,
+          do:        self.do,
+          nearest:   self.nearest,
+          location:  self.location.bind(null, ids),
+          garrison:  self.garrison.bind(null, ids),
+          destroy:   self.destroy.bind(null, ids),
+          gather:    self.gather.bind(null, ids),
+          repair:    self.repair.bind(null, ids),          
+          toString:   function(){return H.format("[dynres %s/%s]", name, ids);},
+        };
       },
-
-      // first: function(){
-      //   return (resources.length === 0) ? undefined : self.toResource(resources[0]);
-      // },
-      // sort:     function(filter){
-
-      //   // updates and sort a resources of a dynmaic resource
-
-      //   var oper, prop, nodes, sortPosition, sortFunc, old = resources;
-
-      //   filter = filter.split(" ").filter(function(s){return !!s;});
-      //   oper   = filter[0];
-      //   prop   = filter[1];
-      //   nodes  = H.QRY(hcq).execute("node", 5, 5, "resource.sort"); // ); //
-
-      //   if (dynamic) {
-      //     switch (prop) {
-      //       case "distance":
-      //         if (!instance.position) {
-      //           deb("ERROR : %s has no position", instance);
-      //           logObject(instance, "instance");
-      //         }
-      //         sortPosition = (
-      //           Array.isArray(instance.position) ? instance.position : 
-      //             instance.position.location()
-      //         );
-      //         sortFunc  = function(na, nb){
-
-      //           // if (! (typeof na.position === "function")){
-      //           //   logObject(na, "na in res.sort");
-      //           // }
-
-      //           var aDist = H.Map.distance(na.position, sortPosition),
-      //               bDist = H.Map.distance(nb.position, sortPosition);
-      //           return oper === '<' ? aDist - bDist : bDist - aDist;
-      //         };
-      //       break;
-      //     }
-      //     resources = nodes.sort(sortFunc).map(function(node){return node.id;});
-      //   }
-
-      //   deb("   AST: %s sort/%s: value: %s, resources: old: %s, new: %s", self, prop, sortPosition, H.prettify(old), H.prettify(resources));
-
-      // },
+      tick:       function(time){ /**/ },
       match:      function(who){return resources.indexOf(who.id) !== -1;},
       length:     function(){return resources.length;},
-      state:      function(){
+      states:     function(ids){
         var state = {};
-        resources.forEach(function(id){
-          if (!!H.Entities[id]._entity.unitAIState){ //??
-            state[id] = H.Entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
-          } else {
-            state[id] = undefined;
-          }
-        });
+        ids = ids || resources;
+        ids.forEach(id => state[id] = H.state(id));
         return state;
+      },
+      doing: function(filters){
+        // filters resource on ai state
+        var ids = [], state, 
+            actions = filters.split(",").filter(a => !!a);
+
+        actions.forEach(action => {
+          resources.forEach(id => {
+            state = H.state(id);
+            if (action[0] === "!"){
+              if (state !== action.slice(1)){ids.push(id);}
+            } else {
+              if (state === action){ids.push(id);}
+            }
+          });
+        });
+
+        // deb("doing: actions: %s, states: %s, ids: %s", 
+        //   actions, H.prettify(self.states(resources)), ids
+        // );
+
+        return self.toSelection(ids);
+
       },
       location:   function(id){
 
@@ -244,30 +230,6 @@ HANNIBAL = (function(H){
         return loc;
 
       },
-      // getLocNear: function(where){
-
-      //   // assuming a lot.
-
-      //   var pos, tpl, loc;
-
-      //   if (!where){
-      //     deb("ERROR : AST etLocNear NO where %s", self);
-      //     return null;
-      //   } // that's ok if group has no location yet.
-
-      //   if(!where.location){
-      //     logObject(where, "where.location!! " + where);
-      //   }
-
-      //   pos = where.location();
-      //   tpl = H.QRY(hcq).first().key; //"node", 5, 10, "getLocNear").key;
-      //   loc = H.Map.findGoodPosition(tpl, pos);
-
-      //   deb("   AST: getLocNear: loc: %s, pos: %s, tpl: %s", H.prettify(loc), pos, tpl);
-
-      //   return loc;
-
-      // },
 
 
       /*
@@ -278,11 +240,11 @@ HANNIBAL = (function(H){
 
       exists: function(amount){
         var hcq = expandHCQ(definition[1], instance);
-        return H.QRY(hcq).execute("node", 5, 5, "asset.exists").length >= (amount || 1);
+        return H.QRY(hcq).execute().length >= (amount || 1); //"node", 5, 5, "asset.exists"
       },
-      update: function(fn){
-        H.QRY(hcq).forEach(fn.bind(instance));
-      },
+      // update: function(fn){
+      //   H.QRY(hcq).forEach(fn.bind(instance));
+      // },
       nearest: function(amount){
 
         // deb("   AST: nearest hcq: %s", expandHCQ(definition[1], instance));
@@ -298,20 +260,13 @@ HANNIBAL = (function(H){
                 H.Map.distance(nb.position, pos)
               );
             },
-            nodes = H.QRY(hcq).execute("node", 5, 5, "nearest").sort(sorter).slice(0, amount || 1),
-            ids = nodes.map(function(node){return node.id;});
+            nodes = H.QRY(hcq).execute().sort(sorter), // "node", 5, 5, "nearest"
+            ids = nodes.map(function(node){return node.id;}).slice(0, amount || 1);
 
-        deb("   AST: nearest ids: %s", ids);
+        // deb("   AST: nearest hcq: %s", hcq);
+        // deb("   AST: nearest ids: %s", ids);
 
-        return {
-          toString: function(){return "[dynres " + ids;},
-          location: self.location.bind(null, ids),
-          garrison: self.garrison.bind(null, ids),
-          destroy:  self.destroy.bind(null, ids),
-          gather:   self.gather.bind(null, ids),
-          repair:   self.repair.bind(null, ids),          
-        };
-
+        return self.toSelection(ids);
         
       },
 
@@ -325,18 +280,24 @@ HANNIBAL = (function(H){
       move: function(){},
       destroy: function(/* arguments: [who] */){
 
+        deb("   AST: destroy: %s", pritArgs(arguments));
+
         var who = (arguments.length === 1) ? resources : arguments[0];
 
-        Engine.PostCommand(H.Bot.id, {type: "delete-entities", 
-          entities: who
-        });
+        if (who.length){
+
+          Engine.PostCommand(H.Bot.id, {type: "delete-entities", 
+            entities: who
+          });
+
+        }
 
         deb("   AST: destroy who: %s", who);
 
       },
       garrison:     function(/* arguments: [who], whom */){
 
-        deb("   AST: garrison.in: %s", H.toArray(arguments));
+        deb("   AST: garrison: %s", pritArgs(arguments));
 
         var al = arguments.length,
             who  = (al === 1) ? resources : arguments[0][0],
@@ -353,11 +314,13 @@ HANNIBAL = (function(H){
       },
       gather: function(/* arguments: [who], what */){
 
+        deb("   AST: gather: %s", pritArgs(arguments));
+
         var al = arguments.length,
             who  = (al === 1) ? resources : arguments[0],
             what = (al === 1) ? arguments[0].id : arguments[1].resources[0];
 
-        if (!!H.Entities[what]){
+        if (!!H.Entities[what] && who.length){
 
           Engine.PostCommand(H.Bot.id, {type: "gather", 
             entities: who, 
@@ -372,13 +335,13 @@ HANNIBAL = (function(H){
       },
       repair: function(/* arguments: [who], what */){
 
-        deb("   AST: repair: %s", H.toArray(arguments));
+        deb("   AST: repair: %s", pritArgs(arguments));
 
         var al = arguments.length,
             who  = (al === 1) ? resources : arguments[0],
-            what = (al === 1) ? arguments[0].id : arguments[1].id;
+            what = (al === 1) ? arguments[0].id : arguments[1].resources[0];
 
-        if (!!H.Entities[what]){
+        if (!!H.Entities[what] && who.length){
 
           Engine.PostCommand(H.Bot.id, {type: "repair", 
             entities: who,  // Array
@@ -387,9 +350,10 @@ HANNIBAL = (function(H){
             queued: false
           });
 
+        } else {
+          deb("WARN  : asset.repair: who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
         }
 
-        deb("   AST: repair who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
 
       },
 
@@ -456,8 +420,12 @@ HANNIBAL = (function(H){
             H.remove(resources, id);
             resources.push(evt.newentity);
             resource.id = evt.newentity;
+            self.isFoundation = false;
+            self.isStructure = true;
+            resource.isFoundation = false;
+            resource.isStructure = true;
             instance.listener.onAssign(resource);
-            deb("   AST: msg: %s, id: %s, evt: %s", msg, id, H.prettify(evt));
+            deb("   AST: msg: %s, id: %s, evt: %s, resources: %s", msg, id, H.prettify(evt), resources);
 
           break;
           

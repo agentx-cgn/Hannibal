@@ -6,7 +6,7 @@
   these are Helpers, not solutions. No external stuff needed
 
 
-  everything H.[lowercase] should be here.
+  everything non domain H.[lowercase] should be here.
   V: 0.1, agentx, CGN, Feb, 2014
 
 */
@@ -85,7 +85,6 @@ extend(H, {
   flatten:    function (a){return Array.prototype.concat.apply([], a);},
   pushUnique: function (a,e){if(a.indexOf(e)===-1){a.push(e);};return a;},
   equal:      function (a, b){return JSON.stringify(a) === JSON.stringify(b);},
-
   intersect:  function(a,b){
     var ai=0,bi=0,al=a.length,bl=b.length,r=[];a=a.sort();b=b.sort();
     while( (ai < al) && (bi < bl) ){
@@ -96,6 +95,21 @@ extend(H, {
         ai++;
         bi++;
     }}return r;
+  },
+
+  // functions
+  binda:      function(fn, obj, a){
+    // return fn.bind.apply(obj, [obj].concat(args));
+    // return Function.prototype.bind.apply(fn, [obj].concat(args));
+    var al = a.length;
+    return (
+      al === 0 ? fn.bind(obj) :
+      al === 1 ? fn.bind(obj, a[0]) :
+      al === 2 ? fn.bind(obj, a[0], a[1]) :
+      al === 3 ? fn.bind(obj, a[0], a[1], a[2]) : 
+      al === 4 ? fn.bind(obj, a[0], a[1], a[2], a[3]) : 
+        undefined
+    );
   },
 
   // ES6 Suite

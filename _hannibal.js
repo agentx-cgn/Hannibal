@@ -197,10 +197,11 @@ var HANNIBAL = (function() {
     this.timing         = {all: 0};        // used to identify perf. sinks in OnUpdate
 
     //?? still needed ??
-    this.gameState      = gameState;
-    this.sharedScript   = sharedScript;
-    this.players        = sharedScript.playersData;
+    // this.gameState      = gameState;
+    // this.sharedScript   = sharedScript;
+    // this.players        = sharedScript.playersData;
 
+    // init grids and masks
     H.Grids.init();
 
     // determine own, game's and all civilisations
@@ -212,17 +213,8 @@ var HANNIBAL = (function() {
     H.Context           = new H.Hannibal.Context(this);       // API API
     H.Context.tick();                                         // initializes here
 
-    // load plugins and groups
-    deb();deb();
-    H.each(H.Plugins, function(name, definition){
-      if (definition.active) {
-        switch(name.split(".")[0]){
-          case "g": 
-            H.Groups.register(name, definition);
-          break;
-        }
-      }
-    });
+    // register groups
+    H.Groups.init();
 
     // culture knowledgebase as triple store
     this.culture = new H.Culture(this.civ);
@@ -484,8 +476,8 @@ var HANNIBAL = (function() {
         }
         self.timing.all += msecs;
       });
-      deb("______: #%sb, %s, trigs: %s, timing: all: %s %s", 
-        this.ticks, this.frame.name, H.Triggers.info(), this.timing.all, msgTiming
+      deb("______: #%sb, %s, trigs: %s, timing: %s, all: %s ", 
+        this.ticks, this.frame.name, H.Triggers.info(), msgTiming, this.timing.all
       );
       // deb("      : ECs: %s, %s", 
       //   H.SharedScript._entityCollections.length, H.attribs(H.SharedScript._entityCollectionsName)

@@ -12,16 +12,6 @@
 */
 
 
-// idle
-// gathering
-// approaching
-// repairing
-// garrisoned
-// attacking
-// fleeing
-
-
-
 HANNIBAL = (function(H){
 
 H.Plugins = {
@@ -48,7 +38,7 @@ H.Plugins = {
     position:       null,           // refers to the coords of the group's position/activities
     structure:      [],             // still unkown resource, inits at game start
 
-    citizens:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <ccid>"],
+    builders:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <ccid>"],
 
     attackLevel:    0,              // increases with every attack, halfs on interval
     needsRepair:   80,              // a health level (per cent)
@@ -57,7 +47,7 @@ H.Plugins = {
     listener: {
       onLaunch: function(ccid){
         this.ccid = ccid;
-        this.register("citizens");
+        this.register("builders");
       },
       onConnect: function(listener){
         deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
@@ -71,20 +61,16 @@ H.Plugins = {
 
         deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
+        this.position = resource;
+
+        H.QRY("INGAME WITH metadata.ccid = " + this.ccid).forEach(function(node){
+          node.metadata.ccid = resource.id;
+        });
+
+        this.ccid = resource.id;
+
         if (resource.isFoundation){
-
-          this.position = resource;
-
-          H.QRY("INGAME WITH metadata.ccid = " + this.ccid).forEach(function(node){
-            node.metadata.ccid = resource.id;
-          });
-
-          // this.citizens.update(function(citizen){
-          //   citizen.metadata.ccid = resource.id;
-          // });
-          this.ccid = resource.id;
-
-          this.citizens.nearest(30).repair(resource);
+          this.builders.nearest(30).repair(resource);
         }
 
       },
@@ -111,11 +97,15 @@ H.Plugins = {
       onBroadcast: function(){},
       onInterval: function(){
 
-        deb("     G: interval %s, state: %s, health: %s", 
-            this.name, H.prettify(this.structure.state()), this.structure.health
+        deb("     G: interval %s, attackLevel: %s, health: %s, states: %s", 
+            this.name, this.attackLevel, this.structure.health, H.prettify(this.structure.states())
         );
 
         this.attackLevel = ~~(this.attackLevel/2);
+
+        if (this.structure.isFoundation){
+          this.builders.nearest(30).repair(this.structure);
+        }        
 
         // if (this.attackLevel === 0 && this.structure.health < this.needsRepair){
         //   this.structure.users.nearest(30).forEach(function(user){
@@ -205,7 +195,7 @@ H.Plugins = {
       onBroadcast: function(){},
       onInterval: function(){
         // currently not much to see here
-        // deb("     G: interval %s, state: %s", this.name, H.prettify(this.structure.state()));
+        // deb("     G: interval %s, states: %s", this.name, H.prettify(this.structure.states()));
       }
     }
 
@@ -309,7 +299,10 @@ H.Plugins = {
 
         if (this.field.match(resource)){
           this.position = this.units;
-          this.economy.request(1, this.field, this.position);  // changed from dropsite
+          
+          // postpone one tick, because field was just destroyed this tick (terrain conflict)
+          this.postpone(1, this.economy.request, 1, this.field, this.position);
+          // this.economy.request(1, this.field, this.position);  // changed from dropsite
 
         } else if (this.units.match(resource)){
           this.economy.request(1, this.units, this.position);
@@ -329,10 +322,10 @@ H.Plugins = {
         deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
 
         if (this.field.match(resource)){
-          this.units.repair(resource);
+          this.units.doing("!repairing").repair(resource);
 
         } else if (this.units.match(resource)){
-          if (resource.health < 50 && this.shelter.exists()) { 
+          if (resource.health < 80 && this.shelter.exists()) { 
             this.shelter.nearest(1).garrison(resource);
           }
         }
@@ -376,11 +369,19 @@ H.Plugins = {
       // defined by this.interval
       onInterval: function(){
 
-        deb("     G: %s onInterval,  state: %s", this, H.prettify(this.units.state()));
-        // deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
+        if (this.field.isFoundation){
+          this.units.doing("!repairing").repair(this.field);
 
-        // update to nearest shelter
-        // this.shelter.sort("< distance");
+        } else if (this.field.health < 80){
+          this.units.doing("!repairing").repair(this.field);
+
+        } else {
+          this.units.doing("gathering").gather(this.field);
+
+        }
+
+        deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
+        // deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
 
       },
       // defined by this.interval

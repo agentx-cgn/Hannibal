@@ -18,6 +18,13 @@ HANNIBAL = (function(H) {
   // a NOP function
   H.FNULL = function(){};
 
+  H.state = function(id){
+    return (
+      H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
+        H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase() :
+          undefined
+    ); 
+  };
 
   H.saniTemplateName = function(nameTemplate){
       nameTemplate = H.replace(nameTemplate,  "|", ".");
@@ -53,7 +60,7 @@ HANNIBAL = (function(H) {
     var curHits = 0, maxHits = 0;
     ids.forEach(function(id){
       if (!H.Entities[id]){
-        deb("ERROR : Tools.health: id: %s in ids, but not in entities", id);
+        deb("WARN  : Tools.health: id: %s in ids, but not in entities", id);
       } else {
         curHits += H.Entities[id].hitpoints();
         maxHits += H.Entities[id].maxHitpoints();

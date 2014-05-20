@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
     "RangeUpdate",
     "PlayerDefeated"
   ],
-  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s";
+  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s";
 
   H.Dispatcher = {};
 
@@ -49,19 +49,10 @@ HANNIBAL = (function(H){
 
     var self, t0, packs = [];
 
-    function clear(){
-      // H.each(events, function(type){
-      //   delete events[type];
-      // });
-      packs = [];
-    }
-
     return {
       init:    function(){self = this;return self;},
-      collect: function(newEvents){
-        packs.push(newEvents);
-      },
-      tick:  function(){
+      collect: function(newEvents){packs.push(newEvents);},
+      tick:    function(){
         t0 = Date.now();
         packs.forEach(function(events){
           self.logTick(events);
@@ -73,7 +64,7 @@ HANNIBAL = (function(H){
             }
           });
         });
-        clear();
+        packs = [];
         return Date.now() - t0;
       },
       logTick: function(events){
@@ -167,9 +158,8 @@ HANNIBAL = (function(H){
             (!!event.entities ? event.entities.join(", ") : "???")
           );
 
-          ent  = H.Entities[id] || event.entityObj || false;
+          ent  = H.Entities[id] || event.entityObj || undefined;
           tpl  = ent ? ent.toString() : "???";
-          // own  = event.owner       ? event.owner : 
           own  = (
             event.owner || (
             (ent && ent.owner) ? ent.owner() : 
@@ -195,7 +185,9 @@ HANNIBAL = (function(H){
           }
 
           // finally
-          deb("   EVT: %s, own: %s, meta: %s, mats: %s, %s ent: %s", type, own, meta, mats, info, tpl);
+          deb("   EVT: %s, id: %s, own: %s, meta: %s, mats: %s, %s ent: %s", 
+                       type, id, own, meta, mats, info, tpl
+          );
 
         }
 

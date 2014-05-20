@@ -140,4 +140,31 @@ Hannibal extensively logs against standard output until switched off in config.j
 
 tbd
 
+<!--
 
+# Documentation #
+
+## Asset Interface ##
+  
+* users:          connected groups, an array of listeners
+* isFoundation:   bool
+* isStructure:    bool
+* isRequested:    bool
+* exists:         bool, is an game
+* match:          bool, expects resource
+* health:         returns percentage (hits/maxhits)
+* nearest:        returns asset selection, expects number
+* doing:          returns asset selection, expects state list 
+* garrison:       buildings only, expects asset selection of units
+* repair:         units only, expects asset with single building
+* gather:         units only, expects asset with single field
+* states:         object {id:state, ...} asset 
+                    idle
+                    gathering
+                    approaching
+                    repairing
+                    garrisoned
+                    attacking
+                    fleeing
+
+-->                  
