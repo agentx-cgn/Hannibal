@@ -35,7 +35,7 @@ HANNIBAL = (function(H){
       description:    "scouts",       // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
 
-      interval:        2,             // call onInterval every x ticks
+      interval:        1,             // call onInterval every x ticks
       parent:         "",             // inherit useful features
 
       capabilities:   "2 food/sec",   // (athen) give the economy a hint what this group provides.
@@ -47,6 +47,9 @@ HANNIBAL = (function(H){
 
       counter:        0,
       units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
+
+      moves:         [[450, 1020], [400, 700], [800, 700]],
+      movePointer:   0,
 
 
       // message queue sniffer
@@ -64,12 +67,13 @@ HANNIBAL = (function(H){
           deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
           if (!this.counter){
-            resource.move(H.Grids.center.map(c => c*4));
+            // resource.move(H.Grids.center.map(c => c*4 -50));
+            resource.move(this.moves[this.movePointer]);
           } else {
             resource.move(this.position);
           }
 
-          deb("scout.center: %s", H.Grids.center);
+          // deb("scout.center: %s", H.Grids.center);
 
 
         },
@@ -78,8 +82,8 @@ HANNIBAL = (function(H){
           deb("     G: %s onDestroy: %s", this, resource);
 
           if (this.units.match(resource)){
-            this.economy.request(Math.min(this.counter +1, 5), this.units, this.position);  
             this.counter += 1;
+            this.economy.request(Math.min(this.counter, 5 - this.units.count), this.units, this.position);  
           }      
 
         },
@@ -96,14 +100,28 @@ HANNIBAL = (function(H){
         },
         onInterval:  function(secs, ticks){
 
-          deb("     G: %s onInterval,  %s/%s, states: %s", this, secs, ticks, H.prettify(this.units.states()));
+          deb("     G: %s onInterval,  %s/%s, states: %s, res: %s", 
+            this, secs, ticks, H.prettify(this.units.states()), this.units.resources
+          );
 
           if (this.units.count){
             this.position = this.units.center;
           }
 
-          if (!(ticks % 10)){
-            H.Grids.scouting.dump("scout-" + ticks + ".png", 8)
+          if (this.units.doing("idle").count){
+            this.movePointer = (
+              (this.movePointer === this.moves.length -1) ? 0 : ++this.movePointer
+            );
+            this.units.doing("idle").move(this.moves[this.movePointer]);
+          }
+
+          this.units.forEach(function(resource){
+            // deb("onInterval: resource: %s", resource);
+            H.Grids.analyze("scout", resource);
+          });
+
+          if (!(ticks % 5)){
+            H.Grids.scouting.dump("scout-" + ticks + ".png", 255)
           }
 
         }

@@ -144,6 +144,23 @@ tbd
 
 # Documentation #
 
+
+## Scouting ##
+
+territory min: 0, max: 66, stats: {0:60261,65:2624,66:2651}
+landPass min: 1, max: 8, stats: {1:17833,2:47575,4:9,5:6,6:2,7:1,8:110}
+navalPass min: 1, max: 3, stats: {1:65050,3:486}
+
+unknown           = 0
+land, seen        = 1
+land, visited     = 2
+shore, seen       = 4
+shore, visited    = 8
+water, visited    = 32
+water, seen       = 64
+impassable        = 255
+
+
 ## Asset Interface ##
   
 * users:          connected groups, an array of listeners

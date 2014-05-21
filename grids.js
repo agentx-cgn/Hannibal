@@ -32,11 +32,13 @@ HANNIBAL = (function(H){
       maskOpen,
       maskWater,
       maskLand,
-      maskBldgShore,
+      maskShore,
       maskBldgLand,
       maskFoundation,
       maskPathfinder,
-      square = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]],
+      square  = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]],
+      square2 = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
+                 [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]],
       grids = {
         food: null,
         wood: null,
@@ -99,10 +101,14 @@ HANNIBAL = (function(H){
         maskOpen  = H.SharedScript.passabilityClasses["unrestricted"]  | 0;      // 64
         maskWater = H.SharedScript.passabilityClasses["ship"] | 0;              // 32
         maskLand  = H.SharedScript.passabilityClasses["default"] | 0;           // 16
-        maskBldgShore   = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
+        maskShore = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
         maskBldgLand    = H.SharedScript.passabilityClasses["building-land"] | 0;            // 4
         maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
         maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
+
+        self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
+        self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
+        self.passability = gridFromMap(H.SharedScript.passabilityMap);
 
         self.attacks  = new H.Grid(width, height, 8);
         self.scouting = new H.Grid(width, height, 8);
@@ -115,19 +121,75 @@ HANNIBAL = (function(H){
         var t0 = Date.now();
         maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
 
-        self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
-        self.passability = gridFromMap(H.SharedScript.passabilityMap);
         self.food        = gridFromMap(H.SharedScript.resourceMaps.food);
         self.wood        = gridFromMap(H.SharedScript.resourceMaps.wood);
         self.stone       = gridFromMap(H.SharedScript.resourceMaps.stone);
         self.metal       = gridFromMap(H.SharedScript.resourceMaps.metal);
-        self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
-        self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
-
+        self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
         self.obstruction = obstructions();
+
         self.attacks.divVal(H.Config.attackRelax);
 
         return Date.now() - t0;
+      },
+      analyze: function(what, resource){
+
+        // unknown           = 0
+        // land, seen        = 32
+        // land, visited     = 48
+        // shore, seen       = 64
+        // shore, visited    = 80
+        // water, seen       = 128
+        // water, visited    = 144
+        // impassable        = 255
+
+        // obstructions
+        // 0 is impassable
+        // 200 is deep water (ie non-passable by land units)
+        // 201 is shallow water (passable by land units and water units)
+        // 255 is land (or extremely shallow water where ships can't go).
+        // 40 is "tree".
+        // The following 41-49 range is "near a tree", with the second number showing how many trees this tile neighbors.
+        // 30 is "geological component", such as a mine
+
+        if (what === 'scout') {
+
+          var node = H.QRY("INGAME WITH id = " + resource.id).first(),
+              [cx, cy] = gamePosToMapPos(node.position),
+              radius = ~~(node.vision / cellsize),
+              dataScout = self.scouting.data,
+              dataNaval = self.navalPass.data,
+              dataLand  = self.landPass.data,
+              dataObst  = self.obstruction.data,
+              dataPass  = self.passability.data,
+              x0 = ~~Math.max(0, cx - radius),
+              y0 = ~~Math.max(0, cy - radius),
+              x1 = ~~Math.min(width,  cx + radius),
+              y1 = ~~Math.min(height, cy + radius),
+              x = 0, y = 0, index = 0, value = 0,
+              dx = 0, dy = 0, r2 = 0.0;
+
+          for ( y = y0; y < y1; ++y) {
+            for ( x = x0; x < x1; ++x) {
+              dx = x - cx; dy = y - cy;
+              r2 = Math.sqrt(dx * dx + dy * dy);
+              index = x + y * width;
+              if (r2 < radius && dataScout[index] === 0){
+                dataScout[index] = (
+                  (dataObst[index]  === 0)       ? 255 :
+                  !(dataPass[index]  & maskLand)  ?  32 :
+                  !(dataNaval[index] & maskWater) ? 128 :
+                  !(dataLand[index]  & maskShore) ?  64 :
+                    200
+                );
+              }
+            }
+          }
+          // mark as seen
+          dataScout[cx + cy * width] += 16;
+
+        }
+
       },
       record: function(what, where, amplitude){
 
@@ -144,6 +206,7 @@ HANNIBAL = (function(H){
         }
 
       },
+
       log: function(){
         var t0 = Date.now()
         deb("  GRDS: logging ------------")
@@ -170,14 +233,14 @@ HANNIBAL = (function(H){
 
     // subarray, set, move, length, byteOffset, byteLength, buffer
 
-    this.width  = width; 
-    this.height = height;
+    this.width  = width  || 0; 
+    this.height = height || 0;
     this.length = width * height;
-    this.bits = bits;
-    this.data = (
-      this.bits ===  0 ? new Uint8ClampedArray(0) :
+    this.bits   = bits;
+    this.data   = (
       this.bits ===  8 ? new Uint8ClampedArray(width  * height) :
-      this.bits === 32 ? new Uint32Array(width * height) : null
+      this.bits === 32 ? new Uint32Array(width * height) : 
+        new Uint8ClampedArray(0) //??
     );
 
   };
@@ -248,8 +311,8 @@ HANNIBAL = (function(H){
       var data  = this.data,
           x0 = Math.max(0, cx - radius),
           y0 = Math.max(0, cy - radius),
-          x1 = Math.min(this.width, cx + radius),
-          y1 = Math.min(this.height, cy + radius),
+          x1 = Math.min(width,  cx + radius),
+          y1 = Math.min(height, cy + radius),
           radius2 = radius * radius,
           sum = 0, y, x, r2, dx, dy;
       
@@ -310,23 +373,60 @@ HANNIBAL = (function(H){
     },
     expandInfluences: function(maximum) {
 
-      var data = this.data,
-          expand = this.expand,
+      var data = this.data, expand = this.expand,
           w = width, h = height,
-          g = 0, x = 0, y = 0, yy = 0, xx = 0, 
+          x = 0, y = 0, yy = 0, xx = 0, 
           min = 0, max = maximum || 255;
 
       for ( y = 0; y < h; ++y) {
         min = max;
-        for ( x = 0; x < w; ++x) {min = expand(data, x, y, w, min, max);}
+        for ( x = 0;     x <  w; ++x) {min = expand(data, x, y, w, min, max);}
         for ( x = w - 2; x >= 0; --x) {min = expand(data, x, y, w, min, max);}
       }
       for ( x = 0; x < w; ++x) {
         min = max;
-        for ( y = 0; y < h; ++y) {min = expand(data, x, y, w, min, max);}
+        for ( y = 0;     y <  h; ++y) {min = expand(data, x, y, w, min, max);}
         for ( y = h - 2; y >= 0; --y) {min = expand(data, x, y, w, min, max);}
       }
 
+    },
+    // Returns an estimate of a tile accessibility. It checks neighboring cells over two levels.
+    // returns a count. It's not integer. About 2 should be fairly accessible already.
+    countConnected: function(startIndex, byLand){
+
+      var data = this.data, w = width,
+          count = 0.0, i = square2.length, index = 0, value = 0;
+
+      while (i--) {
+        index = startIndex + square2[i][0] + square2[i][1] * w;
+        value = data[index];
+        if (byLand && value !== 0) {
+          count += (
+            value ===   0 ? 0    :
+            value === 201 || value === 255 || value === 41 ? 1 :
+            value ===  42 ? 0.5  :
+            value ===  43 ? 0.3  :
+            value ===  44 ? 0.13 :
+            value ===  45 ? 0.08 :
+            value ===  46 ? 0.05 :
+            value ===  47 ? 0.03 :
+              0
+          );
+        } else if (!byLand && value !== 0) {
+          count += (
+            value ===   0 ? 0 :
+            value === 201 ? 1 :
+            value === 200 ? 1 :
+              0
+          );
+      }}
+
+      return count;
+      
+    },
+    isAccessible: function(position, onLand){
+      var gamePos = gamePosToMapPos(position);
+      return (this.countConnected(gamePos[0] + width * gamePos[1], onLand) >= 2);
     }
 
   };
@@ -335,8 +435,7 @@ HANNIBAL = (function(H){
 
     var len, ents, ent, 
         x, y, xx, yy, sq, radius, pointer, value, 
-        passMap  = H.Grids.passability,
-        passData = passMap.data,
+        passData = H.Grids.passability.data,
         obstGrid = new H.Grid(width, height, 8),
         obstData = obstGrid.data,
         i = obstGrid.length; 

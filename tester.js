@@ -47,9 +47,9 @@ HANNIBAL = (function(H){
   sequences = {
     'aitest05m': {
         '1': [() => "< - START: " + sequence + " - >"],
-        '3': [T.launch("g.grainpicker", 44), "launching 1 grainpickers"], 
-        '4': [T.launch("g.scouts", 44), "launching 1 scout"], 
-        '5': [() => H.Grids.log(),  "logging grids"],
+        '2': [T.launch("g.scouts", 44), "launching 1 scout"], 
+        '3': [() => H.Grids.dump(), "dumping grids"],
+        '4': [() => H.Grids.log(),  "logging grids"],
        '20': [() => H.logIngames(), "logging ingames"],
        '21': [() => H.Groups.log(), "logging groups"],
        '70': [() => H.logIngames(), "logging ingames"],

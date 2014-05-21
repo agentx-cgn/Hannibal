@@ -4,7 +4,7 @@
 /*--------------- A S S E T S -------------------------------------------------
 
   handles a group's resources like estate, units, techs, buildings.
-  Assets consist of one of more resources like units or strutures
+  provides the semantics for the DSL used in plugins
 
 
   V: 0.1, agentx, CGN, Feb, 2014
@@ -148,6 +148,7 @@ HANNIBAL = (function(H){
           shared:     shared,
           health:     H.health([id]),
           resources:  [id],
+          doing:      self.doing.bind(null, [id]),
           location:   self.location.bind(null, [id]),
           garrison:   self.garrison.bind(null, [id]),
           destroy:    self.destroy.bind(null, [id]),
@@ -160,9 +161,10 @@ HANNIBAL = (function(H){
       },
       toSelection: function(ids){
         return {
+          count:     ids.length,
           resources: ids,
-          doing:     self.doing,
           nearest:   self.nearest,
+          doing:     self.doing.bind(null, ids),
           location:  self.location.bind(null, ids),
           garrison:  self.garrison.bind(null, ids),
           destroy:   self.destroy.bind(null, ids),
@@ -172,22 +174,32 @@ HANNIBAL = (function(H){
           toString:  function(){return H.format("[selection %s/%s]", name, ids);},
         };
       },
-      tick:       function(time){ /**/ },
+      tick:       function(secs, tick){ /**/ },
       match:      function(who){return resources.indexOf(who.id) !== -1;},
-      length:     function(){return resources.length;},
+      // length:     function(){return resources.length;},
+      forEach:     function(fn){
+        resources.forEach(function(id){
+          deb("   AST: forEach id: %s", id);
+          fn(self.toResource(id))
+        });
+      },
       states:     function(ids){
         var state = {};
         ids = ids || resources;
         ids.forEach(id => state[id] = H.state(id));
         return state;
       },
-      doing: function(filters){
+      doing: function(/* [who,] filters */){
         // filters resource on ai state
-        var ids = [], state, 
+
+        var al = arguments.length,
+            who     = (al === 1) ? resources : arguments[0],
+            filters = (al === 1) ? arguments[0] : arguments[1],
+            ids = [], state, 
             actions = filters.split(",").filter(a => !!a);
 
         actions.forEach(action => {
-          resources.forEach(id => {
+          who.forEach(id => {
             state = H.state(id);
             if (action[0] === "!"){
               if (state !== action.slice(1)){ids.push(id);}
@@ -252,9 +264,6 @@ HANNIBAL = (function(H){
         var hcq = expandHCQ(definition[1], instance);
         return H.QRY(hcq).execute().length >= (amount || 1); //"node", 5, 5, "asset.exists"
       },
-      // update: function(fn){
-      //   H.QRY(hcq).forEach(fn.bind(instance));
-      // },
       nearest: function(amount){
 
         // deb("   AST: nearest hcq: %s", expandHCQ(definition[1], instance));
@@ -295,15 +304,18 @@ HANNIBAL = (function(H){
             who   = (al === 1) ? resources : arguments[0],
             where = (al === 1) ? arguments[0] : arguments[1];
 
-        Engine.PostCommand(H.Bot.id, {type: "walk", 
-          entities: who, 
-          x: where[0], 
-          z: where[1], 
-          queued: false 
-        });
+        if (who.length && where.length){
 
-        deb("   AST: move who: %s, where: %s", who, where);
+          Engine.PostCommand(H.Bot.id, {type: "walk", 
+            entities: who, 
+            x: where[0], 
+            z: where[1], 
+            queued: false 
+          });
 
+        } else {
+          deb("   AST: ignored move who: %s, where: %s", who, where);
+        }
 
       },
       destroy: function(/* arguments: [who] */){
@@ -318,9 +330,10 @@ HANNIBAL = (function(H){
             entities: who
           });
 
+        } else {
+          deb("   AST: ignored destroy who: %s", who);
         }
 
-        deb("   AST: destroy who: %s", who);
 
       },
       garrison:     function(/* arguments: [who], whom */){
@@ -331,13 +344,18 @@ HANNIBAL = (function(H){
             who  = (al === 1) ? resources : arguments[0][0],
             whom = (al === 1) ? arguments[0].resources[0] : [arguments[1].id];
 
-        Engine.PostCommand(H.Bot.id, {type: "garrison", 
-          entities: whom, // array
-          target:   who,  // id
-          queued:   false
-        });
+        if (!!H.Entities[who] && whom.length){
 
-        deb("   AST: garrison who: %s, whom: %s", who, whom);
+          Engine.PostCommand(H.Bot.id, {type: "garrison", 
+            entities: whom, // array
+            target:   who,  // id
+            queued:   false
+          });
+
+        } else {
+          deb("   AST: ignored garrison who: %s, whom: %s", who, whom);
+        }
+
 
       },
       gather: function(/* arguments: [who], what */){
@@ -356,9 +374,10 @@ HANNIBAL = (function(H){
             queued:   false
           });
 
+        } else {
+          deb("   AST: ignored gather who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
         }
 
-        deb("   AST: gather who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
 
       },
       repair: function(/* arguments: [who], what */){
@@ -379,7 +398,7 @@ HANNIBAL = (function(H){
           });
 
         } else {
-          deb("WARN  : asset.repair: who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
+          deb("   AST: ignored repair: who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
         }
 
 
