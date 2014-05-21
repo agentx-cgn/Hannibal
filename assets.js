@@ -106,12 +106,17 @@ HANNIBAL = (function(H){
     // deb("   AST: have type: %s FOR %s/%s", type, instance.name, prop);
 
 
-    Object.defineProperty(self, 'health', {enumerable: true, get: function(){
-      return H.health(resources);
-    }});    
-    Object.defineProperty(self, 'count', {enumerable: true, get: function(){
-      return resources.length;
-    }});    
+    Object.defineProperties(self, {
+      health: {enumerable: true, get: function(){
+        return H.health(resources);
+      }},
+      count:  {enumerable: true, get: function(){
+        return resources.length;
+      }},
+      center: {enumerable: true, get: function(){
+        return H.Map.getCenter(resources);
+      }}
+    });    
 
 
     H.extend(self, {
@@ -148,6 +153,7 @@ HANNIBAL = (function(H){
           destroy:    self.destroy.bind(null, [id]),
           gather:     self.gather.bind(null, [id]),
           repair:     self.repair.bind(null, [id]),
+          move:       self.move.bind(null, [id]),
           toOrder:    self.toOrder,
           toString:   function(){return H.format("[resource %s/%s]", name, id);},
         };
@@ -155,14 +161,15 @@ HANNIBAL = (function(H){
       toSelection: function(ids){
         return {
           resources: ids,
-          do:        self.do,
+          doing:     self.doing,
           nearest:   self.nearest,
           location:  self.location.bind(null, ids),
           garrison:  self.garrison.bind(null, ids),
           destroy:   self.destroy.bind(null, ids),
           gather:    self.gather.bind(null, ids),
           repair:    self.repair.bind(null, ids),          
-          toString:   function(){return H.format("[dynres %s/%s]", name, ids);},
+          move:      self.move.bind(null, ids),          
+          toString:  function(){return H.format("[selection %s/%s]", name, ids);},
         };
       },
       tick:       function(time){ /**/ },
@@ -280,7 +287,25 @@ HANNIBAL = (function(H){
 
       */
 
-      move: function(){},
+      move: function(/* arguments: [who], where */){
+
+        deb("   AST: move: %s", pritArgs(arguments));
+
+        var al = arguments.length,
+            who   = (al === 1) ? resources : arguments[0],
+            where = (al === 1) ? arguments[0] : arguments[1];
+
+        Engine.PostCommand(H.Bot.id, {type: "walk", 
+          entities: who, 
+          x: where[0], 
+          z: where[1], 
+          queued: false 
+        });
+
+        deb("   AST: move who: %s, where: %s", who, where);
+
+
+      },
       destroy: function(/* arguments: [who] */){
 
         deb("   AST: destroy: %s", pritArgs(arguments));
@@ -389,7 +414,7 @@ HANNIBAL = (function(H){
                 meta.opid   = instance.id;
                 meta.opname = instance.name;
               } else {
-                deb("  INFO: %s was assigned with type: %s", type, self);
+                deb("ERROR : %s was assigned with type: %s", type, self);
               }
 
               if (type === "construct"){
@@ -428,6 +453,14 @@ HANNIBAL = (function(H){
             resource.isFoundation = false;
             resource.isStructure = true;
             instance.listener.onAssign(resource);
+            deb("   AST: msg: %s, id: %s, evt: %s, resources: %s", msg, id, H.prettify(evt), resources);
+
+          break;
+          
+          case "EntityRenamed":
+
+            H.remove(resources, evt.entity);
+            resources.push(evt.newentity);
             deb("   AST: msg: %s, id: %s, evt: %s, resources: %s", msg, id, H.prettify(evt), resources);
 
           break;

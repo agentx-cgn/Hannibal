@@ -21,7 +21,7 @@ HANNIBAL = (function(H) {
   H.state = function(id){
     return (
       H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
-        H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase() :
+        H.replace(H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
           undefined
     ); 
   };

@@ -380,6 +380,7 @@ HANNIBAL = (function(H){
 
       } else {
         deb("WARN  : removeById failed on id: %s", id);
+        new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "removeById: ingames with metadata");
 
       }
 

@@ -12,9 +12,23 @@
 
 */
 
+// Grids at tick = 5 / took 73 msecs
+// food        min: 0,   max: 255,  stats: {0:64895,1:1,2:25,3:28,4:30,6:89,8:1,9:159,10:2,11:4,12:6,13:10,15:37,244:1,247:2,250:6,252:2,254:2,255:236}
+// wood        min: 0,   max: 255,  stats: {0:63838,3:1,4:214,5:1,8:106,10:1,11:2,12:78,13:3,14:10,15:1,16:86,18:6,19:10,20:70,23:6,24:187,28:167,32:17,36:16,40:13,44:21,48:27,52:16,56:9,60:9,64:11,68:19,72:12,76:12,80:11,84:14,88:10,92:11,96:8,100:11,104:11,108:12,112:10,116:11,120:5,124:12,127:1,128:7,131:1,132:10,136:12,139:1,140:9,141:1,143:1,144:8,146:1,147:2,148:5,151:1,152:8,153:1,156:5,157:1,159:1,160:8,163:1,164:6,167:3,168:2,172:9,176:8,178:2,180:7,183:5,184:7,186:1,187:1,188:3,189:1,192:8,194:1,195:2,196:3,198:1,199:2,200:2,201:1,203:2,204:4,205:1,206:3,207:2,208:2,209:1,210:2,211:1,212:3,215:1,216:2,218:3,219:2,220:2,222:2,223:1,224:9,225:1,227:2,228:3,229:1,230:4,231:2,232:6,234:2,235:2,236:3,237:3,238:2,239:3,240:5,241:1,242:1,244:1,247:2,248:1,249:2,252:3,253:1,254:3,255:184}
+// stone       min: 0,   max: 7,    stats: {0:65244,1:4,2:28,4:8,5:104,6:100,7:48}
+// metal       min: 0,   max: 7,    stats: {0:65244,1:4,2:28,4:8,5:104,6:100,7:48}
+// territory   min: 0,   max: 66,   stats: {0:60261,65:2624,66:2651}
+// passability min: 255, max: 4223, stats: {4223:16456,4136:46753,4156:829,4128:81,4148:94,4132:47,4100:32,4116:426,4124:28,4138:313,4139:477}
+// obstruction min: 0,   max: 255,  stats: {0:17379,40:125,41:65,42:44,43:17,44:33,45:16,46:20,47:13,48:4,49:7,200:454,201:32,255:47327}
+// landPass    min: 1,   max: 8,    stats: {1:17833,2:47575,4:9,5:6,6:2,7:1,8:110}
+// navalPass   min: 1,   max: 3,    stats: {1:65050,3:486}
+// attacks     min: 0,   max: 0,    stats: {0:65536}
+// scouting    min: 0,   max: 0,    stats: {0:65536}
+
+
 HANNIBAL = (function(H){
 
-  var t0, width, height, length, cellsize, 
+  var t0, width, height, length, cellsize, center = [],
       maskOpen,
       maskWater,
       maskLand,
@@ -36,15 +50,6 @@ HANNIBAL = (function(H){
         attacks: null,
         scouting: null,
       };
-
-  // function extend (o){
-  //   var es = Array.prototype.slice.call(arguments).slice(1);
-  //   es.forEach(function(e){
-  //     Object.keys(e).forEach(
-  //       function(k){o[k] = e[k];
-  //     });
-  //   });
-  // }    
 
   function dump(name, grid, threshold){
     threshold = threshold || grid.max() || 255;
@@ -80,12 +85,15 @@ HANNIBAL = (function(H){
 
     H.extend(self, grids, {
 
+      center: center,
       init: function(){
 
-        width  = H.SharedScript.passabilityMap.width  | 0;
-        height = H.SharedScript.passabilityMap.height | 0;
-        length = width * height | 0;
-        cellsize = H.GameState.cellSize | 0;
+        width     = H.SharedScript.passabilityMap.width  | 0;
+        height    = H.SharedScript.passabilityMap.height | 0;
+        length    = width * height | 0;
+        cellsize  = H.GameState.cellSize | 0;
+        center[0] = width  / 2;
+        center[1] = height / 2;
         
         // http://trac.wildfiregames.com/wiki/AIEngineAPI
         maskOpen  = H.SharedScript.passabilityClasses["unrestricted"]  | 0;      // 64
@@ -96,24 +104,29 @@ HANNIBAL = (function(H){
         maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
         maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
 
-        grids.attacks  = new H.Grid(width, height, 8);
-        grids.scouting = new H.Grid(width, height, 8);
+        self.attacks  = new H.Grid(width, height, 8);
+        self.scouting = new H.Grid(width, height, 8);
         
         deb();deb();
         deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
       },
       tick: function(secs){
-        t0 = Date.now();
-        grids.food  = gridFromMap(H.SharedScript.resourceMaps.food);
-        grids.wood  = gridFromMap(H.SharedScript.resourceMaps.wood);
-        grids.stone = gridFromMap(H.SharedScript.resourceMaps.stone);
-        grids.metal = gridFromMap(H.SharedScript.resourceMaps.metal);
-        grids.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
-        grids.passability = gridFromMap(H.SharedScript.passabilityMap);
-        grids.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
-        grids.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
-        grids.obstruction = obstructions();
-        grids.attacks.divVal(H.Config.attackRelax);
+
+        var t0 = Date.now();
+        maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
+
+        self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
+        self.passability = gridFromMap(H.SharedScript.passabilityMap);
+        self.food        = gridFromMap(H.SharedScript.resourceMaps.food);
+        self.wood        = gridFromMap(H.SharedScript.resourceMaps.wood);
+        self.stone       = gridFromMap(H.SharedScript.resourceMaps.stone);
+        self.metal       = gridFromMap(H.SharedScript.resourceMaps.metal);
+        self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
+        self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
+
+        self.obstruction = obstructions();
+        self.attacks.divVal(H.Config.attackRelax);
+
         return Date.now() - t0;
       },
       record: function(what, where, amplitude){
@@ -123,18 +136,26 @@ HANNIBAL = (function(H){
         x = ~~(x/cellsize); y = ~~(y/cellsize);
         
         if (what === "attacks"){
-          grids.attacks.data[x + y * width] += amplitude;
+          self.attacks.data[x + y * width] += amplitude;
 
         } else if (what === 'scouting') {
-          grids.attacks.data[x + y * width] += amplitude;
+          self.scouting.data[x + y * width] += amplitude;
 
         }
 
       },
+      log: function(){
+        var t0 = Date.now()
+        deb("  GRDS: logging ------------")
+        H.each(grids, function(name){
+          self[name].log(name);
+        });
+        deb("  GRDS: logging %s msecs ------------", Date.now() - t0);
+      },
       dump: function(prefix){
-        H.each(grids, function(name, grid){
+        H.each(grids, function(name){
           name = prefix ? prefix + "-" + name : name;
-          if (grid){dump(name, grid);}
+          if (self[name]){dump(name, self[name]);}
         });
       }
 
@@ -164,8 +185,13 @@ HANNIBAL = (function(H){
   H.Grid.prototype = {
     constructor: H.Grid,
     dump: function(name, threshold){
-      Engine.DumpImage(name || "default.png", this.map, this.width, this.height, threshold || this.maxVal);
+      Engine.DumpImage(name || "default.png", this.data, this.width, this.height, threshold || this.maxVal);
     },
+    log: function(name){
+      var stats = {},i = this.length,data = this.data;
+      while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
+      deb("   GRD: log: %s min: %s, max: %s, stats: %s", name || ">", this.min(), this.max(), H.prettify(stats));
+    },    
     max:     function(){var m=0,  g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
     min:     function(){var m=255,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
     // all destructive
@@ -309,7 +335,7 @@ HANNIBAL = (function(H){
 
     var len, ents, ent, 
         x, y, xx, yy, sq, radius, pointer, value, 
-        passMap = grids.passability,
+        passMap  = H.Grids.passability,
         passData = passMap.data,
         obstGrid = new H.Grid(width, height, 8),
         obstData = obstGrid.data,

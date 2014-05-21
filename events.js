@@ -31,7 +31,8 @@ HANNIBAL = (function(H){
     "PlayerDefeated"
   ],
   msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s",
-  createEvents = {};
+  createEvents  = {},
+  destroyEvents = {};
 
 
   H.Dispatcher = {};
@@ -69,6 +70,7 @@ HANNIBAL = (function(H){
         });
         packs = [];
         createEvents = {};
+        destroyEvents = {};
         return Date.now() - t0;
       },
       logTick: function(events){
@@ -172,7 +174,9 @@ HANNIBAL = (function(H){
 
           switch (type){
             case "EntityRenamed":
-              info = H.format("newent: %s, oldent: %s", event.newentity, event.entity);
+              info = H.format("new: %s, old: %s, new: %s, old: %s", 
+                event.newentity, event.entity, H.Entities[event.newentity], H.Entities[event.entity] || "???"
+              );
             break;
             case "Attacked":
               info = H.format("event: %s", H.prettify(event));
@@ -199,7 +203,6 @@ HANNIBAL = (function(H){
         switch (type){
 
           // don't care
-          case "EntityRenamed":
           case "UnGarrison": 
           break;
 
@@ -208,12 +211,30 @@ HANNIBAL = (function(H){
           break;
 
 
+          case "EntityRenamed":
+            if (H.Entities[event.newentity].owner() === PID){
+              if (event.newentity !== event.entity){
+                this.copyAllListener(event.newentity, event.entity);
+                H.Bot.culture.removeById(event.entity);
+                H.Bot.culture.loadById(event.newentity);
+                this.dispatchEvent(type, event.newentity, event);
+                destroyEvents[event.entity] = event;
+              } else {
+                deb("INFO  : EVENTS: EntityRenamed with double id: %s ignored", event.entity);
+              }
+            } else {
+              // we get some or all of these, maybe if ???
+              deb("INFO  : got foreign EntityRenamed: %s", H.prettify(event));
+            }
+          break;
+
+
           case "ConstructionFinished": // own: ???, meta: {}, mats: {entity, newentity},  ent: ???
             if (event.newentity !== event.entity){
               this.copyAllListener(event.newentity, event.entity);
               this.dispatchEvent(type, event.newentity, event);
             } else {
-              deb("     E: ConstructionFinished with double id: %s ignored", event.entity);
+              deb("INFO  : EVENTS: ConstructionFinished with double id: %s ignored", event.entity);
             }
           break;
 
@@ -225,7 +246,7 @@ HANNIBAL = (function(H){
               }
             } else {
               // we get some or all of these, maybe if attacker = owned
-              // deb("!EVENT: got foreign Attacked: %s", H.prettify(event));
+              // deb("INFO  : got foreign Attacked: %s", H.prettify(event));
             }
           break;
 
@@ -233,7 +254,7 @@ HANNIBAL = (function(H){
             if (H.Entities[event.entity].owner() === PID){
               this.dispatchEvent(type, event.entity, event);
             } else {
-              deb("WARN  : got foreign Garrison: %s", H.prettify(event));
+              deb("INFO  : got foreign Garrison: %s", H.prettify(event));
             }
           break;
 
@@ -243,18 +264,28 @@ HANNIBAL = (function(H){
               // nothing here //??
               // logObject(event.entityObj.trainingQueue, "entityObj.trainingQueue");
 
-              this.dispatchEvent(type, event.entity, event);
-              this.removeAllListener(event.entity);
-              H.Bot.culture.removeById(event.entity);
+              if (destroyEvents[event.entity]){
+                deb("INFO  : Events got possibly superfluous destroy with id: %s", event.entity);
+
+              } else {
+                this.dispatchEvent(type, event.entity, event);
+                this.removeAllListener(event.entity);
+                H.Bot.culture.removeById(event.entity);
+
+              }
+
             } else if (!event.entityObj && event.entity) {
+              
               if (createEvents[event.entity]){
-                deb("   EVT: Events got possibly failed construction with id: %s", event.entity);
+                deb("INFO  : Events got possibly failed construction with id: %s", event.entity);
                 H.Grids.dump("E" + H.Bot.ticks);
+              
               } else {
                 deb("ERROR : Events got strange destroy for %s", event.entity);
+              
               }
             } else {  
-              deb("WARN  : EVENT: got foreign destroy: %s", mats); // H.prettify(event)); <= cyclic
+              // deb("INFO  : EVENT: got foreign destroy: %s", mats); // H.prettify(event)); <= cyclic
             }
           break;
           
@@ -263,13 +294,14 @@ HANNIBAL = (function(H){
             if (event.owner === PID) {
               event.entities.forEach(function(id){
                 if (event.metadata && event.metadata.order){
+                  H.Bot.culture.loadById(id);
                   H.Objects(event.metadata.order).ready(1, type, id);
                 } else {
                   deb("WARN : trained %s without order", id)
                 }
               });
             } else {
-              deb("WARN  : got foreign TrainingFinished: %s", H.prettify(event));
+              deb("INFO  : got foreign TrainingFinished: %s", H.prettify(event));
             }
             
           break;

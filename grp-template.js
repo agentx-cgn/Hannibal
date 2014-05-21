@@ -14,80 +14,81 @@
 
 HANNIBAL = (function(H){
 
-H.Plugins = {
+  H.Plugins = H.Plugins || {};
+
+  H.extend(H.Plugins, {
+
+    "g.template" : {
+
+      /* Behaviour: 
+          to explore the map, 
+          to avoid violent combat
+          to report enemies + buildings
+          to report resources, wood, metal, stone, animals
+          to fill the scout grid
+      */
+
+      // variables available in listener with *this*. All optional
+
+      active:         false,          // ready to init/launch ...
+      description:    "scouts",       // text field for humans 
+      civilisations:  ["*"],          // lists all supported cics
+
+      interval:        2,             // call onInterval every x ticks
+      parent:         "",             // inherit useful features
+
+      capabilities:   "2 food/sec",   // (athen) give the economy a hint what this group provides.
 
 
-  "g.scouts" : {
+      // this got initialized by launcher
+      position:       null,           // coords of the group's position/activities
 
-    /* Behaviour: 
-        to explore the map, 
-        to avoid violent combat
-        to report enemies + buildings
-        to report resources, wood, metal, stone, animals
-        to fill the scout grid
-    */
-
-    // variables available in listener with *this*. All optional
-
-    active:         true,           // ready to init/launch ...
-    description:    "scouts",       // text field for humans 
-    civilisations:  ["*"],          // lists all supported cics
-
-    interval:        2,             // call onInterval every x ticks
-    parent:         "",             // inherit useful features
-
-    capabilities:   "2 food/sec",   // (athen) give the economy a hint what this group provides.
+      units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
 
 
-    // this got initialized by launcher
-    position:       null,           // coords of the group's position/activities
+      // message queue sniffer
 
-    units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
+      listener: {
+        onLaunch:    function(){
 
+          this.register("units"); // turn res definitions into res objects
+          this.economy.request(1, this.units, this.position);                 // assuming a CC exists
 
-    // message queue sniffer
+        },
+        onAssign:    function(resource){
 
-    listener: {
-      onLaunch:    function(){
+          deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
-        this.register("units"); // turn res definitions into res objects
-        this.economy.request(1, this.units, this.position);                 // assuming a CC exists
+        },
+        onDestroy:   function(resource){
 
-      },
-      onAssign:    function(resource){
+          deb("     G: %s onDestroy: %s", this, resource);
 
-        deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
+          if (this.units.match(resource)){
+            this.economy.request(1, this.units, this.position);  
+          }      
 
-      },
-      onDestroy:   function(resource){
+        },
+        onAttack:    function(resource, enemy, type, damage){
 
-        deb("     G: %s onDestroy: %s", this, resource);
+          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
 
-        if (this.units.match(resource)){
-          this.economy.request(1, this.units, this.position);  
-        }      
+        },
+        onBroadcast: function(source, msg){},
+        onRelease:   function(resource){
 
-      },
-      onAttack:    function(resource, enemy, type, damage){
+          deb("     G: %s onRelease: %s", this, resource);
 
-        deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
+        },
+        onInterval:  function(){
 
-      },
-      onBroadcast: function(source, msg){},
-      onRelease:   function(resource){
+          deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
 
-        deb("     G: %s onRelease: %s", this, resource);
-
-      },
-      onInterval:  function(){
-
-        deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
-
+        }
       }
     }
-  }
 
-};
+  });
 
 return H; }(HANNIBAL));
 

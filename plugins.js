@@ -322,7 +322,7 @@ HANNIBAL = (function(H){
           deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
 
           if (this.field.match(resource)){
-            this.units.doing("!repairing").repair(resource);
+            this.units.doing("!repair").repair(resource);
 
           } else if (this.units.match(resource)){
             if (resource.health < 80 && this.shelter.exists()) { 
@@ -372,13 +372,13 @@ HANNIBAL = (function(H){
           deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
 
           if (this.field.isFoundation){
-            this.units.doing("!repairing").repair(this.field);
+            this.units.doing("!repair").repair(this.field);
 
           } else if (this.field.health < 80){
-            this.units.doing("!repairing").repair(this.field);
+            this.units.doing("!repair").repair(this.field);
 
           } else {
-            this.units.doing("gathering").gather(this.field);
+            this.units.doing("gather").gather(this.field);
 
           }
 

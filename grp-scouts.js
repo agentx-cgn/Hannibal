@@ -45,6 +45,7 @@ HANNIBAL = (function(H){
       position:       null,           // coords of the group's position/activities
       target:         null,
 
+      counter:        0,
       units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
 
 
@@ -62,19 +63,29 @@ HANNIBAL = (function(H){
 
           deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
+          if (!this.counter){
+            resource.move(H.Grids.center.map(c => c*4));
+          } else {
+            resource.move(this.position);
+          }
+
+          deb("scout.center: %s", H.Grids.center);
+
+
         },
         onDestroy:   function(resource){
 
           deb("     G: %s onDestroy: %s", this, resource);
 
           if (this.units.match(resource)){
-            this.economy.request(1, this.units, this.position);  
+            this.economy.request(Math.min(this.counter +1, 5), this.units, this.position);  
+            this.counter += 1;
           }      
 
         },
         onAttack:    function(resource, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
+          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage.toFixed(1));
 
         },
         onBroadcast: function(source, msg){},
@@ -87,7 +98,9 @@ HANNIBAL = (function(H){
 
           deb("     G: %s onInterval,  %s/%s, states: %s", this, secs, ticks, H.prettify(this.units.states()));
 
-          this.position = this.units;
+          if (this.units.count){
+            this.position = this.units.center;
+          }
 
           if (!(ticks % 10)){
             H.Grids.scouting.dump("scout-" + ticks + ".png", 8)
