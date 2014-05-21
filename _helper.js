@@ -17,9 +17,7 @@
 
 HANNIBAL = function(H){
 
-  function extend(o,e){var a; for(a in e){if(e.hasOwnProperty(a)){o[a]=(e[a]);}}}
-
-extend(H, {
+H.extend(H, {
 
   // looping
   for:        function(n,fn){var i=n,a=[];while(n--){a.push(fn(i-n+1));}return a;},
@@ -66,7 +64,7 @@ extend(H, {
   // count:      function (o){var attr,cnt=0;for(attr in o){if (o.hasOwnProperty(attr)){cnt+=1;}}return cnt;},
   deepcopy:   function (obj){return JSON.parse(JSON.stringify(obj));},
   // extend:     function (o,e){var a; for(a in e){if(e.hasOwnProperty(a)){o[a]=H.deepcopy(e[a]);}}return o;},
-  extend:     function (o,e){var a; for(a in e){if(e.hasOwnProperty(a)){o[a]=(e[a]);}} return o;},
+  // extend:     function (o,e){var a; for(a in e){if(e.hasOwnProperty(a)){o[a]=(e[a]);}} return o;},
   isEmpty:    function (o){var p;for(p in o){if(o.hasOwnProperty(p)){return false;}}return true;},
   prettify:   function (o){return JSON.stringify(o).split('"').join("");},
   map:        function (o,fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},

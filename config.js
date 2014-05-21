@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester
-    sequence: "aitest04m",
+    sequence: "aitest05m",
 
     // enable psy-ops
     brag:     true,  
@@ -91,7 +91,7 @@ HANNIBAL = (function(H){
       while(i--){
         upgrade = H.Config.behaviours[H.format("%s:%s", name, i)];
         if (upgrade){
-          basic = H.extend(basic, upgrade);
+          H.extend(basic, upgrade);
           basic.name = H.format("%s:%s", name, i);
           break;
         }

@@ -3,19 +3,14 @@
 
 /*--------------- G R I D S ---------------------------------------------------
 
-  A thin API onto UintArrays, used by the map module
-
+  An API onto UintArrays, used as map module,
+  includes cosmetical rewritten functions from API3
 
 
 
   V: 1.1, noiv11, CGN, Feb, 2014
 
 */
-
-// Uint8ClampedArray([-1.0, 0.1, 0.45, 0.55, 0.9, 1.0, 1.1, 254.5, 255, 255.5]) = 
-// Uint8ClampedArray [ 0, 0, 0, 0, 0, 1, 1, 254, 255, 255 ]
-
-
 
 HANNIBAL = (function(H){
 
@@ -39,7 +34,17 @@ HANNIBAL = (function(H){
         landPass: null,
         navalPass: null,
         attacks: null,
+        scouting: null,
       };
+
+  // function extend (o){
+  //   var es = Array.prototype.slice.call(arguments).slice(1);
+  //   es.forEach(function(e){
+  //     Object.keys(e).forEach(
+  //       function(k){o[k] = e[k];
+  //     });
+  //   });
+  // }    
 
   function dump(name, grid, threshold){
     threshold = threshold || grid.max() || 255;
@@ -71,26 +76,28 @@ HANNIBAL = (function(H){
 
   H.Grids = (function(){
 
-    var self;
+    var self = {};
 
-    return {
+    H.extend(self, grids, {
+
       init: function(){
 
-        width  = H.SharedScript.passabilityMap.width;
-        height = H.SharedScript.passabilityMap.height;
-        length = width * height;
-        cellsize = H.GameState.cellSize;
+        width  = H.SharedScript.passabilityMap.width  | 0;
+        height = H.SharedScript.passabilityMap.height | 0;
+        length = width * height | 0;
+        cellsize = H.GameState.cellSize | 0;
         
         // http://trac.wildfiregames.com/wiki/AIEngineAPI
-        maskOpen  = H.SharedScript.passabilityClasses["unrestricted"];      // 64
-        maskWater = H.SharedScript.passabilityClasses["ship"];              // 32
-        maskLand  = H.SharedScript.passabilityClasses["default"];           // 16
-        maskBldgShore   = H.SharedScript.passabilityClasses["building-shore"];           // 8
-        maskBldgLand    = H.SharedScript.passabilityClasses["building-land"];            // 4
-        maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"];    // 2
-        maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"];    // 1
+        maskOpen  = H.SharedScript.passabilityClasses["unrestricted"]  | 0;      // 64
+        maskWater = H.SharedScript.passabilityClasses["ship"] | 0;              // 32
+        maskLand  = H.SharedScript.passabilityClasses["default"] | 0;           // 16
+        maskBldgShore   = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
+        maskBldgLand    = H.SharedScript.passabilityClasses["building-land"] | 0;            // 4
+        maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
+        maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
 
-        grids.attacks = new H.Grid(width, height, 8);
+        grids.attacks  = new H.Grid(width, height, 8);
+        grids.scouting = new H.Grid(width, height, 8);
         
         deb();deb();
         deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
@@ -109,14 +116,20 @@ HANNIBAL = (function(H){
         grids.attacks.divVal(H.Config.attackRelax);
         return Date.now() - t0;
       },
-      record: function(what, where){
+      record: function(what, where, amplitude){
 
         var [x, y] = where;
+
+        x = ~~(x/cellsize); y = ~~(y/cellsize);
         
-        if (what === "Attacked"){
-          x = ~~(x/cellsize); y = ~~(y/cellsize);
-          grids.attacks.data[x + y * width] += 1;
+        if (what === "attacks"){
+          grids.attacks.data[x + y * width] += amplitude;
+
+        } else if (what === 'scouting') {
+          grids.attacks.data[x + y * width] += amplitude;
+
         }
+
       },
       dump: function(prefix){
         H.each(grids, function(name, grid){
@@ -125,7 +138,9 @@ HANNIBAL = (function(H){
         });
       }
 
-    };
+    });
+
+    return self;
 
 
   }());
@@ -151,10 +166,11 @@ HANNIBAL = (function(H){
     dump: function(name, threshold){
       Engine.DumpImage(name || "default.png", this.map, this.width, this.height, threshold || this.maxVal);
     },
-    max:     function(){var m = 0, g=this.data, l = this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
+    max:     function(){var m=0,  g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
+    min:     function(){var m=255,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
     // all destructive
     setVal:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = val;}return this;},
-    addVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;},
+    addVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;}, //check Math.imul
     mulVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
     divVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
     addGrid: function(grd){var g=this.data,l=this.length;while(l--){g[l] += grd[l];}return this;},
@@ -186,7 +202,6 @@ HANNIBAL = (function(H){
       // returns the point with the lowest radius in the immediate vicinity
 
       var data  = this.data,
-          width = this.width,
           lowestPt = [0, 0],
           lowestCf = 99999,
           x = ~~(posX / 4),
@@ -201,11 +216,10 @@ HANNIBAL = (function(H){
               lowestPt = [(xx + 0.5) * 4, (yy + 0.5) * 4];
       }}}} return lowestPt;
 
-    }    
+    },
     sumInfluence: function(cx, cy, radius){
 
       var data  = this.data,
-          width = this.width,
           x0 = Math.max(0, cx - radius),
           y0 = Math.max(0, cy - radius),
           x1 = Math.min(this.width, cx + radius),
@@ -220,8 +234,74 @@ HANNIBAL = (function(H){
           r2 = dx*dx + dy*dy;
           if (r2 < radius2){
             sum += data[x + y * width];
+
       }}} return sum;
-    };
+
+    },
+    addInfluence: function(cx, cy, maxDist, strength, type) {
+
+      var data = this.data, width = this.width, height = this.height,
+          maxDist2 = maxDist * maxDist,
+          r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
+          x0 = ~~(Math.max(0, cx - maxDist)),
+          y0 = ~~(Math.max(0, cy - maxDist)),
+          x1 = ~~(Math.min(width  -1, cx + maxDist)),   //??
+          y1 = ~~(Math.min(height -1, cy + maxDist)),
+          str = (
+            type === "linear"    ? (strength || maxDist) / maxDist  :
+            type === "quadratic" ? (strength || maxDist) / maxDist2 :
+              strength
+          ),
+          fnQuant = ( 
+            type === "linear"    ? (r) => str * (maxDist  - Math.sqrt(r)) :
+            type === "quadratic" ? (r) => str * (maxDist2 - r) : 
+              () => str
+          );
+
+      for ( y = y0; y < y1; ++y) {
+        for ( x = x0; x < x1; ++x) {
+          dx = x - cx; 
+          dy = y - cy; 
+          r2 = dx * dx + dy * dy;
+          if (r2 < maxDist2) {
+            data[x + y * width] += fnQuant(r2);
+
+      }}}
+
+    },
+    /**
+     * Make each cell's 16-bit/8-bit value at least one greater than each of its
+     * neighbours' values. (If the grid is initialised with 0s and 65535s or 255s, the
+     * result of each cell is its Manhattan distance to the nearest 0.)
+     */
+    expand: function(data, x, y, w, min, max) {
+      // lifted
+      var g = data[x + y * w];
+      if (g > min){data[x + y * w] = min;}
+      else if (g < min){min = g;}
+      if (++min > max){min = max;}
+      return min;
+    },
+    expandInfluences: function(maximum) {
+
+      var data = this.data,
+          expand = this.expand,
+          w = width, h = height,
+          g = 0, x = 0, y = 0, yy = 0, xx = 0, 
+          min = 0, max = maximum || 255;
+
+      for ( y = 0; y < h; ++y) {
+        min = max;
+        for ( x = 0; x < w; ++x) {min = expand(data, x, y, w, min, max);}
+        for ( x = w - 2; x >= 0; --x) {min = expand(data, x, y, w, min, max);}
+      }
+      for ( x = 0; x < w; ++x) {
+        min = max;
+        for ( y = 0; y < h; ++y) {min = expand(data, x, y, w, min, max);}
+        for ( y = h - 2; y >= 0; --y) {min = expand(data, x, y, w, min, max);}
+      }
+
+    }
 
   };
 

@@ -20,14 +20,6 @@ HANNIBAL = (function(H){
         var c=0, a=Array.prototype.slice.call(arguments);
         a.push("");
         return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
-      },
-      extend = function (o){
-        var es = Array.prototype.slice.call(arguments).slice(1);
-        es.forEach(function(e){
-          Object.keys(e).forEach(
-            function(k){o[k] = e[k];
-          });
-        });
       };
 
   H.HTN = H.HTN || {};                       
@@ -76,7 +68,7 @@ HANNIBAL = (function(H){
           operations:    null
         };
 
-    extend(this, defs, config || {});
+    H.extend(this, defs, config || {});
 
     if (this.domain.initialize){this.domain.initialize(this);}
     this.methods   = this.domain.methods;

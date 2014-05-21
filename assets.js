@@ -109,6 +109,9 @@ HANNIBAL = (function(H){
     Object.defineProperty(self, 'health', {enumerable: true, get: function(){
       return H.health(resources);
     }});    
+    Object.defineProperty(self, 'count', {enumerable: true, get: function(){
+      return resources.length;
+    }});    
 
 
     H.extend(self, {

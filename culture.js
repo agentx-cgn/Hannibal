@@ -397,8 +397,10 @@ HANNIBAL = (function(H){
             info      : this.getInfo(template),
             size      : this.getSize(template),
             costs     : this.getCosts(template),
+            speed     : this.getSpeed(template),
             armour    : this.getArmour(template),
             health    : this.getHealth(template), //TODO: ingames
+            vision    : this.getVision(template),
             attack    : this.getAttack(template),
             affects   : this.getAffects(template),
             capacity  : this.getCapacity(template),
@@ -726,6 +728,20 @@ HANNIBAL = (function(H){
       }
       return H.count(size) > 0 ? size : undefined;
 
+    },
+    getSpeed: function(tpl){
+      return (
+        (!!tpl.UnitMotion && ~~tpl.UnitMotion.WalkSpeed) ? 
+          ~~tpl.UnitMotion.WalkSpeed : 
+            undefined
+      );
+    },   
+    getVision: function(tpl){
+      return (
+        (!!tpl.Vision && ~~tpl.Vision.Range) ? 
+          ~~tpl.Vision.Range : 
+            undefined
+      );
     },
     getCapacity: function(tpl){
       return (

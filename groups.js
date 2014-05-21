@@ -53,15 +53,15 @@ HANNIBAL = (function(H){
           }
         });
       },
-      tick : function(secs){
+      tick : function(secs, ticks){
         // delegates down to all instances of all groups
         t0 = Date.now();
         H.each(groups, function(name, group){
           group.instances.forEach(function(instance){
             var interval = ~~instance.interval; // positive ints only
             if (interval > 0 && instance.listener.onInterval){ 
-              if (!(H.Bot.ticks % interval)){
-                instance.tick(secs);
+              if (!(ticks % interval)){
+                instance.tick(secs, ticks);
               }
             }
           });
@@ -229,11 +229,11 @@ HANNIBAL = (function(H){
               // deb("   GRP: registered resource %s for %s", prop, instance.name);
             });
           },
-          tick: function(secs){
+          tick: function(secs, ticks){
             instance.assets.forEach(function(asset){
-              asset.tick(secs);
+              asset.tick(secs, ticks);
             });
-            instance.listener.onInterval();
+            instance.listener.onInterval(secs, ticks);
           },
           position: {
             // set intial position, gets probably overwritten

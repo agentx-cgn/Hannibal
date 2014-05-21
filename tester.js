@@ -45,6 +45,16 @@ HANNIBAL = (function(H){
 
   // if any of these evaluates to a string, it gets chatted
   sequences = {
+    'aitest05m': {
+        '1': [() => "< - START: " + sequence + " - >"],
+        '3': [T.launch("g.grainpicker", 44), "launching 1 grainpickers"], 
+        '4': [T.launch("g.scouts", 44), "launching 1 scout"], 
+       '15': [() => H.logIngames(), "logging ingames"],
+       '16': [() => H.Groups.log(), "logging groups"],
+       '70': [() => H.logIngames(), "logging ingames"],
+       '71': [() => H.Groups.log(), "logging groups"],
+      '241': [() => "< - FINIS: " + sequence + " - >"],
+    },
     'aitest04m': {
         '1': [() => "< - START: " + sequence + " - >"],
         '3': [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 

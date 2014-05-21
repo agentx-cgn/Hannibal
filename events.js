@@ -221,7 +221,7 @@ HANNIBAL = (function(H){
             if (H.Entities[event.target] && H.Entities[event.target].owner() === PID){
               this.dispatchEvent(type, event.target, event);
               if (H.Entities[event.target].position()){
-                H.Grids.record("Attacked", H.Entities[event.target].position());
+                H.Grids.record("attacks", H.Entities[event.target].position(), event.damage);
               }
             } else {
               // we get some or all of these, maybe if attacker = owned

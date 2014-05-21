@@ -39,7 +39,15 @@ Engine.IncludeModule("common-api");
 
 var HANNIBAL = (function() {
 
-  var H = {API: API3};
+  var H = {
+    API: API3,
+    extend: function (o){
+      Array.prototype.slice.call(arguments)
+        .slice(1).forEach(function(e){
+          Object.keys(e).forEach(
+            function(k){o[k] = e[k];
+    });});}
+  };
 
   // constructor
   H.Hannibal = function(settings) {
@@ -442,14 +450,14 @@ var HANNIBAL = (function() {
       }
 
       this.timing.all = 0;
-      this.timing.ctx = H.Context.tick(secs);
-      this.timing.evt = H.Events.tick(secs);
-      this.timing.grd = H.Grids.tick(secs);
-      this.timing.tst = H.Tester.tick(secs);
-      this.timing.trg = H.Triggers.tick(secs);
-      this.timing.gps = H.Groups.tick(secs);
-      this.timing.sts = H.Stats.tick(secs);
-      this.timing.eco = H.Economy.tick(secs);
+      this.timing.ctx = H.Context.tick( secs, this.ticks);
+      this.timing.evt = H.Events.tick(  secs, this.ticks);
+      this.timing.grd = H.Grids.tick(   secs, this.ticks);
+      this.timing.tst = H.Tester.tick(  secs, this.ticks);
+      this.timing.trg = H.Triggers.tick(secs, this.ticks);
+      this.timing.gps = H.Groups.tick(  secs, this.ticks);
+      this.timing.sts = H.Stats.tick(   secs, this.ticks);
+      this.timing.eco = H.Economy.tick( secs, this.ticks);
 
       // check for winner
       if (this.frame.name === "whiteflag") {

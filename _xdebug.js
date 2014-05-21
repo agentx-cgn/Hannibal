@@ -68,7 +68,7 @@ var logObject = function(o, msg){
   var inst = "unidentified";
   msg = msg || "";
   deb();
-  deb("Object [%s] : %s  ---------------", inst, msg);
+  deb("Object [%s] : c: %s, keys: %s  ---------------", inst, msg, Object.keys(o).length);
   if (o.constructor){
     deb("Object", getAttribType("constructor", o.constructor));
   }
