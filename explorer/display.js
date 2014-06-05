@@ -152,9 +152,12 @@ HANNIBAL = (function(H){
           tHeadJson = "<thead><td>Node</td><td>Verb</td><td>Nodes</td><td>Property</td><td>Value</td><td /></thead>",
           tRow0Info = "<tr><td class='bd'>%s</td>%s<td></td><td></td><td /></tr>",
           tRow0Json = "<tr><td class='bd'>%s</td><td class='bd'>%s</td><td></td><td></td><td></td><td /></tr>",
+          tRowXJson = "<tr><td class='hr'></td><td></td><td></td><td class='hr'>%s</td><td>%s</td><td /></tr>",
           tRowInfo  = "<tr><td></td><td></td><td class='cl' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td class='el' >%s</td><td /></tr>",
           tRowInfo1 = "<tr><td></td><td></td><td class='cl' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td></td><td></td><td /></tr>",
-          tRowInfoX = "<tr><td class='hr'></td><td></td><td></td><td>%s</td><td>%s</td><td /></tr>";
+          // tRowInfoX = "<tr><td class='hr'></td><td></td><td class='bd' colspan='2'>%s</td><td></td><td /></tr>";
+          tRowInfoX = "<tr><td class='hr'></td><td></td><td colspan='3' class='cl bd' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td /></tr>";
+          tRowNJson = "<tr><td colspan='5' /></tr>",
 
       $("tblResult").innerHTML = "";
       $("tblResult").style.tableLayout = "auto";
@@ -195,9 +198,10 @@ HANNIBAL = (function(H){
               append(H.format(tRowInfoX, node.name, node.name));
               H.each(node, function(prop, value){
                 if (prop !== 'name'){
-                  append(H.format(tRowInfo, prop, H.prettify(value)));
+                  append(H.format(tRowXJson, prop, H.prettify(value)));
                 }
-              });          
+              });         
+              append("<tr><td colspan='5' /></tr>") ;
             break;
           }
         });
@@ -253,9 +257,16 @@ HANNIBAL = (function(H){
         $("cError").innerHTML += "<span class='f80'>[" + e + "]</span>";
         return;
       }
+      H.HTN.Economy.runTarget(~~$('slcVerbose').value, state, goal);
 
-      H.HTN.Hannibal.runExample(state, goal, ~~($("slcVerbose").value), what);
-
+    },  
+    pritCosts: function (costs){
+      var c = JSON.stringify(costs);
+      c = H.replace(c, '"', "");
+      c = H.replace(c, '{', "");
+      c = H.replace(c, '}', "");
+      c = H.replace(c, ',', "<br />");
+      return c;
     },  
     pritObj: function (o, depth){
 

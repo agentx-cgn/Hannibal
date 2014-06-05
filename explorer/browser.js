@@ -89,7 +89,7 @@ HANNIBAL = (function(H){
         $("btnHTNT2").onclick = function(){H.HTN.Economy.test2('slcVerbose');};
         $("btnHTNT3").onclick = function(){H.HTN.Economy.test3('slcVerbose');};
         $("btnHTNGo").onclick = function(){H.HTN.Economy.runGo('slcVerbose', 'txtState', 'txtGoal');};
-        $("btnHTNStress").onclick = function(){H.HTN.Economy.runStress('slcVerbose');};
+        $("btnHTNStress").onclick = function(){H.HTN.Economy.runStress('slcVerbose', 'slcStress', 'txtState', 'txtGoal');};
 
         $("slcExams").onchange = $("slcExams").onselect = function(){
           $("txtHCQ").value = $("slcExams").value;

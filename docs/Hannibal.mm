@@ -1,6 +1,6 @@
 <map version="1.0.1">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1398453497362" ID="ID_1266014818" MODIFIED="1399687328353" TEXT="Hannibal">
+<node CREATED="1398453497362" ID="ID_1266014818" MODIFIED="1400962662703" TEXT="Hannibal">
 <richcontent TYPE="NOTE"><html>
   <head>
     
@@ -10,14 +10,15 @@
       &#160;planning domain definition language directly implemented into sources
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="20"/>
 <node CREATED="1398768762031" FOLDED="true" ID="ID_680425975" MODIFIED="1399687321532" POSITION="left" TEXT="Questions">
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <node CREATED="1398768767093" ID="ID_1110586945" MODIFIED="1398768770640" TEXT="Diplomacy"/>
 <node CREATED="1398768771656" ID="ID_812119329" MODIFIED="1398768777828" TEXT="Multiple Enemies"/>
 </node>
-<node CREATED="1398768674046" FOLDED="true" ID="ID_309166012" MODIFIED="1399687321532" POSITION="left" TEXT="Concept">
+<node CREATED="1398768674046" ID="ID_309166012" MODIFIED="1400962670171" POSITION="left" TEXT="Concept">
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>
 <node CREATED="1398517314833" FOLDED="true" ID="ID_1083293890" LINK="http://gamedev.stackexchange.com/questions/16571/what-makes-a-computer-opponent-feel-alive" MODIFIED="1399687311363">
 <richcontent TYPE="NODE"><html>
@@ -95,6 +96,7 @@
 </node>
 <node CREATED="1398968135213" ID="ID_474463066" MODIFIED="1398968149556" TEXT="NOT a complex finite state machines"/>
 <node CREATED="1398968244579" ID="ID_190428905" MODIFIED="1398968248339" TEXT=". One typical policy is &#x201c;rush- ing&#x201d;, where a player produces a small fighting force as quickly as possible to sur- prise the opponent. Another example of a typical policy is &#x201c;turtling&#x201d;, in which players create a large force at their home base and wait for others to attack."/>
+<node CREATED="1400962688843" ID="ID_834401881" MODIFIED="1400962718328" TEXT="A strategy is a chosing device"/>
 </node>
 <node CREATED="1398698803984" FOLDED="true" ID="ID_802614412" MODIFIED="1399687321531" POSITION="left" TEXT="Environment">
 <font BOLD="true" NAME="SansSerif" SIZE="16"/>

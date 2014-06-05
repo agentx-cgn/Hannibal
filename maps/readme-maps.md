@@ -43,6 +43,8 @@ just before phase.town
 
 ### aitest04m ###
 
+testing destroy centre with grainpicker
+
      Q: q: 'INGAME SORT < id'
       : c: 'ingames with metadata'
       : i: ops:  256, nodes:  256, c: ["INGAME"]
@@ -62,3 +64,36 @@ just before phase.town
      n: 221 | {ccid:44,opname:none} | units.athen.infantry.archer.b#221
      n: 222 | {ccid:44,opname:none} | units.athen.infantry.archer.b#222
      n: 223 | {ccid:44,opname:none} | structures.athen.house#223
+
+
+### aitest05m ###
+
+testing scouts
+
+    Q: q: 'INGAME SORT < id'
+     : c: 'ingames with metadata'
+    Q: executed: msecs: 8, records: 22, ops: 368
+    D: showing 50/22 format: 'metadata'
+    H:  ID   Meta | node
+    n: 210 | {ccid:263,opname:g.custodian#6,opmode:shared,opid:6} | structures.athen.blacksmith#210
+    n: 216 | {ccid:263,opname:g.grainpicker#8,opid:8} | structures.athen.field#216
+    n: 217 | {ccid:263,opname:none} | structures.athen.house#217
+    n: 218 | {ccid:263,opname:none} | structures.athen.house#218
+    n: 219 | {ccid:263,opname:none} | structures.athen.house#219
+    n: 220 | {ccid:263,opname:g.custodian#1,opmode:shared,opid:1} | structures.athen.farmstead#220
+    n: 223 | {ccid:263,opname:none} | structures.athen.house#223
+    n: 239 | {ccid:263,opname:g.grainpicker#8,opid:8} | units.athen.support.female.citizen#239
+    n: 240 | {ccid:263,opname:g.grainpicker#8,opid:8} | units.athen.support.female.citizen#240
+    n: 241 | {ccid:263,opname:g.grainpicker#18,opid:18} | units.athen.support.female.citizen#241
+    n: 242 | {ccid:263,opname:g.grainpicker#13,opid:13} | units.athen.support.female.citizen#242
+    n: 243 | {ccid:263,opname:g.grainpicker#8,opid:8} | units.athen.support.female.citizen#243
+    n: 252 | {ccid:263,opname:none} | structures.athen.defense.tower#252
+    n: 253 | {ccid:263,opname:none} | units.athen.infantry.spearman.b#253
+    n: 254 | {ccid:263,opname:none} | units.athen.infantry.spearman.b#254
+    n: 255 | {ccid:263,opname:none} | units.athen.infantry.spearman.b#255
+    n: 256 | {ccid:263,opname:none} | units.athen.infantry.spearman.b#256
+    n: 257 | {ccid:263,opname:none} | units.athen.infantry.spearman.b#257
+    n: 258 | {ccid:263,opname:none} | units.athen.cavalry.javelinist.b#258
+    n: 259 | {order:32,opid:13,opname:g.grainpicker#13} | structures.athen.field#259
+    n: 260 | {order:34,opid:18,opname:g.grainpicker#18} | structures.athen.field#260
+    n: 263 | {order:35,opid:3,opname:g.mayor#3} | structures.athen.civil.centre#263
