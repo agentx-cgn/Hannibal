@@ -35,7 +35,7 @@ HANNIBAL = (function(H){
 
   H.Map = H.Map || {};
 
-  H.Map.TERRITORY_PLAYER_MASK = 0x3F;
+  H.Map.TERRITORY_PLAYER_MASK = 0x3F; // 63
 
   var prit = H.prettify;
 
@@ -57,10 +57,37 @@ HANNIBAL = (function(H){
     return map;
   };
 
+  H.Map.gamePosToMapPos = function(p){
+    return [~~(p[0] / H.Map.cellsize), ~~(p[1] / H.Map.cellsize)];
+  };
+
+  H.Map.gamePosToMapIndex = function(p){
+    var [x, y] = H.Map.gamePosToMapPos(p);
+    return x + y * H.Map.width;
+  };
+
   H.Map.distance = function(a, b){
     var dx = a[0] - b[0], dz = a[1] - b[1];
     return Math.sqrt(dx * dx + dz * dz);
     // return Math.hypot(a[0] - b[0], a[1] - b[1]);
+  };
+
+  H.Map.nearest = function(point, ids){
+
+    // deb("   MAP: nearest: target: %s, ids: %s", point, ids);
+
+    var distance = 1e10, dis, result = 0, pos = 0.0;
+
+    ids.forEach(id => {
+      pos = H.Entities[id].position();
+      dis = H.Map.distance(point, pos);
+      if ( dis < distance){
+        distance = dis; result = id;
+      } 
+    });
+
+    return result;
+
   };
 
   H.Map.centerOf = function(poss){
@@ -79,7 +106,7 @@ HANNIBAL = (function(H){
 
   H.Map.getCenter = function(entids){
 
-    deb("   MAP: getCenter: %s", H.prettify(entids));
+    // deb("   MAP: getCenter: %s", H.prettify(entids));
 
     if (!entids || entids.length === 0){
       throw new Error("getCenter with unusable param");
@@ -98,6 +125,19 @@ HANNIBAL = (function(H){
     }
 
   };
+
+  H.Map.isOwnTerritory = function(pos){
+    var index  = H.Map.gamePosToMapIndex(pos),
+        player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
+    return player === H.Bot.id;
+  };
+
+  H.Map.isEnemyTerritory = function(pos){
+    var index  = H.Map.gamePosToMapIndex(pos),
+        player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
+    return H.GameState.playerData.isEnemy[player];
+  };
+
 
   H.Map.createObstructionMap = function(accessIndex, template){
 

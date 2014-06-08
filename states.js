@@ -163,7 +163,7 @@ H.Hannibal.Frames = (function(){
       }; // frames
 
       deb("**");deb("**");
-      deb("FRAMES: have %s frames [%s]", H.attribs(frames).length, H.attribs(frames).sort().join(", "));
+      deb("FRAMES: have %s frames", H.attribs(frames).length);
 
       return frames;
 

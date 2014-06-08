@@ -40,15 +40,23 @@ HANNIBAL = (function(H){
       }
     },
     addEdge: function(source, verb, target){
-      if (source && this.nodes[source.name] && this.nodes[target.name] && this.verbs.indexOf(verb) !== -1){
+
+      if (!source)                      {deb("ERROR : addEdge: source not valid: %s", source);} 
+      else if (!target)                 {deb("ERROR : addEdge: target not valid: %s", target);} 
+      else if (!this.nodes[source.name]){deb("ERROR : addEdge: no source node for %s", source.name);}
+      else if (!this.nodes[target.name]){deb("ERROR : addEdge: no target node for %s", target.name);}
+      else if (this.verbs.indexOf(verb) === -1){deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
+      else {
         this.edges.push([source, verb, target]);
-      } else {
-        if (!source){deb("ERROR : addEdge: source not valid: %s", source);}
-        else if (!this.nodes[source.name]){deb("ERROR: addEdge: no source node for %s", source.name);}
-        else if (!this.nodes[target.name]){deb("ERROR: addEdge: no target node for %s", target.name);}
-        else if (this.verbs.indexOf(verb) === -1){deb("ERROR: not a verb %s, have: %s", verb, H.prettify(this.verbs));}
-        else {deb("ERROR : edge not valid: verb: %s, source: %s, target: %s", verb, source.name, target.name);}
       }
+
+      // if (source && this.nodes[source.name] && this.nodes[target.name] && this.verbs.indexOf(verb) !== -1){
+      //   this.edges.push([source, verb, target]);
+      // } else {
+      //   if (!source){}
+      //   else if (!this.nodes[source.name]){deb("ERROR: addEdge: no source node for %s", source.name);}
+      //   else {deb("ERROR : edge not valid: verb: %s, source: %s, target: %s", verb, source.name, target.name);}
+      // }
     },
     delNode: function(name){  // TODO: speed up
 
@@ -83,19 +91,28 @@ HANNIBAL = (function(H){
         self.addEdge(src, edge[1], tgt);
       });
     },
-    exportAsLog: function(civs){
+    export: function(civs){
+
       // log history > 3,000 per civ, athens~2500, CRs not enforced.
-      H.Config.deb = 1; // Only ERRORS in log
-      print("DBGVIEWCLEAR");
+
+      function logg(){
+        print ( arguments.length === 0 ? 
+          "#! append 0 ://\n" : 
+          "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+        );
+      }    
+
+      deb();deb();deb("EXPORT: %s", civs);
+      print("#! open 0 /Daten/Projects/Osiris/ps/trunk/binaries/data/mods/public/simulation/ai/hannibal/explorer/data/store-json.export\n");
+
       logg("// EXPORTED %s", new Date());
+      logg("// Civilisations: %s", civs.join(", "));
       civs.forEach(function(civ){
         var culture = new H.Culture(civ), store = culture.store;
-        culture.loadRootNodes();           // from data to triple store
+        culture.loadDataNodes();           // from data to triple store
         culture.readTemplates();           // from templates to culture
         culture.loadTechTemplates();       // from templates to triple store
         culture.loadTemplates();           // from templates to triple store
-        // culture.loadEntities();            // from game to triple store
-        // culture.loadTechnologies();        // from game to triple store
         culture.finalize();                // clear up
         logg("// Export Start of TS with Culture %s", civ);
         logg("var store_%s = {", civ);
@@ -113,8 +130,10 @@ HANNIBAL = (function(H){
           logg("  ],");
         logg("};");
         logg("// Export End of TS with Culture %s", civ);
-        logg();
       });
+
+      print("#! close 0\n");
+
     }
 
   };
@@ -224,6 +243,16 @@ HANNIBAL = (function(H){
       var nodes = this.execute(format, debug, debmax, comment);
       return nodes.map(fn);
     },
+    get: function(node, dotlist){
+      var p = dotlist.split("."), l = p.length;
+      return  (
+        l === 0 ? undefined :
+        l === 1 && node[p[0]] !== undefined  ? node[p[0]] :
+        l === 2 && node[p[0]] !== undefined && node[p[0]][p[1]] !== undefined ? node[p[0]][p[1]] : 
+        l === 3 && node[p[0]] !== undefined && node[p[0]][p[1]] !== undefined && node[p[0]][p[1]][p[2]] !== undefined ? node[p[0]][p[1]][p[2]] : 
+          undefined
+      );
+    },
     execute: function(format, debug, debmax, comment){
 
       var t1, t0 = Date.now(), 
@@ -242,22 +271,13 @@ HANNIBAL = (function(H){
       function isVerb(t)  {return verbs.indexOf(t) !== -1;}
       function isString(t){return typeof t === "string";}
       function sample(a,n){var l=a.length; return H.range(n||1).map(function(){return a[~~(H.Hannibal.entropy.random()*l)];});}
-      function parse(v)   {
+      function parse(v)   { // float or string
         var f = parseFloat(v); 
         return (
           Array.isArray(v) ? v :                  // don't touch arrays
           isNaN(f)         ? v.slice(1, -1) : f   // return strings without quotes
         );
-      } // float or string
-      function get(node, dotlist){
-        var p = dotlist.split("."), l = p.length;
-        return  (
-          l === 0 ? undefined :
-          l === 1 && node[p[0]] !== undefined  ? node[p[0]] :
-          l === 2 && node[p[0]] !== undefined && node[p[0]][p[1]] !== undefined ? node[p[0]][p[1]] : 
-            undefined
-        );
-      }
+      } 
       function prepResults(ress){
         Object.defineProperty(ress, "stats", {
           enumerable: false,
@@ -339,8 +359,7 @@ HANNIBAL = (function(H){
           // find all edges from source node, with given verb, collect target node
 
           [ops, results] = self.reduceByVerb(verb, edges, results, ops);
-          // ops    += results[0];
-          // results = results[1];
+
 
 
         // a KEYWORD
@@ -351,18 +370,21 @@ HANNIBAL = (function(H){
 
             case "LIMIT"    : ops += ~~rest; results = results.slice(0, ~~rest); break;
             case "RAND"     : ops += ~~rest; results = sample(results, ~~rest);  break;
-            case "DISTINCT" : ops += results.length; results = [...(Set(results))]; break;
+            case "DISTINCT" : ops += results.length; results = [...Set(results)]; break;
 
             case "SORT" :
               oper = params[0]; attr = params[1];
-              results = results.sort(function(an, bn){ 
-                var anValue = get(an, attr), bnValue = get(bn, attr); ops++;
-                return (
-                  oper === "<" ? bnValue < anValue :
-                  oper === ">" ? bnValue > anValue :
-                    deb("ERROR : unknown operator in SORT: %s", oper)
-                );
-              });
+              [ops, results] = self.sortResults(oper, attr, results, ops);
+
+              // oper = params[0]; attr = params[1];
+              // results = results.sort(function(an, bn){ 
+              //   var anValue = get(an, attr), bnValue = get(bn, attr); ops++;
+              //   return (
+              //     oper === "<" ? bnValue < anValue :
+              //     oper === ">" ? bnValue > anValue :
+              //       deb("ERROR : unknown operator in SORT: %s", oper)
+              //   );
+              // });
             break;
 
             case "WITH" :
@@ -380,7 +402,7 @@ HANNIBAL = (function(H){
 
                 results = results.filter(function(node){
                   
-                  var nodeValue = get(node, attr); ops++;
+                  var nodeValue = self.get(node, attr); ops++;
 
                   return (
                     oper === "e"  ? nodeValue !== undefined  : // exists ?
@@ -424,6 +446,21 @@ HANNIBAL = (function(H){
       logNodes();
 
       return prepResults(results);
+
+    },
+    sortResults: function (oper, attr, results, ops){
+
+      var anValue, bnValue, get = this.get, out = results.sort((an, bn) => { 
+        anValue = this.get(an, attr); 
+        bnValue = get(bn, attr); ops++;
+        return (
+          oper === "<" ? bnValue < anValue :
+          oper === ">" ? bnValue > anValue :
+            deb("ERROR : unknown operator in SORT: %s", oper)
+        );
+      });
+
+      return [ops, out];
 
     },
     reduceByVerb: function (verb, edges, result, ops){

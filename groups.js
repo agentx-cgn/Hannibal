@@ -21,8 +21,8 @@ HANNIBAL = (function(H){
     var self, groups = {}, t0;
 
     return {
-      boot : function(){self=this; return self;},
-      log: function(){
+      boot: function(){self=this; return self;},
+      log:  function(){
         deb();deb();
         deb("GROUPS: -----------");
         H.each(groups, function(name, group){
@@ -41,13 +41,13 @@ HANNIBAL = (function(H){
         deb("     G: -----------");
       },
       init: function(){
-        deb();deb();
+        deb();deb();deb("GROUPS: register...");
         H.each(H.Plugins, function(name, definition){
           if (definition.active) {
             switch(name.split(".")[0]){
               case "g": 
                 H.Groups.register(name, definition);
-                deb("   GRP: registered group: %s", name);
+                deb("   GRP: %s", name);
               break;
             }
           }
@@ -101,26 +101,6 @@ HANNIBAL = (function(H){
         // deb("   GRP: requesting: (%s)", args);    
 
       },
-      // register: function(/* arguments */){
-      //   H.toArray(arguments).forEach(function(prop){
-      //     this[prop] = H.CreateAsset(this, prop);
-      //     this.assets.push(this[prop]);
-      //     // deb("   GRP: registered resource %s for %s", prop, instance.name);
-      //   });
-      // },      
-      appointAll: function(){
-
-        // appoints a gorup to a shared structure at game start
-
-        // deb("   GRP: appointing 'g.custodian' for shared structures");
-
-        // H.QRY("INGAME").forEach(function(node){
-        //   if (node.metadata && node.metadata.opname && node.metadata.opname === 'g.custodian'){
-        //     H.Groups.appoint('g.custodian', node.id);
-        //   }
-        // });
-
-      },
       appoint: function(groupname, id){
 
         // launch and init a group instance to manage a shared ingame structure/building
@@ -141,13 +121,6 @@ HANNIBAL = (function(H){
         instance.assets.push(instance.structure);
         
         H.Events.registerListener(id, instance.structure.listener);
-
-        //         meta.opid   = instance.id;
-        //         meta.opname = instance.name;
-        //         resources.push(id);
-        //         H.Events.registerListener(id, self.listener);
-        // SWITCH                     
-        //         instance.structure.listener("Ready", id);
 
         deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", groupname, H.Entities[id], id, nodename, cc);
 
@@ -171,6 +144,17 @@ HANNIBAL = (function(H){
         deb("   GRP: %s took over %s as shared asset", operator, resource);
 
       },
+      dissolve: function(instance){
+        H.each(groups, function(name, group){
+          group.instances.forEach(function(inst){ 
+            if (inst === instance){
+              instance.assets = null;
+              H.remove(group.instances, inst);
+              deb("GROUPS: dissolved %s", instance);
+            } 
+          });
+        });
+      },
       launch: function(name, ccid){
 
         // Object Factory; called by bot, economy, whatever
@@ -179,6 +163,8 @@ HANNIBAL = (function(H){
             group     = groups[name],
             copy      = function (obj){return JSON.parse(JSON.stringify(obj));},
             whitelist = H.Data.Groups.whitelist;
+
+        if (!group){return deb("ERROR : can't launch unknown group: %s", name);}
 
         instance.id   = H.Objects(instance);
         instance.name = group.name + "#" + instance.id;
@@ -248,6 +234,9 @@ HANNIBAL = (function(H){
             // H.Triggers.add(fn.binda(instance, args), ticks *-1);
             H.Triggers.add(H.binda(fn, instance, args), ticks *-1);
           },
+          dissolve: function(){
+            H.Groups.dissolve(instance);
+          }
 
         });
 

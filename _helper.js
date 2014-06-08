@@ -17,6 +17,13 @@
 
 HANNIBAL = function(H){
 
+if (!H.extend){
+  H.extend = function (o){
+    Array.prototype.slice.call(arguments, 1)
+      .forEach(e => {Object.keys(e).forEach(k => o[k] = e[k])});
+  }  
+} 
+
 H.extend(H, {
 
   // looping
@@ -74,6 +81,7 @@ H.extend(H, {
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},
+  contains:   function (a,i){return a.indexOf(i)!==-1;},
   toFixed:    function (a,n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
   rotate:     function (a,n){return a.concat(a.splice(0,n));},
   // unique:     function (a){var u=[];a.forEach(function(i){if(u.indexOf(i)===-1){u.push(i);}});return u;},
@@ -111,7 +119,7 @@ H.extend(H, {
   },
 
   // ES6 Suite
-  unique:     function (a){return [...(new Set(a))];},
+  unique:     function (a){return [...Set(a)];},
   attribs:    function (o){return Object.keys(o);},
   each:       function (o,fn){Object.keys(o).forEach(a => fn(a, o[a]));},
   count:      function (o){return Object.keys(o).length;},
@@ -132,6 +140,30 @@ H.humanFileSize = function (bytes, si) {
         ++u;
     } while(bytes >= thresh);
     return bytes.toFixed(1)+' '+units[u];
+};
+
+H.interpolate = function (data, points){
+
+  // http://www.hevi.info/2012/03/interpolating-and-array-to-fit-another-size/
+  
+  var newData = [],
+      factor  = (data.length - 1) / (points -1),
+      i, tmp, point;
+
+  function linear(p1, p2, px) {return p1 + (p2 - p1) * px;};
+
+  newData[0] = data[0];
+
+  for (i=1; i<points -1; i++){
+    tmp = i * factor;
+    point = ~~tmp;
+    newData[i] = linear(data[point], data[point +1], tmp - point);
+  }
+
+  newData[points -1] = data[data.length -1];
+
+  return newData;
+
 };
 
 H.createRingBuffer = function(length){

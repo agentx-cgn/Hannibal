@@ -93,7 +93,7 @@ HANNIBAL = (function(H){
         H.Grids.register("scouting", grid);
 
         deb();deb();deb(" SCOUT: Resources...")
-        self.updateResources(true);
+        self.updateResources(false);
 
       },
       updateResources: function(dolog){

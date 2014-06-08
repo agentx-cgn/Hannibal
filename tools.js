@@ -18,6 +18,11 @@ HANNIBAL = (function(H) {
   // a NOP function
   H.FNULL = function(){};
 
+  H.quit = function(){
+    Engine.PostCommand(H.Bot.id, {"type": "quit"});
+  };
+
+  // sanitize UnitAI state
   H.state = function(id){
     return (
       H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
@@ -26,11 +31,12 @@ HANNIBAL = (function(H) {
     ); 
   };
 
+  // sanitizes template names to dot notaton
   H.saniTemplateName = function(nameTemplate){
-      nameTemplate = H.replace(nameTemplate,  "|", ".");
-      nameTemplate = H.replace(nameTemplate,  "_", ".");
-      nameTemplate = H.replace(nameTemplate,  "/", ".");
-      return nameTemplate.toLowerCase();
+    nameTemplate = H.replace(nameTemplate,  "|", ".");
+    nameTemplate = H.replace(nameTemplate,  "_", ".");
+    nameTemplate = H.replace(nameTemplate,  "/", ".");
+    return nameTemplate.toLowerCase();
   };
 
   H.Damper = function(fnDamper){
@@ -55,18 +61,18 @@ HANNIBAL = (function(H) {
     }
   };
 
-
+  // calcs health of an array of ents
   H.health = function(ids){
     var curHits = 0, maxHits = 0;
     ids.forEach(function(id){
       if (!H.Entities[id]){
-        deb("WARN  : Tools.health: id: %s in ids, but not in entities", id);
+        deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
       } else {
         curHits += H.Entities[id].hitpoints();
         maxHits += H.Entities[id].maxHitpoints();
       }
     });
-    return (curHits / maxHits * 100).toFixed(1);
+    return ids.length ? (curHits / maxHits * 100).toFixed(1) : NaN;
   };
 
 

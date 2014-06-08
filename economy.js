@@ -102,7 +102,10 @@ HANNIBAL = (function(H){
     this.order = order;
     this.remaining = order.amount;
 
+    //TODO: make units move to order.position
+
     this.order.ready = function(amount, type, id){
+
       self.remaining -= amount;
 
       // deb("   ORD: #%s ready.in: amount/rem/tot: %s/%s/%s, hcq: %s", order.id, amount, self.remaining, self.order.amount, self.order.hcq);

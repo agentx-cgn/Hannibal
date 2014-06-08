@@ -34,9 +34,11 @@ HANNIBAL = (function(H){
       maskLand,
       maskShore,
       maskBldgLand,
+      maskBldgShore,
       maskFoundation,
       maskPathfinder,
       square  = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]],
+      square0 = [[-1,-1],[-1,1],[1,-1],[1,1]],
       square2 = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
                  [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]],
       grids = {
@@ -60,18 +62,25 @@ HANNIBAL = (function(H){
     deb("  GRID: dumping %s, w: %s, h: %s, t: %s", name, grid.width, grid.height, threshold);
   }
 
+  function pritp(where){
+    return where.map(c => c.toFixed(1));
+  }
+  function pritn(num){
+    return num.toFixed(1);
+  }
+
   function gamePosToMapPos(p){return [~~(p[0] / cellsize), ~~(p[1] / cellsize)];}
 
   function gridFromMap(map){
     var grid;
     if (map instanceof Uint8Array){
-      grid = new H.Grid(width, height, 0);
+      grid = new H.Grid(width, height, 8);
       grid.data = map;
     } else if (map.data){
-      grid = new H.Grid(map.width, map.height, 0);
+      grid = new H.Grid(map.width, map.height, 8);
       grid.data = map.data;
     } else if (map.map instanceof Uint8Array){
-      grid = new H.Grid(map.width, map.height, 0);
+      grid = new H.Grid(map.width, map.height, 8);
       grid.data = map.map;
     } else {
       deb(" ERROR: gridFromMap: can't handle map");
@@ -79,7 +88,6 @@ HANNIBAL = (function(H){
     }
     return grid;
   }
-
 
   H.Grids = (function(){
 
@@ -90,28 +98,35 @@ HANNIBAL = (function(H){
       center: center,
       init: function(){
 
-        width     = H.SharedScript.passabilityMap.width  | 0;
-        height    = H.SharedScript.passabilityMap.height | 0;
-        length    = width * height | 0;
-        cellsize  = H.GameState.cellSize | 0;
-        center[0] = width  / 2;
-        center[1] = height / 2;
+        width     = self.width    = H.SharedScript.passabilityMap.width;
+        height    = self.height   = H.SharedScript.passabilityMap.height;
+        length    = self.length   = width * height;
+        cellsize  = self.cellsize = H.GameState.cellSize;
+
+        center[0] = ~~(width  / 2);
+        center[1] = ~~(height / 2);
         
         // http://trac.wildfiregames.com/wiki/AIEngineAPI
+        maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
+        maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
+        maskBldgLand    = H.SharedScript.passabilityClasses["building-land"] | 0;            // 4
+
         maskOpen  = H.SharedScript.passabilityClasses["unrestricted"]  | 0;      // 64
         maskWater = H.SharedScript.passabilityClasses["ship"] | 0;              // 32
         maskLand  = H.SharedScript.passabilityClasses["default"] | 0;           // 16
-        maskShore = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
-        maskBldgLand    = H.SharedScript.passabilityClasses["building-land"] | 0;            // 4
-        maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
-        maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
+        maskBldgShore = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
+
+        maskShore = maskBldgShore | maskFoundation;
 
         self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
         self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
         self.passability = gridFromMap(H.SharedScript.passabilityMap);
+        self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
 
         self.attacks  = new H.Grid(width, height, 8);
-        self.scouting = new H.Grid(width, height, 8);
+        // self.scouting = new H.Grid(width, height, 8);
+
+        // H.extend(self.scouting, scoutingExtension(self.scouting));
         
         deb();deb();
         deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
@@ -132,6 +147,39 @@ HANNIBAL = (function(H){
 
         return Date.now() - t0;
       },
+      register: function(name, grid){
+        grids[name] = grid;
+      },
+      analyzePoint: function(x, y){
+        var data = self.obstruction.data;
+        return (
+          (data[x + y * width]  === 0)   ? 255 :
+          (data[x + y * width]  === 255) ?  32 :
+          (data[x + y * width]  === 200) ? 128 :
+            200
+        );
+      },
+      analyzeLifted: function(dataScout, dataObst, x0, x1, y0, y1, cx, cy, radius, width){
+
+        var y = 0, x = 0, index = 0, dx = 0, dy = 0, r2 = 0;
+
+        for ( y = y0; y < y1; ++y) {
+          for ( x = x0; x < x1; ++x) {
+            dx = x - cx; dy = y - cy;
+            r2 = ~~Math.sqrt(dx * dx + dy * dy);
+            index = x + y * width;
+            if (dataScout[index] === 0 && r2 < radius){
+              dataScout[index] = (
+                (dataObst[index] === 0)   ? 255 :
+                (dataObst[index] === 255) ?  32 :
+                (dataObst[index] === 200) ? 128 :
+                  200
+              );
+            }
+          }
+        }
+
+      },
       analyze: function(what, resource){
 
         // unknown           = 0
@@ -141,6 +189,7 @@ HANNIBAL = (function(H){
         // shore, visited    = 80
         // water, seen       = 128
         // water, visited    = 144
+        // unidentified      = 200
         // impassable        = 255
 
         // obstructions
@@ -154,7 +203,8 @@ HANNIBAL = (function(H){
 
         if (what === 'scout') {
 
-          var node = H.QRY("INGAME WITH id = " + resource.id).first(),
+          var t0 = Date.now(), counter = 0,
+              node = H.QRY("INGAME WITH id = " + resource.id).first(),
               [cx, cy] = gamePosToMapPos(node.position),
               radius = ~~(node.vision / cellsize),
               dataScout = self.scouting.data,
@@ -168,30 +218,47 @@ HANNIBAL = (function(H){
               y1 = ~~Math.min(height, cy + radius),
               x = 0, y = 0, index = 0, value = 0,
               dx = 0, dy = 0, r2 = 0.0;
+              
+          this.analyzeLifted(dataScout, dataObst, x0, x1, y0, y1, cx, cy, radius, width);
 
-          for ( y = y0; y < y1; ++y) {
-            for ( x = x0; x < x1; ++x) {
-              dx = x - cx; dy = y - cy;
-              r2 = Math.sqrt(dx * dx + dy * dy);
-              index = x + y * width;
-              if (r2 < radius && dataScout[index] === 0){
-                dataScout[index] = (
-                  (dataObst[index]  === 0)       ? 255 :
-                  !(dataPass[index]  & maskLand)  ?  32 :
-                  !(dataNaval[index] & maskWater) ? 128 :
-                  !(dataLand[index]  & maskShore) ?  64 :
-                    200
-                );
-              }
-            }
-          }
+
+          // for ( y = y0; y < y1; ++y) {
+          //   for ( x = x0; x < x1; ++x) {
+          //     dx = x - cx; dy = y - cy;
+          //     r2 = Math.sqrt(dx * dx + dy * dy);
+          //     index = x + y * width;
+          //     if (dataScout[index] === 0 && r2 < radius){
+          //     // if (dataScout[index] === 0){
+          //       // dataScout[index] = (
+          //       //   // !(dataLand[index]  & maskShore) ?  64 :
+          //       //   !(dataPass[index]  & maskLand)  ?  32 :
+          //       //   !(dataNaval[index] & maskWater) ? 128 :
+          //       //   (dataObst[index]  === 0)        ? 255 :
+          //       //     200
+          //       // );
+          //       dataScout[index] = (
+          //         (dataObst[index]  === 0)        ? 255 :
+          //         (dataObst[index]  === 255)      ?  32 :
+          //         (dataObst[index]  === 200)      ? 128 :
+          //           200
+          //       );
+          //     }
+          //     counter += 1;
+          //   }
+          // }
           // mark as seen
           dataScout[cx + cy * width] += 16;
+
+          // deb("analyze: %s", Date.now() - t0);
+          // typical analyze: analyze: 900, 6, 6
+
 
         }
 
       },
       record: function(what, where, amplitude){
+
+        deb("  GRDS: record: what: %s, where: %s, amp: %s", what, pritp(where), pritn(amplitude));
 
         var [x, y] = where;
 
@@ -205,13 +272,18 @@ HANNIBAL = (function(H){
 
         }
 
+
       },
 
       log: function(){
         var t0 = Date.now()
         deb("  GRDS: logging ------------")
         H.each(grids, function(name){
-          self[name].log(name);
+          if (self[name]){
+            self[name].log(name);
+          } else {
+            deb("  GRDS: grid %s doesn't exist", name);
+          }
         });
         deb("  GRDS: logging %s msecs ------------", Date.now() - t0);
       },
@@ -237,10 +309,12 @@ HANNIBAL = (function(H){
     this.height = height || 0;
     this.length = width * height;
     this.bits   = bits;
+    // this.data   = [];
     this.data   = (
-      this.bits ===  8 ? new Uint8ClampedArray(width  * height) :
+      // this.bits ===  8 ? new Uint8ClampedArray(width  * height) :
+      this.bits ===  8 ? new Uint8Array(width  * height) :
       this.bits === 32 ? new Uint32Array(width * height) : 
-        new Uint8ClampedArray(0) //??
+        new Uint8ClampedArray(width * height) //??
     );
 
   };

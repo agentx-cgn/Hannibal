@@ -18,107 +18,6 @@ HANNIBAL = (function(H){
 
   H.extend(H.Plugins, {
 
-    "g.mayor" : {
-
-      /*
-        a group without units solely for the first/biggest CC
-
-        Behaviour: 
-          to repair after attack
-          to rebuild on destroy
-          to garrisson soldiers on attack
-          
-      */
-
-      active:         true,           // prepared for init/launch ...
-      description:    "mayor",        // text field for humans 
-      civilisations:  ["*"],          // 
-      interval:       4,              // call onInterval every x ticks
-      parent:         "",             // inherit useful features
-
-      position:       null,           // refers to the coords of the group's position/activities
-      structure:      [],             // still unkown resource, inits at game start
-
-      builders:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <ccid>"],
-
-      attackLevel:    0,              // increases with every attack, halfs on interval
-      needsRepair:   80,              // a health level (per cent)
-      needsDefense:  10,              // an attack level
-
-      listener: {
-        onLaunch: function(ccid){
-          this.ccid = ccid;
-          this.register("builders");
-        },
-        onConnect: function(listener){
-          deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
-          this.structure.users.push(listener);
-        },
-        onDisConnect: function(listener){
-          deb("     G: %s onDisConnect, callsign: %s", this, listener.callsign);
-          H.remove(this.structure.users, listener);
-        },
-        onAssign: function(resource){
-
-          deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
-
-          this.position = resource;
-
-          H.QRY("INGAME WITH metadata.ccid = " + this.ccid).forEach(function(node){
-            node.metadata.ccid = resource.id;
-          });
-
-          this.ccid = resource.id;
-
-          if (resource.isFoundation){
-            this.builders.nearest(30).repair(resource);
-          }
-
-        },
-        onDestroy: function(resource){
-
-          deb("     G: %s onDestroy: %s", this, resource);
-
-          this.economy.request(1, this.structure, this.position); // better location, pos is array
-
-        },
-        onAttack: function(resource, enemy, type, damage){
-
-          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
-
-          this.attackLevel += 1;
-
-          if (this.attackLevel > this.needsDefense){
-            this.structure.users.nearest(20).forEach(function(user){
-              user.garrison(this.structure);
-            });
-          }
-
-        },
-        onBroadcast: function(){},
-        onInterval: function(){
-
-          deb("     G: interval %s, attackLevel: %s, health: %s, states: %s", 
-              this.name, this.attackLevel, this.structure.health, H.prettify(this.structure.states())
-          );
-
-          this.attackLevel = ~~(this.attackLevel/2);
-
-          if (this.structure.isFoundation){
-            this.builders.nearest(30).repair(this.structure);
-          }        
-
-          // if (this.attackLevel === 0 && this.structure.health < this.needsRepair){
-          //   this.structure.users.nearest(30).forEach(function(user){
-          //     user.repair(this.structure);
-          //   });
-          // }
-
-        }
-      }
-
-    },
-
     "g.custodian" : {
 
       /*
@@ -172,7 +71,7 @@ HANNIBAL = (function(H){
 
           deb("     G: %s onDestroy: %s", this, resource);
 
-          logObject(this.position, "this.position: " + this.position);
+          // logObject(this.position, "this.position: " + this.position);
 
           if (this.structure.users.length > 0){
             this.structure.users.forEach(function(listener){

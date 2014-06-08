@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, print, getAttribType, logObject, logObjectShort, logError, debug */
+/*globals Engine, API3, deb, print, logObject, logError, debug */
 
 /*--------------- H A N N I B A L  --------------------------------------------
 
@@ -14,6 +14,8 @@
 // very first line, enjoy
 var TIMESTART = Date.now();
 print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---\n");
+print("#! xdotool init\n")
+
 Engine.IncludeModule("common-api");
 
 // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
@@ -45,7 +47,7 @@ var HANNIBAL = (function() {
       Array.prototype.slice.call(arguments, 1)
         .forEach(e => {Object.keys(e)
           .forEach(k => o[k] = e[k]
-    )});}
+    );});}
   };
 
   // constructor
@@ -116,24 +118,24 @@ var HANNIBAL = (function() {
 
   // H.Hannibal.constructor = H.Hannibal;
   H.Hannibal.prototype = new H.API.BaseAI();
-  H.Hannibal.prototype.Serialize = function() {
-    deb("SERIALIZE: called");
-    // return H.API.BaseAI.prototype.Serialize.call(this);
-    return {test: "testa"};
-  };
-  H.Hannibal.prototype.Deserialize = function(data, sharedScript) {
-    deb("DESERIALIZE: called");
-    this.isDeserialized = false;
-    logObject(data, "dataDeserialize");
-    logObject(sharedScript, "sharedScriptDeserialize");
-    logObject(this, "this");
+  // H.Hannibal.prototype.Serialize = function() {
+  //   deb("SERIALIZE: called");
+  //   // return H.API.BaseAI.prototype.Serialize.call(this);
+  //   return {test: "testa"};
+  // };
+  // H.Hannibal.prototype.Deserialize = function(data, sharedScript) {
+  //   deb("DESERIALIZE: called");
+  //   this.isDeserialized = false;
+  //   logObject(data, "dataDeserialize");
+  //   logObject(sharedScript, "sharedScriptDeserialize");
+  //   logObject(this, "this");
 
-    // return H.API.BaseAI.prototype.Deserialize.apply(this, arguments);
-  };
+  //   // return H.API.BaseAI.prototype.Deserialize.apply(this, arguments);
+  // };
   H.Hannibal.prototype.CustomInit = function(gameState, sharedScript) {
 
     var SIM_UPDATES = 0,
-        self = this, ts, cics, prit = H.prettify,
+        self = this, ts, 
         ss = sharedScript, gs = gameState, 
         behaviour = H.Config.getBehaviour("ai:ai", this.settings.difficulty);
 
@@ -203,13 +205,15 @@ var HANNIBAL = (function() {
     this.isFinished     = false;           // there is still no winner
     this.timing         = {all: 0};        // used to identify perf. sinks in OnUpdate
 
-    //?? still needed ??
-    // this.gameState      = gameState;
-    // this.sharedScript   = sharedScript;
-    // this.players        = sharedScript.playersData;
+    // init map, grids and related services
+    H.Map.width    = sharedScript.passabilityMap.width;
+    H.Map.height   = sharedScript.passabilityMap.height;
+    H.Map.circular = sharedScript.circularMap;
+    H.Map.cellsize = gs.cellSize;
 
-    // init grids and masks
+    H.Numerus.init();  // launches the stats extension
     H.Grids.init();
+    H.Scout.init();
 
     // determine own, game's and all civilisations
     this.civ            = sharedScript.playersData[this.id].civ; 
@@ -225,10 +229,12 @@ var HANNIBAL = (function() {
 
     // culture knowledgebase as triple store
     this.culture = new H.Culture(this.civ);
-    this.culture.loadRootNodes();           // from data to triple store
+    this.culture.loadDataNodes();           // from data to triple store
     this.culture.readTemplates();           // from templates to culture
     this.culture.loadTechTemplates();       // from templates to triple store
     this.culture.loadTemplates();           // from templates to triple store
+    // this.culture.loadEdges();               // from templates to triple store
+    // this.culture.ensureEdges();             // add some extra data
     this.culture.loadEntities();            // from game to triple store
     this.culture.loadTechnologies();        // from game to triple store
     this.culture.finalize();                // clear up
@@ -257,20 +263,20 @@ var HANNIBAL = (function() {
     if (false){
       // activate to log tech templates
       deb("-------- _techTemplates");
-      deb("var techTemplates = {")
+      deb("var techTemplates = {");
       H.attribs(ss._techTemplates).sort().forEach(function(tech){
         deb("'%s': %s,", tech, JSON.stringify(ss._techTemplates[tech]));
-      })
-      deb("};")
+      });
+      deb("};");
       deb("-------- _techTemplates");
       H.Config.deb = 0;
     }
 
-    if (false){
+    if (true){
       // activate to log templates
       // this.culture.store.exportAsLog(["athen"]);
-      this.culture.store.exportAsLog(["athen", "mace", "hele"]); // 10.000 lines
-      H.Config.deb = 0;
+      this.culture.store.export(["athen", "mace", "hele"]); // 10.000 lines
+      // print("#! terminate");
     }
 
     /*  End Export */
@@ -298,6 +304,7 @@ var HANNIBAL = (function() {
 
     // new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
     new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
+    new H.HCQ(ts, "stone ACCEPTEDBY INGAME").execute("metadata", 5, 20, "stone drop");
 
     // new H.HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food MEMBER DISTINCT HOLDBY INGAME").execute("json", 5, 10, "optional update test");
 
@@ -457,6 +464,8 @@ var HANNIBAL = (function() {
       this.timing.gps = H.Groups.tick(  secs, this.ticks);
       this.timing.sts = H.Stats.tick(   secs, this.ticks);
       this.timing.eco = H.Economy.tick( secs, this.ticks);
+      
+      H.Numerus.tick(secs, this.ticks);
 
       // check for winner
       if (this.frame.name === "whiteflag") {
@@ -508,38 +517,17 @@ var HANNIBAL = (function() {
 
   H.Hannibal.prototype.testJS = function(){
 
-    var i, s, t;
+    // var i, s, t;
 
-    try {s = new Set;}               catch (e) {deb("  TEST: Set not available");}
-    try {s = new Map;}               catch (e) {deb("  TEST: Map not available");}
-    try {s = new WeakMap;}           catch (e) {deb("  TEST: WeakMap not available");}
+    // try {s = new Set;}               catch (e) {deb("  TEST: Set not available");}
+    // try {s = new Map;}               catch (e) {deb("  TEST: Map not available");}
+    // try {s = new WeakMap;}           catch (e) {deb("  TEST: WeakMap not available");}
     // try {s = [for (t of [1, 2]) t];} catch (e) {deb("  TEST: Array comprehension not available");}
     // shocks jsLint
     // try {s = () => "test";}          catch (e) {deb("  TEST: Fat Arraw not available");}
 
   };
   H.Hannibal.prototype.extendJS = function(){
-
-    // Function.prototype.binda = function(context, params){
-    //   // that's bind with a parameter array instead
-    //   var pa = params  || [],
-    //       cx = context || null,
-    //       pl = pa.length;
-    //   return (
-    //     (pl ===  0) ? this.bind(cx) : 
-    //     (pl ===  1) ? this.bind(cx, pa[0]) : 
-    //     (pl ===  2) ? this.bind(cx, pa[0], pa[1]) : 
-    //     (pl ===  3) ? this.bind(cx, pa[0], pa[1], pa[2]) : 
-    //     (pl ===  4) ? this.bind(cx, pa[0], pa[1], pa[2], pa[3]) : 
-    //     (pl ===  5) ? this.bind(cx, pa[0], pa[1], pa[2], pa[3], pa[4]) : 
-    //     (pl ===  6) ? this.bind(cx, pa[0], pa[1], pa[2], pa[3], pa[4], pa[5]) : 
-    //     (pl ===  7) ? this.bind(cx, pa[0], pa[1], pa[2], pa[3], pa[4], pa[5], pa[6]) : 
-    //     (pl ===  8) ? this.bind(cx, pa[0], pa[1], pa[2], pa[3], pa[4], pa[5], pa[6], pa[7]) : 
-    //     (pl ===  9) ? this.bind(cx, pa[0], pa[1], pa[2], pa[3], pa[4], pa[5], pa[6], pa[7], pa[8]) : 
-    //     (pl === 10) ? this.bind(cx, pa[0], pa[1], pa[2], pa[3], pa[4], pa[5], pa[6], pa[7], pa[8], pa[9]) : 
-    //       print("ERROR : Function.prototype.binda not ready for 11 or more params")
-    //   );
-    // };
 
     // Array.prototype.subtract = function(other){
     //   // returns everything from this not in other, mind duplicates or choose Sets.
@@ -555,7 +543,7 @@ var HANNIBAL = (function() {
   };
   H.Hannibal.prototype.logPlayers = function(players){
 
-    var self = this, tab = H.tab, msg = "", head, props, format, tabs,
+    var tab = H.tab, msg = "", head, props, format, tabs,
         fmtAEN = function(item){return item.map(function(b){return b ? "1" : "0";}).join("");};
 
     deb("**");deb("**");

@@ -22,19 +22,23 @@ HANNIBAL = (function(H){
       sequence = "", sequences, // sequence subset
       chat = function(msg){Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});};
 
-
   H.extend(T, {
-
+    quit: function(){
+      return () => Engine.PostCommand(H.Bot.id, {"type": "quit"});
+    },
+    chat: function(msg){
+      return () => Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});
+    },
     destroy: function(ids){ 
       ids = Array.isArray(ids) ? ids : arguments.length > 1 ? H.toArray(arguments) : [ids];
       return () => Engine.PostCommand(H.Bot.id, {type: "delete-entities", "entities": ids});
     },
+    research: function(tpl, id){
+      return () => Engine.PostCommand(H.Bot.id, {type: 'research', entity: id, template: tpl}); 
+    },
     launch: function(group /*, ... */){
       return H.toArray(arguments).slice(1).map((id) => () => H.Groups.launch(group, id));
     },
-    research: function(tpl, id){
-      return () => Engine.PostCommand(H.Bot.id, {type: 'research', entity: id, template: tpl}); 
-    }
 
   });
 
@@ -45,6 +49,42 @@ HANNIBAL = (function(H){
 
   // if any of these evaluates to a string, it gets chatted
   sequences = {
+    'aitest08m': {
+        '1': [() => "< - START: " + sequence + " - >"],
+        '2': [T.chat("huhu"), "chatted"], 
+        '3': [T.launch("g.scouts", 44), "launching 1 scout"], 
+      '241': [() => "< - FINIS: " + sequence + " - >"],
+    },
+    'aitest07m': {
+        '0': [() => "< - START: " + sequence + " - >"],
+        '2': [T.launch("g.scouts", 44), "launching 1 scout"], 
+        '3': [T.launch("g.miner-stone", 44), "launching 1 miner-stone"], 
+        '4': [T.launch("g.miner-metal", 44), "launching 1 miner-metal"], 
+        // '5': [T.launch("g.grainpicker", 44, 44), "launching 2 grainpickers"], 
+       '10': [
+              () => print("#! xdotool key F9\n"), 
+              () => print("#! xdotool type --delay 30 Engine.SetSimRate(20)\n"), 
+              () => print("#! xdotool key Return\n"),
+              () => print("#! xdotool key F9\n"),
+             ],
+        // '6': [() => H.Grids.log(),  "logging grids"],
+        // '7': [() => H.Grids.dump(), "dumping grids"],
+        // '8': [() => H.Groups.log(), "logging groups"],
+       // '70': [() => H.logIngames(), "logging ingames"],
+       // '71': [() => H.Groups.log(), "logging groups"],
+      '400': [() => print("#! terminate\n")],
+    },
+    'aitest06m': {
+        '1': [() => "< - START: " + sequence + " - >"],
+        '2': [T.launch("g.scouts", 44), "launching 1 scout"], 
+        // '3': [() => H.Grids.dump(), "dumping grids"],
+        // '4': [() => H.Grids.log(),  "logging grids"],
+        '6': [() => H.Groups.log(), "logging groups"],
+        '7': [() => H.logIngames(), "logging ingames"],
+       '70': [() => H.logIngames(), "logging ingames"],
+       '71': [() => H.Groups.log(), "logging groups"],
+      '241': [() => "< - FINIS: " + sequence + " - >"],
+    },
     'aitest05m': {
         '1': [() => "< - START: " + sequence + " - >"],
         '2': [T.launch("g.scouts", 44), "launching 1 scout"], 

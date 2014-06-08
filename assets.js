@@ -142,35 +142,54 @@ HANNIBAL = (function(H){
       },
       toResource: function(id){
         return {
-          id:         id,
-          name:       name,
-          nameDef:    nameDef, 
-          shared:     shared,
-          health:     H.health([id]),
-          resources:  [id],
-          doing:      self.doing.bind(null, [id]),
-          location:   self.location.bind(null, [id]),
-          garrison:   self.garrison.bind(null, [id]),
-          destroy:    self.destroy.bind(null, [id]),
-          gather:     self.gather.bind(null, [id]),
-          repair:     self.repair.bind(null, [id]),
-          move:       self.move.bind(null, [id]),
-          toOrder:    self.toOrder,
-          toString:   function(){return H.format("[resource %s/%s]", name, id);},
+          id:           id,
+          name:         name,
+          nameDef:      nameDef, 
+          shared:       shared,
+          health:       H.health([id]),
+          resources:    [id],
+          doing:        self.doing.bind(null, [id]),
+          skim:         self.skim.bind(null, [id]),
+          release:      self.release.bind(null, [id]),
+          location:     self.location.bind(null, [id]),
+          distanceTo:   self.distanceTo.bind(null, [id]),
+          garrison:     self.garrison.bind(null, [id]),
+          destroy:      self.destroy.bind(null, [id]),
+          gather:       self.gather.bind(null, [id]),
+          repair:       self.repair.bind(null, [id]),
+          move:         self.move.bind(null, [id]),
+          format:       self.format.bind(null, [id]),
+          stance:       self.stance.bind(null, [id]),
+          flee:         self.flee.bind(null, [id]),
+          toOrder:      self.toOrder,
+          toString:     function(){return H.format("[resource %s/%s]", name, id);},
         };
       },
       toSelection: function(ids){
         return {
-          count:     ids.length,
-          resources: ids,
-          nearest:   self.nearest,
-          doing:     self.doing.bind(null, ids),
-          location:  self.location.bind(null, ids),
-          garrison:  self.garrison.bind(null, ids),
-          destroy:   self.destroy.bind(null, ids),
-          gather:    self.gather.bind(null, ids),
-          repair:    self.repair.bind(null, ids),          
-          move:      self.move.bind(null, ids),          
+          count:        ids.length,
+          resources:    ids,
+          health:       H.health(ids),
+          nearest:      self.nearest,
+          doing:        self.doing.bind(null, ids),
+          skim:         self.skim.bind(null, ids),
+          location:     self.location.bind(null, ids),
+          distanceTo:   self.distanceTo.bind(null, ids),
+          garrison:     self.garrison.bind(null, ids),
+          release:      self.release.bind(null, ids),
+          destroy:      self.destroy.bind(null, ids),
+          collect:      self.collect.bind(null, ids),
+          gather:       self.gather.bind(null, ids),
+          repair:       self.repair.bind(null, ids),          
+          move:         self.move.bind(null, ids),          
+          format:       self.format.bind(null, ids),
+          stance:       self.stance.bind(null, ids),
+          flee:         self.flee.bind(null, ids),
+          forEach:      function(fn){
+            ids.forEach(function(id){
+              fn.call(instance, self.toResource(id));
+            });
+          },
           toString:  function(){return H.format("[selection %s/%s]", name, ids);},
         };
       },
@@ -179,41 +198,46 @@ HANNIBAL = (function(H){
       // length:     function(){return resources.length;},
       forEach:     function(fn){
         resources.forEach(function(id){
-          deb("   AST: forEach id: %s", id);
-          fn(self.toResource(id))
+          // deb("   AST: forEach id: %s", id);
+          fn.call(instance, self.toResource(id));
         });
+      },
+      spread:     function(ids){
+        var poss = (ids || resources).map(id => H.Entities[is].position()),
+            xs = poss.map(pos => pos[0]),
+            zs = poss.map(pos => pos[1]),
+            minx = Math.max.apply(Math, xs),
+            minz = Math.max.apply(Math, zs),
+            maxx = Math.max.apply(Math, xs),
+            maxz = Math.max.apply(Math, zs),
+            disx = maxx - minx,
+            disz = maxz - minz;
+        return Math.max(disx, disz);
       },
       states:     function(ids){
         var state = {};
-        ids = ids || resources;
-        ids.forEach(id => state[id] = H.state(id));
+        (ids || resources).forEach(id => state[id] = H.state(id));
         return state;
       },
-      doing: function(/* [who,] filters */){
-        // filters resource on ai state
+      release:   function(ids){
+        (ids || resources).forEach(function(id){
+          H.MetaData[id].opname = "none";
+          delete H.MetaData[id].opid;
+          H.remove(resources, id);
+        });
+      },
+      distanceTo:   function(/* [who, ] pos */){
+
+        deb("   AST: distanceTo: %s", JSON.stringify(arguments));
 
         var al = arguments.length,
-            who     = (al === 1) ? resources : arguments[0],
-            filters = (al === 1) ? arguments[0] : arguments[1],
-            ids = [], state, 
-            actions = filters.split(",").filter(a => !!a);
+            who = (al === 1) ? resources : arguments[0],
+            pos = (al === 1) ? arguments[0] : arguments[1],
+            distance = H.Map.distance(H.Map.getCenter(who), pos);
 
-        actions.forEach(action => {
-          who.forEach(id => {
-            state = H.state(id);
-            if (action[0] === "!"){
-              if (state !== action.slice(1)){ids.push(id);}
-            } else {
-              if (state === action){ids.push(id);}
-            }
-          });
-        });
+        deb("   AST: distanceTo %s", distance)
 
-        // deb("doing: actions: %s, states: %s, ids: %s", 
-        //   actions, H.prettify(self.states(resources)), ids
-        // );
-
-        return self.toSelection(ids);
+        return distance;
 
       },
       location:   function(id){
@@ -253,7 +277,44 @@ HANNIBAL = (function(H){
 
       },
 
+      /*
 
+        Filters on asset groups
+
+      */
+
+      doing: function(/* [who,] filters */){
+        // filters resource on ai state
+
+        var al = arguments.length,
+            who     = (al === 1) ? resources : arguments[0],
+            filters = (al === 1) ? arguments[0] : arguments[1],
+            ids = [], state, 
+            actions = filters.split(" ").filter(a => !!a);
+
+        actions.forEach(action => {
+          who.forEach(id => {
+            state = H.state(id);
+            if (action[0] === "!"){
+              if (state !== action.slice(1)){ids.push(id);}
+            } else {
+              if (state === action){ids.push(id);}
+            }
+          });
+        });
+
+        // deb("doing: actions: %s, states: %s, ids: %s", 
+        //   actions, H.prettify(self.states(resources)), ids
+        // );
+
+        return self.toSelection(ids);
+
+      },
+      first: function(ids){
+        return self.toSelection([(ids || resources)[0]]);
+      },
+
+      
       /*
 
         Functions for dynamic assets
@@ -264,23 +325,36 @@ HANNIBAL = (function(H){
         var hcq = expandHCQ(definition[1], instance);
         return H.QRY(hcq).execute().length >= (amount || 1); //"node", 5, 5, "asset.exists"
       },
-      nearest: function(amount){
+      nearest: function(param){
 
-        // deb("   AST: nearest hcq: %s", expandHCQ(definition[1], instance));
+        var hcq, pos, sorter, nodes, ids;
 
-        var hcq = expandHCQ(definition[1], instance),
-            pos = (
-              Array.isArray(instance.position) ? instance.position : 
-                instance.position.location()
-            ),
-            sorter = function(na, nb){
-              return (
-                H.Map.distance(na.position, pos) - 
-                H.Map.distance(nb.position, pos)
-              );
-            },
-            nodes = H.QRY(hcq).execute().sort(sorter), // "node", 5, 5, "nearest"
-            ids = nodes.map(function(node){return node.id;}).slice(0, amount || 1);
+        // look for nearest from hcq
+        if (H.isInteger(param)){
+
+          // deb("   AST: nearest hcq: %s", expandHCQ(definition[1], instance));
+
+          hcq = expandHCQ(definition[1], instance);
+          pos = (
+            Array.isArray(instance.position) ? instance.position : 
+              instance.position.location()
+          );
+          // deb("   AST: nearest pos: %s", pos);
+          sorter = function(na, nb){
+            return (
+              H.Map.distance(na.position, pos) - 
+              H.Map.distance(nb.position, pos)
+            );
+          };
+          nodes = H.QRY(hcq).execute().sort(sorter); // "node", 5, 5, "nearest"
+          ids = nodes.map(function(node){return node.id;}).slice(0, param || 1);
+
+        // look for closest to point
+        } else if (Array.isArray(param)){
+
+          ids = [H.Map.nearest(param, resources)];
+
+        }
 
         // deb("   AST: nearest hcq: %s", hcq);
         // deb("   AST: nearest ids: %s", ids);
@@ -296,9 +370,87 @@ HANNIBAL = (function(H){
 
       */
 
+      format: function(/* arguments: [who], what */){
+
+        deb("   AST: format: %s", pritArgs(arguments));
+
+        // Scatter, Line Open, Box, passive, standground
+
+        var al = arguments.length,
+            who   = (al === 1) ? resources : arguments[0],
+            what  = (al === 1) ? arguments[0] : arguments[1];
+
+        if (who.length && H.contains(H.Data.formations, what)){
+
+          Engine.PostCommand(H.Bot.id, {type: "formation", 
+            entities: who, 
+            name :    what, 
+            queued:   false 
+          });
+
+        } else {
+          deb("   AST: ignored format who: %s, what: %s", who, what);
+        }
+
+      },
+
+      stance: function(/* arguments: [who], what */){
+
+        // deb("   AST: stance: %s", pritArgs(arguments));
+
+        var al = arguments.length,
+            who   = (al === 1) ? resources    : arguments[0],
+            what  = (al === 1) ? arguments[0] : arguments[1];
+
+        if (who.length && H.contains(H.Data.stances, what)){
+
+          Engine.PostCommand(H.Bot.id, {type: "stance", 
+            entities: who, 
+            name :    what, 
+            queued:   false 
+          });
+
+        } else {
+          deb("   AST: ignored stance who: %s, what: %s", who, what);
+        }
+
+      },
+
+      flee: function(/* arguments: [who], whom */){
+
+        deb("   AST: move: %s", pritArgs(H.toArray(arguments)));
+
+        var al = arguments.length,
+            who  = (al === 1) ? resources    : arguments[0],
+            whom = (al === 1) ? arguments[0] : arguments[1],
+            ent  = H.Entities[whom.id],
+            posWho, posWhom, direction, distance;
+
+        if (who.length && ent) {
+
+          posWho    = H.Map.getCenter(who);
+          posWhom   = ent.position();
+          direction = [posWho[0] - posWhom[0], posWho[1] - posWhom[1]];
+          distance  = H.API.VectorDistance(posWhom, posWho);
+          direction[0] = (direction[0] / distance) * 8;
+          direction[1] = (direction[1] / distance) * 8;
+          
+          Engine.PostCommand(H.Bot.id, {type: "walk", 
+            entities: who, 
+            x: posWho[0] + direction[0] * 5, 
+            z: posWho[1] + direction[1] * 5, 
+            queued: false
+          });
+
+        } else {
+          deb("   AST: ignored flee who: %s, whom: %s", who, whom);
+        }
+
+
+      },
       move: function(/* arguments: [who], where */){
 
-        deb("   AST: move: %s", pritArgs(arguments));
+        // deb("   AST: move: %s", pritArgs(H.toArray(arguments)));
 
         var al = arguments.length,
             who   = (al === 1) ? resources : arguments[0],
@@ -358,6 +510,75 @@ HANNIBAL = (function(H){
 
 
       },
+      collect: function(/* arguments: [who], what */){
+
+        deb("   AST: collect: %s", pritArgs(arguments));
+
+        var al = arguments.length,
+            who  = (al === 1) ? resources : arguments[0],
+            what = (al === 1) ? arguments[0] : arguments[1];
+
+        if (what.length && who.length){
+
+          Engine.PostCommand(H.Bot.id, {type: "gather", 
+            entities: who, 
+            target:   what[0], 
+            queued:   false
+          });
+
+          what.slice(1).forEach(function(id){
+            Engine.PostCommand(H.Bot.id, {type: "gather", 
+              entities: who, 
+              target:   id, 
+              queued:   true
+            });
+
+          });
+
+          H.Scout.deleteResources(what);
+
+        } else {
+          deb("   AST: ignored gather who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
+        }
+
+
+      },
+      skim: function(/* arguments: [who], what */){
+
+        deb("   AST: skim: %s", JSON.stringify(arguments));
+
+        var al = arguments.length,
+            who  = (al === 1) ? resources : arguments[0],
+            what = (al === 1) ? arguments[0] : arguments[1];
+
+        if (what && who.length){
+
+          who.forEach(function(id){
+
+            var [x, z] = H.Entities[id].position();
+
+            Engine.PostCommand(H.Bot.id, {type: "gather-near-position", 
+              entities: [id], 
+              x: x, 
+              z: z, 
+              resourceType:     what, 
+              resourceTemplate: "", 
+              queued:   false
+            });
+
+          });
+
+
+        } else {
+          deb("   AST: ignored skim who: %s, what: %s", who, !!H.Entities[what] ? H.Entities[what] : "???");
+        }
+        // case "gather-near-position":
+        //   GetFormationUnitAIs(entities, player).forEach(function(cmpUnitAI) {
+        //     cmpUnitAI.GatherNearPosition(cmd.x, cmd.z, cmd.resourceType, cmd.resourceTemplate, cmd.queued);
+        //   });
+        //   break;
+
+      },
       gather: function(/* arguments: [who], what */){
 
         deb("   AST: gather: %s", pritArgs(arguments));
@@ -413,7 +634,9 @@ HANNIBAL = (function(H){
 
       listener: function(msg, id, evt){
 
-        var tpln, meta = H.MetaData[id], resource = self.toResource(id);
+        var tpln, attacker, ent, maxRanges, 
+            meta = H.MetaData[id], 
+            resource = self.toResource(id);
 
         switch (msg){
 
@@ -501,7 +724,16 @@ HANNIBAL = (function(H){
           break;
 
           case "Attacked":
-            instance.listener.onAttack(resource, evt.attacker, evt.type, evt.damage);
+            ent = H.Entities[evt.attacker];
+            if (ent){
+              maxRanges = ent.attackTypes().map(type => ent.attackRange(type).max);
+              attacker = {
+                id: evt.attacker,
+                position: ent.position(),
+                range: Math.max.apply(Math, maxRanges)
+              }
+              instance.listener.onAttack(resource, attacker, evt.type, evt.damage);
+            }
           break;
 
           default: 

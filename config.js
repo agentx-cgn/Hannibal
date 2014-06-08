@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester
-    sequence: "aitest05m",
+    sequence: "aitest07m",
 
     // enable psy-ops
     brag:     true,  

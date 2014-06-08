@@ -55,57 +55,34 @@ HANNIBAL = (function(H){
     },
     loadTemplates: function(){
 
-      var self = this, node, 
+      var self  = this, node, 
           store = this.store, 
-          sani = this.saniTemplateName,
-          // techTpl,
-          conf = {
+          sani  = this.saniTemplateName,
+          conf  = {
         'classes':        {deb: false, generic: "Class",         tooltip: "a class"},
-        // 'technologies':   {deb: false, generic: "Technology",    tooltip: "a research target"},
         'resources':      {deb: false, generic: "Resource",      tooltip: "something to gather"},
         'resourcetypes':  {deb: false, generic: "ResourceType",  tooltip: "something to drop elsewhere"}
       };
 
-
-      // manually add nodes for consistency
-      // this.loadRootNodes();
-
-      // reads the templates and looks for verb keywords
-      // this.readTemplates();
-
-      // var TT = H.SharedScript._techTemplates;
-
-      // deb("------this.technologies: %s", this.technologies.length);
-      // H.unique(this.technologies).sort().forEach(function(t){
-      //   deb("%s, %s", t, (TT[t] !== undefined));
-      // });
-      // deb("------");
-
-
-
       // now load nodes collected above
       H.each(conf, function(type, conf){
 
-        var counter = 0, 
-            list = H.unique(self[type]).sort();
+        var counter = 0, list = H.unique(self[type]).sort();
 
         list.forEach(function(key){
 
           var name, template = {Identity: {GenericName: conf.generic, Tooltip: conf.tooltip}};
 
           name = sani(key);
+
+          // if (type === "classes"){deb("class: %s", name);}
+
           if (type === "classes" && H.Data.ClassInfo[name]){
             template.Tooltip = H.Data.ClassInfo[name];
           }
 
           node = self.addNode(name, key, template);
             
-          // // overwrite better desription for techs
-          // techTpl = H.SharedScript._techTemplates[key];
-          // if (techTpl && techTpl.description){
-          //   node.info = techTpl.description;
-          // }
-
           counter += 1;     
 
           if (conf.deb){deb("     C: Node added: %s for %s", name, type);}
@@ -117,10 +94,24 @@ HANNIBAL = (function(H){
       });
 
       this.loadEdges();
+      // this.ensureEdges();
 
-      deb("     C: loaded  %s, %s verbs, %s nodes, %s edges: [%s]", 
-        this.civ, this.verbs.length, H.count(store.nodes), store.edges.length, store.verbs.join(", ")
-      );
+      deb("     C: loaded civ: %s, verbs: %s, nodes: %s, edges: %s", this.civ, this.verbs.length, H.count(store.nodes), store.edges.length);
+
+    },
+    ensureEdges: function(){
+
+      var store = this.store, nodeTarget;
+
+      H.each(store.nodes, function(name, nodeSource){
+        if (name.contains("structures.") && name.contains(".house")){
+          nodeTarget = store.nodes["house"];
+          deb("     C: ensuring class %s for %s, have %s nodes", nodeTarget.name, name, store.nodes.length);
+          store.addEdge(nodeSource, "member",  nodeTarget);
+          store.addEdge(nodeTarget, "contain", nodeSource);          
+          deb("     C: ensured class %s for %s", nodeTarget.name, name);
+        }
+      });
 
     },
     loadEntities: function(){
@@ -144,30 +135,7 @@ HANNIBAL = (function(H){
 
         if (ent.owner() === H.Bot.id){
 
-          // if (ent.hasClass("Unit")){
-          //   ent.setMetadata(H.Bot.id, "opname", "none");
-          //   // deb("     C:   set opname to 'none' %s", ent);
-
-          // } else if (ent.hasClass("Structure")){
-
-          //   if (isShared(ent)){
-          //     ent.setMetadata(H.Bot.id, "opname", "g.custodian");
-          //     deb("     C:   set opname to 'custodian' for %s", ent);
-            
-          //   } else if (ent.hasClass("civilcentre")){
-          //     ent.setMetadata(H.Bot.id, "opname", "g.mayor");
-          //     deb("     C:   set opname to 'custodian' for %s", ent);
-
-          //   } else {
-          //     ent.setMetadata(H.Bot.id, "opname", "none");
-          //     deb("     C:   set opname to 'none' for %s", ent);
-            
-          //   }
-
-          // } else {
-          //   deb("ERROR : loadEntities unhandled entity: %s classes: %s", ent, ent.classes());
-
-          // }
+           // deb("     C: own: %s, name: %s", ent.owner(), name);
 
           targetNodes.push(self.addNode(name, key, ent._template, +id));
           cntNodes += 1;
@@ -183,7 +151,10 @@ HANNIBAL = (function(H){
         var nodeSourceName = nodeTarget.name.split("#")[0],
             nodeSource = H.Bot.culture.store.nodes[nodeSourceName];
 
-        // deb(nodeSourceName);
+        if (!nodeSource){deb("ERROR : loadEntities nodeSource: %s", nodeSourceName)};
+        if (!nodeTarget){deb("ERROR : loadEntities nodeTarget: %s", nodeTarget.name)};
+
+        // deb("     C: nodeSourceName: %s", nodeSourceName);
 
         self.store.addEdge(nodeSource, "ingame",      nodeTarget);
         self.store.addEdge(nodeTarget, "describedby", nodeSource);
@@ -312,12 +283,6 @@ HANNIBAL = (function(H){
 
         nameTarget = sani(key);
 
-        // //HACK
-        // if (nameTarget === "phase.village"){
-        //   nameTarget += "." + self.civ;
-        //   self.addNode(nameTarget, key, {Identity: {GenericName: "Technology", Tooltip: "Research product"}});
-        // }
-
         nameSource = H.format("%s#T", nameTarget);
         names.push(nameTarget);
 
@@ -356,9 +321,6 @@ HANNIBAL = (function(H){
           nodeTarget = this.addNode(nameTarget, key, ent._template, id),
           nodeSource = H.Bot.culture.store.nodes[nameSource];
 
-      // if (ent.hasClass("unit")){ent.setMetadata(H.Bot.id, "operator", "none");}
-      // if (ent.hasClass("structure")){ent.setMetadata(H.Bot.id, "operator", "none");}
-      
       // deb("loadById: src: %s, tgt: %s", nameSource, nameTarget);
 
       this.store.addEdge(nodeSource, "ingame",      nodeTarget);
@@ -400,6 +362,7 @@ HANNIBAL = (function(H){
             costs     : this.getCosts(template),
             speed     : this.getSpeed(template),
             armour    : this.getArmour(template),
+            rates     : this.getRates(template),
             health    : this.getHealth(template), //TODO: ingames
             vision    : this.getVision(template),
             attack    : this.getAttack(template),
@@ -455,7 +418,7 @@ HANNIBAL = (function(H){
       return node;
 
     },    
-    loadRootNodes: function(){
+    loadDataNodes: function(){
 
       var self = this, counter = 0,
           rootNodes = H.Data.RootNodes();
@@ -505,7 +468,8 @@ HANNIBAL = (function(H){
 
         var tokens = [key.split("/")[0]].concat(key.split("/")[1].split("_")),
             name   = tokens.join("."),
-            civ    = (template.Identity && template.Identity.Civ) ? template.Identity.Civ : "nociv";
+            civ    = (template.Identity && template.Identity.Civ) ? template.Identity.Civ : "nociv",
+            list;
 
         civ = civ.toLowerCase();
         cntThis[civ] = (cntThis[civ] === undefined) ? 1 : ++cntThis[civ];
@@ -516,10 +480,22 @@ HANNIBAL = (function(H){
           cntNodes += 1;
 
           // classes
+          if (template.Identity && template.Identity.VisibleClasses){
+            list = template.Identity.VisibleClasses._string.toLowerCase();
+            list = H.replace(list, "\n", " ")
+            list.split(" ")
+              .filter(klass => !!klass)
+              .filter(klass => klass[0] !== "-")
+              .forEach(klass => self.classes.push(klass));
+          }
+
           if (template.Identity && template.Identity.Classes){
-            template.Identity.Classes._string.split(" ").forEach(function(klass){
-              self.classes.push(klass);
-            });
+            list = template.Identity.Classes._string.toLowerCase();
+            list = H.replace(list, "\n", " ")
+            list.split(" ")
+              .filter(klass => !!klass)
+              .filter(klass => klass[0] !== "-")
+              .forEach(klass => self.classes.push(klass));
           }
 
           // research tech
@@ -576,7 +552,7 @@ HANNIBAL = (function(H){
           msg += H.format("%s(%s), ", civ, cntThis[civ]);
         }
       });
-      deb("     C: ignored: %s", msg);
+      // deb("     C: ignored: %s", msg);
       deb("     C: created %s/%s nodes for entities", H.tab(cntNodes, 4), H.tab(cntAll, 4));
 
 
@@ -665,17 +641,17 @@ HANNIBAL = (function(H){
       }
       return type.join("|");
     },
-    getClasses: function(template){
-      var classes = "";
-      if (template.Identity !== undefined && template.Identity.Classes){
-        if (template.Identity.Classes._string){
-          classes = H.replace(template.Identity.Classes._string.toLowerCase(), "\n", " ");
-          classes = classes.split(" ").filter(function(s){return !!s;});
-          // classes = classes.map(function(s){return s.toLowerCase();});
-        }
-      }
-      return classes.length ? classes : undefined;
-    }, 
+    // getClasses: function(template){
+    //   var classes = "";
+    //   if (template.Identity !== undefined && template.Identity.Classes){
+    //     if (template.Identity.Classes._string){
+    //       classes = H.replace(template.Identity.Classes._string.toLowerCase(), "\n", " ");
+    //       classes = classes.split(" ").filter(function(s){return !!s;});
+    //       // classes = classes.map(function(s){return s.toLowerCase();});
+    //     }
+    //   }
+    //   return classes.length ? classes : undefined;
+    // }, 
     getInfo: function(t){
       var tip;
       if (t.Identity !== undefined){
@@ -717,6 +693,42 @@ HANNIBAL = (function(H){
           ~~tpl.Health.Max : 
             undefined
       );
+    },
+    getRates: function(tpl){
+      // <ResourceGatherer>
+      //   <MaxDistance>2.0</MaxDistance>
+      //   <BaseSpeed>1.0</BaseSpeed>
+      //   <Rates>
+      //     <food.fruit>1</food.fruit>
+      //     <food.grain>0.5</food.grain>
+      //     <food.meat>1</food.meat>
+      //     <wood.tree>0.7</wood.tree>
+      //     <wood.ruins>5</wood.ruins>
+      //     <stone.rock>0.5</stone.rock>
+      //     <stone.ruins>2</stone.ruins>
+      //     <metal.ore>0.5</metal.ore>
+      //   </Rates>
+      // </ResourceGatherer>      
+      var rates = {}, has = false, speed, tr;
+      if (!!tpl.ResourceGatherer && !!tpl.ResourceGatherer.Rates){
+        speed = parseFloat(tpl.ResourceGatherer.BaseSpeed);
+        tr = tpl.ResourceGatherer.Rates;
+        H.each(tr, function(res, rate){
+          has = true;
+          if (res.contains(".")){
+            var [p1, p2] = res.split(".");
+            if (!rates[p1]){
+              rates[p1] = {};
+            }
+            rates[p1][p2] = parseFloat(rate) * speed;
+
+          } else {
+            rates[res] = parseFloat(rate) * speed;
+          }
+        });
+        // deb("rates: tpl: %s", tpl.Identity.GenericName, JSON.stringify(rates));
+      }
+      return has ? rates : undefined;
     },
     getSize: function(template){
       var size = {}; // {width: 0, height: 0, depth: 0};
@@ -762,10 +774,11 @@ HANNIBAL = (function(H){
     },
     getCosts: function(template){
       // we want integers
-      var costs = {population: 0, time: 0, food:0, wood: 0, stone: 0, metal: 0},
+      var has = false, costs = {population: 0, time: 0, food:0, wood: 0, stone: 0, metal: 0},
           TC = template.Cost, // ents
           tc = template.cost; // tech
       if (TC !== undefined){
+        has = true;
         costs.population = ~~TC.Population || -~~TC.PopulationBonus || 0
         // if (TC.Population)       {costs.population =  ~~TC.Population;} 
         // if (TC.PopulationBonus)  {costs.population = -~~TC.PopulationBonus;} 
@@ -778,6 +791,7 @@ HANNIBAL = (function(H){
           if (TC.Resources.stone){costs.stone = ~~TC.Resources.stone;}
         }
       } else if (tc !== undefined) {
+        has = true;
         if (tc.food) {costs.food  = ~~tc.food;} 
         if (tc.wood) {costs.wood  = ~~tc.wood;} 
         if (tc.metal){costs.metal = ~~tc.metal;}
@@ -786,14 +800,15 @@ HANNIBAL = (function(H){
 
       if (template.researchTime){
         costs.time =  ~~template.researchTime;
+        has = true;
       }
 
-      return H.count(costs) > 0 ? costs : undefined;
+      return has ? costs : undefined;
 
     },
     createEdges: function(verb, inverse, msg, test, targets, debug){
 
-      var self = this, store = self.store, nodeTarget, counter = 0;
+      var store = this.store, nodeTarget, counter = 0;
 
       debug = debug || false;
 
@@ -814,9 +829,9 @@ HANNIBAL = (function(H){
         }
       });
 
-      if(this.debug > 0){
+      // if(this.debug > 0){
         deb("     C: created %s edges on pair: %s|%s - %s", H.tab(counter*2, 4), verb, inverse, msg);
-      }
+      // }
 
     },        
     loadEdges: function(){
@@ -836,16 +851,21 @@ HANNIBAL = (function(H){
 
       this.createEdges("member", "contain", "Entities member/contain classes",
         function test(node){
-          return !!node.template.Identity && 
-                 !!node.template.Identity.Classes &&
-                 node.template.Identity.Classes._string !== undefined;
+          var identity = node.template.Identity;
+          return !!identity && (
+                 (!!identity.VisibleClasses &&identity.VisibleClasses._string !== undefined ) || 
+                 (!!identity.Classes && identity.Classes._string !== undefined)
+                 );
         }, 
         function target(node){
-          return (
-            H.replace(node.template.Identity.Classes._string, "\n", " ")
-              .split(" ").filter(function(s){return !!s;})
-              .map(String.toLowerCase)
-          );
+          var identity = node.template.Identity, classes = "";
+          if (identity.VisibleClasses){classes += identity.VisibleClasses._string;}
+          if (identity.Classes){classes += " " + identity.Classes._string;}
+          classes = H.replace(classes, "\n", " ").toLowerCase();
+          classes = classes.split(" ")
+            .filter(klass => !!klass)
+            .filter(klass => klass[0] !== "-");
+          return H.unique(classes);
         }, false
       );
 
@@ -938,10 +958,10 @@ HANNIBAL = (function(H){
                   node.template.GarrisonHolder.List._string;
         }, 
         function target(node){
-          return (
-            H.replace(node.template.GarrisonHolder.List._string.toLowerCase(), "\n", " ")
-              .split(" ").filter(function(s){return !!s;})
-            );
+          var list = node.template.GarrisonHolder.List._string.toLowerCase();
+          list = H.replace(list, "\n", " ");
+          list = H.replace(list, "+", " ");
+          return list.split(" ").filter(function(s){return !!s;});
         }, false
       );
 

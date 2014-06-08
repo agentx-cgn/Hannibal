@@ -395,7 +395,7 @@ HANNIBAL = (function(H){
   H.HTN.Economy.runStress = function(cVerbose, cLoops, cState, cGoal){
 
     var t0, t1, p, deb = debLine, state, goal, planner,
-        loops = ~~($(cLoops).value).split(".").join(),
+        loops = ~~($(cLoops).value).split(".").join(""),
         counter = loops +1,
         verbose = ~~$(cVerbose).value,
         infoQ = H.store.cntQueries,
@@ -446,6 +446,7 @@ HANNIBAL = (function(H){
       t0 = Date.now();
       while(counter--){
         planner.plan(state, [[m.init, goal]]);
+        // console.log(counter, planner.msecs, planner.iterations);
       }
       t1 = Date.now();
 
@@ -457,7 +458,7 @@ HANNIBAL = (function(H){
       deb("<b>Finished:</b>");
       p = planner;
       deb('&nbsp;&nbsp;%s msecs, avg: %s, iterations: %s, depth: %s, queries: %s, cacheHit: %s, cacheMiss: %s', 
-          t1-t0, ((t1-t0)/loops).toFixed(1), p.iterations, p.depth, infoQ, infoH, infoM
+          t1-t0, ((t1-t0)/loops).toFixed(3), p.iterations, p.depth, infoQ, infoH, infoM
       );
       logCache();
       deb('\n- done');

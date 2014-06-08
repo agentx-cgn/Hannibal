@@ -40,9 +40,17 @@ HANNIBAL = (function(H){
       Organize Villages by distance to CC
     */
 
-    nodesCics = H.QRY("civilcentre CONTAIN INGAME").forEach(function(node){
+    new H.HCQ(H.Bot.culture.store, "civcentre CONTAIN INGAME").execute("metadata", 5, 20, "ingame cc at init");
+    new H.HCQ(H.Bot.culture.store, "INGAME").execute("metadata", 5, 40, "ingame cc at init");
+
+
+    nodesCics = H.QRY("civcentre CONTAIN INGAME").forEach(function(node){
       cics[node.id] = 0;
     });
+
+    if (!nodesCics.length){
+      deb("ERROR : No CC found with: civcentre CONTAIN INGAME");
+    }
 
     deb();deb();
     deb("  INIT: organize villages for civic centres [%s]", nodesCics.map(function(c){return c.id;}).join(", "));
@@ -56,7 +64,7 @@ HANNIBAL = (function(H){
       H.MetaData[node.id] = H.MetaData[node.id] || {};
 
       // the path for non CC
-      if (H.QRY(name + " MEMBER WITH name = 'civilcentre'").execute().length === 0){
+      if (H.QRY(name + " MEMBER WITH name = 'civcentre'").execute().length === 0){
 
         nodesCics.forEach(function(cic){
           posCic = cic.position;
@@ -67,10 +75,11 @@ HANNIBAL = (function(H){
           }
         });
 
+        deb("     I: chosing cc: %s at %s for [%s %s] at %s", 
+          H.MetaData[node.id].ccid, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
+
         cics[H.MetaData[node.id].ccid] += 1;
 
-        deb("     I: chose cc: %s at %s for [%s %s] at %s", 
-          H.MetaData[node.id].ccid, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
 
       // CCs have themself as cc
       } else {
@@ -103,22 +112,22 @@ HANNIBAL = (function(H){
 
         if (ent.hasClass("Unit")){
           ent.setMetadata(H.Bot.id, "opname", "none");
-          deb("     I: set opname to 'none' %s", ent);
+          // deb("     I: set opname to 'none' %s", ent);
 
         } else if (ent.hasClass("Structure")){
 
           if (ent.id() === main){
             ent.setMetadata(H.Bot.id, "opname", "g.mayor");
-            deb("     I: set opname to 'g.mayor' for %s", ent);
+            // deb("     I: set opname to 'g.mayor' for %s", ent);
 
           } else if (isShared(ent)){
             ent.setMetadata(H.Bot.id, "opname", "g.custodian");
-            deb("     I: set opname to 'g.custodian' for %s", ent);
+            // deb("     I: set opname to 'g.custodian' for %s", ent);
           
 
           } else {
             ent.setMetadata(H.Bot.id, "opname", "none");
-            deb("     I: set opname to 'none' for %s", ent);
+            // deb("     I: set opname to 'none' for %s", ent);
           
           }
 
@@ -153,7 +162,7 @@ HANNIBAL = (function(H){
       Check
     */
 
-    H.logIngames();
+    // H.logIngames();
     H.Groups.log();
 
     /*

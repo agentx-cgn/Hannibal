@@ -84,8 +84,9 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        unit = H.QRY(name).first();
-        applyCosts(state, unit.costs, amount);
+        // unit = H.QRY(name).first();
+        unit = H.HTN.Economy.nodes[name];
+        if (unit.costs){applyCosts(state, unit.costs, amount);}
         state.ents[name] = state.ents[name] || 0;
         state.ents[name] += amount;
 
@@ -101,8 +102,9 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        struc = H.QRY(name).first();
-        applyCosts(state, struc.costs, amount);
+        // struc = H.QRY(name).first();
+        struc = H.HTN.Economy.nodes[name];
+        if (struc.costs){applyCosts(state, struc.costs, amount);}
         state.ents[name] = state.ents[name] || 0;
         state.ents[name] += amount;
 
@@ -118,12 +120,16 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        tech = H.QRY(name).first();
-        applyCosts(state, tech.costs, 1);
+        // tech = H.QRY(name).first();
+        tech = H.HTN.Economy.nodes[name];
+        if (tech.costs) {applyCosts(state, tech.costs, 1);}
         state.tech.push(name);
 
-        if (name === 'phase.town.athen'){state.tech.push('phase.town');}
-        if (name === 'phase.city.athen'){state.tech.push('phase.city');}
+        // a hack, but works
+        if (name === 'phase.town.athen')  {state.tech.push('phase.town');}
+        if (name === 'phase.city.athen')  {state.tech.push('phase.city');}
+        if (name === 'phase.town.generic'){state.tech.push('phase.town');}
+        if (name === 'phase.city.generic'){state.tech.push('phase.city');}
 
         return state;
 

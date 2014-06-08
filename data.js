@@ -49,6 +49,31 @@ HANNIBAL = function(H){
     "pair",       "pairedby"          // coupled technologies
   ];
 
+  H.Data.stances = [
+    'violent', 
+    'aggressive', 
+    'defensive', 
+    'passive', 
+    'standground'
+  ];
+
+  H.Data.formations = [
+    'Scatter', 
+    'Column Closed', 
+    'Line Closed', 
+    'Column Open', 
+    'Line Open', 
+    'Battle Line',
+    'Box',
+    'Flank',
+    'Skirmish',
+    'Wedge',
+    'Phalanx',
+    'Syntagma',
+    'Testudo'
+  ];
+
+
   H.Data.Civilisations = {
     athen:  {
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Athenians‎",
@@ -103,17 +128,21 @@ HANNIBAL = function(H){
   H.Data.RootNodes = function(){ return {
 
     '*': {
-      "animal":                  {key: "animal", template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
-      "domestic":                {key: "animal", template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
-      "palisade":                {key: "animal", template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
+      // "house":                   {key: "house",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
+      "animal":                  {key: "animal",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
+      "elephant":                {key: "elephant",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
+      "seacreature":             {key: "seacreature",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
+      "domestic":                {key: "domestic", template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
+      "palisade":                {key: "palisade", template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
       // "gaia.fauna.sheep":        {key: "gaia/fauna_sheep", template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
       "gaia.fauna.sheep":        {key: "gaia/fauna_sheep", template: H.Templates['gaia/fauna_sheep'] },
+      "gaia.fauna.fish":         {key: "gaia/fauna_fish", template: H.Templates['gaia/fauna_fish'] },
       // "other.wallset.palisade":  {key: "other/wallset_palisade", template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
       "other.wallset.palisade":  {key: "other/wallset_palisade", template: H.Templates['other/wallset_palisade'] },
     },
 
     'athen': {
-
+      
     },
 
     'hele': {
@@ -151,10 +180,11 @@ HANNIBAL = function(H){
     'aqua':        "Vegetation on water.",
     'bow':         "Infantry Archer, Cavalry Archer.",
     'cavalry':     "This is a variation of a Citizen Soldier (units with economic and military capabilities) that rides on a beast or is pulled by a beast. All Cavalry Citizen Soldiers: Cavalry Swordsman, Cavalry Spearman, Cavalry Javelinist, Cavalry Archer.",
-    'civic':       "Structures that 'serve the people'.",
+    // 'civic':       "Structures that 'serve the people'.",
     'citizensoldier': "Land units that serves a dual economic and military role (split into Infantry Citizen Soldiers and Cavalry Citizen Soldiers): Infantry Swordsman, Infantry Spearman, Infantry Javelinist, Infantry Archer, Infantry Slinger, Cavalry Swordsman, Cavalry Spearman, Cavalry Javelinist, Cavalry Archer. ",
     'defensive':   "Defensive Structures: Outpost, Wall, Tower, Gate, (any Wall or Tower SBs).",
     'economic':    "Structures that promote an economy.",
+    'farmstead':   "Building to drop food.",
     'fauna':       "These are animals. Some are sources of Food.",
     'flora':       "These are forms of vegetation. Vegetation on dry land.",
     'foot':        "Non-mounted infantry, support and special infantry: Infantry Citizen Soldiers, Female Citizen, Healer, Super Infantry Unit, non-mounted Heroes.",
@@ -162,7 +192,7 @@ HANNIBAL = function(H){
     'gaiabuilding': "A special building unique to Gaia (such as a Settlement).",
     'geo':         "Non-living. Inorganic. These are rocks, minerals and anything in nature that isn't 'alive'.",
     'hero':        "This is a legendary unit that is unique to a civilisation and has special powers. A significant figure from the civilisation's history: (all three Heroes for this civilisation).",
-    'housing':     "Housing Structures: Civilian Centre, House, Farmstead, Dock, Market, Temple, Fortress.", 
+    'house':       "Housing Structures: Civilian Centre, House, Farmstead, Dock, Market, Temple, Fortress.", 
     'infantry':    "This is a variation of a Citizen Soldier (units with economic and military capabilities) that walks on foot. All Infantry Citizen Soldiers: Infantry Swordsman, Infantry Spearman, Infantry Javelinist, Infantry Archer, Infantry Slinger.",
     'javelin':     "Infantry Javelinist, Cavalry Javelinist.",
     'mechanical':  "This unit is a mechanical weapon. A mechanical conveyance or weapon: Onager, Ballista, Ram, Merchantman, Bireme, Trireme, Quinquereme, Super Siege Unit (if applicable).",
@@ -170,7 +200,7 @@ HANNIBAL = function(H){
     'military':    "Structures that provide for the defense. Non-mechanical land units capable of attacking opposing units: Infantry Citizen Soldiers, Cavalry Citizen Soldiers, Super Units and Heroes. ",
     'mineral':     "Typically a source of Ore.",
     'mounted':     "A 'humanoid' unit that rides some kind of mount (horseback, camelback, donkey, animal drawn cart, elephant or chariot): Cavalry Citizen Soldiers, Super Cavalry Units, mounted Heroes.",
-    'norm':        "This is a normal structure.  Some structures serve as training centres for units and gateways to researching of technologies.",
+    // 'norm':        "This is a normal structure.  Some structures serve as training centres for units and gateways to researching of technologies.",
     'offensive':   "Military Production Structures: Civilian Centre, Barracks, Dock, Fortress.",
     'organic':     "All units that aren't in the Mechanical category (basic and special infantry and cavalry, and support units).",
     'other':       "anything that isn't a Unit, Structure, or Gaia (eg a projectile).",

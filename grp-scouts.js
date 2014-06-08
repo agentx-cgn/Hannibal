@@ -35,21 +35,22 @@ HANNIBAL = (function(H){
       description:    "scouts",       // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
 
-      interval:        1,             // call onInterval every x ticks
+      interval:        2,             // call onInterval every x ticks
       parent:         "",             // inherit useful features
 
-      capabilities:   "2 food/sec",   // (athen) give the economy a hint what this group provides.
+      capabilities:   "+area",        // (athen) give the economy a hint what this group provides.
 
 
       // this got initialized by launcher
       position:       null,           // coords of the group's position/activities
-      target:         null,
 
       counter:        0,
+      losses:         0,
       units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
+      maxUnits:       5,
 
-      moves:         [[450, 1020], [400, 700], [800, 700]],
-      movePointer:   0,
+      scanner:       null,
+      target:        null,
 
 
       // message queue sniffer
@@ -58,8 +59,8 @@ HANNIBAL = (function(H){
 
         onLaunch:    function(){
 
-          this.register("units"); // turn res definitions into res objects
-          this.economy.request(1, this.units, this.position);                 // assuming a CC exists
+          this.register("units");                                // turn res definitions into res objects
+          this.economy.request(1, this.units, this.position);    // 1 unit is a good start
 
         },
         onAssign:    function(resource){
@@ -67,14 +68,17 @@ HANNIBAL = (function(H){
           deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
 
           if (!this.counter){
-            // resource.move(H.Grids.center.map(c => c*4 -50));
-            resource.move(this.moves[this.movePointer]);
+            this.scanner = H.Scout.scanner(resource);  // inits search pattern with first unit
+            this.target = this.scanner.next(resource.location());
+
+          } else if (this.units.count > this.maxUnits) {
+            resource.release();
+
           } else {
-            resource.move(this.position);
+            resource.move(this.units.center);                        // all other move to last known location
           }
 
-          // deb("scout.center: %s", H.Grids.center);
-
+          this.counter += 1;
 
         },
         onDestroy:   function(resource){
@@ -82,14 +86,30 @@ HANNIBAL = (function(H){
           deb("     G: %s onDestroy: %s", this, resource);
 
           if (this.units.match(resource)){
-            this.counter += 1;
-            this.economy.request(Math.min(this.counter, 5 - this.units.count), this.units, this.position);  
+            this.losses += 1;
+            // succesively increment up to 5
+            var amount = Math.max(this.maxUnits - this.units.count, this.losses +1);
+            deb("AMOUNT: %s, max: %s, units: %s, losses: %s", amount, this.maxUnits, this.units.count, this.losses);
+            this.economy.request(amount, this.units, this.position);  
           }      
 
         },
-        onAttack:    function(resource, enemy, type, damage){
+        onAttack:    function(resource, attacker, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage.toFixed(1));
+          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, H.Entities[attacker] || attacker, damage.toFixed(1));
+
+          H.Scout.scanAttacker(attacker);
+
+          if (resource.health < 80){
+            if (this.units.spread > 50){
+              resource.stance("defensive");
+              resource.flee(attacker);
+            } else {
+              H.Scout.scan(this.units.nearest(this.target.point));
+              this.units.stance("defensive");
+              this.units.flee(attacker);
+            }
+          }
 
         },
         onBroadcast: function(source, msg){},
@@ -100,29 +120,51 @@ HANNIBAL = (function(H){
         },
         onInterval:  function(secs, ticks){
 
-          deb("     G: %s onInterval,  %s/%s, states: %s, res: %s", 
-            this, secs, ticks, H.prettify(this.units.states()), this.units.resources
+          deb("     G: %s onInterval,  states: %s, health: %s", 
+            this, H.prettify(this.units.states()), this.units.health
           );
 
+          // var t0 = Date.now();
+
           if (this.units.count){
-            this.position = this.units.center;
+            
+            if (this.units.doing("idle").count === this.units.count){
+
+              this.position = this.units.center;
+
+              this.target = this.scanner.next(this.position);
+
+              if (this.target.point && this.target.treasures) {
+                this.units.first().collect(this.target.treasures);
+                return;
+              
+              } else if (this.target.point && this.target.terrain === "land") {
+                this.units.doing("idle").forEach(function(unit){
+                  this.units.stance("aggressive");
+                  unit.move(this.target.point);
+                });
+
+              } else {
+                this.units.release();
+                this.dissolve();
+                H.Scout.dump("scout-final-" + ticks + ".png", 255)
+                deb("      G: %s finished scouting");
+                return;
+
+              }
+            } else {
+              this.units.doing("idle").move(this.units.center);
+            }
+
+            H.Scout.scan(this.units.nearest(this.target.point));
+
           }
 
-          if (this.units.doing("idle").count){
-            this.movePointer = (
-              (this.movePointer === this.moves.length -1) ? 0 : ++this.movePointer
-            );
-            this.units.doing("idle").move(this.moves[this.movePointer]);
+          if (!(ticks % 10)){
+            H.Scout.dump("scout-" + ticks + ".png", 255)
           }
 
-          this.units.forEach(function(resource){
-            // deb("onInterval: resource: %s", resource);
-            H.Grids.analyze("scout", resource);
-          });
-
-          if (!(ticks % 5)){
-            H.Grids.scouting.dump("scout-" + ticks + ".png", 255)
-          }
+          // deb("     G: scout interval: %s msecs", Date.now() - t0);
 
         }
       }

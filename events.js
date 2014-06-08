@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
     "RangeUpdate",
     "PlayerDefeated"
   ],
-  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s",
+  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s",
   createEvents  = {},
   destroyEvents = {};
 
@@ -192,10 +192,12 @@ HANNIBAL = (function(H){
             break;
           }
 
-          // finally
-          deb("   EVT: %s, id: %s, own: %s, meta: %s, mats: %s, %s ent: %s", 
-                       type, id, own, meta, mats, info, tpl
-          );
+          if (own == H.Bot.id){
+            // finally
+            deb("   EVT: %s, id: %s, own: %s, meta: %s, mats: %s, %s ent: %s", 
+                         type, id, own, meta, mats, info, tpl
+            );
+          }
 
         }
 
@@ -207,7 +209,7 @@ HANNIBAL = (function(H){
           break;
 
           case "Create":  // .entity (num)
-            createEvents[event.entity] = event;
+            // createEvents[event.entity] = event;
           break;
 
 
@@ -224,17 +226,21 @@ HANNIBAL = (function(H){
               }
             } else {
               // we get some or all of these, maybe if ???
-              deb("INFO  : got foreign EntityRenamed: %s", H.prettify(event));
+              // deb("INFO  : got foreign EntityRenamed: %s", H.prettify(event));
             }
           break;
 
 
           case "ConstructionFinished": // own: ???, meta: {}, mats: {entity, newentity},  ent: ???
-            if (event.newentity !== event.entity){
-              this.copyAllListener(event.newentity, event.entity);
-              this.dispatchEvent(type, event.newentity, event);
+            if (H.Entities[event.newentity].owner() === PID){
+              if (event.newentity !== event.entity){
+                this.copyAllListener(event.newentity, event.entity);
+                this.dispatchEvent(type, event.newentity, event);
+              } else {
+                deb("INFO  : EVENTS: ConstructionFinished with double id: %s ignored", event.entity);
+              }
             } else {
-              deb("INFO  : EVENTS: ConstructionFinished with double id: %s ignored", event.entity);
+              // deb("INFO  : got foreign ConstructionFinished: %s", H.prettify(event));
             }
           break;
 
@@ -254,7 +260,7 @@ HANNIBAL = (function(H){
             if (H.Entities[event.entity].owner() === PID){
               this.dispatchEvent(type, event.entity, event);
             } else {
-              deb("INFO  : got foreign Garrison: %s", H.prettify(event));
+              // deb("INFO  : got foreign Garrison: %s", H.prettify(event));
             }
           break;
 
@@ -301,7 +307,7 @@ HANNIBAL = (function(H){
                 }
               });
             } else {
-              deb("INFO  : got foreign TrainingFinished: %s", H.prettify(event));
+              // deb("INFO  : got foreign TrainingFinished: %s", H.prettify(event));
             }
             
           break;

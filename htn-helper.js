@@ -166,7 +166,7 @@ HANNIBAL = (function(H){
 
     },
 
-    addUnique: function(task, taskList){
+    pushUnique: function(task, taskList){
 
       // fast and ugly, may modify taskList
 
@@ -184,7 +184,7 @@ HANNIBAL = (function(H){
               task[1] === taskList[i][1] && 
               task[2] === taskList[i][2]){return;}
         } else {
-          deb("ERROR : HTN.addUnique needs %s cases", tl);
+          deb("ERROR : HTN.addUnique pushUnique %s cases", tl);
         }
       }
 
