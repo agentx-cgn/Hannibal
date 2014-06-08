@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
         'HCQ':  function(){},
         'BLOCKS':  function(){},
         'MAPS':  function(){},
-        'TECH': function(){self.results("divResult", H.Display.pritJSON(techTemplates)); return null;},
+        'TECH': function(){self.result("divResult", H.Display.pritJSON(techTemplates)); return null;},
       },
       menus = {
         'MMAP': function(){window.open("../docs/Hannibal-Mmap.html", "mmap"); return null;},
