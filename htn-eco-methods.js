@@ -40,24 +40,24 @@ HANNIBAL = (function(H){
         return fmt("[%s: %s%s]", t1, t2, t3);
       };
 
-  function populateTree(nodename){
+  // function populateTree(nodename){
 
-    "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
-      H.QRY(verb + " DISTINCT").forEach(ent => {
-        verb = verb.toLowerCase();
-        if (!tree[nodename][verb]){
-          tree[nodename][verb] = [];
-        }
-        tree[nodename][verb].push(ent.name);
-        if (!tree[ent.name]){
-          console.log("tree.add: ", ent.name);
-          tree[ent.name] = {};
-          populateTree(ent.name);
-        }
-      });
-    });
+  //   "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
+  //     H.QRY(verb + " DISTINCT").forEach(ent => {
+  //       verb = verb.toLowerCase();
+  //       if (!tree[nodename][verb]){
+  //         tree[nodename][verb] = [];
+  //       }
+  //       tree[nodename][verb].push(ent.name);
+  //       if (!tree[ent.name]){
+  //         console.log("tree.add: ", ent.name);
+  //         tree[ent.name] = {};
+  //         populateTree(ent.name);
+  //       }
+  //     });
+  //   });
 
-  }
+  // }
 
   function cacheProducers(){
 
@@ -81,6 +81,39 @@ HANNIBAL = (function(H){
     H.QRY("ENABLE DISTINCT").forEach(node => {
       var tech = H.QRY(node.name + " REQUIRE").first().name;
       cacheTechnology[node.name] = tech;
+    });
+
+  }
+
+  function cacheDepths(){
+
+    var zero = function () {return {ress: {}, ents: {}, tech: []};},
+        civ  = H.Bot.civ,
+        cc   = H.format("structures.%s.civil.centre", civ),
+        config = {
+          techs: "RESEARCH DISTINCT",
+          bldgs: "BUILD DISTINCT",
+          units: "TRAIN DISTINCT"
+        },
+        planner = new H.HTN.Planner({
+          domain: H.HTN.Economy,
+          verbose: 0,
+          noInitialize: true
+        });
+
+    H.each(config, function(name, query){
+      H.QRY(query).forEach(function(node){
+        if (H.QRY(node.name + " PAIR").first()){return;}
+        var goal  = zero(), start = zero();
+        start.ents[cc] = 1;
+        if (name === 'techs') {
+          goal.tech = [node.name];
+        } else {
+          goal.ents[node.name] = 1;
+        }
+        planner.plan(start, [[m.init, goal]]);
+        H.Data.Depths[node.name] = planner.depth;
+      });
     });
 
   }
@@ -225,7 +258,7 @@ HANNIBAL = (function(H){
 
   H.HTN.Economy.initialize = function(oPlanner){
 
-    var t0 = Date.now(), root = "structures." + H.Bot.civ + ".civil.centre";
+    var t0 = Date.now();
     
     m = H.HTN.Economy.methods;
     o = H.HTN.Economy.operators;
@@ -235,10 +268,6 @@ HANNIBAL = (function(H){
     nodes   = H.HTN.Economy.nodes = H.store ? H.store.nodes : H.Bot.culture.strore.nodes;
     planner = oPlanner;
 
-    H.HTN.Economy.tree = tree = {};
-    tree[root] = {};
-    // populateTree(root);
-    
     cacheTechnologies();
     cacheProducers();
     cacheBuildings.house = H.QRY("house CONTAIN").first().name;
@@ -249,7 +278,8 @@ HANNIBAL = (function(H){
     cacheBuildings.town = H.QRY("town CONTAIN")
       .map(node => node.name)
       .filter(filterBuildings);
-    // console.log("H.HTN.Economy.initialize", Date.now() - t0, "msecs");
+     cacheDepths();
+    console.log("H.HTN.Economy.initialize", Date.now() - t0, "msecs");
   };
 
   H.HTN.Economy.searchTree = function searchTree (from, to, distance){
@@ -320,8 +350,7 @@ HANNIBAL = (function(H){
 
     start: function start(state, goal){
 
-      var diff = 0, node, prop, tech, 
-          tasks = [], ents = [], techs = [],
+      var diff = 0, prop, tech, ents = [], techs = [],
           depths = H.Data.Depths[H.Bot.civ];
 
       // resources are priotized for testing
@@ -477,7 +506,7 @@ HANNIBAL = (function(H){
         return [[m.advance, name]];
       }
 
-      console.log("produce.out", operator, name, amount);
+      // console.log("produce.out", operator, name, amount);  
 
       // only time left
       return ( product.costs && product.costs.time ? 

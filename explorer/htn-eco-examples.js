@@ -18,7 +18,7 @@ HANNIBAL = (function(H){
   H.HTN.Economy = H.HTN.Economy || {};
 
   var tab  = "&nbsp;&nbsp;&nbsp;&nbsp;",
-      prit = H.prettify,
+      prit = H.prettify, pritObj, 
       fmt  = function fmt(){
         var c=0, a=Array.prototype.slice.call(arguments);
         a.push("");
@@ -51,7 +51,7 @@ HANNIBAL = (function(H){
         });
       };       
 
-  var m, o, pritObj , 
+  var planner, m, o, 
       copy = obj => JSON.parse(JSON.stringify(obj)),
       initialize = function(){
         o         = H.HTN.Economy.operators;
@@ -61,7 +61,7 @@ HANNIBAL = (function(H){
 
   H.HTN.Economy.test1 = function(verbose){
 
-    var planner, state = {}, goal = {}, 
+    var state = {}, goal = {}, 
         solution, deb, 
         log = function(){
           planner.logstack.forEach(function(o){
@@ -87,7 +87,7 @@ HANNIBAL = (function(H){
       "******************************************************************************"
     );
 
-    planner = new H.HTN.Planner({
+    planner = planner || new H.HTN.Planner({
       domain: H.HTN.Economy,
       verbose: verbose
     });
@@ -148,7 +148,7 @@ HANNIBAL = (function(H){
 
   H.HTN.Economy.test2 = function(verbose){
 
-    var planner, state = {}, goal = {}, 
+    var state = {}, goal = {}, 
         solution, deb, 
         log = function(){
           planner.logstack.forEach(function(o){
@@ -174,7 +174,7 @@ HANNIBAL = (function(H){
       "****************************************"
     );
 
-    planner = new H.HTN.Planner({
+    planner = planner || new H.HTN.Planner({
       domain: H.HTN.Economy,
       verbose: verbose
     });
@@ -216,7 +216,7 @@ HANNIBAL = (function(H){
 
   H.HTN.Economy.test3 = function(verbose){
 
-    var planner, state = {}, goal = {}, 
+    var state = {}, goal = {}, 
         solution, deb, 
         log = function(){
           planner.logstack.forEach(function(o){
@@ -242,7 +242,7 @@ HANNIBAL = (function(H){
       "****************************************"
     );
 
-    planner = new H.HTN.Planner({
+    planner = planner || new H.HTN.Planner({
       domain: H.HTN.Economy,
       verbose: verbose
     });
@@ -330,7 +330,7 @@ HANNIBAL = (function(H){
     initialize();
     H.Browser.results.clear('tblResult');    
 
-    var planner = new H.HTN.Planner({
+    planner = planner || new H.HTN.Planner({
       domain: H.HTN.Economy,
       verbose: 0
     });
@@ -401,7 +401,7 @@ HANNIBAL = (function(H){
   };
   H.HTN.Economy.runStress = function(cVerbose, cLoops, cState, cGoal){
 
-    var t0, t1, p, deb = debLine, state, goal, planner,
+    var t0, t1, p, deb = debLine, state, goal,
         loops = ~~($(cLoops).value).split(".").join(""),
         counter = loops +1,
         verbose = ~~$(cVerbose).value,
@@ -430,7 +430,7 @@ HANNIBAL = (function(H){
     initialize();
     H.Browser.results.clear('tblResult');
 
-    planner = new H.HTN.Planner({
+    planner = planner || new H.HTN.Planner({
       domain: H.HTN.Economy,
       verbose: verbose
     });
@@ -477,7 +477,7 @@ HANNIBAL = (function(H){
   };
   H.HTN.Economy.runTarget = function(verbose, state, goal){
 
-    var planner, solution, deb = debLine,
+    var solution, deb = debLine,
         prit  = H.prettify,
         log = function(){
           planner.logstack.forEach(function(o){
@@ -490,7 +490,7 @@ HANNIBAL = (function(H){
     initialize();
     H.Browser.results.clear('tblResult');
 
-    planner = new H.HTN.Planner({
+    planner = planner || new H.HTN.Planner({
       domain: H.HTN.Economy,
       verbose: verbose
     });
@@ -510,7 +510,7 @@ HANNIBAL = (function(H){
   };
   H.HTN.Economy.runGo = function(cVerbose, cState, cGoal){
 
-    var planner, state, goal, solution, deb = debLine,
+    var state, goal, solution, deb = debLine,
         verbose = ~~$(cVerbose).value,
         indent = function(i){return new Array(i).join("&nbsp;");}
         prit  = H.prettify,
@@ -543,7 +543,7 @@ HANNIBAL = (function(H){
     initialize();
     H.Browser.results.clear('tblResult');
 
-    planner = new H.HTN.Planner({
+    planner = planner || new H.HTN.Planner({
       domain: H.HTN.Economy,
       verbose: verbose
     });

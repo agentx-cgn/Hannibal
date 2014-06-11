@@ -74,6 +74,7 @@ HANNIBAL = (function(H){
           maxDepth:       200,   // seeking stops here
           maxIterations:  300,   // seeing stops here
           domain:        null,   // defines the domain within an app
+          noInitialize:  false,  // suppress Domain initialization
           methods:       null,   // object holding the methods
           operators:     null,   // object holding the operators
           tasks:         null,   // the tasks given on first call
@@ -83,7 +84,7 @@ HANNIBAL = (function(H){
 
     H.extend(this, defs, config || {});
 
-    if (this.domain.initialize){this.domain.initialize(this);}
+    if (this.domain.initialize && !this.noInitialize){this.domain.initialize(this);}
     this.methods   = this.domain.methods;
     this.operators = this.domain.operators;
 
