@@ -14,11 +14,7 @@
 
 HANNIBAL = (function(H){
 
-  var // simple deep copy
-      // copy = function(o){return JSON.parse(JSON.stringify(o));},
-      // copy = function(o){return H.extend({}, o);},
-      // simple template formatter on %s
-      fmt  = function fmt(){
+  var fmt  = function fmt(){
         var c=0, a=Array.prototype.slice.call(arguments); a.push("");
         return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
       },
@@ -32,7 +28,7 @@ HANNIBAL = (function(H){
         return fmt("[%s: %s%s]", t1, t2, t3);
       },
       copy = function(s){
-        var i = s.tech.length, p, o = {civ: s.civ, cost: {}, ress: {}, ents: {}, tech: []};
+        var p, i = s.tech.length, o = {civ: s.civ, cost: {}, ress: {}, ents: {}, tech: []};
         for (p in s.cost){o.cost[p] = s.cost[p];}
         for (p in s.ress){o.ress[p] = s.ress[p];}
         for (p in s.ents){o.ents[p] = s.ents[p];}
@@ -49,7 +45,7 @@ HANNIBAL = (function(H){
     this.start  = new H.HTN.State("start", start);
     this.goal   = new H.HTN.Goal("goal", goal);
     this.domain = domain;
-    this.verbose  = verbose; 
+    this.verbose   = verbose; 
     this.evaluated = 0;
   };
   H.HTN.Solution.prototype = {
@@ -60,7 +56,7 @@ HANNIBAL = (function(H){
         operators: this.domain.operators,
         goal:      this.goal,
         state:     this.start,
-        verbose:     this.verbose || 0
+        verbose:   this.verbose || 0
       });
       if (this.domain.initialize) {this.domain.initialize(this.planner);}
       return this.plan = this.planner.plan(this.start, tasks);
@@ -104,7 +100,7 @@ HANNIBAL = (function(H){
         });
       }
     },
-    plan: function(state, tasks){
+    plan: function plan (state, tasks){
 
       var t0, t1;
 
@@ -143,17 +139,79 @@ HANNIBAL = (function(H){
       return this;
 
     },
+    seekPlan: function seekPlan () {
+
+      var state, tasks, plan, depth, exit, 
+          task, name, result, newstate, newPlan, subtasks, newTasks;
+
+      while (this.stack.length) {
+
+        [state, tasks, plan, depth] = this.stack.pop();
+
+        this.depth = depth > this.depth ? depth : this.depth; // Math.max(depth, this.depth); 
+        this.iterations += 1;
+
+        exit = (
+          // prefered outcome
+          !tasks.length                        ? [plan, state] :
+          this.depth      > this.maxDepth      ? [plan, state, fmt("too deep ( %s )", this.depth)] : 
+          this.iterations > this.maxIterations ? [plan, state, fmt("too many iterations ( %s )", this.iterations)] :
+            null
+        );
+
+        if (exit){return exit;}
+
+        task = tasks[0];
+        name = task[0].name;
+
+        if (name === "ANY") {
+
+          result = this.seekAnyMethod(state, tasks, plan, ++this.depth);
+          if (result){this.stack.push(result);}
+
+        } else if (this.operators.hasOwnProperty(name)){
+
+          newstate = task[0](copy(state), task[1], task[2]);
+
+          if (newstate){
+            this.log(2, () => "OP: " + pritt(task));
+            newPlan  = plan.concat([[task[0].name, task[1], task[2]]]);
+            this.stack.push([newstate, tasks.slice(1), newPlan, ++this.depth]);
+          }
+
+        } else if (this.methods.hasOwnProperty(name)){
+
+          subtasks = task[0](state, task[1], task[2]);
+
+          if (subtasks){
+            this.log(2, () => "MT: " + pritt(task));
+            newTasks = subtasks.concat(tasks.slice(1));
+            this.stack.push([state, newTasks, plan, ++this.depth]);
+          }
+
+        }
+
+      }
+
+      return (
+        // if task was valid 
+        depth > 1 ? [plan, state] : 
+        // if valid solution
+        plan  ? [plan, state] : 
+        // first task not valid
+        [plan, state, fmt("no solution for task: [%s, %s], depth: %s", name, tasks[0][1], depth)]
+      );
+
+    },
     seekAnyMethod: function seekAnyMethod (state, tasks, plan, depth){
 
-      var anyTasks   = tasks[0][1],
-          anyPointer = 0,
-          anyTask    = anyTasks[anyPointer],
+      var anyTasks = tasks[0][1], anyPointer = 0, anyTask, 
           i, len, subtasks, anySubTasks, newTasks,
           pushUnique = H.HTN.Helper.pushUnique;
 
-      while (anyTask) {
+      while ((anyTask = anyTasks[anyPointer++])) {
 
-        this.log(2, () => fmt("AT: (%s/%s) [%s: %s]", anyPointer, anyTasks.length, anyTask[0].name, anyTask[1]));
+        this.log(2, () => fmt("AT: (%s/%s) [%s: %s, %s]", anyPointer, anyTasks.length, anyTask[0].name, anyTask[1], anyTask[2] || ""));
 
         this.iterations += 1;
         subtasks = anyTask[0](state, anyTask[1], anyTask[2]);
@@ -171,82 +229,12 @@ HANNIBAL = (function(H){
             return [state, newTasks, plan, depth];
 
           }
-        }    
 
-        anyTask = anyTasks[++anyPointer];
+        }    
 
       }
 
       return null;
-
-    },
-    seekPlan: function seekPlan () {
-
-      var exit, name, depth, result,
-          state, newstate, plan, newPlan,
-          task, tasks, subtasks, newTasks;
-
-      [state, tasks, plan, depth] = this.stack.pop();
-
-      while (tasks.length) {
-
-        this.depth = depth > this.depth ? depth : this.depth; // Math.max(depth, this.depth); 
-        this.iterations += 1;
-
-        exit = (
-          !tasks.length && depth ? [plan, state] :
-          this.depth > this.maxDepth ? [plan, state, fmt("too deep ( %s )", this.depth)] : 
-          this.iterations > this.maxIterations ? [plan, state, fmt("too many iterations ( %s )", this.iterations)] :
-            null
-        );
-
-        if (exit){return exit;}
-
-        name = tasks[0][0].name;
-        task = tasks[0];
-
-        if (name === "ANY") {
-
-          result = this.seekAnyMethod(state, tasks, plan, ++this.depth);
-          if (result){this.stack.push(result);}
-
-        } else if (this.operators.hasOwnProperty(name)){
-
-          newstate = task[0](copy(state), task[1], task[2]);
-
-          if (newstate){
-            this.log(2, () => "OP: " + pritt(task));
-            // newPlan  = plan.concat([[task[0].name].concat(task.slice(1))]);
-            newPlan  = plan.concat([[task[0].name, task[1], task[2]]]);
-            this.stack.push([newstate, tasks.slice(1), newPlan, ++this.depth]);
-          }
-
-        } else if (this.methods.hasOwnProperty(name)){
-
-          subtasks = task[0](state, task[1], task[2]);
-
-          if (subtasks){
-            this.log(2, () => "MT: " + pritt(task));
-            newTasks = subtasks.concat(tasks.slice(1));
-            this.stack.push([state, newTasks, plan, ++this.depth]);
-          }
-
-        }
-
-        if (this.stack.length){
-          [state, tasks, plan, depth] = this.stack.pop();
-        }
-
-      }
-
-      return (
-        // if task was valid 
-        depth > 1 ? [plan, state] : 
-        // if valid solution
-        plan  ? [plan, state] : 
-        // first task not valid
-        [plan, state, fmt("no solution for task: [%s, %s], depth: %s", name, tasks[0][1], depth)]
-      );
 
     }
 

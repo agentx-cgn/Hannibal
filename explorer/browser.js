@@ -17,16 +17,16 @@ HANNIBAL = (function(H){
   var self,
       TR = ';',
       pages = {
-        'HTN':  function(){},
-        'HCQ':  function(){},
-        'BLOCKS':  function(){},
-        'MAPS':  function(){},
-        'TECH': function(){self.result("divResult", H.Display.pritJSON(techTemplates)); return null;},
+        'HTN':    function(){},
+        'HCQ':    function(){},
+        'BLOCKS': function(){},
+        'MAPS':   function(){},
+        'TECH':   function(){self.result("divResult", H.Display.pritJSON(techTemplates)); return null;},
       },
       menus = {
-        'MMAP': function(){window.open("../docs/Hannibal-Mmap.html", "mmap"); return null;},
-        'TOP':  function(){document.documentElement.scrollTop = 0; return null;},
-        'LOAD': function(){location.reload(); return null;},
+        'MMAP':   function(){window.open("../docs/Hannibal-Mmap.html", "mmap"); return null;},
+        'TOP':    function(){document.documentElement.scrollTop = 0; return null;},
+        'LOAD':   function(){location.reload(); return null;},
       };
 
 
@@ -89,6 +89,7 @@ HANNIBAL = (function(H){
         $("btnHTNT2").onclick = function(){H.HTN.Economy.test2('slcVerbose');};
         $("btnHTNT3").onclick = function(){H.HTN.Economy.test3('slcVerbose');};
         $("btnHTNGo").onclick = function(){H.HTN.Economy.runGo('slcVerbose', 'txtState', 'txtGoal');};
+        $("btnHTNTC").onclick = function(){H.HTN.Economy.runCiv('slcCivs');};
         $("btnHTNStress").onclick = function(){H.HTN.Economy.runStress('slcVerbose', 'slcStress', 'txtState', 'txtGoal');};
 
         $("slcExams").onchange = $("slcExams").onselect = function(){

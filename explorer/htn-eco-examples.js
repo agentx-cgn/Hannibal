@@ -308,10 +308,10 @@ HANNIBAL = (function(H){
 
 
   };  
-  H.HTN.Economy.runCiv = function(cciv){
+  H.HTN.Economy.runCiv = function(cCiv){
 
     var t0, t1, counter, deb = debLine, 
-        civ   = $(cciv).value,
+        civ     = $(cCiv).value,
         infoQ = H.store.cntQueries,
         infoH = H.store.cacheHit,
         infoM = H.store.cacheMiss,
@@ -319,7 +319,7 @@ HANNIBAL = (function(H){
         tab   = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
         zero  = function () {return {ress: {}, ents: {}, tech: []};},
         config = {
-          techs: {qry: "REQUIRE DISTINCT", com: "", counter: 0},
+          techs: {qry: "RESEARCH DISTINCT", com: "", counter: 0},
           bldgs: {qry: "BUILD DISTINCT",   com: "", counter: 0},
           units: {qry: "TRAIN DISTINCT",   com: "", counter: 0}
         },
@@ -330,23 +330,24 @@ HANNIBAL = (function(H){
     initialize();
     H.Browser.results.clear('tblResult');    
 
+    var planner = new H.HTN.Planner({
+      domain: H.HTN.Economy,
+      verbose: 0
+    });
+
     H.each(config, function(name, props){
       H.QRY(props.qry).forEach(function(node){
-        var goal  = zero(), 
-            start = zero(),
-            cc = H.format("structures.%s.civil.centre", civ);
-
-        start.ents[cc] = 1;
-        if (name === 'techs') {
-          goal.tech.push(node.name);
-        } else {
-          goal.ents[node.name] = 1;
-        }
+        if (H.QRY(node.name + " PAIR").first()){return;}
         solutions.push([node.name, function(){
-          var planner = new H.HTN.Planner({
-            domain: H.HTN.Economy,
-            verbose: 0
-          });
+          var goal  = zero(), 
+              start = zero(),
+              cc = H.format("structures.%s.civil.centre", civ);
+          start.ents[cc] = 1;
+          if (name === 'techs') {
+            goal.tech = [node.name];
+          } else {
+            goal.ents[node.name] = 1;
+          }
           planner.plan(start, [[m.init, goal]]);
           return planner;
         }]);
@@ -363,8 +364,14 @@ HANNIBAL = (function(H){
     (function runner (pointer) {
       var sol = solutions[pointer];
       if (sol) {
-        sol[2] = sol[1]();
-        var p = sol[2];
+        var p = sol[1]();
+        sol[2] = {
+          depth:      p.depth,
+          msecs:      p.msecs,
+          cost:       H.clone(p.result.cost),
+          length:     p.operations.length,
+          iterations: p.iterations,
+        };
         $("worker").innerHTML = H.format("%s/%s %s, %s", pointer +1, solutions.length, tab(p.operations.length, 4), sol[0]);
         setTimeout(()=> runner(pointer +1), 20);
       } else {finish(solutions);}
@@ -382,9 +389,9 @@ HANNIBAL = (function(H){
       deb(head, 'D', 'I', 'M', 'L', 'Name', r.reduce((a,b)=>a + "<td class='hr'>"+b+"</td>",""));
       sorted.forEach(function(sol){
         var p = sol[2],
-            c = p.result.cost,
+            c = p.cost,
             rr = r.map(r => c[r] || 0);
-        deb(line, p.depth, p.iterations, p.msecs, p.operations.length, sol[0], rr.reduce((a,b)=>a+"<td class='hr'>"+(b||'')+"</td>",""));
+        deb(line, p.depth, p.iterations, p.msecs, p.length, sol[0], rr.reduce((a,b)=>a+"<td class='hr'>"+(b||'')+"</td>",""));
       });
 
       deb("- done");
@@ -505,28 +512,31 @@ HANNIBAL = (function(H){
 
     var planner, state, goal, solution, deb = debLine,
         verbose = ~~$(cVerbose).value,
+        indent = function(i){return new Array(i).join("&nbsp;");}
         prit  = H.prettify,
         log = function(){
-          planner.logstack.forEach(function(o){
+          planner.logstack.forEach(function(o){ // {v: verbose, d: this.depth, m: txt, now: Date.now()}
             var msg;
-            msg = H.replace(o.m, "SUCCESS", "<strong style='color: #393'>SUCCESS</strong>");
-            debLine(msg);
+            if (o.m.contains("SUCCESS")){
+              debLine(H.replace(o.m, "SUCCESS", "<strong style='color: #393'>SUCCESS</strong>"));
+            } else {
+              debLine(indent(o.d) + o.m);
+            }
           });
         };      
 
+    H.Browser.error();
     try {
       state = JSON.parse("{" + $(cState).value + "}");
     } catch(e){
-      $("cError").innerHTML  = "Error: Check JSON of state<br />";
-      $("cError").innerHTML += "<span class='f80'>[" + e + "]</span>";
+      H.Browser.error("Error: Check JSON of state<br /><span class='f80'>[" + e + "]</span>");
       return;
     }
 
     try {
       goal = JSON.parse("{" + $(cGoal).value + "}");
     } catch(e){
-      $("cError").innerHTML  = "Error: Check JSON of goal<br />";
-      $("cError").innerHTML += "<span class='f80'>[" + e + "]</span>";
+      H.Browser.error("Error: Check JSON of state<br /><span class='f80'>[" + e + "]</span>");
       return;
     }
 
@@ -540,6 +550,7 @@ HANNIBAL = (function(H){
     
     planner.plan(state, [[m.init, goal]]);
     log();
+    deb();
     logTasks(planner.operations);
 
     deb();

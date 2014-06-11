@@ -36,6 +36,13 @@ H.extend(H, {
     for(i=st;i<ed;i+=sp){r.push(i);}
     return r;
   },
+  linspace:   function (a,b,n) {
+    if(n===undefined){n=Math.max(Math.round(b-a)+1,1);}
+    if(n<2) {return n===1?[a]:[];}
+    var i,ret=Array(n);n--;
+    for(i=n;i>=0;i--) {ret[i]=(i*b+(n-i)*a)/n;}
+    return ret;
+  },
   zip:        function (){
     var a = H.toArray(arguments), f = a.slice(-1)[0], o = a.slice(1, -1), l = [];
     a[0].forEach(function(d, i){
@@ -91,7 +98,7 @@ H.extend(H, {
   flatten:    function (a){return Array.prototype.concat.apply([], a);},
   pushUnique: function (a,e){if(a.indexOf(e)===-1){a.push(e);};return a;},
   equal:      function (a, b){return JSON.stringify(a) === JSON.stringify(b);},
-  intersect:  function(a,b){
+  intersect:  function (a,b){
     var ai=0,bi=0,al=a.length,bl=b.length,r=[];a=a.sort();b=b.sort();
     while( (ai < al) && (bi < bl) ){
       if      (a[ai] < b[bi] ){ ai++; }

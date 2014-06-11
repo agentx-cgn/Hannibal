@@ -21,12 +21,12 @@ HANNIBAL = (function(H){
 
   function applyCosts(state, costs, multiplier){
 
-      ['food', 'wood', 'metal', 'stone'].forEach(function(res){
-        state.ress[res] -= (costs[res]) ? costs[res] * multiplier : 0;
-      });
+    ['food', 'wood', 'metal', 'stone'].forEach(function(res){
+      state.ress[res] -= (costs[res]) ? costs[res] * multiplier : 0;
+    });
 
-      state.ress.pop    += (costs.population > 0) ? costs.population * multiplier : 0;
-      state.ress.popcap -= (costs.population < 0) ? costs.population * multiplier : 0;
+    state.ress.pop    += (costs.population > 0) ? costs.population * multiplier : 0;
+    state.ress.popcap -= (costs.population < 0) ? costs.population * multiplier : 0;
 
   }
 
@@ -80,13 +80,12 @@ HANNIBAL = (function(H){
 
     train_units: function train_units(state, name, amount) {
 
-      var unit;
+      var costs;
 
       if (true){
 
-        // unit = H.QRY(name).first();
-        unit = H.HTN.Economy.nodes[name];
-        if (unit.costs){applyCosts(state, unit.costs, amount);}
+        costs = H.HTN.Economy.nodes[name].costs;
+        if (costs){applyCosts(state, costs, amount);}
         state.ents[name] = state.ents[name] || 0;
         state.ents[name] += amount;
 
@@ -98,13 +97,12 @@ HANNIBAL = (function(H){
 
     build_structures: function build_structures(state, name, amount) {
 
-      var struc;
+      var costs;
 
       if (true){
 
-        // struc = H.QRY(name).first();
-        struc = H.HTN.Economy.nodes[name];
-        if (struc.costs){applyCosts(state, struc.costs, amount);}
+        costs = H.HTN.Economy.nodes[name].costs;
+        if (costs){applyCosts(state, costs, amount);}
         state.ents[name] = state.ents[name] || 0;
         state.ents[name] += amount;
 
@@ -116,13 +114,12 @@ HANNIBAL = (function(H){
 
     research_tech: function research_tech(state, name) {
 
-      var tech;
+      var costs;
 
       if (true){
 
-        // tech = H.QRY(name).first();
-        tech = H.HTN.Economy.nodes[name];
-        if (tech.costs) {applyCosts(state, tech.costs, 1);}
+        costs = H.HTN.Economy.nodes[name].costs;
+        if (costs) {applyCosts(state, costs, 1);}
         state.tech.push(name);
 
         // a hack, but works

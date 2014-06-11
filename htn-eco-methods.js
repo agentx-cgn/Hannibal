@@ -17,50 +17,73 @@ HANNIBAL = (function(H){
   H.HTN = H.HTN || {};                       
   H.HTN.Economy = H.HTN.Economy || {};
 
-  var m, o, planner, nodes, 
-      prit, sani, fmt,
-      // verbs = ['BUILDBY', 'TRAINEDBY', 'RESEARCHEDBY'],
+  var m, o, planner, nodes, prit, sani, fmt,
       mapper = {
         'BUILDBY':       'build_structures',
         'TRAINEDBY':     'train_units',
         'RESEARCHEDBY':  'research_tech'
       },
-      cacheProducers = {},
+      tree = {},
+      cacheProducer  = {},
       cacheTechnology = {},
-      cacheBuildings = {},
+      cacheBuildings  = {},
+      filterBuildings = name => (
+        !name.contains("palisade") || 
+        !name.contains("field")    ||
+        !name.contains("wall")     ||
+        !name.contains("civil.centre")
+      ),
       pritt = function(task){
         var t1 = task[0].name,
             t2 = Array.isArray(task[1]) ? task[1].length : task[1],
             t3 = task.length === 3 ? ", " + task[2] : "";
         return fmt("[%s: %s%s]", t1, t2, t3);
       };
-      
 
-   function prepCacheProducers(){
+  function populateTree(nodename){
 
-     var verbMapper = {
-       "TRAIN": "TRAINEDBY",
-       "BUILD": "BUILDBY",
-       "RESEARCH": "RESEARCHEDBY"
-     };
+    "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
+      H.QRY(verb + " DISTINCT").forEach(ent => {
+        verb = verb.toLowerCase();
+        if (!tree[nodename][verb]){
+          tree[nodename][verb] = [];
+        }
+        tree[nodename][verb].push(ent.name);
+        if (!tree[ent.name]){
+          console.log("tree.add: ", ent.name);
+          tree[ent.name] = {};
+          populateTree(ent.name);
+        }
+      });
+    });
 
-     "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
-       H.QRY(verb + " DISTINCT").forEach(ent => {
-         var producers = H.QRY(ent.name + " " + verbMapper[verb]).execute();
-         cacheProducers[ent.name] = [producers, o[mapper[verbMapper[verb]]]];
-       });
-     });
+  }
 
-   }
+  function cacheProducers(){
 
-   function prepCacheTechnologies(){
+    var verbMapper = {
+      "TRAIN": "TRAINEDBY",
+      "BUILD": "BUILDBY",
+      "RESEARCH": "RESEARCHEDBY"
+    };
 
-     H.QRY("ENABLE DISTINCT").forEach(node => {
-       var tech = H.QRY(node.name + " REQUIRE").first().name;
-       cacheTechnology[node.name] = tech;
-     });
+    "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
+      H.QRY(verb + " DISTINCT").forEach(ent => {
+        var producers = H.QRY(ent.name + " " + verbMapper[verb]).execute();
+        cacheProducer[ent.name] = [producers, o[mapper[verbMapper[verb]]]];
+      });
+    });
 
-   }
+  }
+
+  function cacheTechnologies(){
+
+    H.QRY("ENABLE DISTINCT").forEach(node => {
+      var tech = H.QRY(node.name + " REQUIRE").first().name;
+      cacheTechnology[node.name] = tech;
+    });
+
+  }
 
   function checkProducers (planner, m, o, state, producers){
 
@@ -77,7 +100,6 @@ HANNIBAL = (function(H){
     return tasks.length ? [[{name: 'ANY'}, tasks]] : null;
 
   }
-
 
   function checkPopulationMax (planner, m, o, state, product, amount){
     // needs testing
@@ -132,16 +154,16 @@ HANNIBAL = (function(H){
 
   function checkCosts (planner, m, o, state, product, amount) {
 
-    var p, diff, tasks = [], costs = {};
+    var res, diff, tasks = [], costs = {};
 
-    for (p in product.costs){costs[p] = product.costs[p] * amount;}
+    for (res in product.costs){costs[res] = product.costs[res] * amount;}
 
     if(!H.Economy.fits(costs, state.ress)){
-      for (resource of ['food', 'wood', 'metal', 'stone']) {
-        if (costs[resource]) {
-          diff = costs[resource] - state.ress[resource];
+      for (res of ['food', 'wood', 'metal', 'stone']) {
+        if (costs[res]) {
+          diff = costs[res] - state.ress[res];
           if (diff > 0){
-            tasks.push([o.inc_resource, resource, diff]);
+            tasks.push([o.inc_resource, res, diff]);
           }
         }
       }
@@ -153,7 +175,7 @@ HANNIBAL = (function(H){
 
   function checkReqBuildings (planner, m, o, state, tech, name){
 
-    var buildings, entities, inter, have, diff, house;
+    var buildings, entities, inter, have, diff;
 
     // check for enough buildings
     buildings = cacheBuildings[tech.requires.class];
@@ -164,8 +186,8 @@ HANNIBAL = (function(H){
 
     if (diff > 0){  
       return ( 
-        name.contains('town') ? [[m.produce, cacheBuildings["house"], diff]] :
-        name.contains('city') ? [[m.produce, cacheBuildings["defensetower"], diff]] :
+        name.contains('town') ? [[m.produce, cacheBuildings.house, diff]] :
+        name.contains('city') ? [[m.produce, cacheBuildings.defensetower, diff]] :
           deb("ERROR : advance requires class WTF")
       );
     }
@@ -181,28 +203,18 @@ HANNIBAL = (function(H){
 
     if (tech.requires.tech){
       req = replace(tech.requires.tech);
-      return (state.tech.indexOf(req) === -1 ? [[m.produce, req]] : null
-      );
+      return state.tech.indexOf(req) === -1 ? [[m.produce, req]] : null;
 
     } else if (tech.requires.any){
-      // console.log("tech.requires.any", tech.requires.any);
-      any = tech.requires.any;
-      i = any.length;
+      any = tech.requires.any; i = any.length;
       while(i--){
         req = replace(any[i].tech);
-        if (!!nodes[req] && state.tech.indexOf(req) === -1){
+        if (nodes[req] && state.tech.indexOf(req) === -1){
           tasks.push([m.produce, req, 1]);
-          // console.log("tech.requires.any pushing", req);
         }
       }
-      // tasks = tech.requires.any
-      //   .map(req => sani(req.tech))  //CHECK: there is also req.civ
-      //   .filter(req => !!nodes[req] && (state.tech.indexOf(req) === -1))
-      //   .map(req => [m.produce, req]);
 
-      return (tasks.length > 0 ? 
-        [[{name: "ANY"}, tasks]] : null
-      );
+      return tasks.length ? [[{name: "ANY"}, tasks]] : null;
 
     } 
 
@@ -211,59 +223,51 @@ HANNIBAL = (function(H){
   }
 
 
-  // function checkReqAny(planner, m, o, state, tech){
-
-  //   var tasks;
-
-  //   if (tech.requires && tech.requires.any){
-
-  //     // find out what works, relies on ts has no unavail techs
-  //     tasks = tech.requires.any
-  //       .map(req => sani(req.tech))  //CHECK: there is also req.civ
-  //       .filter(req => !!nodes[req] && (state.tech.indexOf(req) === -1))
-  //       .map(req => [m.produce, req]);
-
-  //     return (tasks.length > 0 ? 
-  //       [[{name: "ANY"}, tasks]] : null
-  //     );
-
-  //   } 
-
-  //   return null;
-
-  // }
-
-
-
-
   H.HTN.Economy.initialize = function(oPlanner){
+
+    var t0 = Date.now(), root = "structures." + H.Bot.civ + ".civil.centre";
+    
     m = H.HTN.Economy.methods;
     o = H.HTN.Economy.operators;
-    fmt   = H.HTN.Helper.fmt;
-    prit  = H.prettify;
-    sani  = H.saniTemplateName;
-    nodes = H.HTN.Economy.nodes = H.store ? H.store.nodes : H.Bot.culture.strore.nodes;
+    fmt     = H.HTN.Helper.fmt;
+    prit    = H.prettify;
+    sani    = H.saniTemplateName;
+    nodes   = H.HTN.Economy.nodes = H.store ? H.store.nodes : H.Bot.culture.strore.nodes;
     planner = oPlanner;
-    prepCacheTechnologies();
-    prepCacheProducers();
-    cacheBuildings["house"] = H.QRY("house CONTAIN").first().name;
-    cacheBuildings["defensetower"] = H.QRY("defensetower CONTAIN").first().name;
-    cacheBuildings["village"] = H.QRY("village CONTAIN")
+
+    H.HTN.Economy.tree = tree = {};
+    tree[root] = {};
+    // populateTree(root);
+    
+    cacheTechnologies();
+    cacheProducers();
+    cacheBuildings.house = H.QRY("house CONTAIN").first().name;
+    cacheBuildings.defensetower = H.QRY("defensetower CONTAIN").first().name;
+    cacheBuildings.village = H.QRY("village CONTAIN")
       .map(node => node.name)
-      .filter(name => (
-          !name.contains("palisade") || 
-          !name.contains("field")    ||
-          !name.contains("wall")     ||
-          !name.contains("civil.centre")
-      ));
-    cacheBuildings["town"] = H.QRY("town CONTAIN")
+      .filter(filterBuildings);
+    cacheBuildings.town = H.QRY("town CONTAIN")
       .map(node => node.name)
-      .filter(name => (
-          !name.contains("palisade") || 
-          !name.contains("field")    ||
-          !name.contains("wall")     ||
-          !name.contains("civil.centre")
-      ));
+      .filter(filterBuildings);
+    // console.log("H.HTN.Economy.initialize", Date.now() - t0, "msecs");
+  };
+
+  H.HTN.Economy.searchTree = function searchTree (from, to, distance){
+
+    var i;
+
+    distance = distance || 0;
+    
+    ["train",  "build", "research"].forEach(verb => {
+      if (tree[from][verb].indexOf(to) !== -1){
+        return distance;
+      } else {
+        i = tree[from][verb].length;
+        while(i--){
+          return searchTree(tree[from][verb][i], to, distance +1);
+        }
+      }
+    });
 
   };
 
@@ -299,7 +303,7 @@ HANNIBAL = (function(H){
       // population
       if (H.count(state.ents) > 0){
         H.QRY(H.attribs(state.ents).join(", ")).forEach(function(node){
-          if (node.costs && !!node.costs.population){
+          if (node.costs && node.costs.population){
             if (node.costs.population < 0) {
               state.ress.popcap -= node.costs.population;
             } else {
@@ -316,55 +320,57 @@ HANNIBAL = (function(H){
 
     start: function start(state, goal){
 
-      var diff = 0, node, prop, tech, availTechs, tasks = [];
+      var diff = 0, node, prop, tech, 
+          tasks = [], ents = [], techs = [],
+          depths = H.Data.Depths[H.Bot.civ];
 
-      // population
-      if (goal.popcap){
-        diff = goal.popcap - (state.popcap || 0);
-        if (diff > 0){
-          node = H.QRY("house CONTAIN").first();
-          diff  = ~~(diff / node.population * -1 + 1);
-          tasks.push([m.produce, node.name, diff]);
-        }
-      }
-
-      // resources
+      // resources are priotized for testing
       if (goal.ress){
         for (prop in goal.ress){
           diff = goal.ress[prop] - (state.ress[prop] || 0 );
           if (diff > 0){
-            tasks.push([o.inc_resource, prop, diff]);
+            return [[o.inc_resource, prop, diff], [m.start, goal]];
           }
         }
       }
 
-      // entities
+      // entities are always first
       if (goal.ents){
         for (prop in goal.ents){
           diff = goal.ents[prop] - (state.ents[prop] || 0 );
           if (diff > 0){
-            tasks.push([m.produce, prop, diff]);
+            ents.push([prop, diff]);
           }
+        }
+        if (ents.length){
+          ents = ents.sort((a,b) => depths[a[0]] - depths[b[0]]);
+          return [[m.produce, ents[0][0], ents[0][1]], [m.start, goal]];
         }
       }
 
       // techs
       if (goal.tech && goal.tech.length){
-        availTechs = (!state.tech || !state.tech.length) ? [] : state.tech;
         for (tech of goal.tech){
-          if (availTechs.indexOf(tech) === -1){
-            tasks.push([m.produce, tech, 1]);
+          if (state.tech.indexOf(tech) === -1){
+            techs.push(tech);
           }
+        }
+        if (techs.length){
+          techs = techs.sort((a,b) => depths[a[0]] - depths[b[0]]);
+          return [[m.produce, techs[0], 1], [m.start, goal]];
         }
       }
 
-      // come back, if not finished
-      if (tasks.length){tasks.push([m.start, goal]);}
+      // nothing left to do
+      return null;
 
-      planner.log(4, () => fmt("m.start: %s", tasks.map(pritt) ));        
+      // // come back, if not finished
+      // if (tasks.length){tasks.push([m.start, goal]);}
 
-      // returns [] if nothing to do, TODO: that's not an error !!!
-      return tasks;
+      // planner.log(4, () => fmt("m.start: %s", tasks.map(pritt) ));        
+
+      // // returns [] if nothing to do, TODO: that's not an error !!!
+      // return tasks;
 
     },
     advance: function advance(state, name){
@@ -417,8 +423,8 @@ HANNIBAL = (function(H){
 
       // that's an error
       if (!product){
-        console.log(name, "no producer");
-        planner.log(0, () => fmt("m.produce: unknown product: %s", name));        
+        console.log(fmt("m.produce: unknown product: '%s'", name));
+        planner.log(0, () => fmt("m.produce: unknown product: '%s'", name));        
         return null;
       }
 
@@ -430,7 +436,7 @@ HANNIBAL = (function(H){
       }
 
       // this we can't do, slaves, units.athen.infantry.spearman.e, .a
-      if (!cacheProducers[name]){
+      if (!cacheProducer[name]){
         // console.log(name, "no producer");
         return null;
       }
@@ -439,7 +445,7 @@ HANNIBAL = (function(H){
       // from here we will do
 
       // get all producers //TODO: clever sort
-      [producers, operator] = cacheProducers[name];
+      [producers, operator] = cacheProducer[name];
 
       // producer in state?
       result = checkProducers(planner, m, o, state, producers);
@@ -460,9 +466,18 @@ HANNIBAL = (function(H){
         return [[m.produce, tech, 1]];
       }
 
-      // can we afford production ?
-      result = checkCosts(planner, m, o, state, product, amount);
-      if (result){return result;}
+      // can we afford production 
+      if (product.costs) {
+        result = checkCosts(planner, m, o, state, product, amount);
+        if (result){return result;}  
+      }
+
+      // redirect technologies
+      if (operator.name === "research_tech"){
+        return [[m.advance, name]];
+      }
+
+      console.log("produce.out", operator, name, amount);
 
       // only time left
       return ( product.costs && product.costs.time ? 
