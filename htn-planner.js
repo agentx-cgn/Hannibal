@@ -14,11 +14,12 @@
 
 HANNIBAL = (function(H){
 
-  var fmt  = function fmt(){
+  var // simple templates
+      fmt = function (){
         var c=0, a=Array.prototype.slice.call(arguments); a.push("");
         return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
       },
-      // concise JSON
+      // prettyfies JSON
       pritj = function(o){return JSON.stringify(o).split('"').join("");},
       // prettyfies a task
       pritt = function(task){
@@ -26,42 +27,9 @@ HANNIBAL = (function(H){
             t2 = Array.isArray(task[1]) ? task[1].length : task[1],
             t3 = task.length === 3 ? ", " + task[2] : "";
         return fmt("[%s: %s%s]", t1, t2, t3);
-      },
-      copy = function(s){
-        var p, i = s.tech.length, o = {civ: s.civ, cost: {}, ress: {}, ents: {}, tech: []};
-        for (p in s.cost){o.cost[p] = s.cost[p];}
-        for (p in s.ress){o.ress[p] = s.ress[p];}
-        for (p in s.ents){o.ents[p] = s.ents[p];}
-        while(i--){o.tech.push(s.tech[i]);}
-        return o;
-      };   
+      };
 
   H.HTN = H.HTN || {};                       
-
-  H.HTN.Goal  = function Goal (name, obj){this.name = name; H.extend(this, obj || {});};
-  H.HTN.State = function State(name, obj){this.name = name; H.extend(this, obj || {});};
-
-  H.HTN.Solution = function Solution(start, goal, domain, verbose){
-    this.start  = new H.HTN.State("start", start);
-    this.goal   = new H.HTN.Goal("goal", goal);
-    this.domain = domain;
-    this.verbose   = verbose; 
-    this.evaluated = 0;
-  };
-  H.HTN.Solution.prototype = {
-    constructor: H.HTN.Solution,
-    evaluate: function(tasks){
-      this.planner = new H.HTN.Planner({
-        methods:   this.domain.methods,
-        operators: this.domain.operators,
-        goal:      this.goal,
-        state:     this.start,
-        verbose:   this.verbose || 0
-      });
-      if (this.domain.initialize) {this.domain.initialize(this.planner);}
-      return this.plan = this.planner.plan(this.start, tasks);
-    }
-  };
 
   H.HTN.Planner = function Planner(config) {
 
@@ -74,7 +42,7 @@ HANNIBAL = (function(H){
           maxDepth:       200,   // seeking stops here
           maxIterations:  300,   // seeing stops here
           domain:        null,   // defines the domain within an app
-          noInitialize:  false,  // suppress Domain initialization
+          noInitialize:  false,  // suppress domain initialization
           methods:       null,   // object holding the methods
           operators:     null,   // object holding the operators
           tasks:         null,   // the tasks given on first call
@@ -172,7 +140,7 @@ HANNIBAL = (function(H){
 
         } else if (this.operators.hasOwnProperty(name)){
 
-          newstate = task[0](copy(state), task[1], task[2]);
+          newstate = task[0](state.clone(), task[1], task[2]);
 
           if (newstate){
             this.log(2, () => "OP: " + pritt(task));

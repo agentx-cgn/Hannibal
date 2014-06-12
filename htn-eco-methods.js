@@ -24,7 +24,7 @@ HANNIBAL = (function(H){
         'RESEARCHEDBY':  'research_tech'
       },
       tree = {},
-      cacheProducer  = {},
+      cacheProducer   = {},
       cacheTechnology = {},
       cacheBuildings  = {},
       filterBuildings = name => (
@@ -39,25 +39,6 @@ HANNIBAL = (function(H){
             t3 = task.length === 3 ? ", " + task[2] : "";
         return fmt("[%s: %s%s]", t1, t2, t3);
       };
-
-  // function populateTree(nodename){
-
-  //   "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
-  //     H.QRY(verb + " DISTINCT").forEach(ent => {
-  //       verb = verb.toLowerCase();
-  //       if (!tree[nodename][verb]){
-  //         tree[nodename][verb] = [];
-  //       }
-  //       tree[nodename][verb].push(ent.name);
-  //       if (!tree[ent.name]){
-  //         console.log("tree.add: ", ent.name);
-  //         tree[ent.name] = {};
-  //         populateTree(ent.name);
-  //       }
-  //     });
-  //   });
-
-  // }
 
   function cacheProducers(){
 
@@ -87,7 +68,7 @@ HANNIBAL = (function(H){
 
   function cacheDepths(){
 
-    var zero = function () {return {ress: {}, ents: {}, tech: []};},
+    var zero = function () {return new H.HTN.Economy.State({ress: {}, ents: {}, tech: []}).sanitize();},
         civ  = H.Bot.civ,
         cc   = H.format("structures.%s.civil.centre", civ),
         config = {
@@ -105,13 +86,13 @@ HANNIBAL = (function(H){
       H.QRY(query).forEach(function(node){
         if (H.QRY(node.name + " PAIR").first()){return;}
         var goal  = zero(), start = zero();
-        start.ents[cc] = 1;
+        start.data.ents[cc] = 1;
         if (name === 'techs') {
-          goal.tech = [node.name];
+          goal.data.tech = [node.name];
         } else {
-          goal.ents[node.name] = 1;
+          goal.data.ents[node.name] = 1;
         }
-        planner.plan(start, [[m.init, goal]]);
+        planner.plan(start, [[m.start, goal]]);
         H.Data.Depths[node.name] = planner.depth;
       });
     });
@@ -124,7 +105,7 @@ HANNIBAL = (function(H){
 
     while (i--){
       producer = producers[i];
-      if (state.ents[producer.name]){
+      if (state.data.ents[producer.name]){
         return null; // producer already there
       }
       tasks.push([m.produce, producer.name, 1]);
@@ -139,14 +120,14 @@ HANNIBAL = (function(H){
     var diff, counter = 0, candidates, delCounter, tasks;
 
     if (product.population > 0){
-      diff = state.pop + product.population * amount - state.popmax;
+      diff = state.data.pop + product.population * amount - state.data.popmax;
       if (diff > 0){
         candidates = {};
         // enough females to destroy ?
         H.QRY("female CONTAIN").forEach(function(node){
-          if (state.ents[node.name] && state.ents[node.name] > 0){
-            counter += state.ents[node.name];
-            candidates[node.name] = state.ents[node.name];
+          if (state.data.ents[node.name] && state.data.ents[node.name] > 0){
+            counter += state.data.ents[node.name];
+            candidates[node.name] = state.data.ents[node.name];
           }
         });
         if (counter < diff){
@@ -173,7 +154,7 @@ HANNIBAL = (function(H){
     var diff, house;
 
     if (product.population > 0){
-      diff = state.pop + product.population * amount - state.popcap;
+      diff = state.data.pop + product.population * amount - state.data.popcap;
       if (diff > 0){
         house = H.QRY("house CONTAIN").first().name;
         diff  = ~~(diff / product.population * -1 + 1);
@@ -191,10 +172,10 @@ HANNIBAL = (function(H){
 
     for (res in product.costs){costs[res] = product.costs[res] * amount;}
 
-    if(!H.Economy.fits(costs, state.ress)){
+    if(!H.Economy.fits(costs, state.data.ress)){
       for (res of ['food', 'wood', 'metal', 'stone']) {
         if (costs[res]) {
-          diff = costs[res] - state.ress[res];
+          diff = costs[res] - state.data.ress[res];
           if (diff > 0){
             tasks.push([o.inc_resource, res, diff]);
           }
@@ -212,9 +193,9 @@ HANNIBAL = (function(H){
 
     // check for enough buildings
     buildings = cacheBuildings[tech.requires.class];
-    entities  = Object.keys(state.ents);
+    entities  = Object.keys(state.data.ents);
     inter     = H.intersect(buildings, entities);
-    have      = inter.reduce((a, b) => a + state.ents[b], 0);
+    have      = inter.reduce((a, b) => a + state.data.ents[b], 0);
     diff      = tech.requires.number - have;
 
     if (diff > 0){  
@@ -236,13 +217,13 @@ HANNIBAL = (function(H){
 
     if (tech.requires.tech){
       req = replace(tech.requires.tech);
-      return state.tech.indexOf(req) === -1 ? [[m.produce, req]] : null;
+      return state.data.tech.indexOf(req) === -1 ? [[m.produce, req]] : null;
 
     } else if (tech.requires.any){
       any = tech.requires.any; i = any.length;
       while(i--){
         req = replace(any[i].tech);
-        if (nodes[req] && state.tech.indexOf(req) === -1){
+        if (nodes[req] && state.data.tech.indexOf(req) === -1){
           tasks.push([m.produce, req, 1]);
         }
       }
@@ -282,91 +263,93 @@ HANNIBAL = (function(H){
     console.log("H.HTN.Economy.initialize", Date.now() - t0, "msecs");
   };
 
-  H.HTN.Economy.searchTree = function searchTree (from, to, distance){
+  // H.HTN.Economy.searchTree = function searchTree (from, to, distance){
 
-    var i;
+  //   var i;
 
-    distance = distance || 0;
+  //   distance = distance || 0;
     
-    ["train",  "build", "research"].forEach(verb => {
-      if (tree[from][verb].indexOf(to) !== -1){
-        return distance;
-      } else {
-        i = tree[from][verb].length;
-        while(i--){
-          return searchTree(tree[from][verb][i], to, distance +1);
-        }
-      }
-    });
+  //   ["train",  "build", "research"].forEach(verb => {
+  //     if (tree[from][verb].indexOf(to) !== -1){
+  //       return distance;
+  //     } else {
+  //       i = tree[from][verb].length;
+  //       while(i--){
+  //         return searchTree(tree[from][verb][i], to, distance +1);
+  //       }
+  //     }
+  //   });
 
-  };
+  // };
 
   H.HTN.Economy.methods = {
 
-    init: function init(state, goal){
+    // init: function init(state, goal){
 
-      // sanitizes state, check with copy in planner
+    //   // sanitizes state, check with copy in planner
 
-      state = state || {};
+    //   state = state || {};
 
-      state.civ  = state.civ  || H.Bot.civ;
-      state.cost = state.cost || {};
-      state.ress = state.ress || {};
-      state.ents = state.ents || {};
-      state.tech = state.tech || [];
+    //   state.civ  = state.civ  || H.Bot.civ;
+    //   state.cost = state.cost || {};
+    //   state.ress = state.ress || {};
+    //   state.ents = state.ents || {};
+    //   state.tech = state.tech || [];
 
-      state.cost.time   = state.cost.time   || 0;
-      state.ress.wood   = state.ress.food   || 0;
-      state.ress.food   = state.ress.food   || 0;
-      state.ress.metal  = state.ress.metal  || 0;
-      state.ress.stone  = state.ress.stone  || 0;
-      state.ress.pop    = state.ress.pop    || 0;
-      // CHECK: hellenes/civpenalty_spart_popcap
-      //        mauryans/civbonus_maur_popcap
-      //        persians/civbonus_pers_popcap
-      state.ress.popmax = state.ress.popmax || 300;  
-      state.ress.popcap = state.ress.popcap || 0;
+    //   state.cost.time   = state.cost.time   || 0;
+    //   state.ress.wood   = state.ress.food   || 0;
+    //   state.ress.food   = state.ress.food   || 0;
+    //   state.ress.metal  = state.ress.metal  || 0;
+    //   state.ress.stone  = state.ress.stone  || 0;
+    //   state.ress.pop    = state.ress.pop    || 0;
+    //   // CHECK: hellenes/civpenalty_spart_popcap
+    //   //        mauryans/civbonus_maur_popcap
+    //   //        persians/civbonus_pers_popcap
+    //   state.ress.popmax = state.ress.popmax || 300;  
+    //   state.ress.popcap = state.ress.popcap || 0;
 
-      // autoresearch
-      H.pushUnique(state.tech, "phase.village");
+    //   // autoresearch
+    //   H.pushUnique(state.tech, "phase.village");
 
-      // population
-      if (H.count(state.ents) > 0){
-        H.QRY(H.attribs(state.ents).join(", ")).forEach(function(node){
-          if (node.costs && node.costs.population){
-            if (node.costs.population < 0) {
-              state.ress.popcap -= node.costs.population;
-            } else {
-              state.ress.pop += node.costs.population;
-            }
-          }
-        });
-      }
+    //   // population
+    //   if (H.count(state.ents) > 0){
+    //     H.QRY(H.attribs(state.ents).join(", ")).forEach(function(node){
+    //       if (node.costs && node.costs.population){
+    //         if (node.costs.population < 0) {
+    //           state.ress.popcap -= node.costs.population;
+    //         } else {
+    //           state.ress.pop += node.costs.population;
+    //         }
+    //       }
+    //     });
+    //   }
 
-      return [[m.start, goal]];
+    //   return [[m.start, goal]];
 
 
-    },
+    // },
 
     start: function start(state, goal){
 
-      var diff = 0, prop, tech, ents = [], techs = [],
+      var prop, diff = 0, data = goal.data,
+          ents = [], techs = [], 
           depths = H.Data.Depths[H.Bot.civ];
 
       // resources are priotized for testing
-      if (goal.ress){
-        for (prop in goal.ress){
-          diff = goal.ress[prop] - (state.ress[prop] || 0 );
+      if (data.ress){
+        for (prop of ['food', 'wood', 'metal', 'stone']){
+          diff = (data.ress[prop] || 0) - (state.data.ress[prop] || 0 );
           if (diff > 0){
+            console.log(prop, diff);
             return [[o.inc_resource, prop, diff], [m.start, goal]];
           }
         }
       }
 
-      // entities are always first
-      if (goal.ents){
-        for (prop in goal.ents){
-          diff = goal.ents[prop] - (state.ents[prop] || 0 );
+      // entities first
+      if (data.ents){
+        for (prop in data.ents){
+          diff = data.ents[prop] - (state.data.ents[prop] || 0 );
           if (diff > 0){
             ents.push([prop, diff]);
           }
@@ -377,11 +360,11 @@ HANNIBAL = (function(H){
         }
       }
 
-      // techs
-      if (goal.tech && goal.tech.length){
-        for (tech of goal.tech){
-          if (state.tech.indexOf(tech) === -1){
-            techs.push(tech);
+      // techs later
+      if (data.tech && data.tech.length){
+        for (prop of data.tech){
+          if (state.data.tech.indexOf(prop) === -1){
+            techs.push(prop);
           }
         }
         if (techs.length){
@@ -390,16 +373,8 @@ HANNIBAL = (function(H){
         }
       }
 
-      // nothing left to do
-      return null;
-
-      // // come back, if not finished
-      // if (tasks.length){tasks.push([m.start, goal]);}
-
-      // planner.log(4, () => fmt("m.start: %s", tasks.map(pritt) ));        
-
-      // // returns [] if nothing to do, TODO: that's not an error !!!
-      // return tasks;
+      // nothing to do, return empty task list
+      return [];
 
     },
     advance: function advance(state, name){
@@ -491,7 +466,7 @@ HANNIBAL = (function(H){
 
       // unmet technical requirements
       tech = cacheTechnology[name];
-      if (tech && state.tech.indexOf(tech) === -1){
+      if (tech && state.data.tech.indexOf(tech) === -1){
         return [[m.produce, tech, 1]];
       }
 

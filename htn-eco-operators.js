@@ -17,16 +17,83 @@ HANNIBAL = (function(H){
   H.HTN = H.HTN || {};                       
   H.HTN.Economy = H.HTN.Economy || {};
 
+  H.HTN.Economy.State = function(data){this.data = data || {};};
+  H.HTN.Economy.State.prototype = {
+    constructor: H.HTN.Economy.State,
+    sanitize: function(){
+
+      var data = this.data;
+      data.civ  = data.civ  || H.Bot.civ;
+      data.cost = data.cost || {};
+      data.ress = data.ress || {};
+      data.ents = data.ents || {};
+      data.tech = data.tech || [];
+
+      data.cost.time   = data.cost.time   || 0;
+      data.ress.wood   = data.ress.food   || 0;
+      data.ress.food   = data.ress.food   || 0;
+      data.ress.metal  = data.ress.metal  || 0;
+      data.ress.stone  = data.ress.stone  || 0;
+      data.ress.pop    = data.ress.pop    || 0;
+      // CHECK: hellenes/civpenalty_spart_popcap
+      //        mauryans/civbonus_maur_popcap
+      //        persians/civbonus_pers_popcap
+      data.ress.popmax = data.ress.popmax || 300;  
+      data.ress.popcap = data.ress.popcap || 0;
+
+      // autoresearch
+      H.pushUnique(data.tech, "phase.village");
+
+      // population
+      if (H.count(data.ents) > 0){
+        H.QRY(H.attribs(data.ents).join(", ")).forEach(function(node){
+          if (node.costs && node.costs.population){
+            if (node.costs.population < 0) {
+              data.ress.popcap -= node.costs.population;
+            } else {
+              data.ress.pop += node.costs.population;
+            }
+          }
+        });
+      }
+
+      return this;
+
+    },
+    clone: function(){
+
+      var p, 
+          s = this.data,
+          i = s.tech.length, 
+          state = new H.HTN.Economy.State({
+            civ:  s.civ, 
+            cost: {}, 
+            ress: {}, 
+            ents: {}, 
+            tech: []
+          }),
+          o = state.data;
+
+      for (p in s.cost){o.cost[p] = s.cost[p];}
+      for (p in s.ress){o.ress[p] = s.ress[p];}
+      for (p in s.ents){o.ents[p] = s.ents[p];}
+      while(i--){o.tech.push(s.tech[i]);}
+
+      return state;
+    },
+
+  };
+
   // helper
 
   function applyCosts(state, costs, multiplier){
 
     ['food', 'wood', 'metal', 'stone'].forEach(function(res){
-      state.ress[res] -= (costs[res]) ? costs[res] * multiplier : 0;
+      state.data.ress[res] -= (costs[res]) ? costs[res] * multiplier : 0;
     });
 
-    state.ress.pop    += (costs.population > 0) ? costs.population * multiplier : 0;
-    state.ress.popcap -= (costs.population < 0) ? costs.population * multiplier : 0;
+    state.data.ress.pop    += (costs.population > 0) ? costs.population * multiplier : 0;
+    state.data.ress.popcap -= (costs.population < 0) ? costs.population * multiplier : 0;
 
   }
 
@@ -36,7 +103,7 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        state.cost.time += secs;
+        state.data.cost.time += secs;
 
         return state;
 
@@ -46,12 +113,14 @@ HANNIBAL = (function(H){
 
     del_entity: function del_entity(state, entity, amount) {
 
-      if (state.ents[entity] >= amount){
+      var ents = state.data.ents;
 
-        state.ents[entity] -= amount;
+      if (ents[entity] >= amount){
 
-        if (state.ents[entity] === 0) {
-          delete state.ents[entity];
+        ents[entity] -= amount;
+
+        if (ents[entity] === 0) {
+          delete ents[entity];
         }
 
         return state;
@@ -67,10 +136,12 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        state.ress[res] += amount;
+        state.data.ress[res] += amount;
         
-        if (!state.cost[res]) {state.cost[res] = 0;}
-        state.cost[res] += amount;
+        state.data.cost[res] = ( state.data.cost[res] ?
+          state.data.cost[res] + amount :
+          amount
+        );
 
         return state;
 
@@ -80,14 +151,14 @@ HANNIBAL = (function(H){
 
     train_units: function train_units(state, name, amount) {
 
-      var costs;
+      var costs, ents = state.data.ents;
 
       if (true){
 
         costs = H.HTN.Economy.nodes[name].costs;
         if (costs){applyCosts(state, costs, amount);}
-        state.ents[name] = state.ents[name] || 0;
-        state.ents[name] += amount;
+        ents[name] = ents[name] || 0;
+        ents[name] += amount;
 
         return state;
 
@@ -97,14 +168,14 @@ HANNIBAL = (function(H){
 
     build_structures: function build_structures(state, name, amount) {
 
-      var costs;
+      var costs, ents = state.data.ents;
 
       if (true){
 
         costs = H.HTN.Economy.nodes[name].costs;
         if (costs){applyCosts(state, costs, amount);}
-        state.ents[name] = state.ents[name] || 0;
-        state.ents[name] += amount;
+        ents[name] = ents[name] || 0;
+        ents[name] += amount;
 
         return state;
 
@@ -114,19 +185,19 @@ HANNIBAL = (function(H){
 
     research_tech: function research_tech(state, name) {
 
-      var costs;
+      var costs, techs = state.data.tech;
 
       if (true){
 
         costs = H.HTN.Economy.nodes[name].costs;
         if (costs) {applyCosts(state, costs, 1);}
-        state.tech.push(name);
+        techs.push(name);
 
         // a hack, but works
-        if (name === 'phase.town.athen')  {state.tech.push('phase.town');}
-        if (name === 'phase.city.athen')  {state.tech.push('phase.city');}
-        if (name === 'phase.town.generic'){state.tech.push('phase.town');}
-        if (name === 'phase.city.generic'){state.tech.push('phase.city');}
+        if (name === 'phase.town.athen')  {techs.push('phase.town');}
+        if (name === 'phase.city.athen')  {techs.push('phase.city');}
+        if (name === 'phase.town.generic'){techs.push('phase.town');}
+        if (name === 'phase.city.generic'){techs.push('phase.city');}
 
         return state;
 
