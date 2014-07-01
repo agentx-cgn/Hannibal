@@ -44,6 +44,7 @@ HANNIBAL = (function(H){
 
 /*
         '5': [() => H.Grids.dump(), "dumping maps"],
+        http://www.semicomplete.com/projects/xdotool/xdotool.xhtml#mouse_commands
 */
 
 
@@ -55,24 +56,33 @@ HANNIBAL = (function(H){
         '3': [T.launch("g.scouts", 44), "launching 1 scout"], 
       '241': [() => "< - FINIS: " + sequence + " - >"],
     },
-    'aitest07m': {
-        '0': [() => "< - START: " + sequence + " - >"],
-        '2': [T.launch("g.scouts", 44), "launching 1 scout"], 
-        '3': [T.launch("g.miner-stone", 44), "launching 1 miner-stone"], 
-        '4': [T.launch("g.miner-metal", 44), "launching 1 miner-metal"], 
-        // '5': [T.launch("g.grainpicker", 44, 44), "launching 2 grainpickers"], 
-       '10': [
+    'ai-village': {
+        '0': [() => "setting view",
+              () => print('#! xdotool click --delay 30 --repeat 4 5\n'), 
+              () => print("#! xdotool key KP_Subtract\n"),
               () => print("#! xdotool key F9\n"), 
-              () => print("#! xdotool type --delay 30 Engine.SetSimRate(20)\n"), 
+              () => print("#! xdotool type --delay 30 Engine.CameraMoveTo(558, 430)\n"), 
               () => print("#! xdotool key Return\n"),
               () => print("#! xdotool key F9\n"),
-             ],
+             ],        
+        '1': [T.launch("g.scouts",      12), "launching 1 scout"], 
+        '2': [T.launch("g.scouts",      12), "launching 1 scout"], 
+        '3': [T.launch("g.miner-stone", 12), "launching 1 miner-stone"], 
+        '4': [T.launch("g.miner-metal", 12), "launching 1 miner-metal"], 
+        '5': [T.launch("g.grainpicker", 12), "launching 1 grainpickers"], 
+        '6': [T.launch("g.grainpicker", 12), "launching 1 grainpickers"], 
+       // '10': [
+       //        () => print("#! xdotool key F9\n"), 
+       //        () => print("#! xdotool type --delay 30 Engine.SetSimRate(20)\n"), 
+       //        () => print("#! xdotool key Return\n"),
+       //        () => print("#! xdotool key F9\n"),
+       //       ],
         // '6': [() => H.Grids.log(),  "logging grids"],
         // '7': [() => H.Grids.dump(), "dumping grids"],
         // '8': [() => H.Groups.log(), "logging groups"],
        // '70': [() => H.logIngames(), "logging ingames"],
        // '71': [() => H.Groups.log(), "logging groups"],
-      '400': [() => print("#! terminate\n")],
+      // '400': [() => print("#! terminate\n")],
     },
     'aitest06m': {
         '1': [() => "< - START: " + sequence + " - >"],

@@ -68,15 +68,13 @@ HANNIBAL = (function(H){
           }
 
         },
-        onAssign: function(resource){
+        onAssign: function(asset){
 
-          deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
-         
-          if (this.units.match(resource)){
+          deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
+
+          if (this.units.match(asset)){
 
             deb("     G: onAssign position: %s", H.prettify(this.position));
-
-            // logObject(this.position, "g.miner-stone:this.position");
 
             if (this.units.count === 1){
               if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
@@ -85,32 +83,32 @@ HANNIBAL = (function(H){
               this.economy.request(4, this.units, this.position);   
             }
 
-            resource.gather(this.mine);
+            asset.gather(this.mine);
 
-          } else if (this.dropsite.match(resource)){
+          } else if (this.dropsite.match(asset)){
 
-            if (resource.isFoundation){this.units.repair(resource);}
-            if (resource.isStructure){this.units.gather(this.mine);}
+            if (asset.isFoundation){this.units.repair(asset);}
+            if (asset.isStructure){this.units.gather(this.mine);}
 
           }
 
         },
-        onDestroy: function(resource){
+        onDestroy: function(asset){
 
-          deb("     G: %s onDestroy: %s", this, resource);
+          deb("     G: %s onDestroy: %s", this, asset);
 
-          if (this.units.match(resource)){
+          if (this.units.match(asset)){
             this.economy.request(1, this.units, this.position);
 
-          } else if (this.dropsite.match(resource)){
+          } else if (this.dropsite.match(asset)){
             this.economy.request(1, this.dropsite, this.position);
 
           }
 
         },
-        onAttack: function(resource, enemy, type, damage){
+        onAttack: function(asset, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
+          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
 
         },
         onBroadcast: function(){},

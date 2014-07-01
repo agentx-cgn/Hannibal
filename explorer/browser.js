@@ -17,8 +17,9 @@ HANNIBAL = (function(H){
   var self,
       TR = ';',
       pages = {
-        'HTN':    function(){},
         'HCQ':    function(){},
+        'TREE':   function(){},
+        'ECO':    function(){},
         'BLOCKS': function(){},
         'MAPS':   function(){},
         'TECH':   function(){self.result("divResult", H.Display.pritJSON(techTemplates)); return null;},
@@ -73,9 +74,6 @@ HANNIBAL = (function(H){
           c[name] = $("c" + name);
         });
 
-        H.Display.trim($("txtGoal"));
-        H.Display.trim($("txtState"));
-
         c.Next.onclick  = function(){H.Browser.next();};
         c.Back.onclick  = function(){H.Browser.back();};
         c.Curr.onclick  = function(){H.Browser.show(c.Curr.value);};
@@ -85,12 +83,19 @@ HANNIBAL = (function(H){
         $("btnBlocksExample2").onclick = function(){H.HTN.Blocks.example2('slcVerbose');};
         $("btnBlocksExample3").onclick = function(){H.HTN.Blocks.example3('slcVerbose');};
         
-        $("btnHTNT1").onclick = function(){H.HTN.Economy.test1('slcVerbose');};
-        $("btnHTNT2").onclick = function(){H.HTN.Economy.test2('slcVerbose');};
-        $("btnHTNT3").onclick = function(){H.HTN.Economy.test3('slcVerbose');};
-        $("btnHTNGo").onclick = function(){H.HTN.Economy.runGo('slcVerbose', 'txtState', 'txtGoal');};
-        $("btnHTNTC").onclick = function(){H.HTN.Economy.runCiv('slcCivs');};
-        $("btnHTNStress").onclick = function(){H.HTN.Economy.runStress('slcVerbose', 'slcStress', 'txtState', 'txtGoal');};
+        H.Display.trim($("txtTREEGoal"));
+        H.Display.trim($("txtTREEState"));
+        H.Display.trim($("txtECOGoal"));
+        H.Display.trim($("txtECOState"));
+
+        $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
+        $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};
+        $("btnTREET3").onclick = function(){H.HTN.Tree.test3('slcVerbose');};
+        $("btnTREEGo").onclick = function(){H.HTN.Tree.runGo('slcVerbose', 'txtTREEState', 'txtTREEGoal');};
+        $("btnTREETC").onclick = function(){H.HTN.Tree.runCiv('slcCivs');};
+        $("btnTREEStress").onclick = function(){H.HTN.Tree.runStress('slcVerbose', 'slcTREEStress', 'txtTREEState', 'txtTREEGoal');};
+
+        $("btnECOGo").onclick = function(){H.HTN.Economy.runGo('slcVerbose', 'txtECOState', 'txtECOGoal');};
 
         $("slcExams").onchange = $("slcExams").onselect = function(){
           $("txtHCQ").value = $("slcExams").value;
@@ -220,6 +225,11 @@ HANNIBAL = (function(H){
         var items = decode(isolate(location.hash)),
             [vb, ci, pg, co] = items,
             pm = items.slice(4);
+
+        H.each(pages, function(name){
+          $("men" + name).style.color = "#ddd";
+        });
+        $("men" + pg).style.color = "#833";
 
         if (vb !== verbose){verbose = $("slcVerbose").value = ~~vb;}
 

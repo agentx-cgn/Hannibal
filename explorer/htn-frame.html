@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" >
+  <head>
+    <title>HTN - Frame</title>
+    <meta http-equiv="Content-Type" content="application/xml+xhtml; charset=UTF-8" />
+    <meta name="description" content="HTN - Block World" />
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+    <style type="text/css">
+      html, body, canvas {
+        border: 0 none;
+        margin: 0;
+        padding: 0;
+        background: white;
+      }
+      #board {
+        width: 540px;
+        height: 180px;
+        margin: 0 auto;
+        display: block;
+        border: 2px solid #aaa;
+        border-radius: 15px;
+      }
+    </style>
+
+  </head>
+
+  <body>
+    <img id="a" src="a.png" style="display: none" />
+    <img id="b" src="b.png" style="display: none" />
+    <img id="c" src="c.png" style="display: none" />
+    <canvas id="board" width="540" height="160"></canvas>
+    <script type="text/javascript" src="Tween.js"></script>
+    <script type="text/javascript" src="htn-frame.js"></script>
+  </body>
+
+</html>

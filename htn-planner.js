@@ -19,15 +19,10 @@ HANNIBAL = (function(H){
         var c=0, a=Array.prototype.slice.call(arguments); a.push("");
         return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
       },
-      // prettyfies JSON
+      // JSON w/o quotes
       pritj = function(o){return JSON.stringify(o).split('"').join("");},
       // prettyfies a task
-      pritt = function(task){
-        var t1 = task[0].name,
-            t2 = Array.isArray(task[1]) ? task[1].length : task[1],
-            t3 = task.length === 3 ? ", " + task[2] : "";
-        return fmt("[%s: %s%s]", t1, t2, t3);
-      };
+      pritt = function(task){return fmt("[%s: %s]", task[0].name, task.slice(1).join(", "));};
 
   H.HTN = H.HTN || {};                       
 
@@ -61,11 +56,12 @@ HANNIBAL = (function(H){
   H.HTN.Planner.prototype = {
     constructor:  H.HTN.Planner,
     log: function(verbose, msg){
-      var txt;
       if (verbose <= this.verbose){
-        txt = typeof msg !== "function" ? msg : msg();
         this.logstack.push({
-          v: verbose, d: this.depth, m: txt, now: Date.now()
+          v: verbose, 
+          d: this.depth, 
+          m: typeof msg !== "function" ? msg : msg(), 
+          now: Date.now()
         });
       }
     },
@@ -100,6 +96,8 @@ HANNIBAL = (function(H){
           "no solution found", this.operations.length, this.depth, this.iterations, this.msecs));
 
       } else {
+        this.operations.unshift([0, "start"]);
+        this.operations.push([this.result.stamp, "finish"]);
         this.log(0, fmt("SUCCESS: plan: %s ops, depth: %s, iter: %s, msecs: %s",
           this.operations.length, this.depth, this.iterations, this.msecs));
 
@@ -110,7 +108,7 @@ HANNIBAL = (function(H){
     },
     seekPlan: function seekPlan () {
 
-      var state, tasks, plan, depth, exit, 
+      var state, tasks, plan, depth, exit, stamp,
           task, name, result, newstate, newPlan, subtasks, newTasks;
 
       while (this.stack.length) {
@@ -130,8 +128,9 @@ HANNIBAL = (function(H){
 
         if (exit){return exit;}
 
-        task = tasks[0];
-        name = task[0].name;
+        task  = tasks[0];
+        name  = task[0].name;
+        stamp = state.stamp;
 
         if (name === "ANY") {
 
@@ -140,17 +139,17 @@ HANNIBAL = (function(H){
 
         } else if (this.operators.hasOwnProperty(name)){
 
-          newstate = task[0](state.clone(), task[1], task[2]);
+          newstate = task[0](state.clone(), task[1], task[2], task[3]);
 
           if (newstate){
             this.log(2, () => "OP: " + pritt(task));
-            newPlan  = plan.concat([[task[0].name, task[1], task[2]]]);
+            newPlan  = plan.concat([[stamp, task[0].name, task[1], task[2], task[3]]]);
             this.stack.push([newstate, tasks.slice(1), newPlan, ++this.depth]);
           }
 
         } else if (this.methods.hasOwnProperty(name)){
 
-          subtasks = task[0](state, task[1], task[2]);
+          subtasks = task[0](state, task[1], task[2], task[3]);
 
           if (subtasks){
             this.log(2, () => "MT: " + pritt(task));
@@ -180,7 +179,7 @@ HANNIBAL = (function(H){
 
       while ((anyTask = anyTasks[anyPointer++])) {
 
-        this.log(2, () => fmt("AT: (%s/%s) [%s: %s, %s]", anyPointer, anyTasks.length, anyTask[0].name, anyTask[1], anyTask[2] || ""));
+        this.log(2, () => fmt("AT: (%s/%s) [%s: %s, %s, %s]", anyPointer, anyTasks.length, anyTask[0].name, anyTask[1], anyTask[2]||'', anyTask[3]||''));
 
         this.iterations += 1;
         subtasks = anyTask[0](state, anyTask[1], anyTask[2]);

@@ -15,7 +15,8 @@
 HANNIBAL = (function(H){
 
   H.HTN = H.HTN || {};                       
-  H.HTN.Economy = H.HTN.Economy || {};
+  H.HTN.Tree = H.HTN.Tree || {};
+
 
   // helper
 
@@ -30,20 +31,11 @@ HANNIBAL = (function(H){
 
   }
 
-  H.HTN.Economy.operators = {
+  H.HTN.Tree.operators = {
 
     wait_secs: function wait_secs(state, secs) {
 
-      var prop, rate;
-
       if (true){
-
-        for (prop of ['food', 'wood', 'metal', 'stone']){
-          if (state.groups[prop] && state.groups[prop].length){
-            rate = state.groups[prop].length * state.groups[prop][0].rate;
-            state.data.ress[prop] += rate * secs;
-          }
-        }
 
         state.data.cost.time += secs;
         state.stamp += secs;
@@ -54,36 +46,6 @@ HANNIBAL = (function(H){
 
     },
 
-    launch_group: function launch_group(state, group, units, amount) {
-
-      var rate;
-
-      if (true){
-
-        if (!state.groups[group]){state.groups[group] = [];}
-
-        rate = (
-          group === "food"  ?  2 :
-          group === "wood"  ?  4 :
-          group === "stone" ?  8 :
-          group === "metal" ? 16 :
-            deb("launch_group: strange group '%s'", group)
-        );
-        
-        state.groups[group].push({
-          units:   units, 
-          amount:  amount, 
-          stamp:   state.stamp, 
-          members: 0,
-          rate:    rate
-        });
-
-        return state;
-
-      } else {return null;}
-
-
-    },
     del_entity: function del_entity(state, entity, amount) {
 
       var ents = state.data.ents;
@@ -128,7 +90,7 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        costs = H.HTN.Economy.nodes[name].costs;
+        costs = H.HTN.Tree.nodes[name].costs;
         if (costs){applyCosts(state, costs, amount);}
         ents[name] = ents[name] || 0;
         ents[name] += amount;
@@ -145,7 +107,7 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        costs = H.HTN.Economy.nodes[name].costs;
+        costs = H.HTN.Tree.nodes[name].costs;
         if (costs){applyCosts(state, costs, amount);}
         ents[name] = ents[name] || 0;
         ents[name] += amount;
@@ -162,7 +124,7 @@ HANNIBAL = (function(H){
 
       if (true){
 
-        costs = H.HTN.Economy.nodes[name].costs;
+        costs = H.HTN.Tree.nodes[name].costs;
         if (costs) {applyCosts(state, costs, 1);}
         techs.push(name);
 

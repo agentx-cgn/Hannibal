@@ -64,8 +64,9 @@
           <!-- <li id="menHTN" onclick="H.Browser.menu('HTNTEST');">HTN-TEST</li> -->
           <li id="menCIV"       onclick="location.hash = ''">CIV</li>
           <select id="slcCivs"  onchange="H.Browser.civ()"></select>
-          <li id="menHQC"       onclick="H.Browser.do('*;*;HCQ');" >HCQ</li>
-          <li id="menHTN"       onclick="H.Browser.do('*;*;HTN');" >HTN</li>
+          <li id="menHCQ"       onclick="H.Browser.do('*;*;HCQ');" >HCQ</li>
+          <li id="menTREE"      onclick="H.Browser.do('*;*;TREE');" >TREE</li>
+          <li id="menECO"       onclick="H.Browser.do('*;*;ECO');" >ECO</li>
           <li id="menBLOCKS"    onclick="H.Browser.do('*;*;BLOCKS');" >BLOCKS</li>
           <li id="menTECH"      onclick="H.Browser.do('*;*;TECH');">TECH</li>
           <li id="menMMAP"      onclick="H.Browser.menu('MMAP');">MMAP</li>
@@ -136,27 +137,27 @@
 
         </div>
 
-      <!-- HTN -->
-        <div class="HTN panel">
+      <!-- TREE -->
+        <div class="TREE panel">
           <div class="left">
-            <label for="btnHTN0ADT1" style="vertical-align: top">Tests</label>
-            <button id="btnHTNT1">Test 1</button>
-            <button id="btnHTNT2">Test 2</button>
-            <button id="btnHTNT3">Test 3</button>
-            <button id="btnHTNTC" style="margin-left: 8px">Test Civ</button>
+            <label for="btnTREE0ADT1" style="vertical-align: top">Tests</label>
+            <button id="btnTREET1">Test 1</button>
+            <button id="btnTREET2">Test 2</button>
+            <button id="btnTREET3">Test 3</button>
+            <button id="btnTREETC" style="margin-left: 8px">Test Civ</button>
           </div>
           <div class="trenner4"></div>
           <div class="left">
 
-            <label for="txtState" style="vertical-align: top">State</label>
-            <textarea id="txtState" class="f11" maxlength="1000" rows="5">
+            <label for="txtTREEState" style="vertical-align: top">State</label>
+            <textarea id="txtTREEState" class="f11" maxlength="1000" rows="5">
               "ress": {},
               "ents": {"structures.athen.civil.centre": 1},
               "tech": ["phase.village"]
            </textarea>        
 
-            <label for="txtGoal" style="vertical-align: top">Goal</label>
-            <textarea id="txtGoal" class="f11" maxlength="1000"  rows="5">
+            <label for="txtTREEGoal" style="vertical-align: top">Goal</label>
+            <textarea id="txtTREEGoal" class="f11" maxlength="1000"  rows="5">
               "ress": {},
               "ents": {"units.athen.champion.marine": 1},
               "tech": []
@@ -168,9 +169,9 @@
           <div>
 
             <div class="right" style="margin-right: 9px;">
-              <button id="btnHTNGo" style="margin-left: 161px">GO</button>
-              <button id="btnHTNStress">Stress</button>
-              <select id="slcStress">
+              <button id="btnTREEGo" style="margin-left: 161px">GO</button>
+              <button id="btnTREEStress">Stress</button>
+              <select id="slcTREEStress">
                 <option>10</option>
                 <option>50</option>
                 <option selected>100</option>
@@ -178,7 +179,56 @@
                 <option>1.000</option>
                 <option>10.000</option>
               </select>
-              <label for="slcStress">Loops</label>
+              <label for="slcTREEStress">Loops</label>
+            </div>
+            <br />
+
+          </div>       
+        </div>
+
+      <!-- ECO -->
+        <div class="ECO panel">
+          <div class="left">
+            <label for="btnECO0ADT1" style="vertical-align: top">Tests</label>
+            <button id="btnECOT1">Test 1</button>
+            <button id="btnECOT2">Test 2</button>
+            <button id="btnECOT3">Test 3</button>
+            <button id="btnECOTC" style="margin-left: 8px">Test Civ</button>
+          </div>
+          <div class="trenner4"></div>
+          <div class="left">
+
+            <label for="txtECOState" style="vertical-align: top">State</label>
+            <textarea id="txtECOState" class="f11" maxlength="1000" rows="5">
+              "ress": {"food": 300, "wood": 300},
+              "ents": {"structures.athen.civil.centre": 1},
+              "tech": ["phase.village"]
+           </textarea>        
+
+            <label for="txtECOGoal" style="vertical-align: top">Goal</label>
+            <textarea id="txtECOGoal" class="f11" maxlength="1000"  rows="5">
+              "ress": {"food": 1000},
+              "ents": {},
+              "tech": []
+            </textarea>        
+            <br />
+
+          </div>
+          <div class="trenner2"></div>
+          <div>
+
+            <div class="right" style="margin-right: 9px;">
+              <button id="btnECOGo" style="margin-left: 161px">GO</button>
+              <button id="btnECOStress">Stress</button>
+              <select id="slcECOStress">
+                <option>10</option>
+                <option>50</option>
+                <option selected>100</option>
+                <option>500</option>
+                <option>1.000</option>
+                <option>10.000</option>
+              </select>
+              <label for="slcECOStress">Loops</label>
             </div>
             <br />
 
@@ -191,6 +241,10 @@
           <button id="btnBlocksExample1">Test1</button>
           <button id="btnBlocksExample2">Test2</button>
           <button id="btnBlocksExample3">Stress</button>
+          <div class="trenner"></div>
+          <div style="margin-left: 68px">
+            <iframe src="htn-frame.html" scrolling="no" frameborder="0" style="border:none; overflow:hidden;width:544px; height:184px;" allowtransparency="true" ></iframe>
+          </div>
         </div>
         <div class="trenner"></div>
 
@@ -417,11 +471,14 @@
       <script type="text/javascript" src="../htn-helper.js"></script>
       <script type="text/javascript" src="../htn-eco-methods.js"></script>
       <script type="text/javascript" src="../htn-eco-operators.js"></script>
+      <script type="text/javascript" src="../htn-tree-methods.js"></script>
+      <script type="text/javascript" src="../htn-tree-operators.js"></script>
       <script type="text/javascript" src="../htn-planner.js"></script>
       <script type="text/javascript" src="../tools.js"></script>
       <script type="text/javascript" src="data/store-json.export"></script>
       <script type="text/javascript" src="data/techs-json.export"></script>
       <script type="text/javascript" src="htn-eco-examples.js"></script>
+      <script type="text/javascript" src="htn-tree-examples.js"></script>
       <script type="text/javascript" src="htn-blocks.js"></script>
       <script type="text/javascript" src="display.js"></script>
       <script type="text/javascript" src="browser.js"></script>

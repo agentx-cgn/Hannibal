@@ -47,7 +47,10 @@ var HANNIBAL = (function() {
       Array.prototype.slice.call(arguments, 1)
         .forEach(e => {Object.keys(e)
           .forEach(k => o[k] = e[k]
-    );});}
+    );});},
+    chat: function(msg){
+      Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});
+    }
   };
 
   // constructor
@@ -242,7 +245,7 @@ var HANNIBAL = (function() {
 
     // prepare behaviour
     H.Hannibal.Frames = H.Hannibal.Frames.initialize(this, H.Context);
-    this.behaviour = new H.Hannibal.Behaviour(behaviour);
+    this.behaviour = new H.Behaviour(behaviour);
     this.frame = this.behaviour.frame;
     this.lastFrame = this.frame;
 
@@ -272,7 +275,7 @@ var HANNIBAL = (function() {
       H.Config.deb = 0;
     }
 
-    if (true){
+    if (false){
       // activate to log templates
       // this.culture.store.exportAsLog(["athen"]);
       this.culture.store.export(["athen", "mace", "hele"]); // 10.000 lines
@@ -302,9 +305,10 @@ var HANNIBAL = (function() {
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");
     // new H.HCQ(ts, "INGAME").execute("position", 5, 10, "ingames with position");
 
-    // new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
-    new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
-    new H.HCQ(ts, "stone ACCEPTEDBY INGAME").execute("metadata", 5, 20, "stone drop");
+    new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 80, "ingames with metadata");
+
+    // new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
+    // new H.HCQ(ts, "stone ACCEPTEDBY INGAME").execute("metadata", 5, 20, "stone drop");
 
     // new H.HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food MEMBER DISTINCT HOLDBY INGAME").execute("json", 5, 10, "optional update test");
 
@@ -470,17 +474,15 @@ var HANNIBAL = (function() {
       // check for winner
       if (this.frame.name === "whiteflag") {
         this.isFinished = true;
-        debug("Nothing to control. So I'll just assume I lost the game. :(");
-        brag("We'll meet again, boy!");
-        Engine.ProfileStop();
+        H.chat("Nothing to control. So I'll just assume I lost the game. :(");
+        H.chat("We'll meet again, boy!");
         return;
       }
         
       if (this.frame.name === "victory") {
         this.isFinished = true;
-        debug("I do not have any target. So I'll just assume I won the game.");
-        brag("You lost!");
-        Engine.ProfileStop();
+        H.chat("I do not have any target. So I'll just assume I won the game.");
+        H.chat("You lost!");
         return;
       }
 

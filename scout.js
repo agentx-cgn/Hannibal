@@ -215,11 +215,11 @@ HANNIBAL = (function(H){
         }
 
       },      
-      scanner: function (unit){
+      scanner: function (asset){
 
         // Object Factory
 
-        var ent = H.Entities[unit.id],
+        var ent = H.Entities[asset.resources[0]],
             rng = ~~ent.visionRange() * 0.9,
             queueNow    = [],
             queueLater  = [],

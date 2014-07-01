@@ -37,7 +37,7 @@ HANNIBAL = (function(H){
       parent:         "",             // inherit useful features
 
       position:       null,           // refers to the coords of the group's position/activities
-      structure:      [],             // still unkown resource, inits in Groups.appoint
+      structure:      [],             // still unkown asset, inits in Groups.appoint
 
       listener: {
         onLaunch: function(){},
@@ -49,46 +49,46 @@ HANNIBAL = (function(H){
           deb("     G: %s onDisConnect, callsign: %s", this, listener.callsign);
           H.remove(this.structure.users, listener);
         },
-        onAssign: function(resource){
+        onAssign: function(asset){
 
-          deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
+          deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
-          if (this.structure.match(resource)){
-            deb("     G: %s structure matches resource: %s", this, resource);
+          if (this.structure.match(asset)){
+            deb("     G: %s structure matches asset: %s", this, asset);
           } else {
-            deb("     G: %s structure does NOT matches resource: %s", this, resource);
+            deb("     G: %s structure does NOT matches asset: %s", this, asset);
             logObject(this, "this.onAssign");
           }
 
-          this.position = resource;
+          this.position = asset;
 
           this.structure.users.forEach(function(listener){
-            listener.onAssign(resource);
+            listener.onAssign(asset);
           });
 
         },
-        onDestroy: function(resource){
+        onDestroy: function(asset){
 
-          deb("     G: %s onDestroy: %s", this, resource);
+          deb("     G: %s onDestroy: %s", this, asset);
 
           // logObject(this.position, "this.position: " + this.position);
 
           if (this.structure.users.length > 0){
             this.structure.users.forEach(function(listener){
-              listener.onDestroy(resource);
+              listener.onDestroy(asset);
             });
             this.economy.request(1, this.structure, this.structure);
           } else {
-            deb("     G: ignored destroyed resource: %s", resource.name);
+            deb("     G: ignored destroyed asset: %s", asset.name);
           }
 
         },
-        onAttack: function(resource, enemy, type, damage){
+        onAttack: function(asset, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
+          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
           
           this.structure.users.forEach(function(listener){
-            listener.onAttack(resource, enemy, type, damage);
+            listener.onAttack(asset, enemy, type, damage);
           });
 
         },

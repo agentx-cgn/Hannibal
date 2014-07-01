@@ -1,10 +1,10 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, deb */
 
-/*--------------- DOMAIN: E C O N O M Y  --------------------------------------
+/*--------------- DOMAIN: T R E E  --------------------------------------------
 
-  Methods
-
+  Special doamin to travers the technology tree,
+  used to examine step distance to civic centre
 
 
   tested with 0 A.D. Alpha 15 Osiris
@@ -15,7 +15,7 @@
 HANNIBAL = (function(H){
 
   H.HTN = H.HTN || {};                       
-  H.HTN.Economy = H.HTN.Economy || {};
+  H.HTN.Tree = H.HTN.Tree || {};
 
   var m, o, planner, nodes, prit, sani, fmt,
       mapper = {
@@ -77,7 +77,7 @@ HANNIBAL = (function(H){
           units: "TRAIN DISTINCT"
         },
         planner = new H.HTN.Planner({
-          domain: H.HTN.Economy,
+          domain: H.HTN.Tree,
           verbose: 0,
           noInitialize: true
         });
@@ -237,16 +237,16 @@ HANNIBAL = (function(H){
   }
 
 
-  H.HTN.Economy.initialize = function(oPlanner){
+  H.HTN.Tree.initialize = function(oPlanner){
 
     var t0 = Date.now();
     
-    m = H.HTN.Economy.methods;
-    o = H.HTN.Economy.operators;
+    m = H.HTN.Tree.methods;
+    o = H.HTN.Tree.operators;
     fmt     = H.HTN.Helper.fmt;
     prit    = H.prettify;
     sani    = H.saniTemplateName;
-    nodes   = H.HTN.Economy.nodes = H.store ? H.store.nodes : H.Bot.culture.strore.nodes;
+    nodes   = H.HTN.Tree.nodes = H.store ? H.store.nodes : H.Bot.culture.strore.nodes;
     planner = oPlanner;
 
     cacheTechnologies();
@@ -259,16 +259,80 @@ HANNIBAL = (function(H){
     cacheBuildings.town = H.QRY("town CONTAIN")
       .map(node => node.name)
       .filter(filterBuildings);
-     // cacheDepths();
-    console.log("H.HTN.Economy.initialize", Date.now() - t0, "msecs");
+     cacheDepths();
+    console.log("H.HTN.Tree.initialize", Date.now() - t0, "msecs");
   };
 
-  H.HTN.Economy.methods = {
+  // H.HTN.Tree.searchTree = function searchTree (from, to, distance){
+
+  //   var i;
+
+  //   distance = distance || 0;
+    
+  //   ["train",  "build", "research"].forEach(verb => {
+  //     if (tree[from][verb].indexOf(to) !== -1){
+  //       return distance;
+  //     } else {
+  //       i = tree[from][verb].length;
+  //       while(i--){
+  //         return searchTree(tree[from][verb][i], to, distance +1);
+  //       }
+  //     }
+  //   });
+
+  // };
+
+  H.HTN.Tree.methods = {
+
+    // init: function init(state, goal){
+
+    //   // sanitizes state, check with copy in planner
+
+    //   state = state || {};
+
+    //   state.civ  = state.civ  || H.Bot.civ;
+    //   state.cost = state.cost || {};
+    //   state.ress = state.ress || {};
+    //   state.ents = state.ents || {};
+    //   state.tech = state.tech || [];
+
+    //   state.cost.time   = state.cost.time   || 0;
+    //   state.ress.wood   = state.ress.food   || 0;
+    //   state.ress.food   = state.ress.food   || 0;
+    //   state.ress.metal  = state.ress.metal  || 0;
+    //   state.ress.stone  = state.ress.stone  || 0;
+    //   state.ress.pop    = state.ress.pop    || 0;
+    //   // CHECK: hellenes/civpenalty_spart_popcap
+    //   //        mauryans/civbonus_maur_popcap
+    //   //        persians/civbonus_pers_popcap
+    //   state.ress.popmax = state.ress.popmax || 300;  
+    //   state.ress.popcap = state.ress.popcap || 0;
+
+    //   // autoresearch
+    //   H.pushUnique(state.tech, "phase.village");
+
+    //   // population
+    //   if (H.count(state.ents) > 0){
+    //     H.QRY(H.attribs(state.ents).join(", ")).forEach(function(node){
+    //       if (node.costs && node.costs.population){
+    //         if (node.costs.population < 0) {
+    //           state.ress.popcap -= node.costs.population;
+    //         } else {
+    //           state.ress.pop += node.costs.population;
+    //         }
+    //       }
+    //     });
+    //   }
+
+    //   return [[m.start, goal]];
+
+
+    // },
 
     start: function start(state, goal){
 
       var prop, diff = 0, data = goal.data,
-          ents = [], techs = [], rate,
+          ents = [], techs = [], 
           depths = H.Data.Depths[H.Bot.civ];
 
       // resources are priotized for testing
@@ -276,12 +340,8 @@ HANNIBAL = (function(H){
         for (prop of ['food', 'wood', 'metal', 'stone']){
           diff = (data.ress[prop] || 0) - (state.data.ress[prop] || 0 );
           if (diff > 0){
-            if (!state.groups[prop] || !state.groups[prop].length){
-              return [[m.launch, prop, 1], [m.start, goal]];
-            } else {
-              rate = state.groups[prop].length * state.groups[prop][0].rate;
-              return [[o.wait_secs, (diff/rate)], [m.start, goal]];
-            }
+            console.log(prop, diff);
+            return [[o.inc_resource, prop, diff], [m.start, goal]];
           }
         }
       }
@@ -317,50 +377,9 @@ HANNIBAL = (function(H){
       return [];
 
     },
-    launch: function launch(state, name, amount){
-
-      amount = amount || 1;
-
-      if (name === "stone"){
-        return [
-          [o.launch_group, "stone", "units.athen.support.female.citizen", 5],
-          [m.produce,  "units.athen.support.female.citizen", 5]
-        ];
-
-      } else if (name === "wood"){
-        return [
-          [o.launch_group, "wood", "units.athen.support.female.citizen", 10],
-          [m.produce,  "units.athen.support.female.citizen", 10]
-        ];
-
-      } else if (name === "food") {
-        return [
-          [o.launch_group, "food", "units.athen.support.female.citizen", 5],
-          [m.produce,  "units.athen.support.female.citizen", 1],
-          [o.build_structures, "structures.athen.field", 1],
-          [m.produce,  "units.athen.support.female.citizen", 4],
-        ];
-      }
-
-      return null;
-
-    },
-    allocate: function allocate(state, name, amount){
-
-      if (!state.groups[name]) {
-        return [[m.launch, name, 1]];
-
-      } else {
-        return [[o.wait_secs, 10]];
-
-      }
-
-    },
-    advance: function advance(state, name, amount){
+    advance: function advance(state, name){
 
       var result, tech = nodes[name];
-
-      amount = amount || 1;
 
       // can't do that (e.g. phase.town.generic with athen)
       if (!tech){
@@ -368,7 +387,6 @@ HANNIBAL = (function(H){
         return null;
       }
 
-      // http://trac.wildfiregames.com/changeset/15345
       if (tech.requires && tech.requires.civ){
         planner.log(0, () => fmt("m.advance tech.requires.civ not yet implemneted, %s", tech.requires.civ));
         return null;
@@ -433,11 +451,12 @@ HANNIBAL = (function(H){
       // get all producers //TODO: clever sort
       [producers, operator] = cacheProducer[name];
 
-      // producer not in state?
+      // producer in state?
       result = checkProducers(planner, m, o, state, producers);
       if (result){return result;}
 
-      // check popmax/cap, fails if hits popmax and not enough female to kill
+      // check popmax
+      // fails if hits popmax and not enough female to kill
       if (product.population){
         result = checkPopulationMax(planner, m, o, state, product, amount);
         if (result){return result;}

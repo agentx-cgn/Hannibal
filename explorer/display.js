@@ -91,11 +91,12 @@ HANNIBAL = (function(H){
           nodes = qry.execute(mode),
           t1    = Date.now(),
           html  = "", counter = 1, counter1 = 0,
-          tHeadInfo = "<thead><td class='hr'>#</td><td>Name</td><td>Info</td><td /></thead>",
-          tHeadJson = "<thead><td class='hr'>#</td><td>Name</td><td>Property</td><td>Value</td><td /></thead>",
-          tRowInfo  = "<tr><td class='hr'>%s</td><td class='cl' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td>%s</td><td /></tr>",
-          tRowName0 = "<tr><td class='hr bd'>%s</td><td  class='cl bd' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td class='bd'>%s</td><td class='bd'>%s</td><td /></tr>",
-          tRowName  = "<tr><td class='hr'></td><td></td><td>%s</td><td>%s</td><td /></tr>";
+          iconPath  = "/public/art/textures/ui/session/portraits/",
+          tHeadInfo = "<thead><td class='hr'>#</td><td class='hr'>Icon</td><td>Name</td><td>Info</td><td /></thead>",
+          tHeadJson = "<thead><td class='hr'>#</td><td class='hr'>Icon</td><td>Name</td><td>Property</td><td>Value</td><td /></thead>",
+          tRowInfo  = "<tr><td class='hr'>%s</td><td><img class='icon' width='32' height='32' src='%s' /></td><td class='cl' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td>%s</td><td /></tr>",
+          tRowName0 = "<tr><td class='hr bd'>%s</td><td><img class='icon' width='32' height='32' src='%s' /></td><td  class='cl bd' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td class='bd'>%s</td><td class='bd'>%s</td><td /></tr>",
+          tRowName  = "<tr><td class='hr'></td><td></td><td></td><td>%s</td><td>%s</td><td /></tr>";
 
       $("tblResult").innerHTML = "";
       $("txtHCQ").value = hqc;
@@ -111,13 +112,13 @@ HANNIBAL = (function(H){
         counter1 = 0;
         switch (mode) {
           case "info" :
-            html += H.format(tRowInfo, counter, node.name, node.name, node.info);
+            html += H.format(tRowInfo, counter, iconPath + node.icon, node.name, node.name, node.info);
           break;
           case "json" :
             H.each(node, function(prop, value){
-              if (prop !== 'name'){
+              if (prop !== 'name' && prop !== "icon"){
                 if (counter1 === 0){
-                  html += H.format(tRowName0, counter, node.name, node.name, prop, value);
+                  html += H.format(tRowName0, counter, iconPath + node.icon, node.name, node.name, prop, value);
                 } else {
                   html += H.format(tRowName, prop, H.prettify(value));
                 }

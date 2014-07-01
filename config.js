@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester
-    sequence: "aitest07m",
+    sequence: "ai-village",
 
     // enable psy-ops
     brag:     true,  
@@ -35,6 +35,11 @@ HANNIBAL = (function(H){
 
     data:                    {
       sharedBuildingClasses: ['civilcentre', 'blacksmith', 'farmstead'],
+    },
+
+    numerus: {
+      file:                 "/home/noiv/Desktop/0ad/stats.csv",
+      resolution:           10       // 10 = 16 secs
     },
 
     economy: {

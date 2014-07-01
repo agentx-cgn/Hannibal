@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, $, deb */
+/*globals Engine, HANNIBAL, H, deb */
 
 /*--------------- P L A N N E R -----------------------------------------------
 
@@ -15,17 +15,22 @@
 HANNIBAL = (function(H){
 
   H.HTN = H.HTN || {};
-  H.HTN.Economy = H.HTN.Economy || {};
+  H.HTN.Tree = H.HTN.Tree || {};
 
-  var // tab4  = "&nbsp;&nbsp;&nbsp;&nbsp;",
-      // prit = H.prettify, 
-      // tab  = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
+  var tab4  = "&nbsp;&nbsp;&nbsp;&nbsp;",
+      space = "<span style='font-size:6;'>" + tab4 + "</span>",
+      prit = H.prettify, pritObj, 
+      tab  = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
       fmt  = function fmt(){
         var c=0, a=Array.prototype.slice.call(arguments);
         a.push("");
         return a[0].split("%s").map(function(t){
           return t + a.slice(1)[c++];
         }).join('');
+      },
+      debSpace = function(){
+        html = "<tr><td style='font-size: 0px'>&nbsp;</td></tr>";
+        H.Browser.results.append('tblResult', html);
       },
       debLine = function(){
         var html, args = arguments;
@@ -34,37 +39,41 @@ HANNIBAL = (function(H){
         html = fmt("<tr><td>%s</td></tr>", fmt.apply(null, args));
         H.Browser.results.append('tblResult', html);
       },
-      // debBlock = function(html){
-      //   H.Browser.results.append('tblResult', html);
-      // },
       logObj = function(o){
         H.each(o, function(attr, valu){
           debLine(fmt(tab4 + "%s: %s", attr, prit(valu)));
         });
-      };
+      },
+      logTasks = function(ops, dense){
+        dense = dense || false;
+        ops.forEach(function(op){
+          var stp = "<strong style='color: #888'>" + tab(op[0], 4) + "</strong>",
+              cmd = "<strong style='color: #333'>" + op[1] + "</strong>",
+              prs = op.slice(2).filter(p=>p!==undefined).join(", ");
+          debLine(tab4 + stp + " - " + cmd + "   ( "  + prs + " )"); 
+          if (op[1] === 'wait_secs' && !dense){debSpace();}
+          if (op[1] === 'start' && !dense){debSpace();}
+        });
+      };    
 
-  var planner, m, o, prit, pritObj, logTasks,
+  var planner, m, o, 
+      copy = obj => JSON.parse(JSON.stringify(obj)),
       initialize = function(){
-        prit      = H.prettify;
-        o         = H.HTN.Economy.operators;
-        m         = H.HTN.Economy.methods;
+        o         = H.HTN.Tree.operators;
+        m         = H.HTN.Tree.methods;
         pritObj   = H.HTN.Helper.pritObj;
-        logTasks  = H.HTN.Helper.logTasks;
       };
 
-  H.HTN.Economy.test1 = function(cVerbose){
+  H.HTN.Tree.test1 = function(verbose){
 
-    var state, goal, deb, verbose = ~~$(cVerbose).value,
+    var state, goal, 
+        verbose = ~~$(verbose).value,
+        solution, deb, 
         log = function(){
           planner.logstack.forEach(function(o){
             debLine(o.m);
           });
-        },
-        logTasks = function(ops){
-          ops.forEach(function(op){
-            debLine(tab4 + prit(op));
-          });
-        };        
+        };
 
     initialize();
 
@@ -78,14 +87,14 @@ HANNIBAL = (function(H){
     );
 
     planner = planner || new H.HTN.Planner({
-      domain: H.HTN.Economy,
+      domain: H.HTN.Tree,
       verbose: verbose
     });
 
     deb(); deb("- Define state: food = 100, empty goal");
     deb();
-    state = new H.HTN.Economy.State({ress: {food: 100}}).sanitize();
-    goal  = new H.HTN.Economy.State();
+    state = new H.HTN.Helper.State({ress: {food: 100}}).sanitize();
+    goal  = new H.HTN.Helper.State();
     logObj(state);    
 
     deb();
@@ -93,55 +102,44 @@ HANNIBAL = (function(H){
     deb();
 
     planner.plan(state, [[m.start, goal], [o.inc_resource, 'food', 50]]);
-    log(); logTasks(planner.operations);
-    deb();
+    log(); logTasks(planner.operations, true); deb();
 
     planner.plan(state, [[m.start, goal], [o.train_units, 'units.athen.support.female.citizen', 1]]);
-    log(); logTasks(planner.operations);
-    deb();
+    log(); logTasks(planner.operations, true); deb();
 
     planner.plan(state, [[m.start, goal], [o.build_structures, 'structures.athen.farmstead', 1]]);
-    log(); logTasks(planner.operations);
-    deb();
+    log(); logTasks(planner.operations, true); deb();
 
     planner.plan(state, [[m.start, goal], [o.research_tech, 'armor.ship.hullsheathing', 1]]);
-    log(); logTasks(planner.operations);
-    deb();
+    log(); logTasks(planner.operations, true); deb();
 
     planner.plan(state, [[m.start, goal], [o.wait_secs, 10]]);
-    log(); logTasks(planner.operations);
-    deb();
+    log(); logTasks(planner.operations, true); deb();
 
     deb();
     deb('\n- <b style="color: #833">this methods should fail (no solution):</b>');
     deb();
 
     planner.plan(state, [[m.start, goal]]);
-    log(); logTasks(planner.operations);
-    deb();
+    log(); logTasks(planner.operations, true); deb();
 
     planner.plan(state, [[m.produce, 'structures.athen.barracks', 1]]);
-    log(); logTasks(planner.operations);
-    deb();
+    log(); logTasks(planner.operations, true); deb();
 
     deb();
     deb('\n- done');
 
   };  
 
-  H.HTN.Economy.test2 = function(cVerbose){
+  H.HTN.Tree.test2 = function(cVerbose){
 
-    var state, goal, deb, verbose = ~~$(cVerbose).value,
+    var state, goal, solution, deb, 
+        verbose = ~~$(cVerbose).value,
         log = function(){
           planner.logstack.forEach(function(o){
             debLine(o.m);
           });
-        },
-        logTasks = function(ops){
-          ops.forEach(function(op){
-            debLine(tab4 + prit(op));
-          });
-        };        
+        };
 
     initialize();
 
@@ -155,7 +153,7 @@ HANNIBAL = (function(H){
     );
 
     planner = planner || new H.HTN.Planner({
-      domain: H.HTN.Economy,
+      domain: H.HTN.Tree,
       verbose: verbose
     });
 
@@ -165,11 +163,11 @@ HANNIBAL = (function(H){
     deb("- Define state: food: 100");
     deb("- Define goal: food: 200");
     deb();
-    state = new H.HTN.Economy.State({ress:{food: 100}}).sanitize();
-    goal  = new H.HTN.Economy.State({ress:{food: 200}});
+    state = new H.HTN.Helper.State({ress:{food: 100}}).sanitize();
+    goal  = new H.HTN.Helper.State({ress:{food: 200}});
     planner.plan(state, [[m.start, goal]]);
     log();
-    logTasks(planner.operations);
+    logTasks(planner.operations, true);
     deb();
     
     deb();
@@ -177,33 +175,28 @@ HANNIBAL = (function(H){
     deb("- Define goal: food: 100, wood: 200, stone: 300, metal: 400");
     deb();
 
-    state = new H.HTN.Economy.State().sanitize();
-    goal  = new H.HTN.Economy.State({ress:{food: 100, wood: 200, stone: 300, metal: 400}});
+    state = new H.HTN.Helper.State().sanitize();
+    goal  = new H.HTN.Helper.State({ress:{food: 100, wood: 200, stone: 300, metal: 400}});
 
     planner.plan(state, [[m.start, goal]]);
     log();
-    logTasks(planner.operations);
+    logTasks(planner.operations, true);
     deb();
 
     deb();
     deb('\n- done');
 
-
   };  
 
-  H.HTN.Economy.test3 = function(cVerbose){
+  H.HTN.Tree.test3 = function(cVerbose){
 
-    var state, goal, deb, verbose = ~~$(cVerbose).value,
+    var state, goal, solution, deb, 
+        verbose = ~~$(cVerbose).value,
         log = function(){
           planner.logstack.forEach(function(o){
             debLine(o.m);
           });
-        },
-        logTasks = function(ops){
-          ops.forEach(function(op){
-            debLine(tab4 + prit(op));
-          });
-        };        
+        };
 
     initialize();
 
@@ -217,11 +210,11 @@ HANNIBAL = (function(H){
     );
 
     planner = planner || new H.HTN.Planner({
-      domain: H.HTN.Economy,
+      domain: H.HTN.Tree,
       verbose: verbose
     });
 
-    state = new H.HTN.Economy.State({
+    state = new H.HTN.Helper.State({
       "ress": {"food": 300, "wood": 300},
       "ents": {
         "structures.athen.civil.centre": 1,
@@ -229,7 +222,7 @@ HANNIBAL = (function(H){
       "tech": ["phase.village"]
     }).sanitize();
 
-    goal  = new H.HTN.Economy.State({
+    goal  = new H.HTN.Helper.State({
       "ress": {"food": 300, "wood": 300},
       "ents": {
         "structures.athen.civil.centre": 1,
@@ -253,14 +246,14 @@ HANNIBAL = (function(H){
     
     planner.plan(state, [[m.start, goal]]);
     log();
-    logTasks(planner.operations);
+    logTasks(planner.operations, true);
     deb();
 
     deb();
     deb("- Goal: construct structures.athen.field: 1");
     deb();
 
-    state = new H.HTN.Economy.State({
+    state = new H.HTN.Helper.State({
       "ress": {"food": 300, "wood": 300},
       "ents": {
         "structures.athen.civil.centre": 1,
@@ -268,7 +261,7 @@ HANNIBAL = (function(H){
       "tech": ["phase.village"]
     }).sanitize();
 
-    goal = new H.HTN.Economy.State({
+    goal = new H.HTN.Helper.State({
       "ress": {},
       "ents": {"structures.athen.field": 1},
       "tech": []
@@ -276,26 +269,30 @@ HANNIBAL = (function(H){
 
     planner.plan(state, [[m.start, goal]]);
     log();
-    logTasks(planner.operations);
+    logTasks(planner.operations, true);
     deb();
     
     deb();
     deb('\n- done');
 
-
   };  
-  H.HTN.Economy.runCiv = function(cCiv){
 
-    var deb = debLine, solutions = [], info,
+  H.HTN.Tree.runCiv = function(cCiv){
+
+    var t0, t1, counter, deb = debLine, 
         civ   = $(cCiv).value,
+        infoQ = H.store.cntQueries,
+        infoH = H.store.cacheHit,
+        infoM = H.store.cacheMiss,
         prit  = H.prettify,
-        // tab   = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
-        zero  = function () {return new H.HTN.Economy.State({ress: {}, ents: {}, tech: []});},
+        tab   = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
+        zero  = function () {return new H.HTN.Helper.State({ress: {}, ents: {}, tech: []});},
         config = {
           techs: {qry: "RESEARCH DISTINCT", com: "", counter: 0},
-          bldgs: {qry: "BUILD DISTINCT",    com: "", counter: 0},
-          units: {qry: "TRAIN DISTINCT",    com: "", counter: 0}
-        };
+          bldgs: {qry: "BUILD DISTINCT",   com: "", counter: 0},
+          units: {qry: "TRAIN DISTINCT",   com: "", counter: 0}
+        },
+        solutions = [], nodes, patState = "", patGoal = "", info;
 
     deb("running planner on all entities of %s, preparing ...", civ);
 
@@ -303,7 +300,7 @@ HANNIBAL = (function(H){
     H.Browser.results.clear('tblResult');    
 
     planner = planner || new H.HTN.Planner({
-      domain: H.HTN.Economy,
+      domain: H.HTN.Tree,
       verbose: 0
     });
 
@@ -328,7 +325,7 @@ HANNIBAL = (function(H){
 
     });
 
-    info = H.transform(config, function(k,v){return [k, v.counter];});
+    info = H.transform(config, function(k,v){return [k, v.counter];})
     deb("created %s solutions: %s", solutions.length, prit(info));
     deb();
     deb("evaluating: <span id='worker'></span>");
@@ -368,11 +365,11 @@ HANNIBAL = (function(H){
 
       deb("- done");
 
-
     }
+
   };
 
-  H.HTN.Economy.runStress = function(cVerbose, cLoops, cState, cGoal){
+  H.HTN.Tree.runStress = function(cVerbose, cLoops, cState, cGoal){
 
     var t0, t1, p, deb = debLine, state, goal,
         loops = ~~($(cLoops).value).split(".").join(""),
@@ -380,8 +377,8 @@ HANNIBAL = (function(H){
         verbose = ~~$(cVerbose).value,
         infoQ = H.store.cntQueries,
         infoH = H.store.cacheHit,
-        infoM = H.store.cacheMiss;
-        // tab  = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");};
+        infoM = H.store.cacheMiss,
+        tab  = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");};
 
 
     try {
@@ -391,7 +388,7 @@ HANNIBAL = (function(H){
       $("cError").innerHTML += "<span class='f80'>[" + e + "]</span>";
       return;
     }
-    state = new H.HTN.Economy.State(state).sanitize();
+    state = new H.HTN.Helper.State(state).sanitize();
 
     try {
       goal = JSON.parse("{" + $(cGoal).value + "}");
@@ -400,13 +397,13 @@ HANNIBAL = (function(H){
       $("cError").innerHTML += "<span class='f80'>[" + e + "]</span>";
       return;
     }
-    goal = new H.HTN.Economy.State(goal).sanitize();
+    goal = new H.HTN.Helper.State(goal).sanitize();
 
     initialize();
     H.Browser.results.clear('tblResult');
 
     planner = planner || new H.HTN.Planner({
-      domain: H.HTN.Economy,
+      domain: H.HTN.Tree,
       verbose: verbose
     });
     
@@ -451,9 +448,10 @@ HANNIBAL = (function(H){
 
   };
 
-  H.HTN.Economy.runTarget = function(verbose, state, goal){
+  H.HTN.Tree.runTarget = function(verbose, state, goal){
 
     var deb = debLine,
+        prit  = H.prettify,
         log = function(){
           planner.logstack.forEach(function(o){
             var msg;
@@ -466,7 +464,7 @@ HANNIBAL = (function(H){
     H.Browser.results.clear('tblResult');
 
     planner = planner || new H.HTN.Planner({
-      domain: H.HTN.Economy,
+      domain: H.HTN.Tree,
       verbose: verbose
     });
 
@@ -483,13 +481,16 @@ HANNIBAL = (function(H){
     deb('\n- done');
 
   };
-  H.HTN.Economy.runGo = function(cVerbose, cState, cGoal){
 
-    var t0 = Date.now(), state, goal, deb = debLine,
+  H.HTN.Tree.runGo = function(cVerbose, cState, cGoal){
+
+    var state, goal, solution, deb = debLine,
         verbose = ~~$(cVerbose).value,
-        indent = function(i){return new Array(i).join("&nbsp;");},
+        indent = function(i){return new Array(i).join("&nbsp;");}
+        prit  = H.prettify,
         log = function(){
           planner.logstack.forEach(function(o){ // {v: verbose, d: this.depth, m: txt, now: Date.now()}
+            var msg;
             if (o.m.contains("SUCCESS")){
               debLine(H.replace(o.m, "SUCCESS", "<strong style='color: #393'>SUCCESS</strong>"));
             } else {
@@ -513,13 +514,13 @@ HANNIBAL = (function(H){
       H.Browser.error("Error: Check JSON of state<br /><span class='f80'>[" + e + "]</span>");
       return;
     }
-    goal = new H.HTN.Helper.State(goal);
+    goal = new H.HTN.Helper.State(goal).sanitize();
 
     initialize();
     H.Browser.results.clear('tblResult');
 
     planner = planner || new H.HTN.Planner({
-      domain: H.HTN.Economy,
+      domain: H.HTN.Tree,
       verbose: verbose
     });
     
@@ -531,16 +532,12 @@ HANNIBAL = (function(H){
     deb();
     deb("<b>New State:</b>");
     deb(pritObj(planner.result));
-    deb();  
+    deb();
     
     deb();
     deb('\n- done');
 
-    console.log("- done", Date.now() - t0);
-
   };
-
-
 
 
 return H; }(HANNIBAL)); 

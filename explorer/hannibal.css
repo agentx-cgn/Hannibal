@@ -135,8 +135,10 @@ div.container {
 
 
 #txtHCQ   {width: 720px;}
-#txtGoal  {width: 324px;}
-#txtState {width: 324px;}
+#txtTREEGoal  {width: 324px;}
+#txtTREEState {width: 324px;}
+#txtECOGoal  {width: 324px;}
+#txtECOState {width: 324px;}
 #slcExams {width: 726px;}
 #slcNodes {width: 533px;}
 
@@ -195,6 +197,10 @@ div.menu {
   color: #fff;
 }
 
+li.menu:hover {
+  color: #fff;
+}
+
 select#slcCivs {
   float: none;
   background: none repeat scroll 0% 0% #555;
@@ -236,7 +242,12 @@ select#slcVerbose {
 }
 
 
-  
+
+img.icon {
+  border: 2px solid #888;
+  border-radius: 5px;
+}
+
 table {
   width: 100%;
   table-layout: auto;  

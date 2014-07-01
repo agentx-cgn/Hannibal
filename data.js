@@ -30,23 +30,23 @@ HANNIBAL = function(H){
     "onRelease"       // de-garrison
   ];
 
-  // Triple Store Verbs
+  // Triple Store Verbs, in order of frequency with ingames first
   H.Data.verbs = [
-    "member",     "contain",          // classes have entities as members
-    "provide",    "providedby",       // Entities provide resourcetype: food.grain, stone.ruins
-    "gather",     "gatheredby",       // units picking resources types: food.gran, wood.tree, treasure
-    "build",      "buildby",          // units building structures
-    "train",      "trainedby",        // structures training units
-    "hold",       "holdby",           // structures garrison units
-    "heal",       "healedby",         // entities heal classes
-    "research",   "researchedby",     // entities research technologies
-    "require",    "enable",           // entities require/enable technologies: phase.town, unlock.female.houses
-    "accept",     "acceptedby",       // dropsites accepts resources: wood, stone, metal, food
-    "carry",      "carriedby",        // entities carrying resources: wood, stone, metal, food
     "ingame",     "describedby",      // ingame entities and their templates
     "techingame", "techdescribedby",  // ingame technologies and their templates 
+    "member",     "contain",          // classes have entities as members
+    "build",      "buildby",          // units building structures
+    "gather",     "gatheredby",       // units picking resources types: food.gran, wood.tree, treasure
+    "carry",      "carriedby",        // entities carrying resources: wood, stone, metal, food
+    "hold",       "holdby",           // structures garrison units
+    "require",    "enable",           // entities require/enable technologies: phase.town, unlock.female.houses
+    "pair",       "pairedby",         // coupled technologies
+    "train",      "trainedby",        // structures training units
+    "research",   "researchedby",     // entities research technologies
+    "accept",     "acceptedby",       // dropsites accepts resources: wood, stone, metal, food
+    "heal",       "healedby",         // entities heal classes
+    "provide",    "providedby",       // Entities provide resourcetype: food.grain, stone.ruins
     "supersede",  "supersededby",     // chained technologies
-    "pair",       "pairedby"          // coupled technologies
   ];
 
   H.Data.stances = [

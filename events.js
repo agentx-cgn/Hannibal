@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
     "RangeUpdate",
     "PlayerDefeated"
   ],
-  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s",
+  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s",
   createEvents  = {},
   destroyEvents = {};
 
@@ -212,6 +212,14 @@ HANNIBAL = (function(H){
             // createEvents[event.entity] = event;
           break;
 
+          case "RangeUpdate":  // 
+            deb(" EVENT: RangeUpdate %s", uneval(event));
+          break;
+
+          case "PlayerDefeated":  // EVENT: PlayerDefeated ({playerId:1})
+            deb(" EVENT: PlayerDefeated %s", uneval(event));
+          break;
+
 
           case "EntityRenamed":
             if (H.Entities[event.newentity].owner() === PID){
@@ -339,9 +347,8 @@ HANNIBAL = (function(H){
           break;
 
           default:
-            deb("        %s unknown %s", event.type, mats);
+            deb("ERROR : Event %s unknown: %s, %s", type, uneval(event), mats);
             logObject(event.msg);
-            // deb("    %s: %s", type, getAttribType("entity", event.entity));
 
           break;
 

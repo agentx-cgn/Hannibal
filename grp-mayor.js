@@ -37,7 +37,7 @@ HANNIBAL = (function(H){
       parent:         "",             // inherit useful features
 
       position:       null,           // refers to the coords of the group's position/activities
-      structure:      [],             // still unkown resource, inits at game start
+      structure:      [],             // still unkown asset, inits at game start
 
       builders:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <ccid>"],
 
@@ -58,33 +58,33 @@ HANNIBAL = (function(H){
           deb("     G: %s onDisConnect, callsign: %s", this, listener.callsign);
           H.remove(this.structure.users, listener);
         },
-        onAssign: function(resource){
+        onAssign: function(asset){
 
-          deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
+          deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
-          this.position = resource;
+          this.position = asset;
 
           H.QRY("INGAME WITH metadata.ccid = " + this.ccid).forEach(function(node){
-            node.metadata.ccid = resource.id;
+            node.metadata.ccid = asset.resources[0];
           });
 
-          this.ccid = resource.id;
+          this.ccid = asset.resources[0];
 
-          if (resource.isFoundation){
-            this.builders.nearest(30).repair(resource);
+          if (asset.isFoundation){
+            this.builders.nearest(30).repair(asset);
           }
 
         },
-        onDestroy: function(resource){
+        onDestroy: function(asset){
 
-          deb("     G: %s onDestroy: %s", this, resource);
+          deb("     G: %s onDestroy: %s", this, asset);
 
           this.economy.request(1, this.structure, this.position); // better location, pos is array
 
         },
-        onAttack: function(resource, enemy, type, damage){
+        onAttack: function(asset, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, enemy, damage);
+          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
 
           this.attackLevel += 1;
 

@@ -18,18 +18,17 @@ HANNIBAL = (function(H) {
   // a NOP function
   H.FNULL = function(){};
 
-  H.quit = function(){
-    Engine.PostCommand(H.Bot.id, {"type": "quit"});
-  };
 
-  // sanitize UnitAI state
-  H.state = function(id){
-    return (
-      H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
-        H.replace(H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
-          undefined
-    ); 
-  };
+
+
+  // // sanitize UnitAI state
+  // H.state = function(id){
+  //   return (
+  //     H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
+  //       H.replace(H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
+  //         undefined
+  //   ); 
+  // };
 
   // sanitizes template names to dot notaton
   H.saniTemplateName = function(nameTemplate){
@@ -61,9 +60,12 @@ HANNIBAL = (function(H) {
     }
   };
 
-  // calcs health of an array of ents
   H.health = function(ids){
+
+    // calcs health of an array of ent ids
+
     var curHits = 0, maxHits = 0;
+
     ids.forEach(function(id){
       if (!H.Entities[id]){
         deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
@@ -72,12 +74,26 @@ HANNIBAL = (function(H) {
         maxHits += H.Entities[id].maxHitpoints();
       }
     });
+
     return ids.length ? (curHits / maxHits * 100).toFixed(1) : NaN;
+
   };
 
 
-  // keeps track of objects and their IDs
+  H.States = Proxy.create({  // sanitize UnitAI state
+    get: function (proxy, id) {
+      return (
+        H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
+          H.replace(H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
+          undefined
+      ); 
+    }
+  });  
+
   H.Objects = (function(){
+
+    // keeps track of objects and their IDs
+    
     var o = {}, p = 0;
     return function (x) {
       if (x === undefined){return o;}
@@ -86,8 +102,10 @@ HANNIBAL = (function(H) {
     };
   }());
 
-  // calls functions + params at a given tick or diff
   H.Triggers = (function(){
+
+    // calls functions + params at a given tick or diff
+
     var i, len, pointer = 0, actions = [], dels = [], t0;
     return {
       info: function(){return actions.length;},
@@ -112,6 +130,182 @@ HANNIBAL = (function(H) {
       }
     };
   }());
+     
+
+  H.Numerus = (function(){
+
+    // a statistics extension, interacts with launcher
+
+    var ss, key = 0, resolution = 10;
+
+    function out (data) {print(data + "\n");}
+    function append (data){out("#! append 1 :" + data);}
+
+    function tickData(id){
+      var pd = ss.playersData[id],
+          data  = {
+            player: id,
+            name:   pd.name,
+            team:   pd.team,
+            civ:    pd.civ,
+            color:  pd.color,
+          };
+      return JSON.stringify(data);
+    }
+
+    function tickLine(id, what){
+
+      var data, pd = ss.playersData[id], st = pd.statistics;
+
+      data = {
+        key:        key,
+        secs:       (H.GameState.timeElapsed/1000).toFixed(1),
+        pid:        id,
+        phase:      pd.phase,
+        food:       pd.resourceCounts.food,
+        wood:       pd.resourceCounts.wood,
+        stone:      pd.resourceCounts.stone,
+        metal:      pd.resourceCounts.metal,
+        tresaure:   st.treasuresCollected,
+        unitsLost:  st.unitsLost.total,
+        unitsTrai:  st.unitsTrained.total,
+        bldgsCons:  st.buildingsConstructed.total,
+        bldgsLost:  st.buildingsLost.total,
+        kills:      st.enemyUnitsKilled.total,
+        popcnt:     pd.popCount,
+        popcap:     pd.popLimit,
+        popmax:     pd.popMax,
+        explored:   st.percentMapExplored,
+        techs:      Object.keys(pd.researchedTechs).length,
+      };
+
+      key += 1;
+
+      return ( what === "row" ? 
+        Object.keys(data).map(a => data[a]).join(";") + "\n" :
+        Object.keys(data).join(";") + "\n"
+      );
+
+    } 
+
+    return {
+      init: function(){
+        ss = H.SharedScript;
+        resolution = H.Config.numerus.resolution;
+        deb();deb();deb(" STATS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
+        out("#! open 1 " + H.Config.numerus.file);
+        out("#! append 1 :# Numerus Log from: " + new Date());
+        H.each(ss.playersData, function(id){
+          id = ~~id;
+          if (id){append("# " + tickData(id, "row"));}
+        });
+        out("#! append 1 :" + tickLine(1, "head"));
+      },
+      tick: function(secs, ticks){
+        if (!(~~ticks % resolution)) { 
+          H.each(ss.playersData, function(id){
+            id = ~~id;
+            if (id){append(tickLine(id, "row"));}
+          });
+        }    
+      }
+    };
+
+  }());  
+
+
+H.Behaviour = function(behaviour){
+
+  // Selects the new or current frame for execution, returns frame after
+
+  this.behaviour = behaviour;
+  this.name   = behaviour.name;
+  this.boss   = behaviour.name.split(":")[0];
+  this.prefix = behaviour.name.split(":").slice(0, -1).join(":");
+  this.level  = ~~behaviour.name.split(":").slice(-1);
+  this.frame  = H.Hannibal.Frames[this.dub(behaviour.entry)];
+  if (!this.frame) {
+    deb("Behaviour: unknown frame: %s, name: %s", this.dub(behaviour.entry), this.name);
+    deb("  ");
+  }
+  this.stack = [this.frame.name];
+
+  this.done        = "";
+
+};
+
+H.Behaviour.prototype = {
+  constructor: H.Behaviour,
+  toString:    function(){return "[Behaviour " + this.name + "]";},
+  debDone:     function(){return H.format("%s %s", this.name, this.done);},
+  dub:         function(frameName){return this.prefix + "." + frameName;},
+  process:     function(/* [me, [arguments]] */){
+
+    var self = this, frame, 
+        childNames, childs, candidates, tasks,
+        args = Array.prototype.slice.call(arguments),
+        me   = args.length ? args[0] : {},
+        rest = args.slice(1);
+
+    // check for exit to parent
+
+    // deb("Behaviour.process.stack: %s", this.stack.join(", "));
+
+    this.done = ""; // debug
+
+    if (this.frame.checkExit()){
+      frame = this.stack.pop();
+      self.done = H.format("left %s on %s to %s", this.frame.name, this.frame.exitConds.join(", "), frame);
+      return H.Hannibal.Frames[this.dub(frame)].process(me, rest);
+    }
+
+    // check for enter into child
+
+    childNames = this.behaviour[this.frame.name].filter(function(name){
+      // real childs have an entry in behaviour
+      return !!self.behaviour[name];
+    });
+
+
+    childs = childNames.map(function(name){
+      return H.Hannibal.Frames[self.dub(name)];
+    });    
+
+    candidates = childs.filter(function(child){
+      return child.checkEnter();
+    });
+
+    if (candidates.length){
+      // choosing first implements priorities
+      self.done = H.format("entered %s based on [%s]", candidates[0].name, candidates[0].entryConds.join(", "));
+      this.stack.push(candidates[0].name);
+
+      return (this.frame = candidates[0].process(me, rest));
+    }
+
+
+    // still here? do our stuff, tasks first
+
+    tasks = this.behaviour[this.frame.name].filter(function(task){
+      // tasks have no entry in behaviour
+
+      // deb("   BHV: process: %s", self.dub(task));
+
+      return !self.behaviour[task] && H.Hannibal.Frames[self.dub(task)].checkEnter();
+    });
+
+    tasks.forEach(function(task){
+      self.done += "-" + task;
+      H.Hannibal.Frames[self.dub(task)].process(me, args);
+    });
+
+    // now this
+    this.done += "+" + this.frame.name;
+    return this.frame.process(me, args);
+
+  }
+
+};
 
 return H;}(HANNIBAL));
 

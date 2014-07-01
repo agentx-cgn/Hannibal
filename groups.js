@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
           group.instances.forEach(function(instance){
             deb("     G: %s, assets: [%s]", instance.name, instance.assets.length);
             instance.assets.forEach(function(ast){
-              deb("     G:   %s: [%s], %s, ", ast.nameDef, ast.resources.length, ast);
+              deb("     G:   %s: [%s], %s, ", ast.property, ast.resources.length, ast);
               ast.resources.forEach(function(id){
                 deb("     G:      tlp:  %s", H.Entities[id]);
                 deb("     G:      meta: %s", H.prettify(H.MetaData[id]));
@@ -116,34 +116,41 @@ HANNIBAL = (function(H){
         H.Entities[id].setMetadata(H.Bot.id, "opname", instance.name);
 
         instance.structure = ["private", nodename];
-        instance.structure = H.CreateAsset(instance, 'structure');
-        instance.structure.resources.push(id);
+        instance.structure = H.createAsset(instance, 'structure', [id]);
+        // instance.structure.resources.push(id);
         instance.assets.push(instance.structure);
         
-        H.Events.registerListener(id, instance.structure.listener);
+        H.Events.registerListener(id, instance.structure.listener.bind(instance.structure));
 
         deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", groupname, H.Entities[id], id, nodename, cc);
 
         return instance;
 
       },
-      moveSharedAsset: function(resource, id, operator){
+      moveSharedAsset: function(asset, id, operator){
 
-        // overwrites former group resource with the operator's one 
+        // overwrites former group asset with the operator's one 
         // creates downlink via onConnect
-        // assigns shared resource to target operator, 
+        // assigns shared asset to target operator, 
 
-        var group = resource.instance;
+        var group = asset.instance;
 
-        group[resource.nameDef] = operator.structure;
-        operator.listener.onConnect(resource.instance.listener);
-        group.listener.onAssign(operator.structure.toResource(id)); // why not op.onAssign ???
+        group[asset.property] = operator.structure;
+        operator.listener.onConnect(asset.instance.listener);
+        group.listener.onAssign(operator.structure.toSelection([id])); // why not op.onAssign ???
 
         // instance.assets.push(instance[prop]);
 
-        deb("   GRP: %s took over %s as shared asset", operator, resource);
+        deb("   GRP: %s took over %s as shared asset", operator, asset);
 
       },
+      release: function(ids){
+        ids.forEach(function(id){
+          H.MetaData[id].opname = "none";
+          delete H.MetaData[id].opid;
+          H.remove(resources, id);
+        });
+      },      
       dissolve: function(instance){
         H.each(groups, function(name, group){
           group.instances.forEach(function(inst){ 
@@ -210,9 +217,8 @@ HANNIBAL = (function(H){
           },
           register: function(/* arguments */){
             H.toArray(arguments).forEach(function(prop){
-              instance[prop] = H.CreateAsset(instance, prop);
+              instance[prop] = H.createAsset(instance, prop, []);
               instance.assets.push(instance[prop]);
-              // deb("   GRP: registered resource %s for %s", prop, instance.name);
             });
           },
           tick: function(secs, ticks){

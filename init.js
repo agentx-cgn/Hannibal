@@ -40,8 +40,8 @@ HANNIBAL = (function(H){
       Organize Villages by distance to CC
     */
 
-    new H.HCQ(H.Bot.culture.store, "civcentre CONTAIN INGAME").execute("metadata", 5, 20, "ingame cc at init");
-    new H.HCQ(H.Bot.culture.store, "INGAME").execute("metadata", 5, 40, "ingame cc at init");
+    // new H.HCQ(H.Bot.culture.store, "civcentre CONTAIN INGAME").execute("metadata", 5, 20, "ingame cc at init");
+    // new H.HCQ(H.Bot.culture.store, "INGAME").execute("metadata", 5, 40, "ingame cc at init");
 
 
     nodesCics = H.QRY("civcentre CONTAIN INGAME").forEach(function(node){
@@ -75,8 +75,8 @@ HANNIBAL = (function(H){
           }
         });
 
-        deb("     I: chosing cc: %s at %s for [%s %s] at %s", 
-          H.MetaData[node.id].ccid, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
+        // deb("     I: chosing cc: %s at %s for [%s %s] at %s", 
+        //   H.MetaData[node.id].ccid, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
 
         cics[H.MetaData[node.id].ccid] += 1;
 
@@ -132,7 +132,7 @@ HANNIBAL = (function(H){
           }
 
         } else {
-          deb("ERROR : loadEntities unhandled entity: %s classes: %s", ent, ent.classes());
+          deb("WARN  : loadEntities unhandled entity: %s classes: %s", ent, ent.classes());
 
         }
 

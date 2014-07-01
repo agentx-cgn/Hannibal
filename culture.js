@@ -358,6 +358,7 @@ HANNIBAL = (function(H){
             id        : +id || undefined,
             civ       : this.getCivilisation(template),
             info      : this.getInfo(template),
+            icon      : (!!template.Identity && template.Identity.Icon) ? template.Identity.Icon : undefined,       // tech
             size      : this.getSize(template),
             costs     : this.getCosts(template),
             speed     : this.getSpeed(template),

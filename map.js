@@ -3,8 +3,8 @@
 
 /*--------------- M A P S -----------------------------------------------------
 
-  cosmetic rewrite of Aegis' map module
-
+  Deals with map aspects in coordinates + 
+  cosmetic rewite offindGoodPosition, createObstructionsmap from Aegis
 
 
   V: 0.1, agentx, CGN, Feb, 2014
@@ -50,93 +50,101 @@ HANNIBAL = (function(H){
     );
   }
 
-  H.Map.createTerritoryMap = function() {
-    var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
-    map.getOwner      = function(p) {return this.point(p) & H.Map.TERRITORY_PLAYER_MASK;};
-    map.getOwnerIndex = function(p) {return this.map[p]   & H.Map.TERRITORY_PLAYER_MASK;};
-    return map;
-  };
+  H.extend(H.Map, {
+    createTerritoryMap: function() {
+      var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
+      map.getOwner      = function(p) {return this.point(p) & H.Map.TERRITORY_PLAYER_MASK;};
+      map.getOwnerIndex = function(p) {return this.map[p]   & H.Map.TERRITORY_PLAYER_MASK;};
+      return map;
+    },
+    gamePosToMapPos: function(p){
+      return [~~(p[0] / H.Map.cellsize), ~~(p[1] / H.Map.cellsize)];
+    },
+    gamePosToMapIndex: function(p){
+      var [x, y] = H.Map.gamePosToMapPos(p);
+      return x + y * H.Map.width;
+    },
+    distanceTo: function(ids, pos){
+      var center = H.Map.getCenter(ids);
+      return H.Map.distance(center, pos);
+    },
+    distance: function(a, b){
+      var dx = a[0] - b[0], dz = a[1] - b[1];
+      return Math.sqrt(dx * dx + dz * dz);
+    },
+    isOwnTerritory: function(pos){
+      var index  = H.Map.gamePosToMapIndex(pos),
+          player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
+      return player === H.Bot.id;
+    },
+    isEnemyTerritory: function(pos){
+      var index  = H.Map.gamePosToMapIndex(pos),
+          player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
+      return H.GameState.playerData.isEnemy[player];
+    },
+    nearest: function(point, ids){
 
-  H.Map.gamePosToMapPos = function(p){
-    return [~~(p[0] / H.Map.cellsize), ~~(p[1] / H.Map.cellsize)];
-  };
+      // deb("   MAP: nearest: target: %s, ids: %s", point, ids);
 
-  H.Map.gamePosToMapIndex = function(p){
-    var [x, y] = H.Map.gamePosToMapPos(p);
-    return x + y * H.Map.width;
-  };
+      var distance = 1e10, dis, result = 0, pos = 0.0;
 
-  H.Map.distance = function(a, b){
-    var dx = a[0] - b[0], dz = a[1] - b[1];
-    return Math.sqrt(dx * dx + dz * dz);
-    // return Math.hypot(a[0] - b[0], a[1] - b[1]);
-  };
+      ids.forEach(id => {
+        pos = H.Entities[id].position();
+        dis = H.Map.distance(point, pos);
+        if ( dis < distance){
+          distance = dis; result = id;
+        } 
+      });
+      return result;
 
-  H.Map.nearest = function(point, ids){
+    },
+    spread: function(ids){
+      var poss = ids.map(id => H.Entities[id].position()),
+          xs = poss.map(pos => pos[0]),
+          zs = poss.map(pos => pos[1]),
+          minx = Math.max.apply(Math, xs),
+          minz = Math.max.apply(Math, zs),
+          maxx = Math.max.apply(Math, xs),
+          maxz = Math.max.apply(Math, zs),
+          disx = maxx - minx,
+          disz = maxz - minz;
+      return Math.max(disx, disz);
+    },
+    centerOf: function(poss){
+      // deb("   MAP: centerOf.in %s", pritShort(poss));
+      var out = [0, 0], len = poss.length;
+      poss.forEach(function(pos){
+        if (pos.length){
+          out[0] += pos[0];
+          out[1] += pos[1];
+        } else { 
+          len -= 1;
+        }
+      });
+      return [out[0] / len, out[1] / len];
+    },
+    getCenter: function(entids){
 
-    // deb("   MAP: nearest: target: %s, ids: %s", point, ids);
+      // deb("   MAP: getCenter: %s", H.prettify(entids));
 
-    var distance = 1e10, dis, result = 0, pos = 0.0;
+      if (!entids || entids.length === 0){
+        throw new Error("getCenter with unusable param");
 
-    ids.forEach(id => {
-      pos = H.Entities[id].position();
-      dis = H.Map.distance(point, pos);
-      if ( dis < distance){
-        distance = dis; result = id;
-      } 
-    });
+      } else if (entids.length === 1){
+        if (!H.Entities[entids[0]]){
+          return deb("ERROR : MAP getCenter with unusable id: %s, %s", prit(entids[0]), prit(entids));
+        } else {
+          return H.Entities[entids[0]].position();
+        }
 
-    return result;
-
-  };
-
-  H.Map.centerOf = function(poss){
-    // deb("   MAP: centerOf.in %s", pritShort(poss));
-    var out = [0, 0], len = poss.length;
-    poss.forEach(function(pos){
-      if (pos.length){
-        out[0] += pos[0];
-        out[1] += pos[1];
-      } else { 
-        len -= 1;
-      }
-    });
-    return [out[0] / len, out[1] / len];
-  };
-
-  H.Map.getCenter = function(entids){
-
-    // deb("   MAP: getCenter: %s", H.prettify(entids));
-
-    if (!entids || entids.length === 0){
-      throw new Error("getCenter with unusable param");
-      return deb("ERROR : MAP getCenter with unusable param: %s", entids);
-
-    } else if (entids.length === 1){
-      if (!H.Entities[entids[0]]){
-        return deb("ERROR : MAP getCenter with unusable id: %s, %s", prit(entids[0]), prit(entids));
       } else {
-        return H.Entities[entids[0]].position();
+        return H.Map.centerOf(entids.map(function(id){return H.Entities[id].position();}));
+
       }
 
-    } else {
-      return H.Map.centerOf(entids.map(function(id){return H.Entities[id].position();}));
+    },
 
-    }
-
-  };
-
-  H.Map.isOwnTerritory = function(pos){
-    var index  = H.Map.gamePosToMapIndex(pos),
-        player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
-    return player === H.Bot.id;
-  };
-
-  H.Map.isEnemyTerritory = function(pos){
-    var index  = H.Map.gamePosToMapIndex(pos),
-        player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
-    return H.GameState.playerData.isEnemy[player];
-  };
+  });
 
 
   H.Map.createObstructionMap = function(accessIndex, template){
@@ -262,7 +270,7 @@ HANNIBAL = (function(H){
             pos = ent.position();
             x = Math.round(pos[0] / gs.cellSize);
             z = Math.round(pos[1] / gs.cellSize);
-            map.addInfluence(x, z, minDist / gs.cellSize, -255, 'constant');
+            map.addInfluence(x, z, minDist / gs.cellSize, -255, "constant");
           }
         });
       }
@@ -272,17 +280,17 @@ HANNIBAL = (function(H){
 
   };
 
-  H.Map.findGoodPosition = function(tpl, position) {
+  H.Map.findGoodPosition = function(tpl, position, angle) {
 
-    var x, z, j, len, value, 
-        bestIdx, bestVal, bestTile, secondBest, 
-        gs = H.Bot.gameState,
+    var x, z, j, len, value, bestIdx, bestVal, bestTile, secondBest, 
+        gs       = H.Bot.gameState,
         cellSize = gs.cellSize,
         template = gs.getTemplate(tpl),
-        obstructionMap = H.Map.createObstructionMap(0, template),
-        friendlyTiles = new H.API.Map(gs.sharedScript),
+        obstructionMap   = H.Map.createObstructionMap(0, template),
+        friendlyTiles    = new H.API.Map(gs.sharedScript),
         alreadyHasHouses = false,
-        radius = 0, angle = 3 * Math.PI / 4;
+        radius = 0, 
+        angle  = angle === undefined ? H.Config.angle : angle;
 
     deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
     
@@ -478,3 +486,101 @@ return H; }(HANNIBAL));
 // "SQRT2"
 // "SQRT1_2"
 
+// H.Map.createTerritoryMap = function() {
+//   var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
+//   map.getOwner      = function(p) {return this.point(p) & H.Map.TERRITORY_PLAYER_MASK;};
+//   map.getOwnerIndex = function(p) {return this.map[p]   & H.Map.TERRITORY_PLAYER_MASK;};
+//   return map;
+// };
+
+// H.Map.gamePosToMapPos = function(p){
+//   return [~~(p[0] / H.Map.cellsize), ~~(p[1] / H.Map.cellsize)];
+// };
+
+// H.Map.gamePosToMapIndex = function(p){
+//   var [x, y] = H.Map.gamePosToMapPos(p);
+//   return x + y * H.Map.width;
+// };
+
+// H.Map.distance = function(a, b){
+//   var dx = a[0] - b[0], dz = a[1] - b[1];
+//   return Math.sqrt(dx * dx + dz * dz);
+//   // return Math.hypot(a[0] - b[0], a[1] - b[1]);
+// };
+
+// H.Map.nearest = function(point, ids){
+
+//   // deb("   MAP: nearest: target: %s, ids: %s", point, ids);
+
+//   var distance = 1e10, dis, result = 0, pos = 0.0;
+
+//   ids.forEach(id => {
+//     pos = H.Entities[id].position();
+//     dis = H.Map.distance(point, pos);
+//     if ( dis < distance){
+//       distance = dis; result = id;
+//     } 
+//   });
+
+//   return result;
+
+// };
+// H.Map.spread = function(ids){
+//   var poss = ids.map(id => H.Entities[id].position()),
+//       xs = poss.map(pos => pos[0]),
+//       zs = poss.map(pos => pos[1]),
+//       minx = Math.max.apply(Math, xs),
+//       minz = Math.max.apply(Math, zs),
+//       maxx = Math.max.apply(Math, xs),
+//       maxz = Math.max.apply(Math, zs),
+//       disx = maxx - minx,
+//       disz = maxz - minz;
+//   return Math.max(disx, disz);
+// };
+// H.Map.centerOf = function(poss){
+//   // deb("   MAP: centerOf.in %s", pritShort(poss));
+//   var out = [0, 0], len = poss.length;
+//   poss.forEach(function(pos){
+//     if (pos.length){
+//       out[0] += pos[0];
+//       out[1] += pos[1];
+//     } else { 
+//       len -= 1;
+//     }
+//   });
+//   return [out[0] / len, out[1] / len];
+// };
+
+// H.Map.getCenter = function(entids){
+
+//   // deb("   MAP: getCenter: %s", H.prettify(entids));
+
+//   if (!entids || entids.length === 0){
+//     throw new Error("getCenter with unusable param");
+//     return deb("ERROR : MAP getCenter with unusable param: %s", entids);
+
+//   } else if (entids.length === 1){
+//     if (!H.Entities[entids[0]]){
+//       return deb("ERROR : MAP getCenter with unusable id: %s, %s", prit(entids[0]), prit(entids));
+//     } else {
+//       return H.Entities[entids[0]].position();
+//     }
+
+//   } else {
+//     return H.Map.centerOf(entids.map(function(id){return H.Entities[id].position();}));
+
+//   }
+
+// };
+
+// H.Map.isOwnTerritory = function(pos){
+//   var index  = H.Map.gamePosToMapIndex(pos),
+//       player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
+//   return player === H.Bot.id;
+// };
+
+// H.Map.isEnemyTerritory = function(pos){
+//   var index  = H.Map.gamePosToMapIndex(pos),
+//       player = H.Grids.territory.data[index] & H.Map.TERRITORY_PLAYER_MASK;
+//   return H.GameState.playerData.isEnemy[player];
+// };

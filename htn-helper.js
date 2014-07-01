@@ -3,7 +3,7 @@
 
 /*--------------- H T N _ H E L P E R -----------------------------------------
 
-  mostly logging html
+  state object + mostly logging html
 
 
 
@@ -16,19 +16,103 @@ HANNIBAL = (function(H){
 
   // helper
   var mul  = function (n){return new Array(n || 2).join(" ");},
-      tab  = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");};
+      tab  = function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
+      fmt  = function fmt(){
+        var c=0, a=Array.prototype.slice.call(arguments); a.push("");
+        return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
+      };
 
   H.HTN = H.HTN || {};
   H.HTN.Helper = H.HTN.Helper || {};
 
-  H.extend(H.HTN.Helper, {
+  H.HTN.Helper.State = function(data){this.data = data || {};};
+  H.HTN.Helper.State.prototype = {
+    constructor: H.HTN.Helper.State,
+    sanitize: function(){
 
-    fmt: function fmt(){
-      var c=0, a=Array.prototype.slice.call(arguments);
-      a.push("");
-      return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
+      var data = this.data;
+
+      this.stamp = 0;
+      this.groups = {};
+
+      data.civ  = data.civ  || H.Bot.civ;
+      data.cost = data.cost || {};
+      data.ress = data.ress || {};
+      data.ents = data.ents || {};
+      data.tech = data.tech || [];
+
+      data.cost.time   = data.cost.time   || 0;
+      data.ress.wood   = data.ress.food   || 0;
+      data.ress.food   = data.ress.food   || 0;
+      data.ress.metal  = data.ress.metal  || 0;
+      data.ress.stone  = data.ress.stone  || 0;
+      data.ress.pop    = data.ress.pop    || 0;
+      // CHECK: hellenes/civpenalty_spart_popcap
+      //        mauryans/civbonus_maur_popcap
+      //        persians/civbonus_pers_popcap
+      data.ress.popmax = data.ress.popmax || 300;  
+      data.ress.popcap = data.ress.popcap || 0;
+
+      // autoresearch
+      H.pushUnique(data.tech, "phase.village");
+
+      // population
+      if (H.count(data.ents) > 0){
+        H.QRY(H.attribs(data.ents).join(", ")).forEach(function(node){
+          if (node.costs && node.costs.population){
+            if (node.costs.population < 0) {
+              data.ress.popcap -= node.costs.population;
+            } else {
+              data.ress.pop += node.costs.population;
+            }
+          }
+        });
+      }
+
+      return this;
+
+    },
+    // copy:  function(s, t){var p; t=t||{};for(p in s){t[p]=s[p];}return t;},
+    copy: function(s, t){var i,e,k=Object.keys(s),l=k.length;for(i=0;i<l;i++){e=k[i];t[e]=s[e];}},
+    clone: function(){
+
+      var i, p,
+          s = this.data,
+          copy  = this.copy,
+          state = new H.HTN.Helper.State({
+            civ:  s.civ, 
+            cost: {}, 
+            ress: {}, 
+            ents: {}, 
+            tech: []
+          }),
+          o = state.data;
+
+      state.stamp = this.stamp;
+      state.groups = {};
+
+      copy(s.cost, o.cost);
+      copy(s.ress, o.ress);
+      copy(s.ents, o.ents);
+
+      i = s.tech.length; while(i--){o.tech.push(s.tech[i]);}
+
+      for (p in this.groups){
+        state.groups[p] = [];
+        i = this.groups[p].length;
+        while(i--){
+          state.groups[p].push(copy(this.groups[p][i]));
+        }
+      }
+
+      return state;
     },
 
+  };
+
+  H.extend(H.HTN.Helper, {
+
+    fmt: fmt,
     pritObj: function (o, depth){
 
       // makes pretty html from states and goals
@@ -36,6 +120,9 @@ HANNIBAL = (function(H){
       var html   = "",
           lf     = "</td></tr>",
           indent = "<tr><td>&nbsp;&nbsp;";
+
+      // hack
+      o = o.data;
 
       depth = depth || 0;
 
@@ -164,6 +251,27 @@ HANNIBAL = (function(H){
         deb();
       }
 
+    },
+
+    tab4: "&nbsp;&nbsp;&nbsp;&nbsp;",    
+    tab: function (s,l){return H.replace(H.tab(s,l), " ", "&nbsp;");},
+    debLine: function(){
+      var html, args = arguments;
+      if (args.length === 0) {args = ["**"];}
+      if (args.length === 1) {args = ["%s", args[0]];}
+      html = fmt("<tr><td>%s</td></tr>", fmt.apply(null, args));
+      H.Browser.results.append('tblResult', html);
+    },    
+    logTasks: function(ops){
+      var h = H.HTN.Helper;
+      ops.forEach(op => {
+        var stp = "<strong style='color: #888'>" + tab(op[0], 4) + "</strong>",
+            cmd = "<strong style='color: #333'>" + op[1] + "</strong>",
+            prs = op.slice(2).filter(p=>p!==undefined).join(", ");
+        h.debLine(h.tab4 + stp + " - " + cmd + "   ( "  + prs + " )"); 
+        if (op[1] === 'wait_secs'){h.debLine(h.tab4);}
+        if (op[1] === 'start'){h.debLine(h.tab4);}
+      });
     },
 
     pushUnique: function(task, taskList){

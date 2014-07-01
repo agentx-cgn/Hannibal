@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, Engine, deb, logObject */
+/*globals HANNIBAL, deb */
 
 /*--------------- E C O N O M Y -----------------------------------------------
 
@@ -50,7 +50,7 @@ HANNIBAL = (function(H){
       // stock.metal  = ctx.cntMetal;
       stock.metal  = H.GameState.playerData.resourceCounts.metal;
       // stock.pops   = ctx.cntPopulation;
-      stock.pops   = H.GameState.playerData.popCount
+      stock.pops   = H.GameState.playerData.popCount;
       // stock.area   = ctx.perMapExplored;
       stock.area   = H.Player.statistics.percentMapExplored;
       stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
@@ -71,7 +71,7 @@ HANNIBAL = (function(H){
   H.Queue = (function(){
     var self, queue = [];
     return {
-      init:     function(){
+      boot:     function(){
         self = this;
         Object.defineProperty(self, "length", {get: function(){return queue.length;}});        
         return self;
@@ -93,7 +93,7 @@ HANNIBAL = (function(H){
       },
     };
 
-  }().init());
+  }().boot());
 
   // local process wrapper around an order
   H.Order = function(order){
@@ -122,11 +122,10 @@ HANNIBAL = (function(H){
   };
 
   H.Order.prototype = {
-    evaluate:   function(allocs){
+    constructor: H.Order,
+    evaluate: function(allocs){
 
-      var self  = this,
-          order = this.order,
-          type  = this.order.type;
+      var self  = this, order = this.order;
 
       this.executed = false; this.execute = false;
 
@@ -263,7 +262,7 @@ HANNIBAL = (function(H){
     var self;
 
     return {
-      init: function(){self = this; return self;},
+      boot: function(){self = this; return self;},
       tick: function(){
 
         var t0 = Date.now();
@@ -313,14 +312,6 @@ HANNIBAL = (function(H){
             allGood = false, 
             removed = [],
             constructs = 0; // only one construction per round
-            // fits = function(cost, budget){
-            //   return (
-            //     cost.food  <= budget.food  &&
-            //     cost.wood  <= budget.wood  &&
-            //     cost.stone <= budget.stone &&
-            //     cost.metal <= budget.metal
-            //   );              
-            // };
 
         if (!H.Queue.length){return;}
 
@@ -385,69 +376,61 @@ HANNIBAL = (function(H){
       },
       execute: function(cmd, amount, id, template, order){
 
-        var PID = H.Bot.id, msg, pos;
+        var msg, pos;
 
         deb("    OE: #%s, cmd: %s, amount: %s, order: %s, tpl: %s", id, cmd, amount, H.prettify(order), template);
 
         switch(cmd){
 
-          case 'train' :    Engine.PostCommand(PID, {type: cmd, 
-              count:        amount,
-              entities:     [id],
-              template:     template,
-              metadata:     {order: order.id}
-            }); 
+          case "train" :
+            H.Engine.train([id], template, amount, {order: order.id});
+
+          // case "train" :    Engine.PostCommand(PID, {type: cmd, 
+          //     count:        amount,
+          //     entities:     [id],
+          //     template:     template,
+          //     metadata:     {order: order.id}
+          //   }); 
             msg = H.format("    EX: #%s %s, trainer: %s, amount: %s, tpl: %s", 
                                         order.id, cmd, id, amount, template); 
           break;
 
-          case 'construct' : 
+          case "construct" : 
 
-          if (order.x === undefined){deb("ERROR: %s without position", cmd); return;}
+            if (order.x === undefined){deb("ERROR: %s without position", cmd); return;}
 
-          pos = H.Map.findGoodPosition(template, [order.x, order.z]);
+            pos = H.Map.findGoodPosition(template, [order.x, order.z]);
 
-          Engine.PostCommand(PID, { type: cmd,
-              entities:     [id],
-              template:     template,
-              x:            pos.x, 
-              z:            pos.z,
-              angle:        H.Config.angle,
-              autorepair:   false, 
-              autocontinue: false,
-              queued:       false,
-              metadata:     {order: order.id}
-            }); 
+            H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id});
+
+          // Engine.PostCommand(PID, { type: cmd,
+          //     entities:     [id],
+          //     template:     template,
+          //     x:            pos.x, 
+          //     z:            pos.z,
+          //     angle:        H.Config.angle,
+          //     autorepair:   false, 
+          //     autocontinue: false,
+          //     queued:       false,
+          //     metadata:     {order: order.id}
+          //   }); 
             msg = H.format("    EX: #%s %s, constructor: %s, x: %s, z: %s, tpl: %s", 
                                        order.id, cmd, id, order.x.toFixed(0), order.z.toFixed(0), template); 
 
           break;
 
-          case 'research' : Engine.PostCommand(PID, { type: cmd,
-              entity:     id, 
-              template:   template 
-            }); 
+          case "research" : 
+
+          H.Engine.research([id], template);
+
+          // Engine.PostCommand(PID, { type: cmd,
+          //     entity:     id, 
+          //     template:   template 
+          //   }); 
             msg = H.format("   ECO: X: %s id: %s, %s", cmd, order.id, id, template); 
           break;
 
-          case 'stop-production' : Engine.PostCommand(PID,{ 
-            "type": cmd, "entity": id 
-            // "id": queue[i].id ????
-          }); break;
 
-          case 'barter' : Engine.PostCommand(PID, {
-              "type":   cmd, 
-              "sell":   order.barter.sellType, 
-              "buy":    order.barter.buyType, 
-              "amount": order.barter.amount 
-          }); break;
-
-          case 'setup-trade-route' :
-            // queue.RemoveBatch(cmd.id);
-          break;
-          case 'set-trading-goods' :
-            // queue.RemoveBatch(cmd.id);
-          break;
         }
 
         deb(msg);
@@ -486,7 +469,7 @@ HANNIBAL = (function(H){
       }
     };
 
-  }()).init();
+  }()).boot();
 
 
 return H; }(HANNIBAL));

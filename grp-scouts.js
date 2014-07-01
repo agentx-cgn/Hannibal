@@ -63,29 +63,30 @@ HANNIBAL = (function(H){
           this.economy.request(1, this.units, this.position);    // 1 unit is a good start
 
         },
-        onAssign:    function(resource){
+        onAssign:    function(asset){
 
-          deb("     G: %s onAssign res: %s as '%s' shared: %s", this, resource, resource.nameDef, resource.shared);
+          deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
           if (!this.counter){
-            this.scanner = H.Scout.scanner(resource);  // inits search pattern with first unit
-            this.target = this.scanner.next(resource.location());
+            this.scanner = H.Scout.scanner(asset);  // inits search pattern with first unit
+            this.target = this.scanner.next(asset.location());
 
           } else if (this.units.count > this.maxUnits) {
-            resource.release();
+            asset.release();
 
           } else {
-            resource.move(this.units.center);                        // all other move to last known location
+            asset.move(this.units.center);                        // all other move to last known location
+
           }
 
           this.counter += 1;
 
         },
-        onDestroy:   function(resource){
+        onDestroy:   function(asset){
 
-          deb("     G: %s onDestroy: %s", this, resource);
+          deb("     G: %s onDestroy: %s", this, asset);
 
-          if (this.units.match(resource)){
+          if (this.units.match(asset)){
             this.losses += 1;
             // succesively increment up to 5
             var amount = Math.max(this.maxUnits - this.units.count, this.losses +1);
@@ -94,16 +95,16 @@ HANNIBAL = (function(H){
           }      
 
         },
-        onAttack:    function(resource, attacker, type, damage){
+        onAttack:    function(asset, attacker, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, resource, H.Entities[attacker] || attacker, damage.toFixed(1));
+          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, H.Entities[attacker] || attacker, damage.toFixed(1));
 
           H.Scout.scanAttacker(attacker);
 
-          if (resource.health < 80){
+          if (asset.health < 80){
             if (this.units.spread > 50){
-              resource.stance("defensive");
-              resource.flee(attacker);
+              asset.stance("defensive");
+              asset.flee(attacker);
             } else {
               H.Scout.scan(this.units.nearest(this.target.point));
               this.units.stance("defensive");
@@ -113,9 +114,9 @@ HANNIBAL = (function(H){
 
         },
         onBroadcast: function(source, msg){},
-        onRelease:   function(resource){
+        onRelease:   function(asset){
 
-          deb("     G: %s onRelease: %s", this, resource);
+          deb("     G: %s onRelease: %s", this, asset);
 
         },
         onInterval:  function(secs, ticks){
