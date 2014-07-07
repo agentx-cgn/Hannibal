@@ -1,4 +1,4 @@
-html, body {
+html, body, canvas {
   font-size: 16px;
   margin: 0;
   padding: 0;
@@ -144,11 +144,12 @@ div.container {
 
 #cvsMap {
   background: rgba(165, 197, 176, 1);
-  padding: 0;
-  margin: 0;
   border: 1px solid #fff;
-  width: 512px;
-  height: 512px;
+}
+
+#cvsHeights {
+  background: rgba(128, 128, 128, 1);
+  border: 1px solid #fff;
 }
 
 #slcMaps {

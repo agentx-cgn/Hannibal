@@ -161,7 +161,6 @@ HANNIBAL = (function(H){
         resources: ids,
 
         move:     H.Engine.move.bind(null, ids),          
-        flee:     H.Engine.flee.bind(null, ids),
         format:   H.Engine.format.bind(null, ids),
         stance:   H.Engine.stance.bind(null, ids),
         destroy:  H.Engine.destroy.bind(null, ids),
@@ -170,6 +169,7 @@ HANNIBAL = (function(H){
         distanceTo: H.Map.distanceTo.bind(null, ids),
         release:    H.Groups.release.bind(null, ids),
 
+        flee:     function(attacker){H.Engine.flee(ids, [attacker.id]);},
         garrison: function(asset){H.Engine.garrison(ids, asset.resources[0]);},
         gather:   function(asset){H.Engine.gather(ids, asset.resources[0]);},
         repair:   function(asset){H.Engine.repair(ids, asset.resources[0]);},

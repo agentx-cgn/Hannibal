@@ -27,7 +27,13 @@ HANNIBAL = (function(H){
         "RESEARCH DISTINCT SORT < name",
         "RESEARCH DISTINCT SORT < name WITH costs.metal > 0",
         "RESEARCH DISTINCT SORT < name WITH requires.tech = 'phase.city'"
-      ];
+      ],
+      map = {
+        ents: null,
+        size: 0,
+        points: [],
+        buffer: null,
+      }
   
   H.QRY = function(hcq){return new H.HCQ(H.store, hcq);};    
 
@@ -45,42 +51,155 @@ HANNIBAL = (function(H){
       }
       ele.value = str;
     },
-    paintMap: function(ents){
 
-      var x, z, 
-          cvs = $("cvsMap"),
-          ctx = cvs.getContext("2d");
-      
-      cvs.width = cvs.width;
-      H.toArray(ents).forEach(function(ent){
+    kmeans: function(){
 
-        var pos = ent.getElementsByTagName("Position");
+      var t0, t1, cvs = $("cvsMap"),
+          ctx = cvs.getContext("2d"),
+          cvsHeights = $("cvsHeights"),
+          ctxHeights = cvsHeights.getContext("2d"),
+          nCluster = ~~$("slcKMeans").value,
+          k = new H.AI.KMeans(),
+          c = 0;
 
-        x = +pos[0].getAttribute("x")/2;
-        z = +pos[0].getAttribute("z")/2;
-        ctx.fillStyle = "rgba(200, 100, 100, 1)";
-        ctx.fillRect(x, z, 2, 2);
+      // k.kmpp = true;
+      k.k = nCluster;
+      k.maxIterations = 50;
+      k.setPoints(map.points);
+      k.initCentroids();
+      // for (i=0; i<nCluster;i++){
+      //   k.centroids.push({
+      //     x : 100, //map.size/2,
+      //     z : 100, //map.size/2,
+      //     centroid : i,
+      //     items : 0
+      //   });        
+      // }
+      t0 = Date.now();
+      k.cluster(function(centroids){
+        c += 5;
+        ctx.fillStyle = "rgba(" + c + ", 250, 0, 0.3";
+        centroids.forEach(function(ctr){
+          ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
+        });
+      });
+      t1 = Date.now();  
+
+      ctx.fillStyle = "rgba(255, 0, 0, 0.9";
+      k.centroids.forEach(function(ctr){
+        ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
       });
 
+      console.log("kmeans", map.points.length, k.centroids.length, "iter", k.iterations, k.converged, (t1-t0));
 
     },
+    loadPmp: function(url, fn){
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", H.replace(url, ".xml", ".pmp"));
+      xhr.responseType = "arraybuffer";
+      xhr.onload = function(e) {
+        if (this.status === 200) {
+          console.log("loadPmp", xhr.response);
+          fn(xhr.response);
+        }
+      }
+      xhr.send();      
+    },
     loadMap: function(url){
+
       console.log('loadMap', url);
 
       var xhr = new XMLHttpRequest();
+      xhr.open("GET", url);
+      xhr.responseType = "document";
       xhr.onload = function() {
-        console.log(xhr.responseXML.documentElement.childNodes);
-        console.log(xhr.responseXML.getElementsByTagName("Entity") );
-        var ents = H.Display.evaluateXPath(xhr.responseXML, "//Entities/Entity");
-        ents = xhr.responseXML.getElementsByTagName("Entity");
-        H.Display.paintMap(ents);
+        map.ents = xhr.responseXML.getElementsByTagName("Entity");
+        H.Display.loadPmp(url, function(buffer){
+          map.buffer = buffer;
+          H.Display.paintMap();
+        });
       }
       xhr.onerror = function() {
         console.log("Error while getting XML.");
       }
-      xhr.open("GET", "http://" + url);
-      xhr.responseType = "document";
       xhr.send();      
+    },
+    paintMap: function(){
+
+      // http://trac.wildfiregames.com/wiki/PMP_File_Format
+
+      var x, z, i, off, h, length, data,
+          cvs = $("cvsMap"),
+          ctx = cvs.getContext("2d"),
+          cvsHeights = $("cvsHeights"),
+          ctxHeights = cvsHeights.getContext("2d"),
+          view = new DataView(map.buffer),
+          size = 680;
+
+      cvs.width = size; cvs.height = size;
+
+      map.version  = view.getUint32(4, true),
+      map.datasize = view.getUint32(8, true),
+      map.mapsize  = view.getUint32(12, true),
+      map.length = (map.mapsize *16  +1) * (map.mapsize *16 +1),
+      map.factor = map.mapsize *16/128 * 512/size;
+      map.size = map.mapsize *16  +1;
+
+      console.log("paintMap:", "bytes", map.buffer.byteLength, "mapsize", map.mapsize, "factor", map.factor, "size", map.size);
+
+      cvsHeights.width = cvsHeights.height = map.size;
+
+      data = ctxHeights.getImageData(0, 0, map.size, map.size);
+
+      for (i=0, off=16; i<map.length; i++, off+=2) {
+        h = view.getUint16(off, true) >> 8;
+        if (h) {
+          data.data[i *4 + 0] = h;
+          data.data[i *4 + 1] = h;
+          data.data[i *4 + 2] = h;
+        } else {
+          data.data[i *4 + 0] = 80;
+          data.data[i *4 + 1] = 140;
+          data.data[i *4 + 2] = 220;
+        }
+        data.data[i *4 + 3] = 256;
+      }
+      ctxHeights.putImageData(data, 0, 0);
+
+      ctxHeights.setTransform(1, 0, 0, 1, 0, 0);
+      ctxHeights.translate(0, map.size);
+      ctxHeights.scale(1, -1);
+
+      ctxHeights.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, map.size, map.size);
+
+      cvs.width = cvs.width;
+
+      ctx.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, size, size);
+
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.translate(0, cvs.height);
+      ctx.scale(1, -1);
+
+
+      H.toArray(map.ents).forEach(function(ent){
+        var pos = ent.getElementsByTagName("Position"),
+            tpl = ent.getElementsByTagName("Template"),
+            plr = ~~ent.getElementsByTagName("Player"),
+            x = +pos[0].getAttribute("x")/map.factor,
+            z = +pos[0].getAttribute("z")/map.factor;
+        ctx.fillStyle = (
+          plr === 0 ? "rgba(220,  50,  50, 1)" : 
+          plr === 1 ? "rgba( 50, 220,  50, 1)" : 
+          plr === 2 ? "rgba( 50,  50, 220, 1)" : 
+          plr === 3 ? "rgba(220,  50, 220, 1)" : 
+          plr === 4 ? "rgba(220, 220,  50, 1)" : 
+          plr === 5 ? "rgba( 50, 220, 220, 1)" : 
+            "rgba(255, 0, 0, 1)"
+        );
+        ctx.fillRect(x, z, 2, 2);
+        map.points.push({x:x, z:z});
+      });
+
     },
 
     query: function(hqc){

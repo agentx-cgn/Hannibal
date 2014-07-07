@@ -158,7 +158,7 @@ HANNIBAL = (function(H){
 
         });
 
-        H.Scout.deleteResources(what);
+        H.Resources.consume(what);
 
       } else { deb("   ENG: ignored collect: %s", uneval(arguments)); }
 

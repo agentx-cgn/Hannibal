@@ -216,7 +216,8 @@ var HANNIBAL = (function() {
 
     H.Numerus.init();  // launches the stats extension
     H.Grids.init();
-    H.Scout.init();
+    H.Resources.init();
+    // H.Scout.init();
 
     // determine own, game's and all civilisations
     this.civ            = sharedScript.playersData[this.id].civ; 

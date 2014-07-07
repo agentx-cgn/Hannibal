@@ -69,7 +69,7 @@ HANNIBAL = (function(H){
     return num.toFixed(1);
   }
 
-  function gamePosToMapPos(p){return [~~(p[0] / cellsize), ~~(p[1] / cellsize)];}
+  // function gamePosToMapPos(p){return [~~(p[0] / cellsize), ~~(p[1] / cellsize)];}
 
   function gridFromMap(map){
     var grid;
@@ -110,13 +110,11 @@ HANNIBAL = (function(H){
         maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
         maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
         maskBldgLand    = H.SharedScript.passabilityClasses["building-land"] | 0;            // 4
-
-        maskOpen  = H.SharedScript.passabilityClasses["unrestricted"]  | 0;      // 64
-        maskWater = H.SharedScript.passabilityClasses["ship"] | 0;              // 32
-        maskLand  = H.SharedScript.passabilityClasses["default"] | 0;           // 16
-        maskBldgShore = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
-
-        maskShore = maskBldgShore | maskFoundation;
+        maskBldgShore   = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
+        maskLand        = H.SharedScript.passabilityClasses["default"] | 0;                  // 16
+        maskWater       = H.SharedScript.passabilityClasses["ship"] | 0;                     // 32
+        maskOpen        = H.SharedScript.passabilityClasses["unrestricted"] | 0;             // 64
+        maskShore       = maskBldgShore | maskFoundation;
 
         self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
         self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
@@ -124,10 +122,7 @@ HANNIBAL = (function(H){
         self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
 
         self.attacks  = new H.Grid(width, height, 8);
-        // self.scouting = new H.Grid(width, height, 8);
 
-        // H.extend(self.scouting, scoutingExtension(self.scouting));
-        
         deb();deb();
         deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
       },
@@ -180,82 +175,82 @@ HANNIBAL = (function(H){
         }
 
       },
-      analyze: function(what, resource){
+      // analyze: function(what, resource){
 
-        // unknown           = 0
-        // land, seen        = 32
-        // land, visited     = 48
-        // shore, seen       = 64
-        // shore, visited    = 80
-        // water, seen       = 128
-        // water, visited    = 144
-        // unidentified      = 200
-        // impassable        = 255
+      //   // unknown           = 0
+      //   // land, seen        = 32
+      //   // land, visited     = 48
+      //   // shore, seen       = 64
+      //   // shore, visited    = 80
+      //   // water, seen       = 128
+      //   // water, visited    = 144
+      //   // unidentified      = 200
+      //   // impassable        = 255
 
-        // obstructions
-        // 0 is impassable
-        // 200 is deep water (ie non-passable by land units)
-        // 201 is shallow water (passable by land units and water units)
-        // 255 is land (or extremely shallow water where ships can't go).
-        // 40 is "tree".
-        // The following 41-49 range is "near a tree", with the second number showing how many trees this tile neighbors.
-        // 30 is "geological component", such as a mine
+      //   // obstructions
+      //   // 0 is impassable
+      //   // 200 is deep water (ie non-passable by land units)
+      //   // 201 is shallow water (passable by land units and water units)
+      //   // 255 is land (or extremely shallow water where ships can't go).
+      //   // 40 is "tree".
+      //   // The following 41-49 range is "near a tree", with the second number showing how many trees this tile neighbors.
+      //   // 30 is "geological component", such as a mine
 
-        if (what === 'scout') {
+      //   if (what === 'scout') {
 
-          var t0 = Date.now(), counter = 0,
-              node = H.QRY("INGAME WITH id = " + resource.id).first(),
-              [cx, cy] = gamePosToMapPos(node.position),
-              radius = ~~(node.vision / cellsize),
-              dataScout = self.scouting.data,
-              dataNaval = self.navalPass.data,
-              dataLand  = self.landPass.data,
-              dataObst  = self.obstruction.data,
-              dataPass  = self.passability.data,
-              x0 = ~~Math.max(0, cx - radius),
-              y0 = ~~Math.max(0, cy - radius),
-              x1 = ~~Math.min(width,  cx + radius),
-              y1 = ~~Math.min(height, cy + radius),
-              x = 0, y = 0, index = 0, value = 0,
-              dx = 0, dy = 0, r2 = 0.0;
+      //     var t0 = Date.now(), counter = 0,
+      //         node = H.QRY("INGAME WITH id = " + resource.id).first(),
+      //         [cx, cy] = gamePosToMapPos(node.position),
+      //         radius = ~~(node.vision / cellsize),
+      //         dataScout = self.scouting.data,
+      //         dataNaval = self.navalPass.data,
+      //         dataLand  = self.landPass.data,
+      //         dataObst  = self.obstruction.data,
+      //         dataPass  = self.passability.data,
+      //         x0 = ~~Math.max(0, cx - radius),
+      //         y0 = ~~Math.max(0, cy - radius),
+      //         x1 = ~~Math.min(width,  cx + radius),
+      //         y1 = ~~Math.min(height, cy + radius),
+      //         x = 0, y = 0, index = 0, value = 0,
+      //         dx = 0, dy = 0, r2 = 0.0;
               
-          this.analyzeLifted(dataScout, dataObst, x0, x1, y0, y1, cx, cy, radius, width);
+      //     this.analyzeLifted(dataScout, dataObst, x0, x1, y0, y1, cx, cy, radius, width);
 
 
-          // for ( y = y0; y < y1; ++y) {
-          //   for ( x = x0; x < x1; ++x) {
-          //     dx = x - cx; dy = y - cy;
-          //     r2 = Math.sqrt(dx * dx + dy * dy);
-          //     index = x + y * width;
-          //     if (dataScout[index] === 0 && r2 < radius){
-          //     // if (dataScout[index] === 0){
-          //       // dataScout[index] = (
-          //       //   // !(dataLand[index]  & maskShore) ?  64 :
-          //       //   !(dataPass[index]  & maskLand)  ?  32 :
-          //       //   !(dataNaval[index] & maskWater) ? 128 :
-          //       //   (dataObst[index]  === 0)        ? 255 :
-          //       //     200
-          //       // );
-          //       dataScout[index] = (
-          //         (dataObst[index]  === 0)        ? 255 :
-          //         (dataObst[index]  === 255)      ?  32 :
-          //         (dataObst[index]  === 200)      ? 128 :
-          //           200
-          //       );
-          //     }
-          //     counter += 1;
-          //   }
-          // }
-          // mark as seen
-          dataScout[cx + cy * width] += 16;
+      //     // for ( y = y0; y < y1; ++y) {
+      //     //   for ( x = x0; x < x1; ++x) {
+      //     //     dx = x - cx; dy = y - cy;
+      //     //     r2 = Math.sqrt(dx * dx + dy * dy);
+      //     //     index = x + y * width;
+      //     //     if (dataScout[index] === 0 && r2 < radius){
+      //     //     // if (dataScout[index] === 0){
+      //     //       // dataScout[index] = (
+      //     //       //   // !(dataLand[index]  & maskShore) ?  64 :
+      //     //       //   !(dataPass[index]  & maskLand)  ?  32 :
+      //     //       //   !(dataNaval[index] & maskWater) ? 128 :
+      //     //       //   (dataObst[index]  === 0)        ? 255 :
+      //     //       //     200
+      //     //       // );
+      //     //       dataScout[index] = (
+      //     //         (dataObst[index]  === 0)        ? 255 :
+      //     //         (dataObst[index]  === 255)      ?  32 :
+      //     //         (dataObst[index]  === 200)      ? 128 :
+      //     //           200
+      //     //       );
+      //     //     }
+      //     //     counter += 1;
+      //     //   }
+      //     // }
+      //     // mark as seen
+      //     dataScout[cx + cy * width] += 16;
 
-          // deb("analyze: %s", Date.now() - t0);
-          // typical analyze: analyze: 900, 6, 6
+      //     // deb("analyze: %s", Date.now() - t0);
+      //     // typical analyze: analyze: 900, 6, 6
 
 
-        }
+      //   }
 
-      },
+      // },
       record: function(what, where, amplitude){
 
         deb("  GRDS: record: what: %s, where: %s, amp: %s", what, pritp(where), pritn(amplitude));
@@ -267,7 +262,7 @@ HANNIBAL = (function(H){
         if (what === "attacks"){
           self.attacks.data[x + y * width] += amplitude;
 
-        } else if (what === 'scouting') {
+        } else if (what === "scouting") {
           self.scouting.data[x + y * width] += amplitude;
 
         }
@@ -276,8 +271,8 @@ HANNIBAL = (function(H){
       },
 
       log: function(){
-        var t0 = Date.now()
-        deb("  GRDS: logging ------------")
+        var t0 = Date.now();
+        deb("  GRDS: logging ------------");
         H.each(grids, function(name){
           if (self[name]){
             self[name].log(name);
@@ -342,6 +337,35 @@ HANNIBAL = (function(H){
         this.bits ===  8 ? new Uint8ClampedArray(this.data.buffer.slice()) : 
         this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : null
       );
+    },
+    searchSpiral: function (xs, ys, expression){
+
+      // http://stackoverflow.com/questions/3330181/algorithm-for-finding-nearest-object-on-2d-grid
+
+      var d, x, y,
+          maxDistance = xs < width/2  ? width  - xs : xs,
+          checkIndex  = new Function("grid", "i", "return grid.data[i] " + expression + ";"),
+          checkPoint  = function(x, y){
+            if (x > 0 && y > 0 && x <= width && y <= height){
+              return checkIndex(this, x + y * width);
+            }
+          };
+
+      if (checkPoint(xs, ys)){return [xs, ys];}
+
+      for (d = 0; d<maxDistance; d++){
+        for (x = xs-d; x < xs+d+1; x++){
+          // Point to check: (x, ys - d) and (x, ys + d) 
+          if (checkPoint(x, ys - d)){return [x, ys - d];}
+          if (checkPoint(x, ys + d)){return [x, ys - d];}
+        }
+        for (y = ys-d+1; y < ys+d; y++)          {
+          // Point to check = (xs - d, y) and (xs + d, y) 
+          if (checkPoint(x, ys - d)){return [xs - d, y];}
+          if (checkPoint(x, ys + d)){return [xs - d, y];}
+        }
+      }
+
     },
     findBestTile: function(radius, obstruction){
       
@@ -449,8 +473,7 @@ HANNIBAL = (function(H){
 
       var data = this.data, expand = this.expand,
           w = width, h = height,
-          x = 0, y = 0, yy = 0, xx = 0, 
-          min = 0, max = maximum || 255;
+          x = 0, y = 0, min = 0, max = maximum || 255;
 
       for ( y = 0; y < h; ++y) {
         min = max;
@@ -499,7 +522,7 @@ HANNIBAL = (function(H){
       
     },
     isAccessible: function(position, onLand){
-      var gamePos = gamePosToMapPos(position);
+      var gamePos = H.Map.gamePosToMapPos(position);
       return (this.countConnected(gamePos[0] + width * gamePos[1], onLand) >= 2);
     }
 
@@ -507,7 +530,7 @@ HANNIBAL = (function(H){
 
   function obstructions(){
 
-    var len, ents, ent, 
+    var ents, ent, 
         x, y, xx, yy, sq, radius, pointer, value, 
         passData = H.Grids.passability.data,
         obstGrid = new H.Grid(width, height, 8),
@@ -542,7 +565,7 @@ HANNIBAL = (function(H){
 
       if (ent.hasClass("ForestPlant")) {
 
-        [x, y] = gamePosToMapPos(ent.position());
+        [x, y] = H.Map.gamePosToMapPos(ent.position());
 
         if (obstData[x + y * width] !== 0){obstData[x + y * width] = 40;}
         

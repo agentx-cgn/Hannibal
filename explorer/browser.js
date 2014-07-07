@@ -64,6 +64,28 @@ HANNIBAL = (function(H){
       return items.filter(p => p !== undefined);
     }
 
+    function readMapList (url, fn) {
+
+      var xhr = new XMLHttpRequest();
+      xhr.onerror = function() {console.log("Error while getting: " + url);}
+      xhr.onload  = function() {
+        var html = "";
+        H.toArray(xhr.responseXML.getElementsByTagName("a")).forEach(function(link){
+          var map = decodeURI(link.href);
+          if (H.endsWith(map, "xml")){
+            if (!H.endsWith(map, "default.xml")){
+              html += H.format("<option value='%s'>%s</option>", link.href, map.split("/").slice(-2).join("/"));
+            }
+          }
+        });
+        fn(html);
+      }
+      xhr.open("GET", url);
+      xhr.responseType = "document";
+      xhr.send();  
+
+    }
+
     return {
       boot: function(){ self = this; return this; },
       init: function(hash){
@@ -87,6 +109,11 @@ HANNIBAL = (function(H){
         H.Display.trim($("txtTREEState"));
         H.Display.trim($("txtECOGoal"));
         H.Display.trim($("txtECOState"));
+
+        readMapList("http://localhost:8080/public/maps/scenarios/", function(html){
+          $("slcMaps").innerHTML = html;  
+        });
+        $("slcMaps").value = "scenarios/Abyss38.xml";
 
         $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
         $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};
@@ -113,7 +140,7 @@ HANNIBAL = (function(H){
         }
 
         $("slcMaps").onchange = $("slcMaps").onselect = function(){
-          H.Display.loadMap($("slcMaps").value);
+          H.Display.loadMap(encodeURI($("slcMaps").value));
         }
         $("btnMAPLoad").onclick = function(){
           H.Display.loadMap($("slcMaps").value);

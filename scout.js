@@ -36,32 +36,10 @@
 
 HANNIBAL = (function(H){
 
-  var resources = {},
-      prit = H.prettify;
+  /*
+    resources are mines or treasure, wood is different
 
-  function Resource(ent){
-    this.id    = ent.id();
-    this.resources = [this.id];   // asset gatherable
-    this.owner = ent.owner();
-    this.found = false;
-    this.update();
-  }
-  Resource.prototype = {
-    constructor: Resource,
-    update: function(){
-      var ent = H.Entities[this.id];
-      this.supply   = ent.resourceSupplyMax();
-      this.generic  = ent.resourceSupplyType().generic;
-      this.specific = ent.resourceSupplyType().specific;
-      this.position = ent.position();
-    },
-    log: function(){
-      var t = this;
-      deb("   RES: %s, %s, type: %s/%s, pos: %s, owner: %s, found: %s",
-        t.id, t.supply, t.generic, t.specific, t.position.map(c => ~~c), t.owner, t.found
-      );
-    }
-  }
+  */
 
   H.Scout = (function(){
 
@@ -80,61 +58,61 @@ HANNIBAL = (function(H){
         cacheHypot  = {};
 
     return {
-      boot: function (){return self = this;},
-      dump: function (name){grid.dump(name || 'scouting', 255);},
+      boot: function (){return (self = this);},
+      dump: function (name){grid.dump(name || "scouting", 255);},
       init: function (){
 
-        width    = H.Map.width,
-        height   = H.Map.height,
-        cellsize = H.Map.cellsize,
-        circular = H.Map.circular,
+        width    = H.Map.width;
+        height   = H.Map.height;
+        cellsize = H.Map.cellsize;
+        circular = H.Map.circular;
         grid     = new H.Grid(width, height, 8);
 
         H.Grids.register("scouting", grid);
 
-        deb();deb();deb(" SCOUT: Resources...")
-        self.updateResources(false);
+        // deb();deb();deb(" SCOUT: Resources...");
+        // self.updateResources(false);
 
       },
-      updateResources: function(dolog){
+      // updateMines: function(dolog){
 
-        var type, res;
+      //   var type, res;
 
-        resources = {};
+      //   resources = {};
         
-        H.each(H.Entities, function(id, ent){
-          type = ent.resourceSupplyType();
-          if (!!type && type.specific !== 'tree'){
-            res = resources[ent.id()] = new Resource(ent);
-            if (H.Map.isOwnTerritory(res.position)){
-              res.found = true;
-            }
-            if (dolog) {res.log();}
-          }
-        });
+      //   H.each(H.Entities, function(id, ent){
+      //     type = ent.resourceSupplyType();
+      //     if (!!type && type.specific !== "tree"){
+      //       res = resources[ent.id()] = new Resource(ent);
+      //       if (H.Map.isOwnTerritory(res.position)){
+      //         res.found = true;
+      //       }
+      //       if (dolog) {res.log();}
+      //     }
+      //   });
 
-      },
-      deleteResources: function(ids){
-        ids.forEach(id => delete resources[id]);
-        deb(" SCOUT: deleted ress: %s", ids);
-      },
-      nearestResource: function(item, types){
-        var dis = 1e7, idres, distance, pos = Array.isArray(item) ? item : item.location();
-        H.each(resources, function(id, res){
-          types.forEach(function(type){
-            if (res.found){
-              if (res.specific === type.specific && res.generic === type.generic){
-                // deb("SCOUT: nearestResource id: %s, dis: %s", idres, dis);
-                distance = H.Map.distance(pos, res.position);
-                if (distance < dis){
-                  idres = id; dis = distance;
-                }
-              }
-            }
-          });
-        });
-        return resources[idres] || undefined;
-      },
+      // },
+      // deleteResources: function(ids){
+      //   ids.forEach(id => delete resources[id]);
+      //   deb(" SCOUT: deleted ress: %s", ids);
+      // },
+      // nearestResource: function(item, types){
+      //   var dis = 1e7, idres, distance, pos = Array.isArray(item) ? item : item.location();
+      //   H.each(resources, function(id, res){
+      //     types.forEach(function(type){
+      //       if (res.found){
+      //         if (res.specific === type.specific && res.generic === type.generic){
+      //           // deb("SCOUT: nearestResource id: %s, dis: %s", idres, dis);
+      //           distance = H.Map.distance(pos, res.position);
+      //           if (distance < dis){
+      //             idres = id; dis = distance;
+      //           }
+      //         }
+      //       }
+      //     });
+      //   });
+      //   return resources[idres] || undefined;
+      // },
       scanAttacker: function (attacker){
 
         var [cx, cy] = H.Map.gamePosToMapPos(attacker.position),
@@ -228,8 +206,7 @@ HANNIBAL = (function(H){
             pos2pointer = (pos) => {
               var [x, y] = [~~(pos[0]/cellsize), ~~(pos[1]/cellsize)];
               return x + y * width;
-            },
-            prit = (c) => [~~c[0], ~~c[1]];
+            };
 
 
         queueNow.push(ent.position());
@@ -258,7 +235,7 @@ HANNIBAL = (function(H){
               if (H.Map.distance(pos, res.position) < rng){
                 res.found = true;
                 deb(" SCOUT: found resource: %s, %s, id: %s", res.generic, res.supply, res.id);
-                if (res.generic === 'treasure'){
+                if (res.generic === "treasure"){
                   treasures.push(res.id);
                 }
               }
@@ -268,7 +245,7 @@ HANNIBAL = (function(H){
             for (sq of corners) {
 
               posTest = [~~(pos[0] + sq[0]), ~~(pos[1] + sq[1])];
-              index   = pos2pointer(posTest)
+              index   = pos2pointer(posTest);
               value   = data[pos2pointer(posTest)];
 
               if (H.contains(recentTiles, index)){

@@ -30,6 +30,15 @@ HANNIBAL = (function(H) {
   //   ); 
   // };
 
+
+
+
+
+
+
+
+
+
   // sanitizes template names to dot notaton
   H.saniTemplateName = function(nameTemplate){
     nameTemplate = H.replace(nameTemplate,  "|", ".");
