@@ -92,7 +92,7 @@ HANNIBAL = (function(H){
 
     move: function(who, where){
 
-      deb("   ENG: move: %s", uneval(arguments));
+      // deb("   ENG: move: %s", uneval(arguments));
 
       if (who.length && where.length === 2){
 
@@ -103,7 +103,8 @@ HANNIBAL = (function(H){
           queued: false 
         });
 
-      } else { deb("   ENG: ignored move %s", uneval(arguments));}
+      } 
+      // else { deb("   ENG: ignored move %s", uneval(arguments));}
 
     },
 

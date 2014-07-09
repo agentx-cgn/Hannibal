@@ -326,7 +326,7 @@ HANNIBAL = (function(H){
       this.store.addEdge(nodeSource, "ingame",      nodeTarget);
       this.store.addEdge(nodeTarget, "describedby", nodeSource);
 
-      deb("  CULT: loaded id: %s, name: %s", id, nameTarget);
+      deb("  CULT: loadById %s", nameTarget);
 
     },
     removeById: function(id){

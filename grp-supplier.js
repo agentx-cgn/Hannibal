@@ -18,7 +18,7 @@ HANNIBAL = (function(H){
 
   H.extend(H.Plugins, {
 
-    "g.miner-metal" : {
+    "g.supplier" : {
 
       /*
         a group without units solely for the first/biggest CC
@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
       */
 
       active:         true,           // prepared for init/launch ...
-      description:    "miner",        // text field for humans 
+      description:    "supplier",     // text field for humans 
       civilisations:  ["*"],          // 
       interval:       4,              // call onInterval every x ticks
       parent:         "",             // inherit useful features
@@ -54,27 +54,36 @@ HANNIBAL = (function(H){
 
       listener: {
 
-        onLaunch: function(ccid, mine){
+        onLaunch: function(ccid, resource){
 
-          mine = mine || H.Scout.nearestResource(this.position, this.targets);
+          deb("     G: onlaunch %s cc: %s, res: %s", this, ccid, resource);
 
-          deb("     G: onlaunch %s mine: %s", this, mine);
+          this.resource  = resource;
+          this.target    = H.Resources.nearest(this.position, resource);
+          this.dropsite  = ["shared",    resource + " ACCEPTEDBY"];
+          this.dropsites = ["dynamic",   resource + " ACCEPTEDBY INGAME"];
 
-          if (mine){
-            this.mine = mine;
-            this.position = mine.position;
-            this.register("units", "dropsite", "dropsites");
-            this.economy.request(1, this.units, this.position);   
-          }
+          this.units = (
+            resource === "metal" ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"] :
+            resource === "stone" ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
+            resource === "wood"  ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.stone.rock"] :
+            resource === "food"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"] :
+              deb(" ERROR: unknown resource '%s' for supply group", resource)
+          );
+
+          this.position = this.target.position;
+          this.register("units", "dropsite", "dropsites");
+          this.economy.request(1, this.units, this.position);   
+
 
         },
         onAssign: function(asset){
 
-          deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
+          deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.resource, asset, asset.property, asset.first);
          
           if (this.units.match(asset)){
 
-            deb("     G: onAssign position: %s", H.prettify(this.position));
+            deb("     G: %s onAssign position: %s", this, H.prettify(this.position));
 
             if (this.units.count === 1){
               if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
@@ -83,12 +92,16 @@ HANNIBAL = (function(H){
               this.economy.request(4, this.units, this.position);   
             }
 
-            asset.gather(this.mine);
+            if (this.target){
+              asset.gather(this.target);
+            } else {
+              deb("  WARN: %s with res: %s has no target", this, this.resource);
+            }
 
           } else if (this.dropsite.match(asset)){
 
             if (asset.isFoundation){this.units.repair(asset);}
-            if (asset.isStructure){this.units.gather(this.mine);}
+            if (asset.isStructure){this.units.gather(this.target);}
 
           }
 
@@ -101,7 +114,7 @@ HANNIBAL = (function(H){
             this.economy.request(1, this.units, this.position);
 
           } else if (this.dropsite.match(asset)){
-            this.economy.request(1, this.dropsite, this.position);
+            // this.economy.request(1, this.dropsite, this.position);
 
           }
 
@@ -114,32 +127,29 @@ HANNIBAL = (function(H){
         onBroadcast: function(){},
         onInterval:  function(){
 
-          deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
+          deb("     G: %s onInterval, res: %s, states: %s", this, this.resource, H.prettify(this.units.states()));
 
-          if (this.units.count){
+          if (!this.units.count){return;}
+
+          if (this.units.doing("idle").count === this.units.count){
+            this.dissolve();
+            deb("      G: %s finished lumbering", this);
+            return;
+          
+          } else if (this.units.doing("idle").count > 0){
+
+            H.Resources.update(this.resource);
+            this.target = H.Resources.nearest(this.position, this.resource);
             
-            if (this.units.doing("idle").count === this.units.count){
-
-              H.Scout.updateResources();
-              this.mine = H.Scout.nearestResource(this.units.center, this.targets);
-              
-              if (this.mine){
-                this.units.gather(this.mine);
-
-              } else {
-                this.units.release();
-                this.dissolve();
-                deb("      G: %s finished mining", this);
-                return;
-
-              }
-
+            if (this.target){
+              this.units.doing("idle").gather(this.target);
             } else {
-              this.units.doing("idle").gather(this.mine);
-
-            }
-
+              deb("  WARN: %s with res: %s has no target", this, this.resource);
+            }              
+            
+            
           }
+
 
         }
 

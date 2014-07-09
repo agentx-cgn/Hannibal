@@ -95,6 +95,8 @@ HANNIBAL = (function(H){
 
       // log history > 3,000 per civ, athens~2500, CRs not enforced.
 
+      var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-json.export";
+
       function logg(){
         print ( arguments.length === 0 ? 
           "#! append 0 ://\n" : 
@@ -103,18 +105,16 @@ HANNIBAL = (function(H){
       }    
 
       deb();deb();deb("EXPORT: %s", civs);
-      print("#! open 0 /Daten/Projects/Osiris/ps/trunk/binaries/data/mods/public/simulation/ai/hannibal/explorer/data/store-json.export\n");
 
-      logg("// EXPORTED %s", new Date());
-      logg("// Civilisations: %s", civs.join(", "));
       civs.forEach(function(civ){
+        print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
+        logg("// EXPORTED culture '%s' at %s", civ, new Date());
         var culture = new H.Culture(civ), store = culture.store;
         culture.loadDataNodes();           // from data to triple store
         culture.readTemplates();           // from templates to culture
         culture.loadTechTemplates();       // from templates to triple store
         culture.loadTemplates();           // from templates to triple store
         culture.finalize();                // clear up
-        logg("// Export Start of TS with Culture %s", civ);
         logg("var store_%s = {", civ);
           logg("  verbs: %s,", JSON.stringify(store.verbs));
           logg("  nodes: {");
@@ -129,10 +129,10 @@ HANNIBAL = (function(H){
           });
           logg("  ],");
         logg("};");
-        logg("// Export End of TS with Culture %s", civ);
+        logg("// Export end of culture %s", civ);
+        print("#! close 0\n");
       });
 
-      print("#! close 0\n");
 
     }
 

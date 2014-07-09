@@ -21,7 +21,8 @@ HANNIBAL = (function(H){
 
   // relies on c before e
   var config = H.Config.economy,
-      ress = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0};
+      ress = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0},
+      allocations = {food: 0, wood: 0, stone: 0, metal: 0, population: 0};
 
 
   H.Stats = {
@@ -101,6 +102,7 @@ HANNIBAL = (function(H){
     var self = this;
     this.order = order;
     this.remaining = order.amount;
+    this.executed  = 0;             // send to engine
 
     //TODO: make units move to order.position
 
@@ -127,7 +129,7 @@ HANNIBAL = (function(H){
 
       var self  = this, order = this.order;
 
-      this.executed = false; this.execute = false;
+      this.execute = false; // ready to send
 
       this.nodes = H.QRY(order.hcq).forEach(function(node){
         // think positive
@@ -137,7 +139,6 @@ HANNIBAL = (function(H){
       // assigns ingames if available and matching
       this.assignExisting();      
       if (this.remaining === 0){
-        this.executed = true; 
         return;
       } 
 
@@ -179,7 +180,7 @@ HANNIBAL = (function(H){
     },
     assignExisting: function(){
 
-      var self  = this, hcq, nodes;
+      var hcq, nodes;
 
       // looking for unit not assigned to a group
       if (this.order.type === "train"){
@@ -202,12 +203,13 @@ HANNIBAL = (function(H){
       nodes = H.QRY(hcq).execute(); // "metadata", 5, 10, "assignExisting");
 
       if (!nodes.length) {
-        deb("    OC: #%s found none existing for %s", self.order.id, hcq);
+        deb("    OC: #%s found none existing for %s", this.order.id, hcq);
       }
       nodes.slice(0, this.remaining).forEach(function(node){
-        deb("    OC: #%s found existing: %s FOR %s", self.order.id, node.name, hcq);
-        self.order.ready(1, "Assign", node.id);
-      });
+        deb("    OC: #%s found existing: %s FOR %s", this.order.id, node.name, hcq);
+        this.executed += 1; 
+        this.order.ready(1, "Assign", node.id);
+      }, this);
 
     },
     checkProducers: function(){
@@ -215,7 +217,7 @@ HANNIBAL = (function(H){
       // picks an in game producer for each node, currently the first found
       // trainingQueueTime === trainingQueueLength for train, research O_O
 
-      var self = this, hcq, prods,
+      var hcq, prods,
           verb = {
             "train":      "TRAINEDBY",
             "construct":  "BUILDBY",
@@ -228,11 +230,11 @@ HANNIBAL = (function(H){
         prods = H.QRY(hcq).execute();
         if (prods.length) {
           node.producer = prods[0].id;
-          deb("    OC: #%s found ingame producer: %s (#%s) FOR %s WITH ACTION: %s", self.order.id, prods[0].name, prods[0].id, node.name, self.order.type);
+          // deb("    OC: #%s found ingame producer: %s (#%s) FOR %s WITH ACTION: %s", self.order.id, prods[0].name, prods[0].id, node.name, self.order.type);
         } else {
           node.qualifies = false;
         }
-      });  
+      }, this);  
 
     },
     checkRequirements: function(){
@@ -264,14 +266,16 @@ HANNIBAL = (function(H){
     return {
       boot: function(){self = this; return self;},
       tick: function(){
-
         var t0 = Date.now();
-
         self.processQueue();
         self.logQueue(t0);
-
         return Date.now() - t0;
-
+      },
+      subtract: function(cost, budget){
+        budget.food  -= cost.food  > 0 ? cost.food  : 0;
+        budget.wood  -= cost.wood  > 0 ? cost.wood  : 0;
+        budget.metal -= cost.metal > 0 ? cost.metal : 0;
+        budget.stone -= cost.stone > 0 ? cost.stone : 0;
       },
       fits: function(cost, budget){
         return (
@@ -308,53 +312,69 @@ HANNIBAL = (function(H){
       },
       processQueue: function(){
 
-        var allocs = H.deepcopy(ress),
+        var allocs  = H.deepcopy(allocations),
+            budget  = H.deepcopy(H.Stats.stock),
             allGood = false, 
             removed = [],
-            constructs = 0; // only one construction per round
+            constructs = 0, // only one construction per round
+            pritc = function(cost){
+              var out = [];
+              Object.keys(cost)
+                .forEach(r => {
+                  if(cost[r]){out.push(r + ":" + cost[r]);}
+                });
+              return out.join(",");
+            };
 
         if (!H.Queue.length){return;}
 
         H.Queue
           .forEach(function(order){order.evaluate(allocs);});
 
-        allGood = self.fits(allocs, H.Stats.stock);
-        // deb("    PQ: allGood: %s, allocs: %s", allGood, H.prettify(allocs));
-
+        allGood = self.fits(allocs, budget);
+        deb("    PQ: allGood: %s, allocs: %s", allGood, H.prettify(allocs));
 
         H.Queue
-          .filter(function(order){return order.execute && !order.executed;})
+          .filter(function(order){return order.executed < order.order.amount;})
           .forEach(function(order){
 
-            var amount = allGood ? order.remaining : 1,
+            var amount = allGood ? order.order.amount - order.executed : 1,
                 node = order.nodes[0],
                 id = order.order.id;
 
-            if (allGood || self.fits(node.cost, H.Stats.stock)){
+            if (allGood || self.fits(node.costs, budget)){
 
               switch(order.order.type){
 
                 case "train":
                   // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
                   H.Economy.execute("train", amount, node.producer, node.key, order.order);
-                  order.executed = true;
+                  H.Economy.subtract(node.costs, budget);
+                  order.executed += amount;
                 break;
 
                 case "construct":
                   if (constructs < 1){
                     // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.order.x + "|" + order.order.z, node.key);
                     H.Economy.execute("construct", amount, node.producer, node.key, order.order);
-                    order.executed = true;
+                    H.Economy.subtract(node.costs, budget);
+                    order.executed += amount;
                     constructs += 1;
                   } else {
-                    deb("    PQ: postponed id: %s", id);
+                    deb("    PQ: #%s postponed", id);
                   }
                 break;
+
+                // case "research":
+                // break;
 
                 default:
                   deb("ERROR : processQueue: #%s unknown node.action: %s", id, node.action);
 
               }
+
+            } else {
+              deb("    PQ: #%s can't afford. %s", id, pritc(node.costs));
 
             }
 
@@ -362,7 +382,7 @@ HANNIBAL = (function(H){
         });
 
         H.Queue
-          .filter(function(order){return order.executed;})
+          .filter(function(order){return order.executed >= order.order.amount;})
           .forEach(function(order){
             removed.push(order.order.id);
             H.Queue.remove(order);
@@ -474,72 +494,70 @@ HANNIBAL = (function(H){
 
 return H; }(HANNIBAL));
 
-/*
 
-H.Economy.barter = function(source, sell, buy, amount){
-  var markets = gameState.getOwnEntitiesByType(gameState.applyCiv("structures/{civ}_market"), true).toEntityArray();
-  markets[0].barter(buy,sell,100);
-  Engine.PostCommand({"type": "barter", "sell" : sellType, "buy" : buyType, "amount" : amount });      
-  new api this.barterPrices = state.barterPrices;
-};
+// H.Economy.barter = function(source, sell, buy, amount){
+//   var markets = gameState.getOwnEntitiesByType(gameState.applyCiv("structures/{civ}_market"), true).toEntityArray();
+//   markets[0].barter(buy,sell,100);
+//   Engine.PostCommand({"type": "barter", "sell" : sellType, "buy" : buyType, "amount" : amount });      
+//   new api this.barterPrices = state.barterPrices;
+// };
 
-logObject(sharedScript.playersData[this.id].statistics);
-  buildingsConstructed: NUMBER (0)
-  buildingsLost: NUMBER (0)
-  buildingsLostValue: NUMBER (0)
-  civCentresBuilt: NUMBER (0)
-  enemyBuildingsDestroyed: NUMBER (0)
-  enemyBuildingsDestroyedValue: NUMBER (0)
-  enemyCivCentresDestroyed: NUMBER (0)
-  enemyUnitsKilled: NUMBER (0)
-  enemyUnitsKilledValue: NUMBER (0)
-  percentMapExplored: NUMBER (3)
-  resourcesBought: OBJECT (food, wood, metal, stone, ...)[4]
-  resourcesGathered: OBJECT (food, wood, metal, stone, vegetarianFood, ...)[5]
-  resourcesSold: OBJECT (food, wood, metal, stone, ...)[4]
-  resourcesUsed: OBJECT (food, wood, metal, stone, ...)[4]
-  tradeIncome: NUMBER (0)
-  treasuresCollected: NUMBER (0)
-  tributesReceived: NUMBER (0)
-  tributesSent: NUMBER (0)
-  unitsLost: NUMBER (0)
-  unitsLostValue: NUMBER (0)
-  unitsTrained: NUMBER (0)
+// logObject(sharedScript.playersData[this.id].statistics);
+//   buildingsConstructed: NUMBER (0)
+//   buildingsLost: NUMBER (0)
+//   buildingsLostValue: NUMBER (0)
+//   civCentresBuilt: NUMBER (0)
+//   enemyBuildingsDestroyed: NUMBER (0)
+//   enemyBuildingsDestroyedValue: NUMBER (0)
+//   enemyCivCentresDestroyed: NUMBER (0)
+//   enemyUnitsKilled: NUMBER (0)
+//   enemyUnitsKilledValue: NUMBER (0)
+//   percentMapExplored: NUMBER (3)
+//   resourcesBought: OBJECT (food, wood, metal, stone, ...)[4]
+//   resourcesGathered: OBJECT (food, wood, metal, stone, vegetarianFood, ...)[5]
+//   resourcesSold: OBJECT (food, wood, metal, stone, ...)[4]
+//   resourcesUsed: OBJECT (food, wood, metal, stone, ...)[4]
+//   tradeIncome: NUMBER (0)
+//   treasuresCollected: NUMBER (0)
+//   tributesReceived: NUMBER (0)
+//   tributesSent: NUMBER (0)
+//   unitsLost: NUMBER (0)
+//   unitsLostValue: NUMBER (0)
+//   unitsTrained: NUMBER (0)
 
   
 
-Object: playersData  ---------------
-  0: OBJECT (name, civ, colour, popCount, popLimit, ...)[27]
-  1: OBJECT (name, civ, colour, popCount, popLimit, ...)[27]
-  2: OBJECT (name, civ, colour, popCount, popLimit, ...)[27]
-    cheatsEnabled: BOOLEAN (false)
-    civ: STRING (athen)
-    classCounts: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
-    colour: OBJECT (r, g, b, a, ...)[4]
-    entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-    entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-    heroes: ARRAY (, ...)[0]
-    isAlly: ARRAY (false, true, false, ...)[3]
-    isEnemy: ARRAY (true, false, true, ...)[3]
-    isMutualAlly: ARRAY (false, true, false, ...)[3]
-    isNeutral: ARRAY (false, false, false, ...)[3]
-    name: STRING (Player 1)
-    phase: STRING (village)
-    popCount: NUMBER (17)
-    popLimit: NUMBER (20)
-    popMax: NUMBER (300)
-    researchQueued: OBJECT (, ...)[0]
-    researchStarted: OBJECT (, ...)[0]
-    researchedTechs: OBJECT (phase_village, ...)[1]
-    resourceCounts: OBJECT (food, wood, metal, stone, ...)[4]
-    state: STRING (active)
-    statistics: OBJECT (unitsTrained, unitsLost, unitsLostValue, enemyUnitsKilled, enemyUnitsKilledValue, ...)[21]
-    team: NUMBER (-1)
-    teamsLocked: BOOLEAN (false)
-    techModifications: OBJECT (, ...)[0]
-    trainingBlocked: BOOLEAN (false)
-    typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
+// Object: playersData  ---------------
+//   0: OBJECT (name, civ, colour, popCount, popLimit, ...)[27]
+//   1: OBJECT (name, civ, colour, popCount, popLimit, ...)[27]
+//   2: OBJECT (name, civ, colour, popCount, popLimit, ...)[27]
+//     cheatsEnabled: BOOLEAN (false)
+//     civ: STRING (athen)
+//     classCounts: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
+//     colour: OBJECT (r, g, b, a, ...)[4]
+//     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+//     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+//     heroes: ARRAY (, ...)[0]
+//     isAlly: ARRAY (false, true, false, ...)[3]
+//     isEnemy: ARRAY (true, false, true, ...)[3]
+//     isMutualAlly: ARRAY (false, true, false, ...)[3]
+//     isNeutral: ARRAY (false, false, false, ...)[3]
+//     name: STRING (Player 1)
+//     phase: STRING (village)
+//     popCount: NUMBER (17)
+//     popLimit: NUMBER (20)
+//     popMax: NUMBER (300)
+//     researchQueued: OBJECT (, ...)[0]
+//     researchStarted: OBJECT (, ...)[0]
+//     researchedTechs: OBJECT (phase_village, ...)[1]
+//     resourceCounts: OBJECT (food, wood, metal, stone, ...)[4]
+//     state: STRING (active)
+//     statistics: OBJECT (unitsTrained, unitsLost, unitsLostValue, enemyUnitsKilled, enemyUnitsKilledValue, ...)[21]
+//     team: NUMBER (-1)
+//     teamsLocked: BOOLEAN (false)
+//     techModifications: OBJECT (, ...)[0]
+//     trainingBlocked: BOOLEAN (false)
+//     typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
 
 
 
-*/

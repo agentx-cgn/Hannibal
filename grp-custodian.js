@@ -112,7 +112,7 @@ HANNIBAL = (function(H){
 
       // variables available in listener with *this*. All optional
 
-      active:         true,           // ready to init/launch ...
+      active:         false,           // ready to init/launch ...
       description:    "test group",   // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
 

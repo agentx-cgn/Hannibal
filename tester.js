@@ -39,6 +39,19 @@ HANNIBAL = (function(H){
     launch: function(group /*, ... */){
       return H.toArray(arguments).slice(1).map((id) => () => H.Groups.launch(group, id));
     },
+    supplier: function(group /*, ... */){
+      var args = H.toArray(arguments);
+      return args.slice(1).map((id) => () => H.Groups.launch("g.supplier", id, args[0]));
+    },
+    speed: function(rate){
+      return [
+        () => print("#! xdotool key F9\n"), 
+        () => print("#! xdotool type --delay 30 Engine.SetSimRate(" + rate + ")\n"), 
+        () => print("#! xdotool key Return\n"),
+        () => print("#! xdotool key F9\n"),
+      ]
+
+    }
 
   });
 
@@ -56,27 +69,24 @@ HANNIBAL = (function(H){
         '3': [T.launch("g.scouts", 44), "launching 1 scout"], 
       '241': [() => "< - FINIS: " + sequence + " - >"],
     },
-    'ai-village': {
-        '0': [() => "setting view",
-              () => print('#! xdotool click --delay 30 --repeat 4 5\n'), 
-              () => print("#! xdotool key KP_Subtract\n"),
-              () => print("#! xdotool key F9\n"), 
-              () => print("#! xdotool type --delay 30 Engine.CameraMoveTo(558, 430)\n"), 
-              () => print("#! xdotool key Return\n"),
-              () => print("#! xdotool key F9\n"),
-             ],        
-        '1': [T.launch("g.scouts",      12), "launching 1 scout"], 
-        '2': [T.launch("g.scouts",      12), "launching 1 scout"], 
-        '3': [T.launch("g.miner-stone", 12), "launching 1 miner-stone"], 
-        '4': [T.launch("g.miner-metal", 12), "launching 1 miner-metal"], 
-        '5': [T.launch("g.grainpicker", 12), "launching 1 grainpickers"], 
-        '6': [T.launch("g.grainpicker", 12), "launching 1 grainpickers"], 
-       // '10': [
-       //        () => print("#! xdotool key F9\n"), 
-       //        () => print("#! xdotool type --delay 30 Engine.SetSimRate(20)\n"), 
-       //        () => print("#! xdotool key Return\n"),
-       //        () => print("#! xdotool key F9\n"),
-       //       ],
+    'Arcadia 02': {
+        // '0': [() => "setting view",
+        //       () => print('#! xdotool click --delay 30 --repeat 4 5\n'), 
+        //       () => print("#! xdotool key KP_Subtract\n"),
+        //       () => print("#! xdotool key F9\n"), 
+        //       () => print("#! xdotool type --delay 30 Engine.CameraMoveTo(558, 430)\n"), 
+        //       () => print("#! xdotool key Return\n"),
+        //       () => print("#! xdotool key F9\n"),
+        //      ],        
+        '1': [T.launch("g.scouts",           4752), "launching 1 scout"], 
+        '2': [T.launch("g.harvester",        4752), "launching 1 harvester"], 
+        '3': [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
+        '4': [T.supplier(           "metal", 4752), "launching 1 metal supplier"], 
+        '5': [T.supplier(           "stone", 4752), "launching 1 stone supplier"], 
+        '6': [T.supplier(            "food", 4752), "launching 1 food supplier"], 
+        '7': [T.launch("g.harvester",        4752), "launching 1 harvester"], 
+       '10': [T.speed(5),                            "more speed"],
+      '103': [() => H.Groups.log(), "logging groups"],
         // '6': [() => H.Grids.log(),  "logging grids"],
         // '7': [() => H.Grids.dump(), "dumping grids"],
         // '8': [() => H.Groups.log(), "logging groups"],

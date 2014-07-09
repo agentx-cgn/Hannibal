@@ -67,14 +67,6 @@ HANNIBAL = (function(H){
       k.maxIterations = 50;
       k.setPoints(map.points);
       k.initCentroids();
-      // for (i=0; i<nCluster;i++){
-      //   k.centroids.push({
-      //     x : 100, //map.size/2,
-      //     z : 100, //map.size/2,
-      //     centroid : i,
-      //     items : 0
-      //   });        
-      // }
       t0 = Date.now();
       k.cluster(function(centroids){
         c += 5;
@@ -86,8 +78,10 @@ HANNIBAL = (function(H){
       t1 = Date.now();  
 
       ctx.fillStyle = "rgba(255, 0, 0, 0.9";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.9";
       k.centroids.forEach(function(ctr){
         ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
+        ctx.fillRect(ctr.x -5, ctr.z -5, 10, 10);
       });
 
       console.log("kmeans", map.points.length, k.centroids.length, "iter", k.iterations, k.converged, (t1-t0));
@@ -134,7 +128,7 @@ HANNIBAL = (function(H){
           cvsHeights = $("cvsHeights"),
           ctxHeights = cvsHeights.getContext("2d"),
           view = new DataView(map.buffer),
-          size = 680;
+          size = 680, rec = 0;
 
       cvs.width = size; cvs.height = size;
 
@@ -180,14 +174,20 @@ HANNIBAL = (function(H){
       ctx.translate(0, cvs.height);
       ctx.scale(1, -1);
 
-
       H.toArray(map.ents).forEach(function(ent){
-        var pos = ent.getElementsByTagName("Position"),
-            tpl = ent.getElementsByTagName("Template"),
-            plr = ~~ent.getElementsByTagName("Player"),
-            x = +pos[0].getAttribute("x")/map.factor,
-            z = +pos[0].getAttribute("z")/map.factor;
+        var pos = ent.getElementsByTagName("Position")[0],
+            tpl = ent.getElementsByTagName("Template")[0].innerHTML,
+            plr = ~~ent.getElementsByTagName("Player")[0],
+            x = +pos.getAttribute("x")/map.factor,
+            z = +pos.getAttribute("z")/map.factor;
+        rec = (
+          tpl.contains("centre") ? 3   :
+          tpl.contains("tree")   ? 1.5 :
+            2
+        );
         ctx.fillStyle = (
+          plr === 0 && tpl.contains("tree") ? "rgba(  0, 255,  0, 0.8)" : 
+          plr === 0 && tpl.contains("bush") ? "rgba(  0, 200,  0, 0.8)" : 
           plr === 0 ? "rgba(220,  50,  50, 1)" : 
           plr === 1 ? "rgba( 50, 220,  50, 1)" : 
           plr === 2 ? "rgba( 50,  50, 220, 1)" : 
@@ -196,7 +196,7 @@ HANNIBAL = (function(H){
           plr === 5 ? "rgba( 50, 220, 220, 1)" : 
             "rgba(255, 0, 0, 1)"
         );
-        ctx.fillRect(x, z, 2, 2);
+        ctx.fillRect(x -rec/2, z -rec/2, rec, rec);
         map.points.push({x:x, z:z});
       });
 

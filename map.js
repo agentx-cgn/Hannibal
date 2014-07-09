@@ -123,7 +123,7 @@ HANNIBAL = (function(H){
       });
       return [out[0] / len, out[1] / len];
     },
-    getCenter: function(entids){
+    getCenterX: function(entids){
 
       // deb("   MAP: getCenter: %s", H.prettify(entids));
 
@@ -141,6 +141,20 @@ HANNIBAL = (function(H){
         return H.Map.centerOf(entids.map(function(id){return H.Entities[id].position();}));
 
       }
+
+    },
+
+    getCenter: function(ids){
+
+      // deb("   MAP: getCenter: %s", H.prettify(ids));
+
+      if (!ids || ids.length === 0){
+        throw new Error("getCenter with unusable param");}
+
+      return H.Map.centerOf( ids
+        .filter(id => !!H.Entities[id])
+        .map(id => H.Entities[id].position())
+      );
 
     },
 

@@ -114,10 +114,10 @@ food.fish
         var tab = H.tab, head, props, tabs, msg = "";
         head   = "ents, found, avail, total, depl, cons".split(", ");
         props  = "ents, found, available, total, depleted, consumed".split(", ");
-        tabs   = [   6,     6,    6,    6,    6,    6];
+        tabs   = [   6,     6,    8,    8,    6,    8];
 
         H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-        deb();deb();deb("RESOUR:           " + msg);
+        deb();deb();deb("  RESS:           " + msg);
 
         H.each(stats, function(stat, data){
           msg = "";
@@ -141,12 +141,24 @@ food.fish
           });
         });
       },
+      markFound: function(pos, range){
+        generics.forEach(function(generic){
+          Object.keys(resources[generic]).forEach(function(id){
+            var res = resources[generic][id];
+            if (H.Map.distance(pos, res.position) < range){
+              res.found = true;
+            }            
+          });
+        });
+      },
       nearest: function(item, generic){
 
         // specs [{generic: 'stone', specific: 'rock'}, {generic: 'stone', specific: 'ruins'}],
 
-        var dis = 1e7, idres, distance, kmeans, tree, trees = [], cid,
+        var t0, t1, dis = 1e7, idres, distance, kmeans, tree, trees = [], cid,
             pos = Array.isArray(item) ? item : item.location();
+
+        deb("   RES: looking for nearest '%s' at %s", generic, pos);
 
         switch (generic){
           case "stone":
@@ -159,7 +171,8 @@ food.fish
                 if (distance < dis){idres = id; dis = distance;}
               }
             });
-            return resources[idres] || undefined;
+            deb("   RES: found %s", uneval(resources[generic][idres]));
+            return resources[generic][idres] || undefined;
 
           case "wood":
             H.each(resources.wood, function(id, res){
@@ -167,26 +180,32 @@ food.fish
                 trees.push({x: res.position[0], z: res.position[1], id: id});
               }
             });
+            deb("   RES: kmeans: %s trees", trees.length);
             kmeans = new H.AI.KMeans();
             kmeans.k = 3; // map size !!!!
             kmeans.maxIterations = 50;
             kmeans.setPoints(trees);
             kmeans.initCentroids();
+            t0 = Date.now();
             kmeans.cluster();
+            t1 = Date.now();
             // nearest cluster
+            deb("   RES: kmeans:  %s trees, %s cluster, %s msecs", trees.length, kmeans.centroids.length, t1-t0);
             cid = kmeans.centroids.sort(function(a, b){
               var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
                   db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
               return da - db;
             })[0];
             // nearest tree from that cluster
+            deb("   RES: kmeans: chose cluster %s with %s trees", cid, kmeans.centroids[0].items);
             tree = trees.sort(function(a, b){
               var da = (a.x - cid.x) * (a.x - cid.x) + (a.z - cid.z) * (a.z - cid.z),
                   db = (b.x - cid.x) * (b.x - cid.x) + (b.z - cid.z) * (b.z - cid.z);
               return da - db;
             })[0];
+            deb("   RES: kmeans: chose tree: %s, %s", tree.id, uneval(tree));
 
-            return resources[tree.id];
+            return resources.wood[tree.id];
         }
       },      
       update: function(generic){

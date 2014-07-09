@@ -26,14 +26,13 @@ HANNIBAL = (function(H){
         deb();deb();
         deb("GROUPS: -----------");
         H.each(groups, function(name, group){
-          deb(" GROUP: %s [%s]", name, group.instances.length);
+          deb(" GROUP: %s instances: %s", name, group.instances.length);
           group.instances.forEach(function(instance){
-            deb("     G: %s, assets: [%s]", instance.name, instance.assets.length);
+            deb("     G: %s, assets: %s", instance.name, instance.assets.length);
             instance.assets.forEach(function(ast){
               deb("     G:   %s: [%s], %s, ", ast.property, ast.resources.length, ast);
               ast.resources.forEach(function(id){
-                deb("     G:      tlp:  %s", H.Entities[id]);
-                deb("     G:      meta: %s", H.prettify(H.MetaData[id]));
+                deb("     G:      tlp:  %s, meta: %s", H.Entities[id], H.prettify(H.MetaData[id]));
               });
             });
           });
@@ -144,17 +143,11 @@ HANNIBAL = (function(H){
         deb("   GRP: %s took over %s as shared asset", operator, asset);
 
       },
-      release: function(ids){
-        ids.forEach(function(id){
-          H.MetaData[id].opname = "none";
-          delete H.MetaData[id].opid;
-          H.remove(resources, id);
-        });
-      },      
       dissolve: function(instance){
         H.each(groups, function(name, group){
           group.instances.forEach(function(inst){ 
             if (inst === instance){
+              instance.assets.forEach(asset => asset.release());
               instance.assets = null;
               H.remove(group.instances, inst);
               deb("GROUPS: dissolved %s", instance);
@@ -162,7 +155,7 @@ HANNIBAL = (function(H){
           });
         });
       },
-      launch: function(name, ccid){
+      launch: function(name, ccid, arg1, arg2){
 
         // Object Factory; called by bot, economy, whatever
 
@@ -236,8 +229,6 @@ HANNIBAL = (function(H){
           },
           postpone: function(ticks, fn /* , args*/){
             var args = H.toArray(arguments).slice(2);
-            // this H.binda...
-            // H.Triggers.add(fn.binda(instance, args), ticks *-1);
             H.Triggers.add(H.binda(fn, instance, args), ticks *-1);
           },
           dissolve: function(){
@@ -249,7 +240,7 @@ HANNIBAL = (function(H){
         deb("   GRP: %s to launch, CC: %s", instance, ccid);
 
         // call and activate
-        instance.listener.onLaunch(ccid);
+        instance.listener.onLaunch(ccid, arg1, arg2);
 
         return instance;
 

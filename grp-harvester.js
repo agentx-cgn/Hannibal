@@ -18,7 +18,7 @@ HANNIBAL = (function(H){
 
   H.extend(H.Plugins, {
 
-    "g.grainpicker" : {
+    "g.harvester" : {
 
       /* Behaviour: 
           to maintain one field resource (food.grain), 
@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
       // variables available in listener with *this*. All optional
 
       active:         true,           // ready to init/launch ...
-      description:    "test group",   // text field for humans 
+      description:    "harvester",    // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
 
       interval:       10,             // call onInterval every x ticks

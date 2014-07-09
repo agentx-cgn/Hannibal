@@ -96,6 +96,7 @@ HANNIBAL = (function(H){
     H.extend(self, grids, {
 
       center: center,
+      register: function(name, grid){grids[name] = grid;},
       init: function(){
 
         width     = self.width    = H.SharedScript.passabilityMap.width;
@@ -120,11 +121,17 @@ HANNIBAL = (function(H){
         self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
         self.passability = gridFromMap(H.SharedScript.passabilityMap);
         self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
+        self.food        = gridFromMap(H.SharedScript.resourceMaps.food);
+        self.wood        = gridFromMap(H.SharedScript.resourceMaps.wood);
+        self.stone       = gridFromMap(H.SharedScript.resourceMaps.stone);
+        self.metal       = gridFromMap(H.SharedScript.resourceMaps.metal);
+        self.obstruction = obstructions();
 
         self.attacks  = new H.Grid(width, height, 8);
 
         deb();deb();
         deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
+
       },
       tick: function(secs){
 
@@ -141,9 +148,7 @@ HANNIBAL = (function(H){
         self.attacks.divVal(H.Config.attackRelax);
 
         return Date.now() - t0;
-      },
-      register: function(name, grid){
-        grids[name] = grid;
+
       },
       analyzePoint: function(x, y){
         var data = self.obstruction.data;
@@ -177,80 +182,80 @@ HANNIBAL = (function(H){
       },
       // analyze: function(what, resource){
 
-      //   // unknown           = 0
-      //   // land, seen        = 32
-      //   // land, visited     = 48
-      //   // shore, seen       = 64
-      //   // shore, visited    = 80
-      //   // water, seen       = 128
-      //   // water, visited    = 144
-      //   // unidentified      = 200
-      //   // impassable        = 255
+        //   // unknown           = 0
+        //   // land, seen        = 32
+        //   // land, visited     = 48
+        //   // shore, seen       = 64
+        //   // shore, visited    = 80
+        //   // water, seen       = 128
+        //   // water, visited    = 144
+        //   // unidentified      = 200
+        //   // impassable        = 255
 
-      //   // obstructions
-      //   // 0 is impassable
-      //   // 200 is deep water (ie non-passable by land units)
-      //   // 201 is shallow water (passable by land units and water units)
-      //   // 255 is land (or extremely shallow water where ships can't go).
-      //   // 40 is "tree".
-      //   // The following 41-49 range is "near a tree", with the second number showing how many trees this tile neighbors.
-      //   // 30 is "geological component", such as a mine
+        //   // obstructions
+        //   // 0 is impassable
+        //   // 200 is deep water (ie non-passable by land units)
+        //   // 201 is shallow water (passable by land units and water units)
+        //   // 255 is land (or extremely shallow water where ships can't go).
+        //   // 40 is "tree".
+        //   // The following 41-49 range is "near a tree", with the second number showing how many trees this tile neighbors.
+        //   // 30 is "geological component", such as a mine
 
-      //   if (what === 'scout') {
+        //   if (what === 'scout') {
 
-      //     var t0 = Date.now(), counter = 0,
-      //         node = H.QRY("INGAME WITH id = " + resource.id).first(),
-      //         [cx, cy] = gamePosToMapPos(node.position),
-      //         radius = ~~(node.vision / cellsize),
-      //         dataScout = self.scouting.data,
-      //         dataNaval = self.navalPass.data,
-      //         dataLand  = self.landPass.data,
-      //         dataObst  = self.obstruction.data,
-      //         dataPass  = self.passability.data,
-      //         x0 = ~~Math.max(0, cx - radius),
-      //         y0 = ~~Math.max(0, cy - radius),
-      //         x1 = ~~Math.min(width,  cx + radius),
-      //         y1 = ~~Math.min(height, cy + radius),
-      //         x = 0, y = 0, index = 0, value = 0,
-      //         dx = 0, dy = 0, r2 = 0.0;
-              
-      //     this.analyzeLifted(dataScout, dataObst, x0, x1, y0, y1, cx, cy, radius, width);
-
-
-      //     // for ( y = y0; y < y1; ++y) {
-      //     //   for ( x = x0; x < x1; ++x) {
-      //     //     dx = x - cx; dy = y - cy;
-      //     //     r2 = Math.sqrt(dx * dx + dy * dy);
-      //     //     index = x + y * width;
-      //     //     if (dataScout[index] === 0 && r2 < radius){
-      //     //     // if (dataScout[index] === 0){
-      //     //       // dataScout[index] = (
-      //     //       //   // !(dataLand[index]  & maskShore) ?  64 :
-      //     //       //   !(dataPass[index]  & maskLand)  ?  32 :
-      //     //       //   !(dataNaval[index] & maskWater) ? 128 :
-      //     //       //   (dataObst[index]  === 0)        ? 255 :
-      //     //       //     200
-      //     //       // );
-      //     //       dataScout[index] = (
-      //     //         (dataObst[index]  === 0)        ? 255 :
-      //     //         (dataObst[index]  === 255)      ?  32 :
-      //     //         (dataObst[index]  === 200)      ? 128 :
-      //     //           200
-      //     //       );
-      //     //     }
-      //     //     counter += 1;
-      //     //   }
-      //     // }
-      //     // mark as seen
-      //     dataScout[cx + cy * width] += 16;
-
-      //     // deb("analyze: %s", Date.now() - t0);
-      //     // typical analyze: analyze: 900, 6, 6
+        //     var t0 = Date.now(), counter = 0,
+        //         node = H.QRY("INGAME WITH id = " + resource.id).first(),
+        //         [cx, cy] = gamePosToMapPos(node.position),
+        //         radius = ~~(node.vision / cellsize),
+        //         dataScout = self.scouting.data,
+        //         dataNaval = self.navalPass.data,
+        //         dataLand  = self.landPass.data,
+        //         dataObst  = self.obstruction.data,
+        //         dataPass  = self.passability.data,
+        //         x0 = ~~Math.max(0, cx - radius),
+        //         y0 = ~~Math.max(0, cy - radius),
+        //         x1 = ~~Math.min(width,  cx + radius),
+        //         y1 = ~~Math.min(height, cy + radius),
+        //         x = 0, y = 0, index = 0, value = 0,
+        //         dx = 0, dy = 0, r2 = 0.0;
+                
+        //     this.analyzeLifted(dataScout, dataObst, x0, x1, y0, y1, cx, cy, radius, width);
 
 
-      //   }
+        //     // for ( y = y0; y < y1; ++y) {
+        //     //   for ( x = x0; x < x1; ++x) {
+        //     //     dx = x - cx; dy = y - cy;
+        //     //     r2 = Math.sqrt(dx * dx + dy * dy);
+        //     //     index = x + y * width;
+        //     //     if (dataScout[index] === 0 && r2 < radius){
+        //     //     // if (dataScout[index] === 0){
+        //     //       // dataScout[index] = (
+        //     //       //   // !(dataLand[index]  & maskShore) ?  64 :
+        //     //       //   !(dataPass[index]  & maskLand)  ?  32 :
+        //     //       //   !(dataNaval[index] & maskWater) ? 128 :
+        //     //       //   (dataObst[index]  === 0)        ? 255 :
+        //     //       //     200
+        //     //       // );
+        //     //       dataScout[index] = (
+        //     //         (dataObst[index]  === 0)        ? 255 :
+        //     //         (dataObst[index]  === 255)      ?  32 :
+        //     //         (dataObst[index]  === 200)      ? 128 :
+        //     //           200
+        //     //       );
+        //     //     }
+        //     //     counter += 1;
+        //     //   }
+        //     // }
+        //     // mark as seen
+        //     dataScout[cx + cy * width] += 16;
 
-      // },
+        //     // deb("analyze: %s", Date.now() - t0);
+        //     // typical analyze: analyze: 900, 6, 6
+
+
+        //   }
+
+        // },
       record: function(what, where, amplitude){
 
         deb("  GRDS: record: what: %s, where: %s, amp: %s", what, pritp(where), pritn(amplitude));
@@ -283,9 +288,9 @@ HANNIBAL = (function(H){
         deb("  GRDS: logging %s msecs ------------", Date.now() - t0);
       },
       dump: function(prefix){
-        H.each(grids, function(name){
-          name = prefix ? prefix + "-" + name : name;
-          if (self[name]){dump(name, self[name]);}
+        H.each(grids, function(grid){
+          var name = prefix ? prefix + "-" + grid : grid;
+          if (self[grid]){dump(name, self[grid]);}
         });
       }
 

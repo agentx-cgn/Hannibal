@@ -57,8 +57,7 @@ HANNIBAL = (function(H){
 
     // replaces '<xyz>' in hcq with instance.xyz.hcq
 
-    var id,
-        pos1  = hcq.indexOf("<"),
+    var pos1  = hcq.indexOf("<"),
         pos2  = hcq.indexOf(">"),
         token = (pos2 > pos1 && pos1 !== -1 && pos2 !== -1) ? 
                   hcq.substr(pos1 +1, pos2 - pos1 -1) : 
@@ -160,21 +159,33 @@ HANNIBAL = (function(H){
 
         resources: ids,
 
+        distanceTo: H.Map.distanceTo.bind(null, ids),
+
         move:     H.Engine.move.bind(null, ids),          
         format:   H.Engine.format.bind(null, ids),
         stance:   H.Engine.stance.bind(null, ids),
         destroy:  H.Engine.destroy.bind(null, ids),
-        collect:  H.Engine.collect.bind(null, ids),
-
-        distanceTo: H.Map.distanceTo.bind(null, ids),
-        release:    H.Groups.release.bind(null, ids),
 
         flee:     function(attacker){H.Engine.flee(ids, [attacker.id]);},
         garrison: function(asset){H.Engine.garrison(ids, asset.resources[0]);},
         gather:   function(asset){H.Engine.gather(ids, asset.resources[0]);},
         repair:   function(asset){H.Engine.repair(ids, asset.resources[0]);},
+        collect:  function(targets){
+          deb("collect: %s", uneval(targets));
+          targets.forEach(function(target){
+            H.Engine.collect(ids, target.resources[0]);
+          });
+        }
 
       });
+    },
+    release:    function(){
+      this.resources.forEach(function(id){
+        H.MetaData[id].opname = "none";
+        delete H.MetaData[id].opid;
+      });
+      deb("   ASS: releasing %s", uneval(this.resources));          
+      this.resources = [];
     },
     match:      function(asset){return this.resources.indexOf(asset.resources[0]) !== -1;},
     states:     function(){
@@ -284,11 +295,12 @@ HANNIBAL = (function(H){
 
       } else if (this.resources.length){
         // only undestroyed entities, with valid position
-        loc = H.Map.getCenter(this.resources.filter(id => !!H.Entities[id] && !!H.Entities[id].position() ));
+        // loc = H.Map.getCenter(this.resources.filter(id => !!H.Entities[id] && !!H.Entities[id].position() ));
+        loc = H.Map.getCenter(this.resources);
         deb("   AST: location resources: %s of %s, loc: %s", H.prettify(this.resources), this, loc);
 
       } else {
-        deb("   AST: Error: found no location for %s", this);
+        deb("  WARN: AST found no location for %s, res: %s", this, uneval(this.resources));
 
       }
 

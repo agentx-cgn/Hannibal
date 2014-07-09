@@ -70,49 +70,7 @@ HANNIBAL = (function(H){
 
         H.Grids.register("scouting", grid);
 
-        // deb();deb();deb(" SCOUT: Resources...");
-        // self.updateResources(false);
-
       },
-      // updateMines: function(dolog){
-
-      //   var type, res;
-
-      //   resources = {};
-        
-      //   H.each(H.Entities, function(id, ent){
-      //     type = ent.resourceSupplyType();
-      //     if (!!type && type.specific !== "tree"){
-      //       res = resources[ent.id()] = new Resource(ent);
-      //       if (H.Map.isOwnTerritory(res.position)){
-      //         res.found = true;
-      //       }
-      //       if (dolog) {res.log();}
-      //     }
-      //   });
-
-      // },
-      // deleteResources: function(ids){
-      //   ids.forEach(id => delete resources[id]);
-      //   deb(" SCOUT: deleted ress: %s", ids);
-      // },
-      // nearestResource: function(item, types){
-      //   var dis = 1e7, idres, distance, pos = Array.isArray(item) ? item : item.location();
-      //   H.each(resources, function(id, res){
-      //     types.forEach(function(type){
-      //       if (res.found){
-      //         if (res.specific === type.specific && res.generic === type.generic){
-      //           // deb("SCOUT: nearestResource id: %s, dis: %s", idres, dis);
-      //           distance = H.Map.distance(pos, res.position);
-      //           if (distance < dis){
-      //             idres = id; dis = distance;
-      //           }
-      //         }
-      //       }
-      //     });
-      //   });
-      //   return resources[idres] || undefined;
-      // },
       scanAttacker: function (attacker){
 
         var [cx, cy] = H.Map.gamePosToMapPos(attacker.position),
@@ -215,7 +173,7 @@ HANNIBAL = (function(H){
 
           next: function(pos){
 
-            var t0 = Date.now(), data = grid.data, treasures = [],
+            var t0 = Date.now(), data = grid.data, treasures = [], test, 
                 sq, value, posTest, posNext, index,
                 corners = [[-rng,-rng],[-rng,rng],[rng,rng],[rng,-rng]],
                 pushUnique = H.HTN.Helper.pushUnique,
@@ -230,16 +188,20 @@ HANNIBAL = (function(H){
                   return (data[index] & mHostile) !== 0;
                 };
 
-            // make resources in range visible, check for treasure
-            H.each(resources, function(id, res){
-              if (H.Map.distance(pos, res.position) < rng){
-                res.found = true;
-                deb(" SCOUT: found resource: %s, %s, id: %s", res.generic, res.supply, res.id);
-                if (res.generic === "treasure"){
-                  treasures.push(res.id);
-                }
-              }
-            });
+            H.Resources.markFound(pos, rng);
+            test = H.Resources.nearest(pos, "treasure");
+            treasures = test ? [test] : [];
+
+            // // make resources in range visible, check for treasure
+            // H.each(resources, function(id, res){
+            //   if (H.Map.distance(pos, res.position) < rng){
+            //     res.found = true;
+            //     deb(" SCOUT: found resource: %s, %s, id: %s", res.generic, res.supply, res.id);
+            //     if (res.generic === "treasure"){
+            //       treasures.push(res.id);
+            //     }
+            //   }
+            // });
 
 
             for (sq of corners) {
@@ -276,14 +238,17 @@ HANNIBAL = (function(H){
               posNext = queueNow.pop();
               index   = pos2pointer(posNext);
 
-              if (posNext[0] < 0 || ~~(posNext[0] / cellsize) > width || posNext[1] < 0 || ~~(posNext[1] / cellsize) > height)
-                {deb(" SCOUT: ignored outside tile %s", index); continue;}
+              if (posNext[0] < 0 || ~~(posNext[0] / cellsize) > width || posNext[1] < 0 || ~~(posNext[1] / cellsize) > height){
+                // deb(" SCOUT: ignored outside tile %s", index); 
+                continue;}
 
-              if (H.contains(recentTiles, index))
-                {deb(" SCOUT: ignored recent tile %s", index); continue;}
+              if (H.contains(recentTiles, index)){
+                deb(" SCOUT: ignored recent tile %s", index);
+                continue;}
 
-              if (isHostile(index))
-                {deb(" SCOUT: ignored hostile tile %s", index); continue;}
+              if (isHostile(index)){
+                deb(" SCOUT: ignored hostile tile %s", index); 
+                continue;}
 
               if (isUnknown(posNext)){
                 recentTiles.push(index);
@@ -294,7 +259,8 @@ HANNIBAL = (function(H){
                   {point: posNext, terrain: terrain, treasures: treasures};
                 
               } else {
-                {deb(" SCOUT: ignored known tile %s", index); continue;}                
+                // deb(" SCOUT: ignored known tile %s", index); 
+                continue;
               }
 
             }

@@ -216,8 +216,9 @@ var HANNIBAL = (function() {
 
     H.Numerus.init();  // launches the stats extension
     H.Grids.init();
+    H.Grids.dump(H.Config.sequence);
     H.Resources.init();
-    // H.Scout.init();
+    H.Scout.init();
 
     // determine own, game's and all civilisations
     this.civ            = sharedScript.playersData[this.id].civ; 
@@ -279,7 +280,8 @@ var HANNIBAL = (function() {
     if (false){
       // activate to log templates
       // this.culture.store.exportAsLog(["athen"]);
-      this.culture.store.export(["athen", "mace", "hele"]); // 10.000 lines
+      // this.culture.store.export(["athen", "mace", "hele"]); // 10.000 lines
+      this.culture.store.export(["spart"]); 
       // print("#! terminate");
     }
 
@@ -448,10 +450,13 @@ var HANNIBAL = (function() {
 
       Engine.ProfileStart("Hannibal (player " + this.id +")");
 
-      deb("STATUS: #%sa, %s|%s|%s, elapsed: %s secs, techs: %s, food: %s", 
+      deb("STATUS: #%sa, %s|%s|%s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
         this.ticks, this.player, this.civ, this.frame.name, secs, 
         H.count(H.Players[this.id].researchedTechs), 
-        H.GameState.playerData.resourceCounts.food
+        H.GameState.playerData.resourceCounts.food,
+        H.GameState.playerData.resourceCounts.wood,
+        H.GameState.playerData.resourceCounts.metal,
+        H.GameState.playerData.resourceCounts.stone
       );
 
       this.frame = this.behaviour.process(this); 
