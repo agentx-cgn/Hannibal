@@ -35,6 +35,7 @@ HANNIBAL = (function(H){
 
     data:                    {
       sharedBuildingClasses: ['civilcentre', 'blacksmith', 'farmstead'],
+      prey:                  ["chicken", "sheep", "pig", "goat"], // possible food resources
     },
 
     numerus: {
@@ -49,6 +50,54 @@ HANNIBAL = (function(H){
         town:               {food:  5000, wood:  3000, stone: 1000, metal: 2000, pops: '30%'},
         city:               {food: 10000, wood: 10000, stone: 2000, metal: 5000, pops: '90%'},
       }
+    },
+
+    civs : {
+      athen:  {
+        builders: 2,
+      },
+      brit:  {
+        builders: 2,
+      },
+      cart:  {
+        builders: 2,
+      },
+      celt:  {
+        builders: 2,
+      },
+      gaul:  {
+        builders: 2,
+      },
+      hele:  {
+        builders: 2,
+      },
+      iber:  {
+        builders: 2,
+      },
+      mace:  {
+        builders: 2,
+      },
+      maur:  {
+        builders: 4,
+      },
+      pers:  {
+        builders: 2,
+      },
+      ptol:  {
+        builders: 2,
+      },
+      rome:  {
+        builders: 2,
+      },
+      sele:  {
+        builders: 2,
+      },
+      spart:  {
+        builders: 2,
+      },
+      theb:  {
+        builders: 2,
+      },
     },
 
     //TODO: run preflight check, whether all these frames are actually available

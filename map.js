@@ -65,10 +65,12 @@ HANNIBAL = (function(H){
       return x + y * H.Map.width;
     },
     distanceTo: function(ids, pos){
+      // deb("   MAP: distanceTo: args: %s", uneval(arguments));
       var center = H.Map.getCenter(ids);
       return H.Map.distance(center, pos);
     },
     distance: function(a, b){
+      // deb("   MAP: distance: args: %s", uneval(arguments));
       var dx = a[0] - b[0], dz = a[1] - b[1];
       return Math.sqrt(dx * dx + dz * dz);
     },
@@ -149,7 +151,7 @@ HANNIBAL = (function(H){
       // deb("   MAP: getCenter: %s", H.prettify(ids));
 
       if (!ids || ids.length === 0){
-        throw new Error("getCenter with unusable param");}
+        throw new Error(H.format("getCenter with unusable param: '%s'", uneval(ids)));}
 
       return H.Map.centerOf( ids
         .filter(id => !!H.Entities[id])

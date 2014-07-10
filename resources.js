@@ -29,20 +29,24 @@ food.fish
 
 
   function Resource(ent){
-    this.id    = ent.id();
-    this.resources = [this.id];   // asset gatherable
+    var tpl = ent._template;
+    this.id     = ent.id();
     this.owner = ent.owner();
     this.found = false;
-    this.consumed = false;
+    this.consumed  = false;
+    this.resources = [this.id];   // make asset gatherable
+    this.name      = (tpl.Identity && tpl.Identity.SpecificName) ? tpl.Identity.SpecificName.toLowerCase() : "unknown";
+    this.isPrey    = H.Config.data.prey.indexOf(this.name) !== -1;
+    this.supply    = ent.resourceSupplyMax();
+    this.generic   = ent.resourceSupplyType().generic;
+    this.specific  = ent.resourceSupplyType().specific;
     this.update();
+    // deb("   RES: id: %s name: %s", this.id, this.name);
   }
   Resource.prototype = {
     constructor: Resource,
     update: function(){
       var ent = H.Entities[this.id];
-      this.supply   = ent.resourceSupplyMax();
-      this.generic  = ent.resourceSupplyType().generic;
-      this.specific = ent.resourceSupplyType().specific;
       this.position = ent.position();
     },
     log: function(){
@@ -164,20 +168,58 @@ food.fish
           case "stone":
           case "metal":
           case "treasure":
-          case "food":
             H.each(resources[generic], function(id, res){
-              if (res.found && !res.consumed){
-                distance = H.Map.distance(pos, res.position);
-                if (distance < dis){idres = id; dis = distance;}
+              if (H.Entities[id]){
+                if (res.found && !res.consumed){
+                  distance = H.Map.distance(pos, res.position);
+                  if (distance < dis){idres = id; dis = distance;}
+                }
+              } else {
+                res.consumed = true;
               }
             });
             deb("   RES: found %s", uneval(resources[generic][idres]));
             return resources[generic][idres] || undefined;
+          break;
+
+          case "food.fruit":
+            H.each(resources["food"], function(id, res){
+              if (H.Entities[id]){
+                if (res.found && !res.consumed && res.specific === "fruit"){
+                  distance = H.Map.distance(pos, res.position);
+                  if (distance < dis){idres = id; dis = distance;}
+                }
+              } else {
+                res.consumed = true;
+              }
+            });
+            deb("   RES: found %s", uneval(resources["food"][idres]));
+            return resources["food"][idres] || undefined;
+          break;
+
+          case "food.meat":
+            H.each(resources["food"], function(id, res){
+              if (H.Entities[id]){
+                if (res.found && !res.consumed && res.isPrey){
+                  distance = H.Map.distance(pos, res.position);
+                  if (distance < dis){idres = id; dis = distance;}
+                }
+              } else {
+                res.consumed = true;
+              }
+            });
+            deb("   RES: found %s", uneval(resources["food"][idres]));
+            return resources["food"][idres] || undefined;
+          break;
 
           case "wood":
             H.each(resources.wood, function(id, res){
-              if (res.found && !res.consumed){
-                trees.push({x: res.position[0], z: res.position[1], id: id});
+              if (H.Entities[id]){
+                if (res.found && !res.consumed){
+                  trees.push({x: res.position[0], z: res.position[1], id: id});
+                }
+              } else {
+                res.consumed = true;
               }
             });
             deb("   RES: kmeans: %s trees", trees.length);
@@ -206,6 +248,11 @@ food.fish
             deb("   RES: kmeans: chose tree: %s, %s", tree.id, uneval(tree));
 
             return resources.wood[tree.id];
+          break;
+
+          default: 
+            deb(" ERROR: unknown resource: %s in mearest", generic);
+
         }
       },      
       update: function(generic){

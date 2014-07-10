@@ -73,51 +73,66 @@ HANNIBAL = function(H){
     'Testudo'
   ];
 
-
+  // see mods/public/civs
   H.Data.Civilisations = {
     athen:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Athenians‎",
     },
     brit:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Britons",
     },
     cart:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ:_Carthaginians‎",
     },
     celt:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Celts",
     },
     gaul:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Gauls‎",
     },
     hele:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Hellenes‎",
     },
     iber:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Iberians‎",
     },
     mace:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Macedonians",
     },
     maur:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Mauryans",
     },
     pers:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Persians‎",
     },
     ptol:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Ptolemies‎",
     },
     rome:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Romans_Republican",
     },
     sele:  {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Seleucids",
     },
     spart: {
+      active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Spartans‎",
     },
     theb:  {
+      active: false,
       wiki: "",
     }
   };
@@ -128,16 +143,13 @@ HANNIBAL = function(H){
   H.Data.RootNodes = function(){ return {
 
     '*': {
-      // "house":                   {key: "house",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
       "animal":                  {key: "animal",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
       "elephant":                {key: "elephant",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
       "seacreature":             {key: "seacreature",   template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
       "domestic":                {key: "domestic", template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
       "palisade":                {key: "palisade", template: {Identity: {GenericName: "Generic",  Tooltip: "a class imported from H.Data"}}},
-      // "gaia.fauna.sheep":        {key: "gaia/fauna_sheep", template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
       "gaia.fauna.sheep":        {key: "gaia/fauna_sheep", template: H.Templates['gaia/fauna_sheep'] },
       "gaia.fauna.fish":         {key: "gaia/fauna_fish", template: H.Templates['gaia/fauna_fish'] },
-      // "other.wallset.palisade":  {key: "other/wallset_palisade", template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
       "other.wallset.palisade":  {key: "other/wallset_palisade", template: H.Templates['other/wallset_palisade'] },
     },
 
@@ -157,6 +169,42 @@ HANNIBAL = function(H){
       "units.hele.ship.bireme":  {key: "units/hele_ship_bireme",  template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
       "units.hele.ship.trireme": {key: "units/hele_ship_trireme", template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
       "structures.mace.wonder":  {key: "structures/mace_wonder",  template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
+    },
+
+    'spart': {
+      "wonder":                   {key: "wonder",                   template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+      "units.hele.hero.leonidas": {key: "units/hele_hero_leonidas", template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
+      "structures.spart.wonder":  {key: "structures/spart_wonder",  template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
+      "other.hellenic.stoa":      {key: "other/hellenic_stoa",      template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
+    },
+
+    'celt': {
+      "wonder":                   {key: "wonder",                  template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+      "structures.celt.wonder":   {key: "structures/celt_wonder",  template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
+    },
+
+    'gaul': {
+      "wonder":                   {key: "wonder",                  template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+      "structures.gaul.wonder":   {key: "structures/gaul_wonder",  template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
+    },
+
+    'iber': {
+      "wonder":                   {key: "wonder",                  template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+      "structures.iber.wonder":   {key: "structures/iber_wonder",  template: {Identity: {GenericName: "Generic",  Tooltip: "entity imported from H.Data"}}},
+    },
+
+    'maur': {
+      "siege":                    {key: "siege",                   template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+    },
+
+    'ptol': {
+      "units.ptol.hero.ptolemy.i":   {key: "units/ptol_hero_ptolemy_i",  template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+      "units.ptol.hero.ptolemy.iv":  {key: "units/ptol_hero_ptolemy_iv", template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+      "units.ptol.mechanical.siege.lithobolos.packed": {key: "units/ptol_mechanical_siege_lithobolos_packed", template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
+    },
+
+    'sele': {
+      "units.sele.cavalry.javelinist.b": {key: "units/sele_cavalry_javelinist_b", template: {Identity: {GenericName: "Generic",  Tooltip: "class imported from H.Data"}}},
     },
 
 

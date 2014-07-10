@@ -465,11 +465,11 @@ HANNIBAL = (function(H){
       // deb("**");
       // deb(" CIVIC: reading %s templates", cntTpls);
 
-      H.each(H.Templates, function(key, template){
+      H.each(H.Templates, function(key, tpl){
 
         var tokens = [key.split("/")[0]].concat(key.split("/")[1].split("_")),
             name   = tokens.join("."),
-            civ    = (template.Identity && template.Identity.Civ) ? template.Identity.Civ : "nociv",
+            civ    = (tpl.Identity && tpl.Identity.Civ) ? tpl.Identity.Civ : "nociv",
             list;
 
         civ = civ.toLowerCase();
@@ -477,12 +477,12 @@ HANNIBAL = (function(H){
 
         if (civ === self.civ){
 
-          self.addNode(name, key, template);
+          self.addNode(name, key, tpl);
           cntNodes += 1;
 
           // classes
-          if (template.Identity && template.Identity.VisibleClasses){
-            list = template.Identity.VisibleClasses._string.toLowerCase();
+          if (tpl.Identity && tpl.Identity.VisibleClasses){
+            list = tpl.Identity.VisibleClasses._string.toLowerCase();
             list = H.replace(list, "\n", " ")
             list.split(" ")
               .filter(klass => !!klass)
@@ -490,8 +490,8 @@ HANNIBAL = (function(H){
               .forEach(klass => self.classes.push(klass));
           }
 
-          if (template.Identity && template.Identity.Classes){
-            list = template.Identity.Classes._string.toLowerCase();
+          if (tpl.Identity && tpl.Identity.Classes){
+            list = tpl.Identity.Classes._string.toLowerCase();
             list = H.replace(list, "\n", " ")
             list.split(" ")
               .filter(klass => !!klass)
@@ -500,29 +500,29 @@ HANNIBAL = (function(H){
           }
 
           // research tech
-          if (template.ProductionQueue && template.ProductionQueue.Technologies){
-            template.ProductionQueue.Technologies._string.split(" ").forEach(function(tech){
+          if (tpl.ProductionQueue && tpl.ProductionQueue.Technologies && tpl.ProductionQueue.Technologies._string){
+            tpl.ProductionQueue.Technologies._string.split(" ").forEach(function(tech){
               self.technologies.push(tech);
             });
           }
-          if (template.Identity && template.Identity.RequiredTechnology){
-            self.technologies.push(template.Identity.RequiredTechnology);
+          if (tpl.Identity && tpl.Identity.RequiredTechnology){
+            self.technologies.push(tpl.Identity.RequiredTechnology);
           }
 
           // resources [wood.ruins]
-          if (template.ResourceSupply && template.ResourceSupply.Type){
-            self.resources.push(template.ResourceSupply.Type);
+          if (tpl.ResourceSupply && tpl.ResourceSupply.Type){
+            self.resources.push(tpl.ResourceSupply.Type);
           }
           
-          if (template.ResourceGatherer && template.ResourceGatherer.Rates){
-            H.attribs(template.ResourceGatherer.Rates).forEach(function(resource){
+          if (tpl.ResourceGatherer && tpl.ResourceGatherer.Rates){
+            H.attribs(tpl.ResourceGatherer.Rates).forEach(function(resource){
               self.resources.push(resource);
             });
           }
 
           // resources type
-          if (template.ResourceDropsite && template.ResourceDropsite.Types){
-            template.ResourceDropsite.Types.split(" ").forEach(function(type){
+          if (tpl.ResourceDropsite && tpl.ResourceDropsite.Types){
+            tpl.ResourceDropsite.Types.split(" ").forEach(function(type){
               self.resourcetypes.push(type);
             });
           }
@@ -731,17 +731,21 @@ HANNIBAL = (function(H){
       }
       return has ? rates : undefined;
     },
-    getSize: function(template){
-      var size = {}; // {width: 0, height: 0, depth: 0};
-      if (template.Footprint !== undefined){
-        if (template.Footprint.Square){
-          if (template.Footprint.Square.width){size.width = template.Footprint.Square.width;}
-          if (template.Footprint.Square.depth){size.depth = template.Footprint.Square.depth;}
+    getSize: function(tpl){
+      var size = {}; // {width: 0, depth: 0};
+      if (tpl.Footprint){
+        if (tpl.Footprint.Square) {
+          if (tpl.Footprint.Square["@width"]){size.width = tpl.Footprint.Square["@width"];}
+          if (tpl.Footprint.Square["@depth"]){size.depth = tpl.Footprint.Square["@depth"];}
         }
-        if (template.Footprint.Height){size.depth = template.Footprint.Height;}
+        if (tpl.Footprint.Circle && tpl.Footprint.Circle["@radius"]){
+          size.radius = tpl.Footprint.Circle["@radius"];
+        } else {
+          size.radius = (Math.sqrt(size.width*size.width + size.depth*size.depth) / 2).toFixed(2);
+        }
+        // deb("      : square %s, tpl: %s, size: %s", uneval(tpl.Footprint.Square), tpl._templateName, uneval(size));
       }
       return H.count(size) > 0 ? size : undefined;
-
     },
     getSpeed: function(tpl){
       return (

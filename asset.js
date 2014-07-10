@@ -171,7 +171,7 @@ HANNIBAL = (function(H){
         gather:   function(asset){H.Engine.gather(ids, asset.resources[0]);},
         repair:   function(asset){H.Engine.repair(ids, asset.resources[0]);},
         collect:  function(targets){
-          deb("collect: %s", uneval(targets));
+          // deb("   AST: collect: %s", uneval(targets));
           targets.forEach(function(target){
             H.Engine.collect(ids, target.resources[0]);
           });
@@ -241,9 +241,10 @@ HANNIBAL = (function(H){
       // look for nearest from hcq
       if (H.isInteger(param)){
 
-        // deb("   AST: nearest hcq: %s", expandHCQ(definition[1], instance));
-
         hcq = expandHCQ(this.definition[1], this.instance);
+
+        // deb("   AST: nearest param: %s, hcq: %s", param, hcq);
+
         pos = ( Array.isArray(this.instance.position) ? 
             this.instance.position : 
             this.instance.position.location()
@@ -255,7 +256,8 @@ HANNIBAL = (function(H){
             H.Map.distance(nb.position, pos)
           );
         };
-        nodes = H.QRY(this.hcq).execute().sort(sorter); // "node", 5, 5, "nearest"
+        // nodes = H.QRY(this.hcq).execute().sort(sorter); // "node", 5, 5, "nearest"
+        nodes = H.QRY(hcq).execute().sort(sorter); // "node", 5, 5, "nearest"
         ids = nodes.map(function(node){return node.id;}).slice(0, param || 1);
 
       // look for closest to point

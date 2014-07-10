@@ -186,6 +186,7 @@ HANNIBAL = (function(H) {
         popmax:     pd.popMax,
         explored:   st.percentMapExplored,
         techs:      Object.keys(pd.researchedTechs).length,
+        msecs:      H.Bot.timing.all,
       };
 
       key += 1;

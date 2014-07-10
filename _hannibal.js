@@ -279,9 +279,10 @@ var HANNIBAL = (function() {
 
     if (false){
       // activate to log templates
+      this.culture.store.export(Object.keys(H.Data.Civilisations).filter(c => H.Data.Civilisations[c].active)); 
       // this.culture.store.exportAsLog(["athen"]);
       // this.culture.store.export(["athen", "mace", "hele"]); // 10.000 lines
-      this.culture.store.export(["spart"]); 
+      // this.culture.store.export(["athen"]); 
       // print("#! terminate");
     }
 
@@ -289,7 +290,7 @@ var HANNIBAL = (function() {
 
 
 
-    /* run scripted actions, can shadow H.Config.sequence */
+    /* run scripted actions named in H.Config.sequence */
 
     deb();
     deb();
@@ -475,6 +476,17 @@ var HANNIBAL = (function() {
       this.timing.sts = H.Stats.tick(   secs, this.ticks);
       this.timing.eco = H.Economy.tick( secs, this.ticks);
       
+      // prepare deb line
+      H.each(this.timing, function(name, msecs){
+        if (name !== "all"){
+          msgTiming += H.format(", %s: %s", name, msecs);
+        }
+        self.timing.all += msecs;
+      });
+      deb("______: #%sb, %s, trigs: %s, timing: %s, all: %s ", 
+        this.ticks, this.frame.name, H.Triggers.info(), msgTiming, this.timing.all
+      );
+
       H.Numerus.tick(secs, this.ticks);
 
       // check for winner
@@ -493,16 +505,6 @@ var HANNIBAL = (function() {
       }
 
 
-      // prepare deb line
-      H.each(this.timing, function(name, msecs){
-        if (name !== "all"){
-          msgTiming += H.format(", %s: %s", name, msecs);
-        }
-        self.timing.all += msecs;
-      });
-      deb("______: #%sb, %s, trigs: %s, timing: %s, all: %s ", 
-        this.ticks, this.frame.name, H.Triggers.info(), msgTiming, this.timing.all
-      );
       // deb("      : ECs: %s, %s", 
       //   H.SharedScript._entityCollections.length, H.attribs(H.SharedScript._entityCollectionsName)
       // );

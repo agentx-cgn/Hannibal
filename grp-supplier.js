@@ -38,15 +38,10 @@ HANNIBAL = (function(H){
       capabilities:   "2 stone/sec",  // (athen) give the economy a hint what this group provides.
 
       position:       null,           // refers to the coords of the group's position/activities
-      structure:      [],             // still unkown resource, inits at game start
 
-      units:          ["exclusive", "metal.ore GATHEREDBY SORT > rates.metal.ore"],
-      dropsite:       ["shared",    "metal ACCEPTEDBY"],
-      dropsites:      ["dynamic",   "metal ACCEPTEDBY INGAME"],
-
-      targets:        [{generic: 'metal', specific: 'ore'}],
-
-      mine:           null,
+      units:          null,
+      dropsite:       null,
+      dropsites:      null,
 
       attackLevel:    0,              // increases with every attack, halfs on interval
       needsRepair:   80,              // a health level (per cent)
@@ -60,21 +55,46 @@ HANNIBAL = (function(H){
 
           this.resource  = resource;
           this.target    = H.Resources.nearest(this.position, resource);
-          this.dropsite  = ["shared",    resource + " ACCEPTEDBY"];
-          this.dropsites = ["dynamic",   resource + " ACCEPTEDBY INGAME"];
 
           this.units = (
-            resource === "metal" ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"] :
-            resource === "stone" ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
-            resource === "wood"  ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.stone.rock"] :
-            resource === "food"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"] :
+            resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
+            resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
+            resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.stone.rock"] :
+            resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
+            resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]   :
+              deb(" ERROR: unknown resource '%s' for supply group", resource)
+          );
+
+          this.dropsite = (
+            resource === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
+            resource === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
+            resource === "wood"       ?  ["shared",    "wood ACCEPTEDBY"] :
+            resource === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"] :
+            resource === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"] :
+              deb(" ERROR: unknown resource '%s' for supply group", resource)
+          );
+
+          this.dropsites = (
+            resource === "metal"      ?  ["dynamic",    "metal ACCEPTEDBY INGAME"] :
+            resource === "stone"      ?  ["dynamic",    "stone ACCEPTEDBY INGAME"] :
+            resource === "wood"       ?  ["dynamic",    "wood  ACCEPTEDBY INGAME"] :
+            resource === "food.fruit" ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
+            resource === "food.meat"  ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
+              deb(" ERROR: unknown resource '%s' for supply group", resource)
+          );
+
+          this.size = (
+            resource === "metal"      ? 10 :
+            resource === "stone"      ? 10 :
+            resource === "wood"       ?  5 :
+            resource === "food.fruit" ?  3 :
+            resource === "food.meat"  ?  2 :
               deb(" ERROR: unknown resource '%s' for supply group", resource)
           );
 
           this.position = this.target.position;
           this.register("units", "dropsite", "dropsites");
           this.economy.request(1, this.units, this.position);   
-
 
         },
         onAssign: function(asset){
@@ -89,7 +109,7 @@ HANNIBAL = (function(H){
               if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
                 this.economy.request(1, this.dropsite, this.position); 
               }  
-              this.economy.request(4, this.units, this.position);   
+              this.economy.request(this.size, this.units, this.position);   
             }
 
             if (this.target){
@@ -133,7 +153,7 @@ HANNIBAL = (function(H){
 
           if (this.units.doing("idle").count === this.units.count){
             this.dissolve();
-            deb("      G: %s finished lumbering", this);
+            deb("      G: %s finished supplying ", this, this.resource);
             return;
           
           } else if (this.units.doing("idle").count > 0){

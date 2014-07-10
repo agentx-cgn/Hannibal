@@ -210,7 +210,7 @@ HANNIBAL = (function(H){
           nodes = qry.execute(mode),
           t1    = Date.now(),
           html  = "", counter = 1, counter1 = 0,
-          iconPath  = "/public/art/textures/ui/session/portraits/",
+          iconPath  = "/art/textures/ui/session/portraits/",
           tHeadInfo = "<thead><td class='hr'>#</td><td class='hr'>Icon</td><td>Name</td><td>Info</td><td /></thead>",
           tHeadJson = "<thead><td class='hr'>#</td><td class='hr'>Icon</td><td>Name</td><td>Property</td><td>Value</td><td /></thead>",
           tRowInfo  = "<tr><td class='hr'>%s</td><td><img class='icon' width='32' height='32' src='%s' /></td><td class='cl' onclick='H.Browser.do(\"*;*;*;analyze;%s\")'>%s</td><td>%s</td><td /></tr>",

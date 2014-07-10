@@ -48,11 +48,8 @@ HANNIBAL = (function(H){
       stock.food   = H.GameState.playerData.resourceCounts.food;
       stock.wood   = H.GameState.playerData.resourceCounts.wood;
       stock.stone  = H.GameState.playerData.resourceCounts.stone;
-      // stock.metal  = ctx.cntMetal;
       stock.metal  = H.GameState.playerData.resourceCounts.metal;
-      // stock.pops   = ctx.cntPopulation;
       stock.pops   = H.GameState.playerData.popCount;
-      // stock.area   = ctx.perMapExplored;
       stock.area   = H.Player.statistics.percentMapExplored;
       stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
 
