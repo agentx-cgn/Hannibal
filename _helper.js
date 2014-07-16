@@ -13,7 +13,7 @@
 
 // The Object.keys() method returns an array of a given object's own enumerable properties
 // The Object.getOwnPropertyNames() method returns an array of all properties (enumerable or not) found directly upon a given object.
-
+// http://rosettacode.org/wiki/Category:JavaScript
 
 HANNIBAL = function(H){
 
@@ -89,7 +89,7 @@ H.extend(H, {
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},
-  contains:   function (a,i){return a.indexOf(i)!==-1;},
+  contains:   function (a,e){return a.indexOf(e)!==-1;},
   toFixed:    function (a,n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
   rotate:     function (a,n){return a.concat(a.splice(0,n));},
   // unique:     function (a){var u=[];a.forEach(function(i){if(u.indexOf(i)===-1){u.push(i);}});return u;},
@@ -98,7 +98,19 @@ H.extend(H, {
   remove:     function (a,e){var i=a.indexOf(e); if (i!==-1){a.splice(i, 1);}},
   flatten:    function (a){return Array.prototype.concat.apply([], a);},
   pushUnique: function (a,e){if(a.indexOf(e)===-1){a.push(e);};return a;},
-  equal:      function (a, b){return JSON.stringify(a) === JSON.stringify(b);},
+  equal:      function (a,b){return JSON.stringify(a) === JSON.stringify(b);},
+  mean:       function(a){return a.reduce(function(s,x){return (s+x)},0)/a.length;},
+  median:     function(a){var al=a.length;m=~~(a.sort().length/2);return !al?null:al%2?a[m]:(a[m-1]+a[m])/2;},
+  mode:       function(a){
+    var i, n, cnt = {}, mode = [], max = 0;
+    for (i in a) {
+      n = a[i];
+      cnt[n] = cnt[n] === undefined ? 0 : cnt[n] +1;
+      if (cnt[n] === max){mode.push(n);}
+      else if (cnt[n] > max) {max = cnt[n]; mode = [n];}
+    }
+    return mode; 
+  },
   intersect:  function (a,b){
     var ai=0,bi=0,al=a.length,bl=b.length,r=[];a=a.sort();b=b.sort();
     while( (ai < al) && (bi < bl) ){
@@ -109,7 +121,7 @@ H.extend(H, {
         ai++;
         bi++;
     }}return r;
-  },
+  },  
 
   // functions
   binda:      function(fn, obj, a){

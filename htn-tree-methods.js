@@ -259,7 +259,7 @@ HANNIBAL = (function(H){
     cacheBuildings.town = H.QRY("town CONTAIN")
       .map(node => node.name)
       .filter(filterBuildings);
-     cacheDepths();
+    cacheDepths();
     console.log("H.HTN.Tree.initialize", Date.now() - t0, "msecs");
   };
 

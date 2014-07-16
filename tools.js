@@ -14,30 +14,8 @@
 
 HANNIBAL = (function(H) {
 
-
   // a NOP function
   H.FNULL = function(){};
-
-
-
-
-  // // sanitize UnitAI state
-  // H.state = function(id){
-  //   return (
-  //     H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
-  //       H.replace(H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
-  //         undefined
-  //   ); 
-  // };
-
-
-
-
-
-
-
-
-
 
   // sanitizes template names to dot notaton
   H.saniTemplateName = function(nameTemplate){
@@ -316,6 +294,79 @@ H.Behaviour.prototype = {
   }
 
 };
+
+H.Slicer = function(arr){
+  return new Proxy(arr, {
+    get: function (arr, expr){
+
+      /**
+       * Pythonic array slicing
+       *
+       * By Afshin Mehrabani (@afshinmeh)
+       */
+
+      var 
+        parts = expr.split(':'),  
+        reversed = false,
+        from = isNaN(parts[0]) ? 0 : ~~parts[0], 
+        to   = isNaN(parts[1]) ? arr.length : ~~parts[1], 
+        step = isNaN(parts[2]) ? 1 : ~~parts[2], 
+        stepOnly = isNaN(parts[0]) && isNaN(parts[1]),
+        i, slicedArr, alteredArray;
+
+      if (arr.length === 0 || !parts.length || (isNaN(from) && isNaN(to) && isNaN(step))) {
+        return arr;
+      }
+
+      //set default for both from and to if they are not defined
+      // if (isNaN(parts[0]) && isNaN(parts[1])) {
+      //   stepOnly = true;
+      //   from = 0;
+      //   to = arr.length;
+      // }
+
+      console.log("from", from, "to", to, "step", step);
+
+      //reverse the array if we have negative values
+      if (from < 0 || to < 0 || step < 0) {
+
+        arr = arr.slice().reverse();
+        reversed = true;
+
+          //swap from and to
+        if (!stepOnly) {[from, to] = [to, from];}
+
+        to   = Math.abs(to);
+        from = isNaN(from) ? to -1 : Math.abs(from);
+        step = Math.abs(step);
+
+      }
+
+      //set default from
+      if (typeof (from) == 'undefined') {from = 0;}
+      //set default to
+      if (isNaN(to)) {to = from + 1;}
+
+      //slice the array with from and to variables
+      slicedArr = arr.slice(from, to);
+
+      //return sliced array if there is no step value
+      if (isNaN(step)) {
+        return reversed ? slicedArr.reverse() : slicedArr;
+      }
+
+      alteredArray = [];
+      for (i = 0, arrLength = slicedArr.length; i < arrLength; i += step) {
+        alteredArray.push(slicedArr[i]);
+      }
+
+      return reversed && !stepOnly ? alteredArray.reverse() : alteredArray;
+
+    }
+
+  });
+};
+
 
 return H;}(HANNIBAL));
 

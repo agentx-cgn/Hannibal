@@ -29,10 +29,10 @@ food.fish
 
 
   function Resource(ent){
-    var tpl = ent._template;
-    this.id     = ent.id();
-    this.owner = ent.owner();
-    this.found = false;
+    var tpl        = ent._template;
+    this.id        = ent.id();
+    this.owner     = ent.owner();
+    this.found     = false;
     this.consumed  = false;
     this.resources = [this.id];   // make asset gatherable
     this.name      = (tpl.Identity && tpl.Identity.SpecificName) ? tpl.Identity.SpecificName.toLowerCase() : "unknown";

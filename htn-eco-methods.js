@@ -58,7 +58,8 @@ HANNIBAL = (function(H){
   }
 
   function cacheTechnologies(){
-
+    // caches for each ent required tech
+    // units.athen.ship.merchant => phase.town
     H.QRY("ENABLE DISTINCT").forEach(node => {
       var tech = H.QRY(node.name + " REQUIRE").first().name;
       cacheTechnology[node.name] = tech;
@@ -246,7 +247,7 @@ HANNIBAL = (function(H){
     fmt     = H.HTN.Helper.fmt;
     prit    = H.prettify;
     sani    = H.saniTemplateName;
-    nodes   = H.HTN.Economy.nodes = H.store ? H.store.nodes : H.Bot.culture.strore.nodes;
+    nodes   = H.HTN.Economy.nodes = H.store ? H.store.nodes : H.Bot.culture.store.nodes;
     planner = oPlanner;
 
     cacheTechnologies();
@@ -259,9 +260,76 @@ HANNIBAL = (function(H){
     cacheBuildings.town = H.QRY("town CONTAIN")
       .map(node => node.name)
       .filter(filterBuildings);
-     // cacheDepths();
-    console.log("H.HTN.Economy.initialize", Date.now() - t0, "msecs");
+     cacheDepths();
+    deb();deb();
+    deb("   HTN: initialized economy %s msecs", Date.now() - t0);
   };
+
+  H.HTN.Economy.report = function(){
+    deb("     H: cached technologies %s", H.count(cacheTechnology));
+    deb("     H: cached producers    %s", H.count(cacheProducer));
+    deb("     H: cached depths       %s", H.count(H.Data.Depths));
+    var depths = Object.keys(H.Data.Depths)
+      .sort((a, b) => H.Data.Depths[a] - H.Data.Depths[b]);
+    var last = depths[depths.length -1];
+    deb("     H: depth %s for %s", H.Data.Depths[last], last);
+    // depths.forEach(k => deb("     D: %s, %s", H.Data.Depths[k], k));
+  };
+
+  H.HTN.Economy.getCurState = function(){
+    var ingames = H.QRY("INGAME"),
+        state = new H.HTN.Helper.State({
+          ress: {
+            food:   H.GameState.playerData.resourceCounts.food,
+            wood:   H.GameState.playerData.resourceCounts.wood,
+            stone:  H.GameState.playerData.resourceCounts.stone,
+            metal:  H.GameState.playerData.resourceCounts.metal,
+            pop:    H.GameState.playerData.popCount,
+            popcap: H.GameState.playerData.popLimit,
+            popmax: H.GameState.playerData.popMax,
+          }
+        }).sanitize();
+
+    ingames.forEach(function(node){
+      var tpl = node.name.split("#")[0];
+      if (state.data.ents[tpl] === undefined){
+        state.data.ents[tpl] = 0;
+      }
+      state.data.ents[tpl] += 1;
+    });
+
+    H.each(H.Player.researchedTechs, function(tech){
+      state.data.tech.push(H.saniTemplateName(tech));
+    });
+    state.data.tech = H.unique(state.data.tech);
+
+    return state;
+  };
+
+  H.HTN.Economy.test = function(){
+
+    var state = H.HTN.Economy.getCurState(),
+        goal  = new H.HTN.Helper.State({
+          tech: ['training.naval.architects']
+        }),
+        planner = new H.HTN.Planner({
+          domain: H.HTN.Economy,
+          verbose: 0
+        });
+
+    deb("     H: current state");
+    JSON.stringify(state.data, null, 2).split("\n").forEach(function(line){
+      deb("      : %s", line);
+    });
+
+    
+    planner.plan(state, [[m.start, goal]]);
+    planner.operations.forEach(function(op){
+      deb("     H: op: %s", op);
+    });
+
+  };
+
 
   H.HTN.Economy.methods = {
 

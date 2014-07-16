@@ -35,6 +35,12 @@ HANNIBAL = (function(H){
       interval:       4,              // call onInterval every x ticks
       parent:         "",             // inherit useful features
 
+      // food 5330 7050 8.6
+      // wood 1760 2800 5.2
+      // stone 3440 5020 7.9
+      // metal 3400 4360 4.8
+
+
       capabilities:   "2 stone/sec",  // (athen) give the economy a hint what this group provides.
 
       position:       null,           // refers to the coords of the group's position/activities

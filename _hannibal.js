@@ -9,6 +9,12 @@
   tested with 0 A.D. Alpha 15 Osiris
   V: 0.1, agentx, CGN, Feb, 2014
 
+  Credits:
+
+    kmeans: 
+    pythonic slicing:
+    helper:
+
 */
 
 // very first line, enjoy
@@ -202,38 +208,36 @@ var HANNIBAL = (function() {
     H.Players           = sharedScript.playersData;
     H.MetaData          = sharedScript._entityMetadata[this.id];
 
-    this.ticks          = 0;               // increases if bot steps
-    this.isTicking      = false;           // toggles after first OnUpdate
-    this.initialized    = false;           // did that happen well?
-    this.isFinished     = false;           // there is still no winner
-    this.timing         = {all: 0};        // used to identify perf. sinks in OnUpdate
-
-    // init map, grids and related services
-    H.Map.width    = sharedScript.passabilityMap.width;
-    H.Map.height   = sharedScript.passabilityMap.height;
-    H.Map.circular = sharedScript.circularMap;
-    H.Map.cellsize = gs.cellSize;
-
-    H.Numerus.init();  // launches the stats extension
-    H.Grids.init();
-    H.Grids.dump(H.Config.sequence);
-    H.Resources.init();
-    H.Scout.init();
+    this.ticks          = 0;                // increases if bot steps
+    this.isTicking      = false;            // toggles after first OnUpdate
+    this.initialized    = false;            // did that happen well?
+    this.isFinished     = false;            // there is still no winner
+    this.timing         = {all: 0};         // used to identify perf. sinks in OnUpdate
 
     // determine own, game's and all civilisations
     this.civ            = sharedScript.playersData[this.id].civ; 
     this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
     this.civilisations  = H.Config.data.civilisation;  // all ['athen', ...]
     
+    // init map, grids and related services
+    H.Map.width    = sharedScript.passabilityMap.width;
+    H.Map.height   = sharedScript.passabilityMap.height;
+    H.Map.circular = sharedScript.circularMap;
+    H.Map.cellsize = gs.cellSize;
+
+    H.Numerus.init();                       // launches the stats extension
+    H.Grids.init();                         // inits advanced map analysis
+    H.Grids.dump(H.Config.sequence);        // dumps all grids with sequence prefix in file name
+    H.Resources.init();                     // extracts resources from all entities
+    H.Scout.init();                         // inits scout extension for scout group
+
     // caches fat and costly values within ticks
-    H.Context           = new H.Hannibal.Context(this);       // API API
-    H.Context.tick();                                         // initializes here
+    H.Context = new H.Hannibal.Context(this);       
+    H.Context.tick();                               
 
-    // register groups
-    H.Groups.init();
+    H.Groups.init();                        // registers groups
 
-    // culture knowledgebase as triple store
-    this.culture = new H.Culture(this.civ);
+    this.culture = new H.Culture(this.civ); // culture knowledgebase as triple store
     this.culture.loadDataNodes();           // from data to triple store
     this.culture.readTemplates();           // from templates to culture
     this.culture.loadTechTemplates();       // from templates to triple store
@@ -244,6 +248,13 @@ var HANNIBAL = (function() {
     this.culture.loadTechnologies();        // from game to triple store
     this.culture.finalize();                // clear up
 
+    // prepare planner cache
+    H.Planner = new H.HTN.Planner({
+      domain: H.HTN.Economy,
+      verbose: 1
+    });
+    H.HTN.Economy.report();
+    H.HTN.Economy.test();
 
     // prepare behaviour
     H.Hannibal.Frames = H.Hannibal.Frames.initialize(this, H.Context);
