@@ -27,13 +27,8 @@ HANNIBAL = (function(H){
         "RESEARCH DISTINCT SORT < name",
         "RESEARCH DISTINCT SORT < name WITH costs.metal > 0",
         "RESEARCH DISTINCT SORT < name WITH requires.tech = 'phase.city'"
-      ],
-      map = {
-        ents: null,
-        size: 0,
-        points: [],
-        buffer: null,
-      }
+      ];
+
   
   H.QRY = function(hcq){return new H.HCQ(H.store, hcq);};    
 
@@ -52,155 +47,101 @@ HANNIBAL = (function(H){
       ele.value = str;
     },
 
-    kmeans: function(){
+    // kmeans: function(){
 
-      var t0, t1, cvs = $("cvsMap"),
-          ctx = cvs.getContext("2d"),
-          cvsHeights = $("cvsHeights"),
-          ctxHeights = cvsHeights.getContext("2d"),
-          nCluster = ~~$("slcKMeans").value,
-          k = new H.AI.KMeans(),
-          c = 0;
+    //   var t0, t1, cvs = $("cvsMap"),
+    //       ctx = cvs.getContext("2d"),
+    //       cvsHeights = $("cvsHeights"),
+    //       ctxHeights = cvsHeights.getContext("2d"),
+    //       nCluster = ~~$("slcKMeans").value,
+    //       k = new H.AI.KMeans(),
+    //       c = 0;
 
-      // k.kmpp = true;
-      k.k = nCluster;
-      k.maxIterations = 50;
-      k.setPoints(map.points);
-      k.initCentroids();
-      t0 = Date.now();
-      k.cluster(function(centroids){
-        c += 5;
-        ctx.fillStyle = "rgba(" + c + ", 250, 0, 0.3";
-        centroids.forEach(function(ctr){
-          ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
-        });
-      });
-      t1 = Date.now();  
+    //   // k.kmpp = true;
+    //   k.k = nCluster;
+    //   k.maxIterations = 50;
+    //   k.setPoints(map.points);
+    //   k.initCentroids();
+    //   t0 = Date.now();
+    //   k.cluster(function(centroids){
+    //     c += 5;
+    //     ctx.fillStyle = "rgba(" + c + ", 250, 0, 0.3";
+    //     centroids.forEach(function(ctr){
+    //       ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
+    //     });
+    //   });
+    //   t1 = Date.now();  
 
-      ctx.fillStyle = "rgba(255, 0, 0, 0.9";
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.9";
-      k.centroids.forEach(function(ctr){
-        ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
-        ctx.fillRect(ctr.x -5, ctr.z -5, 10, 10);
-      });
+    //   ctx.fillStyle = "rgba(255, 0, 0, 0.9";
+    //   ctx.strokeStyle = "rgba(255, 255, 255, 0.9";
+    //   k.centroids.forEach(function(ctr){
+    //     ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
+    //     ctx.fillRect(ctr.x -5, ctr.z -5, 10, 10);
+    //   });
 
-      console.log("kmeans", map.points.length, k.centroids.length, "iter", k.iterations, k.converged, (t1-t0));
+    //   console.log("kmeans", map.points.length, k.centroids.length, "iter", k.iterations, k.converged, (t1-t0));
 
-    },
-    loadPmp: function(url, fn){
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", H.replace(url, ".xml", ".pmp"));
-      xhr.responseType = "arraybuffer";
-      xhr.onload = function(e) {
-        if (this.status === 200) {
-          console.log("loadPmp", xhr.response);
-          fn(xhr.response);
-        }
-      }
-      xhr.send();      
-    },
-    loadMap: function(url){
+    // },
 
-      console.log('loadMap', url);
+    // paintMap: function(){
 
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", url);
-      xhr.responseType = "document";
-      xhr.onload = function() {
-        map.ents = xhr.responseXML.getElementsByTagName("Entity");
-        H.Display.loadPmp(url, function(buffer){
-          map.buffer = buffer;
-          H.Display.paintMap();
-        });
-      }
-      xhr.onerror = function() {
-        console.log("Error while getting XML.");
-      }
-      xhr.send();      
-    },
-    paintMap: function(){
+    //   // http://trac.wildfiregames.com/wiki/PMP_File_Format
 
-      // http://trac.wildfiregames.com/wiki/PMP_File_Format
+    //   var x, z, i, off, h, length, data,
+    //       cvs = $("cvsMap"),
+    //       ctx = cvs.getContext("2d"),
+    //       cvsHeights = $("cvsHeights"),
+    //       ctxHeights = cvsHeights.getContext("2d"),
+    //       view = new DataView(map.buffer),
+    //       size = 512, rec = 0;
 
-      var x, z, i, off, h, length, data,
-          cvs = $("cvsMap"),
-          ctx = cvs.getContext("2d"),
-          cvsHeights = $("cvsHeights"),
-          ctxHeights = cvsHeights.getContext("2d"),
-          view = new DataView(map.buffer),
-          size = 680, rec = 0;
+    //   cvs.width = size; cvs.height = size;
 
-      cvs.width = size; cvs.height = size;
+    //   map.version  = view.getUint32(4, true),
+    //   map.datasize = view.getUint32(8, true),
+    //   map.mapsize  = view.getUint32(12, true),
+    //   map.length = (map.mapsize *16  +1) * (map.mapsize *16 +1),
+    //   map.factor = map.mapsize *16/128 * 512/size;
+    //   map.size = map.mapsize *16  +1;
 
-      map.version  = view.getUint32(4, true),
-      map.datasize = view.getUint32(8, true),
-      map.mapsize  = view.getUint32(12, true),
-      map.length = (map.mapsize *16  +1) * (map.mapsize *16 +1),
-      map.factor = map.mapsize *16/128 * 512/size;
-      map.size = map.mapsize *16  +1;
+    //   console.log("paintMap:", "bytes", map.buffer.byteLength, "mapsize", map.mapsize, "factor", map.factor, "size", map.size);
 
-      console.log("paintMap:", "bytes", map.buffer.byteLength, "mapsize", map.mapsize, "factor", map.factor, "size", map.size);
+    //   cvsHeights.width = cvsHeights.height = map.size;
 
-      cvsHeights.width = cvsHeights.height = map.size;
+    //   data = ctxHeights.getImageData(0, 0, map.size, map.size);
 
-      data = ctxHeights.getImageData(0, 0, map.size, map.size);
+    //   for (i=0, off=16; i<map.length; i++, off+=2) {
+    //     h = view.getUint16(off, true) >> 8;
+    //     if (h) {
+    //       data.data[i *4 + 0] = h;
+    //       data.data[i *4 + 1] = h;
+    //       data.data[i *4 + 2] = h;
+    //     } else {
+    //       data.data[i *4 + 0] = 80;
+    //       data.data[i *4 + 1] = 140;
+    //       data.data[i *4 + 2] = 220;
+    //     }
+    //     data.data[i *4 + 3] = 256;
+    //   }
+    //   ctxHeights.putImageData(data, 0, 0);
 
-      for (i=0, off=16; i<map.length; i++, off+=2) {
-        h = view.getUint16(off, true) >> 8;
-        if (h) {
-          data.data[i *4 + 0] = h;
-          data.data[i *4 + 1] = h;
-          data.data[i *4 + 2] = h;
-        } else {
-          data.data[i *4 + 0] = 80;
-          data.data[i *4 + 1] = 140;
-          data.data[i *4 + 2] = 220;
-        }
-        data.data[i *4 + 3] = 256;
-      }
-      ctxHeights.putImageData(data, 0, 0);
+    //   ctxHeights.setTransform(1, 0, 0, 1, 0, 0);
+    //   ctxHeights.translate(0, map.size);
+    //   ctxHeights.scale(1, -1);
 
-      ctxHeights.setTransform(1, 0, 0, 1, 0, 0);
-      ctxHeights.translate(0, map.size);
-      ctxHeights.scale(1, -1);
+    //   ctxHeights.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, map.size, map.size);
 
-      ctxHeights.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, map.size, map.size);
+    //   cvs.width = cvs.width;
 
-      cvs.width = cvs.width;
+    //   ctx.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, size, size);
 
-      ctx.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, size, size);
+    //   ctx.setTransform(1, 0, 0, 1, 0, 0);
+    //   ctx.translate(0, cvs.height);
+    //   ctx.scale(1, -1);
 
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.translate(0, cvs.height);
-      ctx.scale(1, -1);
 
-      H.toArray(map.ents).forEach(function(ent){
-        var pos = ent.getElementsByTagName("Position")[0],
-            tpl = ent.getElementsByTagName("Template")[0].innerHTML,
-            plr = ~~ent.getElementsByTagName("Player")[0],
-            x = +pos.getAttribute("x")/map.factor,
-            z = +pos.getAttribute("z")/map.factor;
-        rec = (
-          tpl.contains("centre") ? 3   :
-          tpl.contains("tree")   ? 1.5 :
-            2
-        );
-        ctx.fillStyle = (
-          plr === 0 && tpl.contains("tree") ? "rgba(  0, 255,  0, 0.8)" : 
-          plr === 0 && tpl.contains("bush") ? "rgba(  0, 200,  0, 0.8)" : 
-          plr === 0 ? "rgba(220,  50,  50, 1)" : 
-          plr === 1 ? "rgba( 50, 220,  50, 1)" : 
-          plr === 2 ? "rgba( 50,  50, 220, 1)" : 
-          plr === 3 ? "rgba(220,  50, 220, 1)" : 
-          plr === 4 ? "rgba(220, 220,  50, 1)" : 
-          plr === 5 ? "rgba( 50, 220, 220, 1)" : 
-            "rgba(255, 0, 0, 1)"
-        );
-        ctx.fillRect(x -rec/2, z -rec/2, rec, rec);
-        map.points.push({x:x, z:z});
-      });
 
-    },
+    // },
 
     query: function(hqc){
 

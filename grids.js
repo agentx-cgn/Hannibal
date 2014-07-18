@@ -42,6 +42,7 @@ HANNIBAL = (function(H){
       square2 = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
                  [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]],
       grids = {
+        pass: null,
         food: null,
         wood: null,
         stone: null,
@@ -99,6 +100,8 @@ HANNIBAL = (function(H){
       register: function(name, grid){grids[name] = grid;},
       init: function(){
 
+        var i;
+
         width     = self.width    = H.SharedScript.passabilityMap.width;
         height    = self.height   = H.SharedScript.passabilityMap.height;
         length    = self.length   = width * height;
@@ -107,6 +110,21 @@ HANNIBAL = (function(H){
         center[0] = ~~(width  / 2);
         center[1] = ~~(height / 2);
         
+        // pathfinder.xml
+        // <unrestricted/>
+        // <default>
+        //   <MaxWaterDepth>2
+        //   <MaxTerrainSlope>1.0
+        // <ship>
+        //   <MinWaterDepth>1
+        // <building-land>
+        //   <MaxWaterDepth>0
+        //   <MinShoreDistance>1.0
+        //   <MaxTerrainSlope>1.0
+        // <building-shore>
+        //   <MaxShoreDistance>2.0
+        //   <MaxTerrainSlope>1.25
+
         // http://trac.wildfiregames.com/wiki/AIEngineAPI
         maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
         maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
@@ -128,6 +146,21 @@ HANNIBAL = (function(H){
         self.obstruction = obstructions();
 
         self.attacks  = new H.Grid(width, height, 8);
+        self.pass     = new H.Grid(width, height, 8);
+
+        for (i=0; i<length; i++){
+          self.pass.data[i] = self.passability.data[i] >> 0; 
+          // (
+          //   !(self.passability.data[i] & maskPathfinder) ?  1 :
+          //   !(self.passability.data[i] & maskFoundation) ?  2 :
+          //   !(self.passability.data[i] & maskBldgLand)   ?  4 :
+          //   !(self.passability.data[i] & maskBldgShore)  ?  8 :
+          //   !(self.passability.data[i] & maskLand)       ? 16 :
+          //   !(self.passability.data[i] & maskWater)      ? 32 :
+          //   !(self.passability.data[i] & maskOpen)       ? 64 :
+          //    255
+          // );
+        }
 
         deb();deb();
         deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);

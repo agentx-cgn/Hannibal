@@ -297,7 +297,7 @@ H.Behaviour.prototype = {
 
 H.Slicer = function(arr){
   return new Proxy(arr, {
-    get: function (arr, expr){
+    get: function (arr, arg){
 
       /**
        * Pythonic array slicing
@@ -305,16 +305,41 @@ H.Slicer = function(arr){
        * By Afshin Mehrabani (@afshinmeh)
        */
 
+        // a = [1,2,3,4,5,6,7]
+        // a[:]           [1, 2, 3, 4, 5, 6, 7]
+        // a[0]           1
+        // a[1:]          [2, 3, 4, 5, 6, 7]
+        // a[:1]          [1]
+        // a[1:1]         []
+        // a[2:1]         []
+        // a[1:2]         [2]
+        // a[1:3]         [2, 3]
+        // a[:0]          []
+        // a[:2]          [1, 2]
+        // a[:-1]         [1, 2, 3, 4, 5, 6]
+        // a[:-2]         [1, 2, 3, 4, 5]
+        // a[:-0]         []
+        // a[-1:]         [7]
+        // a[-3:]         [5, 6, 7]
+        // a[-1:-3]       []
+        // a[-1:-3:-1]    [7, 6]
+        // a[-3:-1]       [5, 6]
+        // a[-3:-1:1]     [5, 6]
+        // a[-3:-1:-1]    []
+        // a[-3:-1]       []
+
+
       var 
+        expr  = arg.trim(),
         parts = expr.split(':'),  
-        reversed = false,
         from = isNaN(parts[0]) ? 0 : ~~parts[0], 
         to   = isNaN(parts[1]) ? arr.length : ~~parts[1], 
         step = isNaN(parts[2]) ? 1 : ~~parts[2], 
         stepOnly = isNaN(parts[0]) && isNaN(parts[1]),
+        reversed = false,
         i, slicedArr, alteredArray;
 
-      if (arr.length === 0 || !parts.length || (isNaN(from) && isNaN(to) && isNaN(step))) {
+      if (arr.length === 0 || expr === ':' || !parts.length || (isNaN(from) && isNaN(to) && isNaN(step))) {
         return arr;
       }
 

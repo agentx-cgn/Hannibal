@@ -199,6 +199,7 @@ var HANNIBAL = (function() {
     this.logPlayers(ss.playersData);
 
 
+
     // more shortcuts
     H.Templates         = this.settings.templates;
     H.GameState         = gameState;
@@ -207,6 +208,9 @@ var HANNIBAL = (function() {
     H.Player            = sharedScript.playersData[this.id];
     H.Players           = sharedScript.playersData;
     H.MetaData          = sharedScript._entityMetadata[this.id];
+
+    // deb(uneval(H.SharedScript.passabilityClasses));
+    // pathfinderObstruction:1, foundationObstruction:2, 'building-land':4, 'building-shore':8, default:16, ship:32, unrestricted:64
 
     this.ticks          = 0;                // increases if bot steps
     this.isTicking      = false;            // toggles after first OnUpdate
@@ -228,8 +232,11 @@ var HANNIBAL = (function() {
     H.Numerus.init();                       // launches the stats extension
     H.Grids.init();                         // inits advanced map analysis
     H.Grids.dump(H.Config.sequence);        // dumps all grids with sequence prefix in file name
+    H.Grids.pass.log();
+
     H.Resources.init();                     // extracts resources from all entities
     H.Scout.init();                         // inits scout extension for scout group
+
 
     // caches fat and costly values within ticks
     H.Context = new H.Hannibal.Context(this);       
@@ -254,7 +261,7 @@ var HANNIBAL = (function() {
       verbose: 1
     });
     H.HTN.Economy.report();
-    H.HTN.Economy.test();
+    H.HTN.Economy.test({tech: ['phase.town']});
 
     // prepare behaviour
     H.Hannibal.Frames = H.Hannibal.Frames.initialize(this, H.Context);

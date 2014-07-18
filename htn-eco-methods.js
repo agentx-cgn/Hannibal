@@ -306,12 +306,10 @@ HANNIBAL = (function(H){
     return state;
   };
 
-  H.HTN.Economy.test = function(){
+  H.HTN.Economy.test = function(goal){
 
     var state = H.HTN.Economy.getCurState(),
-        goal  = new H.HTN.Helper.State({
-          tech: ['training.naval.architects']
-        }),
+        goal  = new H.HTN.Helper.State(goal),
         planner = new H.HTN.Planner({
           domain: H.HTN.Economy,
           verbose: 0
@@ -322,11 +320,15 @@ HANNIBAL = (function(H){
       deb("      : %s", line);
     });
 
-    
+    deb();
+    deb("     H: planning for %s", uneval(goal));
     planner.plan(state, [[m.start, goal]]);
     planner.operations.forEach(function(op){
       deb("     H: op: %s", op);
     });
+
+    deb("     H: cost: ", uneval(planner.result.data.cost));
+    // deb("     H: cost: ", uneval(planner.result.cost));
 
   };
 

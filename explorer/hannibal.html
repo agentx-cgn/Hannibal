@@ -255,22 +255,60 @@
       <!-- MAPS -->
         <div class="MAPS left panel">
           <label for="slcMaps" style="vertical-align: top">Load</label>
-          <select id="slcMaps"></select>
-          <button id="btnMAPLoad">Load</button>
-          <label for="slcKMeans" style="vertical-align: top">k-means</label>
-          <select id="slcKMeans">
-            <option>1</option>
-            <option>2</option>
-            <option selected>3</option>
-            <option>4</option>
-          </select>
-          <button id="btnKMeans" onclick="H.Display.kmeans()">Cluster</button>        
-          <br />
-          <label for="cvsMap" style="vertical-align: top">Map</label>
-          <canvas id="cvsMap"></canvas>
-          <br />
-          <label for="cvsHeights" style="vertical-align: top;">Heights</label>
-          <canvas id="cvsHeights" style="display: none;"></canvas>
+            <select id="slcMaps"></select>
+            <button id="btnMAPLoad">Load</button>
+          <div>
+              <div>
+                <label for="cvsMap" style="vertical-align: top">Map</label>
+                <div style="float: left; margin-left: 66px; margin-top: -12px;">
+                  <canvas id="cvsMap"></canvas>
+                </div>
+                <div style="float: left">
+                  <div style="margin-left: 8px">
+                    <label for="txtMAP" style="margin-top: -12px; text-align: left;">Info</label>
+                    <textarea id="txtMAP" maxlength="1000" rows="6" style=" width: 198px; font-size: 10px;"></textarea>       
+                  </div>
+                  <div style="margin-left: 8px; margin-top: 4px">
+                    <label for="chkTopo" style="text-align: left;">Render</label>
+                    <input type="checkbox" id="chkTopo"  checked="checked"  /><span class="chklabel">Topo</span><br />
+                    <input type="checkbox" id="chkPass"  checked="checked"  /><span class="chklabel">Passability</span><br />
+                    <input type="checkbox" id="chkGrid"  checked="checked"  /><span class="chklabel">Grid</span><br />
+                    <input type="checkbox" id="chkEnts"  checked="checked"  /><span class="chklabel">Entities</span><br />
+                    <input type="checkbox" id="chkClus"  checked="checked"  /><span class="chklabel">Cluster</span><br />
+                    <input type="checkbox" id="chkPath"  checked="checked"  /><span class="chklabel">Paths</span><br />
+                  </div>
+                  <div style="margin-left: 8px">
+                    <label for="slcKMeans" style="text-align: left;">Actions</label>
+                      <select id="slcKMeans">
+                        <option>1</option>
+                        <option>2</option>
+                        <option selected>3</option>
+                        <option>4</option>
+                      </select>
+                      <select id="slcRess">
+                        <option selected>trees</option>
+                        <option>fruits</option>
+                        <option>metal</option>
+                        <option>stone</option>
+                      </select>
+                      <button id="btnKMeans" onclick="H.Maps.renderKMeans(); H.Maps.render();">Cluster</button>     
+                    </div>   
+                    <div style="margin-left: 8px">
+                      <label for="imgPass" style="text-align: left;">pass.png</label>
+                      <img id="imgPass" width="64", height="64" />
+                    </div>
+                  <br />
+                </div>
+              </div>
+            <br />
+          </div>
+          <label for="cvsHeights" style="vertical-align: top;">Layer</label>
+            <canvas id="cvsHeights"  class="minimap" title="Heights"></canvas>
+            <canvas id="cvsPass"     class="minimap" title="Passability"></canvas>
+            <canvas id="cvsGrid"     class="minimap" title="Grid"></canvas>
+            <canvas id="cvsEntities" class="minimap" title="Entities"></canvas>
+            <canvas id="cvsKMeans"   class="minimap" title="KMeans"></canvas>
+            <canvas id="cvsPaths"    class="minimap" title="Pathfinder"></canvas>
         </div>
         <div class="trenner"></div>
 
@@ -416,6 +454,7 @@
       <script type="text/javascript" src="htn-blocks.js"></script>
       <script type="text/javascript" src="display.js"></script>
       <script type="text/javascript" src="browser.js"></script>
+      <script type="text/javascript" src="maps.js"></script>
       
     <!--- Init -->
       <script>

@@ -142,18 +142,29 @@ div.container {
 #slcExams {width: 726px;}
 #slcNodes {width: 533px;}
 
-#cvsMap {
-  background: rgba(165, 197, 176, 1);
-  border: 1px solid #fff;
-}
+/*Maps*/
 
-#cvsHeights {
+#cvsMap {
+  /*background: rgba(165, 197, 176, 1);*/
   background: rgba(128, 128, 128, 1);
   border: 1px solid #fff;
 }
 
 #slcMaps {
-  width: 460px;
+  width: 466px;
+}
+
+.minimap {
+  background: rgba(128, 128, 128, 1);
+  border: 1px solid #fff;
+  margin: 2px;
+  width:  92px;
+  height: 92px;
+  float: left;
+}
+
+.chklabel {
+  font-size: 10px;  
 }
 
 /*div#contMenu {
