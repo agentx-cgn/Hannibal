@@ -1,11 +1,16 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, deb, uneval */
 
-/*--------------- R E S O U R C E S  ------------------------------------------
+/*---------------  A I --------------------------------------------------------
 
-  handles a group's economic resources like estate, units, techs, buildings.
-  provides the semantics for the DSL used in plugins
+  traditional AI methods, adjusted for speed, SpiderMonkey and ES6
 
+  KMeans      : Credit: https://github.com/cmtt/kmeans-js, 
+                License: MIT
+  A*          : Credit: https://github.com/bgrins/javascript-astar, 
+                License: https://raw.githubusercontent.com/bgrins/javascript-astar/master/LICENSE
+  Binary Heap : Marijn Haverbeke, Credit: http://eloquentjavascript.net/appendix2.html
+                License: http://creativecommons.org/licenses/by/3.0/
 
   V: 0.1, agentx, CGN, Feb, 2014
 
@@ -17,8 +22,6 @@ HANNIBAL = (function(H){
   H.AI = H.AI || {};
 
   H.AI.KMeans = (function () {
-
-    // https://github.com/cmtt/kmeans-js
 
     var reduce = function(t,c) {
         var u,v; 
@@ -32,7 +35,7 @@ HANNIBAL = (function(H){
       this.maxHeight = 480;
       this.iterations = 0;
       this.converged = false;
-      this.maxIterations = -1;
+      this.maxIterations = 100;
       this.k = 0;
     };
 
@@ -69,14 +72,14 @@ HANNIBAL = (function(H){
     /** Chooses random centroids */
 
     kmeans.prototype.chooseRandomCentroids = function () {
-      for (var i = 0; i < this.k; ++i) {
-        var centroid = {
+      var i;
+      for (i = 0; i < this.k; ++i) {
+        this.centroids[i] = {
           centroid : i,
           x : ~~(Math.random()*this.maxWidth),
           z : ~~(Math.random()*this.maxHeight),
           items : 0
         };
-        this.centroids[i] = centroid;
       }
     };
 
@@ -86,50 +89,50 @@ HANNIBAL = (function(H){
 
       /** Iterate until converged or the maximum amount of iterations is reached. */
 
-      // this.converged = false;
+      var t0 = Date.now();
 
-      // while (!this.converged || (this.maxIterations > 0 && this.iterations < this.maxIterations)) {
       while (!this.converged && (this.iterations < this.maxIterations)) {
-        // console.log(this.iterations, this.maxIterations);
+        this.converged = true;
+        this.iterations += 1;
         this.iterate();
         if(cb){cb(this.centroids);}
       }
 
+      this.msecs = Date.now() - t0;
+
     };
 
-    /** Measure the distance to a point, specified by its index. */
+    // /** Measure the distance to a point, specified by its index. */
 
-    kmeans.prototype.measureDistance =   function (i) {
-      var self = this;
-      return function ( centroid ) {
-        return self.distance(centroid, self.points[i]);
-      };
-    };
+    // kmeans.prototype.measureDistance =   function (i) {
+    //   var self = this;
+    //   return function ( centroid ) {
+    //     return self.distance(centroid, self.points[i]);
+    //   };
+    // };
 
     /** Iterates over the provided points one time */
 
     kmeans.prototype.iterate = function () {
 
       var i, l = this.points.length, sums = [], 
-          distances, closestItem, centroid, point,
-          sorter = function(a, b){
+          distances, centroid, point,
+          sortByDistance = function(a, b){
             var da = (a.x - point.x) * (a.x - point.x) + (a.z - point.z) * (a.z - point.z),
                 db = (b.x - point.x) * (b.x - point.x) + (b.z - point.z) * (b.z - point.z);
             return da - db;
           };
 
       /** When the result doesn't change anymore, the final result has been found. */
-      if (this.converged === true) {
-        return;
-      }
 
-      this.converged = true;
+      // if (this.converged === true) {
+      //   return;
+      // }
 
-      ++this.iterations;
+      // this.converged = true;
+      // this.iterations += 1;
 
       /** Prepares the array of the  */
-
-      // sums = new Array(this.k);
 
       for (i = 0; i < this.k; ++i) {
         sums[i] = { x : 0, z : 0, items : 0 };
@@ -137,14 +140,11 @@ HANNIBAL = (function(H){
 
       /** Find the closest centroid for each point */
 
-      // for (i = 0, l = this.points.length; i < l; ++i) {
       for (i = 0; i < l; ++i) {
 
-        // distances = sortBy(this.centroids, this.measureDistance(i));
         point = this.points[i];
-        distances = this.centroids.sort(sorter);
-        closestItem = distances[0];
-        centroid = closestItem.centroid;
+        distances = this.centroids.sort(sortByDistance);
+        centroid = distances[0].centroid;
 
         /**
          * When the point is not attached to a centroid or the point was
@@ -152,12 +152,16 @@ HANNIBAL = (function(H){
          * previous iteration.
          */
 
-        if (this.converged) {
-          // this.converged = (typeof point.centroid  !== 'number' || point.centroid !== centroid) ? false : true;
-          if (typeof point.centroid  !== 'number' || point.centroid !== centroid) {
-            this.converged = false;
-          }
-        }
+        this.converged = (
+          point.centroid !== centroid || typeof point.centroid !== 'number' ? 
+          false : this.converged
+        );
+
+        // if (this.converged) {
+        //   if (typeof point.centroid  !== 'number' || point.centroid !== centroid) {
+        //     this.converged = false;
+        //   }
+        // }
 
         /** Attach the point to the centroid */
 
@@ -168,7 +172,7 @@ HANNIBAL = (function(H){
         sums[centroid].x += point.x;
         sums[centroid].z += point.z;
 
-        ++sums[centroid].items;
+        sums[centroid].items += 1; 
 
       }
 
@@ -285,14 +289,6 @@ HANNIBAL = (function(H){
 
   })();
 
-  // javascript-astar 0.3.0
-  // http://github.com/bgrins/javascript-astar
-  // Freely distributable under the MIT License.
-  // Implements the astar search algorithm in javascript using a Binary Heap.
-  // Includes Binary Heap (with modifications) from Marijn Haverbeke.
-  // http://eloquentjavascript.net/appendix2.html
-
-
   function pathTo(node){
     var curr = node, path = [];
     while(curr.parent) {
@@ -314,10 +310,10 @@ HANNIBAL = (function(H){
   * @param {Object} [options]
   * @param {bool} [options.diagonal] Specifies whether diagonal moves are allowed
   */
-  function Graph(gridIn, options) {
+  H.AI.Graph = function Graph(grid, options) {
 
     var x, y, row, lenRow, node,
-        lenGrid = gridIn.length;
+        lenGrid = grid.length;
 
     options = options || {};
     this.nodes = [];
@@ -326,7 +322,7 @@ HANNIBAL = (function(H){
 
     for (x = 0; x < lenGrid; x++) {
       this.grid[x] = [];
-      row = gridIn[x];
+      row = grid[x];
       lenRow = row.length;
       for (y = 0; y < lenRow; y++) {
         node = new GridNode(x, y, row[y]);
@@ -334,10 +330,12 @@ HANNIBAL = (function(H){
         this.nodes.push(node);
       }
     }
-    
+
   }
 
-  Graph.prototype.neighbors = function(node) {
+  H.AI.Graph.prototype = {
+    constructor: H.AI.Graph,
+    neighbors: function(node) {
       var ret = [],
           x = node.x,
           y = node.y,
@@ -386,22 +384,90 @@ HANNIBAL = (function(H){
       }
 
       return ret;
-  };
-
-  Graph.prototype.toString = function() {
+    },
+    toString: function() {
       var graphString = [],
           nodes = this.grid, // when using grid
           rowDebug, row, y, l;
       for (var x = 0, len = nodes.length; x < len; x++) {
-          rowDebug = [];
-          row = nodes[x];
-          for (y = 0, l = row.length; y < l; y++) {
-              rowDebug.push(row[y].weight);
-          }
-          graphString.push(rowDebug.join(" "));
+        rowDebug = [];
+        row = nodes[x];
+        for (y = 0, l = row.length; y < l; y++) {
+          rowDebug.push(row[y].weight);
+        }
+        graphString.push(rowDebug.join(" "));
       }
       return graphString.join("\n");
+    },
+
   };
+
+
+  // Graph.prototype.neighbors = function(node) {
+  //     var ret = [],
+  //         x = node.x,
+  //         y = node.y,
+  //         grid = this.grid;
+
+  //     // West
+  //     if(grid[x-1] && grid[x-1][y]) {
+  //         ret.push(grid[x-1][y]);
+  //     }
+
+  //     // East
+  //     if(grid[x+1] && grid[x+1][y]) {
+  //         ret.push(grid[x+1][y]);
+  //     }
+
+  //     // South
+  //     if(grid[x] && grid[x][y-1]) {
+  //         ret.push(grid[x][y-1]);
+  //     }
+
+  //     // North
+  //     if(grid[x] && grid[x][y+1]) {
+  //         ret.push(grid[x][y+1]);
+  //     }
+
+  //     if (this.diagonal) {
+  //         // Southwest
+  //         if(grid[x-1] && grid[x-1][y-1]) {
+  //             ret.push(grid[x-1][y-1]);
+  //         }
+
+  //         // Southeast
+  //         if(grid[x+1] && grid[x+1][y-1]) {
+  //             ret.push(grid[x+1][y-1]);
+  //         }
+
+  //         // Northwest
+  //         if(grid[x-1] && grid[x-1][y+1]) {
+  //             ret.push(grid[x-1][y+1]);
+  //         }
+
+  //         // Northeast
+  //         if(grid[x+1] && grid[x+1][y+1]) {
+  //             ret.push(grid[x+1][y+1]);
+  //         }
+  //     }
+
+  //     return ret;
+  // };
+
+  // Graph.prototype.toString = function() {
+  //     var graphString = [],
+  //         nodes = this.grid, // when using grid
+  //         rowDebug, row, y, l;
+  //     for (var x = 0, len = nodes.length; x < len; x++) {
+  //         rowDebug = [];
+  //         row = nodes[x];
+  //         for (y = 0, l = row.length; y < l; y++) {
+  //             rowDebug.push(row[y].weight);
+  //         }
+  //         graphString.push(rowDebug.join(" "));
+  //     }
+  //     return graphString.join("\n");
+  // };
 
   function GridNode(x, y, weight) {
       this.x = x;
@@ -427,134 +493,143 @@ HANNIBAL = (function(H){
   }
 
   BinaryHeap.prototype = {
-      push: function(element) {
-          // Add the new element to the end of the array.
-          this.content.push(element);
-
-          // Allow it to sink down.
-          this.sinkDown(this.content.length - 1);
-      },
-      pop: function() {
-          // Store the first element so we can return it later.
-          var result = this.content[0];
-          // Get the element at the end of the array.
-          var end = this.content.pop();
-          // If there are any elements left, put the end element at the
-          // start, and let it bubble up.
-          if (this.content.length > 0) {
-              this.content[0] = end;
-              this.bubbleUp(0);
-          }
-          return result;
-      },
-      remove: function(node) {
-          var i = this.content.indexOf(node);
-
-          // When it is found, the process seen in 'pop' is repeated
-          // to fill up the hole.
-          var end = this.content.pop();
-
-          if (i !== this.content.length - 1) {
-              this.content[i] = end;
-
-              if (this.scoreFunction(end) < this.scoreFunction(node)) {
-                  this.sinkDown(i);
-              }
-              else {
-                  this.bubbleUp(i);
-              }
-          }
-      },
-      size: function() {
-          return this.content.length;
-      },
-      rescoreElement: function(node) {
-          this.sinkDown(this.content.indexOf(node));
-      },
-      sinkDown: function(n) {
-          // Fetch the element that has to be sunk.
-          var element = this.content[n];
-
-          // When at 0, an element can not sink any further.
-          while (n > 0) {
-
-              // Compute the parent element's index, and fetch it.
-              var parentN = ((n + 1) >> 1) - 1,
-                  parent = this.content[parentN];
-              // Swap the elements if the parent is greater.
-              if (this.scoreFunction(element) < this.scoreFunction(parent)) {
-                  this.content[parentN] = element;
-                  this.content[n] = parent;
-                  // Update 'n' to continue at the new position.
-                  n = parentN;
-              }
-              // Found a parent that is less, no need to sink any further.
-              else {
-                  break;
-              }
-          }
-      },
-      bubbleUp: function(n) {
-          // Look up the target element and its score.
-          var length = this.content.length,
-              element = this.content[n],
-              elemScore = this.scoreFunction(element);
-
-          while(true) {
-              // Compute the indices of the child elements.
-              var child2N = (n + 1) << 1,
-                  child1N = child2N - 1;
-              // This is used to store the new position of the element, if any.
-              var swap = null,
-                  child1Score;
-              // If the first child exists (is inside the array)...
-              if (child1N < length) {
-                  // Look it up and compute its score.
-                  var child1 = this.content[child1N];
-                  child1Score = this.scoreFunction(child1);
-
-                  // If the score is less than our element's, we need to swap.
-                  if (child1Score < elemScore){
-                      swap = child1N;
-                  }
-              }
-
-              // Do the same checks for the other child.
-              if (child2N < length) {
-                  var child2 = this.content[child2N],
-                      child2Score = this.scoreFunction(child2);
-                  if (child2Score < (swap === null ? elemScore : child1Score)) {
-                      swap = child2N;
-                  }
-              }
-
-              // If the element needs to be moved, swap it, and continue.
-              if (swap !== null) {
-                  this.content[n] = this.content[swap];
-                  this.content[swap] = element;
-                  n = swap;
-              }
-              // Otherwise, we are done.
-              else {
-                  break;
-              }
-          }
+    constructor: BinaryHeap,
+    push: function(element) {
+        // Add the new element to the end of the array.
+        this.content.push(element);
+        // Allow it to sink down.
+        this.sinkDown(this.content.length - 1);
+    },
+    pop: function() {
+      // Store the first element so we can return it later.
+      var result = this.content[0],
+      // Get the element at the end of the array.
+          end = this.content.pop();
+      // If there are any elements left, put the end element at the
+      // start, and let it bubble up.
+      if (this.content.length) {
+        this.content[0] = end;
+        this.bubbleUp(0);
       }
+      return result;
+    },
+    remove: function(node) {
+      var i = this.content.indexOf(node);
+
+      // When it is found, the process seen in 'pop' is repeated
+      // to fill up the hole.
+      var end = this.content.pop();
+
+      if (i !== this.content.length - 1) {
+        this.content[i] = end;
+        if (this.scoreFunction(end) < this.scoreFunction(node)) {
+          this.sinkDown(i);
+        } else {
+          this.bubbleUp(i);
+        }
+      }
+    },
+    size: function() {return this.content.length;},
+    rescoreElement: function(node) {this.sinkDown(this.content.indexOf(node));},
+    sinkDown: function(n) {
+      // Fetch the element that has to be sunk.
+      var element = this.content[n],
+          parentN, parent;
+
+      // When at 0, an element can not sink any further.
+      while (n) {
+        // Compute the parent element's index, and fetch it.
+        parentN = ((n + 1) >> 1) - 1,
+        parent  = this.content[parentN];
+        // Swap the elements if the parent is greater.
+        if (this.scoreFunction(element) < this.scoreFunction(parent)) {
+          this.content[parentN] = element;
+          this.content[n] = parent;
+          // Update 'n' to continue at the new position.
+          n = parentN;
+        } else {
+          // Found a parent that is less, no need to sink any further.
+          break;
+        }
+      }
+    },
+    bubbleUp: function(n) {
+      // Look up the target element and its score.
+      var length    = this.content.length,
+          element   = this.content[n],
+          elemScore = this.scoreFunction(element),
+          child1, child2, child2N, child1N, swap,
+          child1Score, child2Score;
+
+      while(true) {
+        // Compute the indices of the child elements.
+        child2N = (n + 1) << 1;
+        child1N = child2N - 1;
+        // This is used to store the new position of the element, if any.
+        swap = null;
+        child1Score = undefined;
+
+        // If the first child exists (is inside the array)...
+        if (child1N < length) {
+          // Look it up and compute its score.
+          child1 = this.content[child1N];
+          child1Score = this.scoreFunction(child1);
+          // If the score is less than our element's, we need to swap.
+          if (child1Score < elemScore){
+            swap = child1N;
+          }
+        }
+
+        // Do the same checks for the other child.
+        if (child2N < length) {
+          child2 = this.content[child2N];
+          child2Score = this.scoreFunction(child2);
+          if (child2Score < (swap === null ? elemScore : child1Score)) {
+            swap = child2N;
+          }
+        }
+
+        // If the element needs to be moved, swap it, and continue.
+        if (swap !== null) {
+          this.content[n] = this.content[swap];
+          this.content[swap] = element;
+          n = swap;
+
+        // Otherwise, we are done.
+        } else {break;}
+      }
+    }
   };
 
 
   H.AI.AStar = {
-      init: function(graph) {
-          for (var i = 0, len = graph.nodes.length; i < len; ++i) {
-              var node = graph.nodes[i];
-              node.f = 0;
-              node.g = 0;
-              node.h = 0;
-              node.visited = false;
-              node.closed = false;
-              node.parent = null;
-          }
+    // See list of heuristics: http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
+    heuristics: {
+      manhattan: function(pos0, pos1) {
+        var d1 = Math.abs(pos1.x - pos0.x);
+        var d2 = Math.abs(pos1.y - pos0.y);
+        return d1 + d2;
       },
+      diagonal: function(pos0, pos1) {
+        var D = 1;
+        var D2 = Math.sqrt(2);
+        var d1 = Math.abs(pos1.x - pos0.x);
+        var d2 = Math.abs(pos1.y - pos0.y);
+        return (D * (d1 + d2)) + ((D2 - (2 * D)) * Math.min(d1, d2));
+      }
+    },
+    init: function(graph) {
+      var i, node, len;
+      for (i = 0, len = graph.nodes.length; i < len; ++i) {
+        node = graph.nodes[i];
+        node.f = 0;
+        node.g = 0;
+        node.h = 0;
+        node.visited = false;
+        node.closed = false;
+        node.parent = null;
+      }
+    },
 
       /**
       * Perform an A* Search on a graph given a start and end node.
@@ -646,21 +721,6 @@ HANNIBAL = (function(H){
           // No result was found - empty array signifies failure to find path.
           return [];
       },
-      // See list of heuristics: http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
-      heuristics: {
-          manhattan: function(pos0, pos1) {
-              var d1 = Math.abs(pos1.x - pos0.x);
-              var d2 = Math.abs(pos1.y - pos0.y);
-              return d1 + d2;
-          },
-          diagonal: function(pos0, pos1) {
-              var D = 1;
-              var D2 = Math.sqrt(2);
-              var d1 = Math.abs(pos1.x - pos0.x);
-              var d2 = Math.abs(pos1.y - pos0.y);
-              return (D * (d1 + d2)) + ((D2 - (2 * D)) * Math.min(d1, d2));
-          }
-      }
   };
 
 

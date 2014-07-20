@@ -257,6 +257,36 @@ H.regress = function(xyr)
     return [a, b];
 };
 
+H.list = function list(){
+  var slice = Array.prototype.slice;
+  console.log(slice.call(arguments));
+  return new Proxy(slice.call(arguments), {
+      get: function(arr, name){
+        console.log(arr, name);
+        var 
+          hdr = {
+            nil:     !arr.length,
+            head:    list.apply(null, arr.slice(0, 1)),
+            tail:    list.apply(null, arr.slice(1)),
+            last:    list.apply(null, arr.slice(-1)),
+            inverse: list.apply(null, arr.reverse()),
+            append:  function(){
+              return list.apply(null, arr.concat(slice.call(arguments)));
+            },
+            prepend: function(){
+              return list.apply(null, slice.call(arguments).concat(arr));
+            },
+            string:   "[list " + arr.join(", ") + "]",
+          };
+        return (
+          arr[name] !== undefined ? arr[name] : 
+          hdr[name] !== undefined ? hdr[name] :
+            null
+        );
+      }
+  });  
+};
+
 // http://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array-in-javascript
 // shocks jsLint
 H.shuffle = function(a){

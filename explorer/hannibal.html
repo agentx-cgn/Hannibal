@@ -254,6 +254,7 @@
 
       <!-- MAPS -->
         <div class="MAPS left panel">
+          <canvas id="cvsTemp" style="display:none"></canvas>
           <label for="slcMaps" style="vertical-align: top">Load</label>
             <select id="slcMaps"></select>
             <button id="btnMAPLoad">Load</button>
@@ -264,9 +265,9 @@
                   <canvas id="cvsMap"></canvas>
                 </div>
                 <div style="float: left">
-                  <div style="margin-left: 8px">
-                    <label for="txtMAP" style="margin-top: -12px; text-align: left;">Info</label>
-                    <textarea id="txtMAP" maxlength="1000" rows="6" style=" width: 198px; font-size: 10px;"></textarea>       
+                  <div style="margin-left: 8px; margin-top: -32px;">
+                    <label for="txtMAP" style="margin-top: -12px; text-align: right;">Info</label>
+                    <textarea id="txtMAP" maxlength="1000" rows="8" style=" width: 198px; font-size: 10px;"></textarea>       
                   </div>
                   <div style="margin-left: 8px; margin-top: 4px">
                     <label for="chkTopo" style="text-align: left;">Render</label>
@@ -278,37 +279,41 @@
                     <input type="checkbox" id="chkPath"  checked="checked"  /><span class="chklabel">Paths</span><br />
                   </div>
                   <div style="margin-left: 8px">
-                    <label for="slcKMeans" style="text-align: left;">Actions</label>
+                    <label for="slcClus" style="text-align: left;">Actions</label>
+                      <select id="slcClus">
+                        <option selected>trees</option>
+                        <option>units</option>
+                        <option>fruits</option>
+                        <option>metal</option>
+                        <option>stone</option>
+                        <option>ships</option>
+                        <option>structures</option>
+                      </select>
                       <select id="slcKMeans">
                         <option>1</option>
                         <option>2</option>
                         <option selected>3</option>
                         <option>4</option>
+                        <option>8</option>
+                        <option>16</option>
+                        <option>32</option>
+                        <option>64</option>
                       </select>
-                      <select id="slcRess">
-                        <option selected>trees</option>
-                        <option>fruits</option>
-                        <option>metal</option>
-                        <option>stone</option>
-                      </select>
-                      <button id="btnKMeans" onclick="H.Maps.renderKMeans(); H.Maps.render();">Cluster</button>     
+                      <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.render();">Cluster</button>     
                     </div>   
-                    <div style="margin-left: 8px">
-                      <label for="imgPass" style="text-align: left;">pass.png</label>
-                      <img id="imgPass" width="64", height="64" />
-                    </div>
                   <br />
                 </div>
               </div>
             <br />
           </div>
           <label for="cvsHeights" style="vertical-align: top;">Layer</label>
-            <canvas id="cvsHeights"  class="minimap" title="Heights"></canvas>
-            <canvas id="cvsPass"     class="minimap" title="Passability"></canvas>
-            <canvas id="cvsGrid"     class="minimap" title="Grid"></canvas>
-            <canvas id="cvsEntities" class="minimap" title="Entities"></canvas>
-            <canvas id="cvsKMeans"   class="minimap" title="KMeans"></canvas>
-            <canvas id="cvsPaths"    class="minimap" title="Pathfinder"></canvas>
+            <canvas id="cvsTopo" class="minimap" title="Topo"></canvas>
+            <canvas id="cvsPass" class="minimap" title="Passability"></canvas>
+            <img    id="imgPass" class="minimap" title="passability.png"  />
+            <canvas id="cvsGrid" class="minimap" title="Grid" style="display:none"></canvas>
+            <canvas id="cvsEnts" class="minimap" title="Entities"></canvas>
+            <canvas id="cvsClus" class="minimap" title="Cluster"></canvas>
+            <canvas id="cvsPath" class="minimap" title="Pathfinder"></canvas>
         </div>
         <div class="trenner"></div>
 

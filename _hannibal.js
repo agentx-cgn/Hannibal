@@ -62,10 +62,10 @@ var HANNIBAL = (function() {
   // constructor
   H.Hannibal = function(settings) {
 
-    var rand;
+    var rand, map = TESTERDATA ? TESTERDATA.map : "unkown";
 
     deb();deb();
-    deb("------: HANNIBAL.constructor.in: PID: %s, difficulty: %s, templates: %s", settings.player, settings.difficulty, H.count(settings.templates));
+    deb("------: constructor.in: map: %s, pid: %s, diff: %s, tpls: %s", map, settings.player, settings.difficulty, H.count(settings.templates));
 
     API3.BaseAI.call(this, settings);
     this.turn = 0;
@@ -146,7 +146,8 @@ var HANNIBAL = (function() {
     var SIM_UPDATES = 0,
         self = this, ts, 
         ss = sharedScript, gs = gameState, 
-        behaviour = H.Config.getBehaviour("ai:ai", this.settings.difficulty);
+        behaviour = H.Config.getBehaviour("ai:ai", this.settings.difficulty),
+        map = TESTERDATA ? TESTERDATA.map : "unkown";
 
     /*
       logObject: this
@@ -231,7 +232,7 @@ var HANNIBAL = (function() {
 
     H.Numerus.init();                       // launches the stats extension
     H.Grids.init();                         // inits advanced map analysis
-    H.Grids.dump(H.Config.sequence);        // dumps all grids with sequence prefix in file name
+    H.Grids.dump(map);                      // dumps all grids with map prefix in file name
     H.Grids.pass.log();
 
     H.Resources.init();                     // extracts resources from all entities
@@ -438,7 +439,8 @@ var HANNIBAL = (function() {
     var t0 = Date.now(),
         self = this, 
         msgTiming = "",
-        secs = (H.GameState.timeElapsed/1000).toFixed(1);
+        secs = (H.GameState.timeElapsed/1000).toFixed(1),
+        map = TESTERDATA ? TESTERDATA.map : "unkown"
 
     // logObject(sharedScript, "sharedScript");
 
@@ -448,12 +450,19 @@ var HANNIBAL = (function() {
     if (!this.isTicking){
       deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
       deb();deb();
-      deb("------: Hannibal.OnUpdate: startup: %s secs", ((t0 - TIMESTART)/1000).toFixed(3));
+      deb("------: OnUpdate: startup: %s secs, map: '%s'", ((t0 - TIMESTART)/1000).toFixed(3), map);
       deb();
       this.isTicking = true;
     }
 
     if (this.isFinished){return;}
+
+    if (H.Tester.OnUpdate){
+      H.Engine.chat("OnUpdate");
+      H.Tester.OnUpdate();
+    } else {
+      H.Engine.chat("no OnUpdate");
+    }
     
     // save events, even if not processing
     H.Events.collect(this.events);

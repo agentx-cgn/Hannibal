@@ -64,6 +64,13 @@ HANNIBAL = (function(H){
       return items.filter(p => p !== undefined);
     }
 
+    function select(box, option){
+      H.toArray(box.getElementsByTagName('option')).forEach(function(opt){
+        // opt.selected = opt.value === option ? "selected" : "";
+        opt.selected = opt.innerHTML === option ? "selected" : "";
+      });
+    }
+
     return {
       boot: function(){ self = this; return this; },
       init: function(hash){
@@ -88,12 +95,15 @@ HANNIBAL = (function(H){
         H.Display.trim($("txtECOGoal"));
         H.Display.trim($("txtECOState"));
 
-        H.Maps.readMapList("http://localhost:8080/mods/public/maps/scenarios/", function(html){
+        H.Maps.readMapList(function(html){
           $("slcMaps").innerHTML = html;  
-          $("slcMaps").value = "http://localhost:8080/mods/public/maps/scenarios/Arcadia%2002.xml";
-          H.Maps.load("http://localhost:8080/mods/public/maps/scenarios/Arcadia%2002.xml");
+          select($("slcMaps"), H.Maps.default);
+          console.log($("slcMaps").value, H.Maps.default);
+          // H.Maps.load(H.Maps.host() + H.Maps.path() + H.Maps.default);
+          H.Maps.load(H.Maps.default);
         });
-        $("slcMaps").onchange = $("slcMaps").onselect = $("btnMAPLoad").onclick = function(){
+        $("slcMaps").onchange = $("slcMaps").onselect = $("slcMaps").onkeyyup = $("btnMAPLoad").onclick = function(){
+          // H.Maps.load(H.Maps.host() + H.Maps.path() + $("slcMaps").value);
           H.Maps.load($("slcMaps").value);
         }
         "Topo Ents Grid Clus Path Pass".split(" ").forEach(function(token){
@@ -102,10 +112,7 @@ HANNIBAL = (function(H){
             H.Maps.render();
           }
         });
-
-        // $("btnMAPLoad").onclick = function(){
-        //   H.Maps.load($("slcMaps").value);
-        // };
+        $("cvsMap").onclick = H.Maps.onclick;
 
         $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
         $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};

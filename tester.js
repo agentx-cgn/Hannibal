@@ -152,7 +152,20 @@ HANNIBAL = (function(H){
     var t0, triggers;
     
     return {
-      init:     function(){self = this; return self;},
+      init:     function(){
+        self = this; 
+        if (TESTERDATA !== undefined){
+          H.each(TESTERDATA, function(attr, value){
+            deb("TESTER: %s : %s", attr, value)
+            if (attr.slice(0,2) === "On"){
+              self[attr] = new Function(value);
+            } else {
+              self[attr] = value;
+            }
+          });
+        }
+        return self;
+      },
       activate: function(seq){
         sequence = seq || H.Config.sequence;
         deb("TESTER: activated sequence: %s", sequence);
