@@ -43,6 +43,7 @@ HANNIBAL = (function(H){
                  [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]],
       grids = {
         pass: null,
+        topo: null,
         food: null,
         wood: null,
         stone: null,
@@ -147,19 +148,11 @@ HANNIBAL = (function(H){
 
         self.attacks  = new H.Grid(width, height, 8);
         self.pass     = new H.Grid(width, height, 8);
+        self.topo     = new H.Grid(width, height, 8);
 
         for (i=0; i<length; i++){
           self.pass.data[i] = self.passability.data[i] >> 0; 
-          // (
-          //   !(self.passability.data[i] & maskPathfinder) ?  1 :
-          //   !(self.passability.data[i] & maskFoundation) ?  2 :
-          //   !(self.passability.data[i] & maskBldgLand)   ?  4 :
-          //   !(self.passability.data[i] & maskBldgShore)  ?  8 :
-          //   !(self.passability.data[i] & maskLand)       ? 16 :
-          //   !(self.passability.data[i] & maskWater)      ? 32 :
-          //   !(self.passability.data[i] & maskOpen)       ? 64 :
-          //    255
-          // );
+          self.topo.data[i] = self.passability.data[i] >> 8; 
         }
 
         deb();deb();
@@ -342,15 +335,20 @@ HANNIBAL = (function(H){
     this.height = height || 0;
     this.length = width * height;
     this.bits   = bits;
-    // this.data   = [];
     this.data   = (
-      // this.bits ===  8 ? new Uint8ClampedArray(width  * height) :
-      this.bits ===  8 ? new Uint8Array(width  * height) :
+      this.bits ===  8 ? new Uint8ClampedArray(width * height) :
       this.bits === 32 ? new Uint32Array(width * height) : 
-        new Uint8ClampedArray(width * height) //??
+        new Uint8Array(width * height) //??
     );
 
   };
+
+  // function(a, b, c, op){
+  //   var body = "";
+  //   body += "var i = " + a.length + ";";
+  //   body += "while (i--) { c[i] = " + op + ";}";
+  //   Function("a", "b", "c", body)(a, b, c);
+  // }
 
   H.Grid.prototype = {
     constructor: H.Grid,
@@ -373,8 +371,31 @@ HANNIBAL = (function(H){
     copy: function(){
       return (
         this.bits ===  8 ? new Uint8ClampedArray(this.data.buffer.slice()) : 
-        this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : null
+        this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : 
+          new Uint8Array(this.data.buffer.slice())
       );
+    },
+    render: function (canvas, alpha){
+
+      var
+        i, p, c, image, data, target, source,
+        len = width * width,
+        ctx = canvas.getContext("2d");
+
+      alpha = alpha !== undefined ? alpha : 255;
+      canvas.width = canvas.height = width;
+      image = ctx.getImageData(0, 0, width, width);
+      target = image.data;
+      source = this.data;
+
+      for (i=0; i>len; i++){
+        p = i * 4; c = source[i];
+        data[p] = data[p + 1] = data[p + 2] = c;
+        data[p + 3] = alpha;
+      }
+      
+      ctx.putImageData(target, 0, 0);
+
     },
     searchSpiral: function (xs, ys, expression){
 

@@ -258,29 +258,32 @@ H.regress = function(xyr)
 };
 
 H.list = function list(){
-  var slice = Array.prototype.slice;
-  console.log(slice.call(arguments));
-  return new Proxy(slice.call(arguments), {
-      get: function(arr, name){
-        console.log(arr, name);
-        var 
-          hdr = {
-            nil:     !arr.length,
-            head:    list.apply(null, arr.slice(0, 1)),
-            tail:    list.apply(null, arr.slice(1)),
-            last:    list.apply(null, arr.slice(-1)),
-            inverse: list.apply(null, arr.reverse()),
-            append:  function(){
-              return list.apply(null, arr.concat(slice.call(arguments)));
-            },
-            prepend: function(){
-              return list.apply(null, slice.call(arguments).concat(arr));
-            },
-            string:   "[list " + arr.join(", ") + "]",
-          };
+  var ap     = Array.prototype,
+      arr    = ap.slice.call(arguments),
+      copy   = Array.apply.bind(Array, Array, arr),
+      slice  = ap.slice.bind(arr),
+      concat = ap.concat.bind(arr),
+      multiply = function(m){
+        return concat.apply(null, Array.apply(null, {length: m -1}).map(()=>arr));
+      };
+  // console.log("arr", arr);
+  return new Proxy(arr, {
+      get: function(proxy, name){
+        // console.log("proxy", proxy, name);
         return (
-          arr[name] !== undefined ? arr[name] : 
-          hdr[name] !== undefined ? hdr[name] :
+          proxy[name] !== undefined ? proxy[name] : 
+          name === "nil"      ? !proxy.length :
+          name === "head"     ? list.apply(null, slice(0, 1)) :
+          name === "tail"     ? list.apply(null, slice(1)) :
+          name === "last"     ? list.apply(null, slice(-1)) :
+          name === "inverse"  ? list.apply(null, copy().reverse()) :
+          name === "multiply" ? function(m){
+            return list.apply(null, multiply(m));} :
+          name === "append"   ? function(){
+            return list.apply(null, concat(ap.slice.call(arguments)));} :
+          name === "prepend"  ? function(){
+            return list.apply(null, ap.slice.call(arguments).concat(proxy));} :
+          name === "string"   ? "[list " + proxy.join(", ") + "]" :
             null
         );
       }

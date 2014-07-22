@@ -1,0 +1,3025 @@
+var STRUCTURES = {
+  "structures/athen_barracks": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/athen_infantry_spearman_b", 
+      "units/athen_infantry_javelinist_b", 
+      "units/athen_infantry_slinger_b", 
+      "units/athen_cavalry_swordsman_b", 
+      "units/athen_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/athen_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/athen_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/athen_infantry_spearman_b", 
+      "units/athen_infantry_slinger_b", 
+      "units/athen_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/athen_corral": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/athen_defense_tower": {
+    "Footprint/Square@depth": 10.5, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/athen_dock": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 22.0, 
+    "ProductionQueue/Entities": [
+      "units/athen_ship_bireme", 
+      "units/athen_ship_trireme"
+    ]
+  }, 
+  "structures/athen_farmstead": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/athen_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/athen_fortress": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/athen_mechanical_siege_oxybeles_packed", 
+      "units/athen_mechanical_siege_lithobolos_packed"
+    ]
+  }, 
+  "structures/athen_gymnasion": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 28.0, 
+    "Obstruction/Static@width": 28.0, 
+    "ProductionQueue/Entities": [
+      "units/athen_champion_infantry", 
+      "units/athen_champion_ranged"
+    ]
+  }, 
+  "structures/athen_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 1091.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/athen_market": {
+    "Footprint/Square@depth": 29.0, 
+    "Footprint/Square@width": 33.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/athen_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/athen_prytaneion": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/athen_hero_themistocles", 
+      "units/athen_hero_pericles", 
+      "units/athen_hero_iphicrates"
+    ]
+  }, 
+  "structures/athen_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/athen_temple": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 27.0, 
+    "Obstruction/Static@width": 17.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/athen_theatron": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 46.0, 
+    "Obstruction/Static@width": 46.0
+  }, 
+  "structures/athen_wall_gate": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 39.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/athen_wall_long": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/athen_wall_medium": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/athen_wall_short": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/athen_wall_tower": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/athen_wallset_stone": {}, 
+  "structures/athen_wonder": {
+    "Footprint/Square@depth": 58.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 57.0, 
+    "Obstruction/Static@width": 27.0
+  }, 
+  "structures/brit_barracks": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/brit_infantry_spearman_b", 
+      "units/brit_infantry_javelinist_b", 
+      "units/brit_infantry_slinger_b\t", 
+      "units/brit_champion_infantry_barracks", 
+      "units/brit_cavalry_swordsman_b", 
+      "units/brit_cavalry_javelinist_b\t", 
+      "units/brit_champion_cavalry_barracks"
+    ]
+  }, 
+  "structures/brit_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/brit_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/brit_infantry_spearman_b", 
+      "units/brit_infantry_slinger_b", 
+      "units/brit_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/brit_corral": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/brit_crannog": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3800.0, 
+    "Obstruction/Static@depth": 29.0, 
+    "Obstruction/Static@width": 29.0, 
+    "ProductionQueue/Entities": [
+      "units/brit_infantry_spearman_b", 
+      "units/brit_infantry_slinger_b", 
+      "units/brit_cavalry_javelinist_b", 
+      "units/{civ}_ship_fishing", 
+      "units/{civ}_ship_merchant", 
+      "units/brit_ship_trireme"
+    ]
+  }, 
+  "structures/brit_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/brit_dock": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 12.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "units/brit_ship_trireme"
+    ]
+  }, 
+  "structures/brit_farmstead": {
+    "Footprint/Square@depth": 14.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 12.0, 
+    "Obstruction/Static@width": 12.0
+  }, 
+  "structures/brit_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/brit_fortress": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 29.0, 
+    "Obstruction/Static@width": 29.0, 
+    "ProductionQueue/Entities": [
+      "units/brit_hero_boudicca", 
+      "units/brit_hero_caratacos", 
+      "units/brit_hero_cynvelin", 
+      "units/brit_champion_cavalry", 
+      "units/brit_champion_infantry", 
+      "units/brit_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/brit_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 10.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/brit_kennel": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 8.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 6.75, 
+    "Obstruction/Static@width": 7.5, 
+    "ProductionQueue/Entities": [
+      "units/brit_war_dog_b"
+    ]
+  }, 
+  "structures/brit_market": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 23.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/brit_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/brit_rotarymill": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 16.0
+  }, 
+  "structures/brit_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/brit_temple": {
+    "Footprint/Square@depth": 24.5, 
+    "Footprint/Square@width": 24.5, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 22.5, 
+    "Obstruction/Static@width": 22.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/brit_wall_gate": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/brit_wall_long": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/brit_wall_medium": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 26.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/brit_wall_short": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 14.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/brit_wall_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 9.0
+  }, 
+  "structures/brit_wallset_stone": {}, 
+  "structures/brit_wonder": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 34.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0
+  }, 
+  "structures/cart_barracks": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 23.0, 
+    "Obstruction/Static@width": 22.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_infantry_spearman_b", 
+      "units/cart_infantry_archer_b", 
+      "units/cart_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/cart_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/cart_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_infantry_spearman_b", 
+      "units/cart_infantry_archer_b", 
+      "units/cart_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/cart_corral": {
+    "Footprint/Square@depth": 16.5, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 14.5, 
+    "Obstruction/Static@width": 16.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/cart_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 9.0
+  }, 
+  "structures/cart_dock": {
+    "Footprint/Square@depth": 23.0, 
+    "Footprint/Square@width": 34.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 19.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_ship_fishing", 
+      "units/{civ}_ship_merchant"
+    ]
+  }, 
+  "structures/cart_embassy": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 28.0, 
+    "Obstruction/Static@width": 28.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_infantry_swordsman_b", 
+      "units/cart_cavalry_swordsman_2_b", 
+      "units/cart_infantry_javelinist_b", 
+      "units/cart_infantry_slinger_b", 
+      "units/cart_cavalry_swordsman_b", 
+      "units/cart_infantry_swordsman_2_b", 
+      "units/cart_cavalry_spearman_b"
+    ]
+  }, 
+  "structures/cart_embassy_celtic": {
+    "Footprint/Square@depth": 13.0, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 12.0, 
+    "Obstruction/Static@width": 15.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_infantry_swordsman_b", 
+      "units/cart_cavalry_swordsman_2_b"
+    ]
+  }, 
+  "structures/cart_embassy_iberian": {
+    "Footprint/Square@depth": 16.0, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 16.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_infantry_javelinist_b", 
+      "units/cart_infantry_slinger_b", 
+      "units/cart_cavalry_swordsman_b"
+    ]
+  }, 
+  "structures/cart_embassy_italiote": {
+    "Footprint/Square@depth": 15.5, 
+    "Footprint/Square@width": 13.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 11.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_infantry_swordsman_2_b", 
+      "units/cart_cavalry_spearman_b"
+    ]
+  }, 
+  "structures/cart_farmstead": {
+    "Footprint/Square@depth": 19.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 16.0
+  }, 
+  "structures/cart_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/cart_fortress": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 28.0, 
+    "Obstruction/Static@width": 26.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_hero_hamilcar", 
+      "units/cart_hero_hannibal", 
+      "units/cart_hero_maharbal", 
+      "units/cart_champion_elephant", 
+      "units/cart_mechanical_siege_ballista_packed", 
+      "units/cart_mechanical_siege_oxybeles_packed"
+    ]
+  }, 
+  "structures/cart_house": {
+    "Footprint/Square@depth": 14.5, 
+    "Footprint/Square@width": 14.5, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/cart_market": {
+    "Footprint/Square@depth": 23.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 27.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/cart_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/cart_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 15.0, 
+    "Obstruction/Static@width": 15.0
+  }, 
+  "structures/cart_super_dock": {
+    "Footprint/Square@depth": 58.0, 
+    "Footprint/Square@width": 42.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 58.0, 
+    "Obstruction/Static@width": 42.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_ship_bireme", 
+      "units/cart_ship_trireme", 
+      "units/cart_ship_quinquereme"
+    ]
+  }, 
+  "structures/cart_temple": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 17.0, 
+    "ProductionQueue/Entities": [
+      "units/cart_champion_infantry\t", 
+      "units/cart_champion_cavalry"
+    ]
+  }, 
+  "structures/cart_wall": {
+    "Footprint/Square@depth": 11.0, 
+    "Footprint/Square@width": 31.0, 
+    "Health/Max": 9000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 30.0
+  }, 
+  "structures/cart_wall_gate": {
+    "Footprint/Square@depth": 11.0, 
+    "Footprint/Square@width": 46.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/cart_wall_long": {
+    "Footprint/Square@depth": 11.0, 
+    "Footprint/Square@width": 45.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 46.0
+  }, 
+  "structures/cart_wall_medium": {
+    "Footprint/Square@depth": 11.0, 
+    "Footprint/Square@width": 31.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 30.0
+  }, 
+  "structures/cart_wall_short": {
+    "Footprint/Square@depth": 11.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 16.0
+  }, 
+  "structures/cart_wall_tower": {
+    "Footprint/Square@depth": 14.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 11.0, 
+    "Obstruction/Static@width": 11.0
+  }, 
+  "structures/cart_wallset_stone": {}, 
+  "structures/cart_wonder": {
+    "Footprint/Square@depth": 59.0, 
+    "Footprint/Square@width": 29.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 57.0, 
+    "Obstruction/Static@width": 27.0
+  }, 
+  "structures/celt_barracks": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/celt_infantry_spearman_b", 
+      "units/celt_infantry_javelinist_b", 
+      "units/celt_infantry_slinger_b", 
+      "units/celt_cavalry_swordsman_b", 
+      "units/celt_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/celt_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/celt_civil_centre": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/celt_infantry_spearman_b", 
+      "units/celt_infantry_javelinist_b", 
+      "units/celt_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/celt_corral": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/celt_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/celt_dock": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 12.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "units/celt_ship_trireme"
+    ]
+  }, 
+  "structures/celt_farmstead": {
+    "Footprint/Square@depth": 14.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 12.0, 
+    "Obstruction/Static@width": 12.0
+  }, 
+  "structures/celt_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/celt_fortress_b": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 29.0, 
+    "Obstruction/Static@width": 29.0, 
+    "ProductionQueue/Entities": [
+      "units/celt_hero_boudicca", 
+      "units/celt_hero_caratacos", 
+      "units/celt_hero_cynvelin", 
+      "units/celt_champion_cavalry_brit", 
+      "units/celt_champion_infantry_brit", 
+      "units/celt_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/celt_fortress_g": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/celt_hero_brennus", 
+      "units/celt_hero_britomartus", 
+      "units/celt_hero_vercingetorix", 
+      "units/celt_champion_cavalry_gaul", 
+      "units/celt_champion_infantry_gaul", 
+      "units/celt_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/celt_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 10.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/celt_kennel": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 8.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 6.75, 
+    "Obstruction/Static@width": 7.5, 
+    "ProductionQueue/Entities": [
+      "units/celt_war_dog_b"
+    ]
+  }, 
+  "structures/celt_market": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 23.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/celt_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/celt_sb1": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 16.0
+  }, 
+  "structures/celt_slope_tower": {
+    "Footprint/Square@depth": 5.5, 
+    "Footprint/Square@width": 5.5, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 4.5, 
+    "Obstruction/Static@width": 4.5
+  }, 
+  "structures/celt_slope_wall": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 26.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/celt_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/celt_temple": {
+    "Footprint/Square@depth": 24.5, 
+    "Footprint/Square@width": 24.5, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 22.5, 
+    "Obstruction/Static@width": 22.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/celt_wall": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 26.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/celt_wall_gate": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/celt_wall_long": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/celt_wall_medium": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 26.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/celt_wall_short": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 14.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/celt_wall_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 9.0
+  }, 
+  "structures/celt_wallset_stone": {}, 
+  "structures/celt_wonder": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 34.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0
+  }, 
+  "structures/gaul_barracks": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/gaul_infantry_spearman_b", 
+      "units/gaul_infantry_javelinist_b", 
+      "units/gaul_infantry_slinger_b\t", 
+      "units/gaul_champion_infantry_barracks", 
+      "units/gaul_cavalry_swordsman_b", 
+      "units/gaul_cavalry_javelinist_b\t", 
+      "units/gaul_champion_cavalry_barracks"
+    ]
+  }, 
+  "structures/gaul_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/gaul_civil_centre": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/gaul_infantry_spearman_b", 
+      "units/gaul_infantry_javelinist_b", 
+      "units/gaul_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/gaul_corral": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/gaul_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/gaul_dock": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 12.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "units/gaul_ship_trireme"
+    ]
+  }, 
+  "structures/gaul_farmstead": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 23.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 21.0
+  }, 
+  "structures/gaul_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/gaul_fortress": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/gaul_hero_brennus", 
+      "units/gaul_hero_britomartus", 
+      "units/gaul_hero_vercingetorix", 
+      "units/gaul_champion_cavalry", 
+      "units/gaul_champion_infantry", 
+      "units/gaul_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/gaul_house": {
+    "Footprint/Square@depth": 12.5, 
+    "Footprint/Square@width": 12.5, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 12.0, 
+    "Obstruction/Static@width": 12.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/gaul_market": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 23.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/gaul_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/gaul_rotarymill": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 16.0
+  }, 
+  "structures/gaul_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/gaul_tavern": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0, 
+    "ProductionQueue/Entities": [
+      "units/gaul_champion_fanatic"
+    ]
+  }, 
+  "structures/gaul_temple": {
+    "Footprint/Square@depth": 24.5, 
+    "Footprint/Square@width": 24.5, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 22.5, 
+    "Obstruction/Static@width": 22.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/gaul_wall_gate": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/gaul_wall_long": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/gaul_wall_medium": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 26.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/gaul_wall_short": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 14.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/gaul_wall_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 9.0
+  }, 
+  "structures/gaul_wallset_stone": {}, 
+  "structures/gaul_wonder": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 34.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0
+  }, 
+  "structures/hele_barracks": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 2200.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "\t", 
+      "units/hele_infantry_spearman_b\t", 
+      "units/hele_infantry_javelinist_b\t", 
+      "units/hele_infantry_archer_b\t", 
+      "units/hele_infantry_slinger_b\t", 
+      "units/hele_cavalry_swordsman_b\t", 
+      "units/hele_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/hele_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2200.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/hele_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3300.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/hele_infantry_spearman_b", 
+      "units/hele_infantry_javelinist_b", 
+      "units/hele_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/hele_corral": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 110.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/hele_defense_tower": {
+    "Footprint/Square@depth": 10.5, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1320.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/hele_dock": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 2750.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 22.0, 
+    "ProductionQueue/Entities": [
+      "units/hele_ship_bireme", 
+      "units/hele_ship_trireme"
+    ]
+  }, 
+  "structures/hele_farmstead": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 990.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/hele_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/hele_fortress": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4620.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/hele_mechanical_siege_oxybeles_packed", 
+      "units/hele_mechanical_siege_lithobolos_packed", 
+      "units/hele_mechanical_siege_tower"
+    ]
+  }, 
+  "structures/hele_gymnasion": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 2200.0, 
+    "Obstruction/Static@depth": 28.0, 
+    "Obstruction/Static@width": 28.0, 
+    "ProductionQueue/Entities": [
+      "units/hele_champion_cavalry_mace", 
+      "units/hele_champion_infantry_mace", 
+      "units/hele_champion_infantry_polis", 
+      "units/hele_champion_swordsman_polis"
+    ]
+  }, 
+  "structures/hele_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/hele_market": {
+    "Footprint/Square@depth": 29.0, 
+    "Footprint/Square@width": 33.0, 
+    "Health/Max": 1650.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/hele_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/hele_prytaneion": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2200.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/hele_hero_alexander", 
+      "units/hele_hero_demetrius", 
+      "units/hele_hero_leonidas", 
+      "units/hele_hero_philip", 
+      "units/hele_hero_themistocles", 
+      "units/hele_hero_xenophon"
+    ]
+  }, 
+  "structures/hele_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 880.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/hele_temple": {
+    "Footprint/Square@depth": 31.5, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2200.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 17.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/hele_theatron": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 5500.0, 
+    "Obstruction/Static@depth": 52.0, 
+    "Obstruction/Static@width": 52.0
+  }, 
+  "structures/hele_wall_gate": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 39.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/hele_wall_long": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/hele_wall_medium": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 3300.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/hele_wall_short": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/hele_wall_tower": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/hele_wallset_stone": {}, 
+  "structures/hele_wonder": {
+    "Footprint/Square@depth": 58.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 57.0, 
+    "Obstruction/Static@width": 27.0
+  }, 
+  "structures/iber_barracks": {
+    "Footprint/Square@depth": 19.0, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0, 
+    "ProductionQueue/Entities": [
+      "units/iber_infantry_spearman_b", 
+      "units/iber_infantry_swordsman_b", 
+      "units/iber_infantry_javelinist_b", 
+      "units/iber_infantry_slinger_b\t", 
+      "units/iber_champion_infantry_barracks", 
+      "units/iber_cavalry_spearman_b", 
+      "units/iber_cavalry_javelinist_b\t", 
+      "units/iber_champion_cavalry_barracks"
+    ]
+  }, 
+  "structures/iber_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/iber_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/iber_infantry_swordsman_b", 
+      "units/iber_infantry_javelinist_b", 
+      "units/iber_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/iber_corral": {
+    "Footprint/Square@depth": 17.5, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/iber_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 2400.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0
+  }, 
+  "structures/iber_dock": {
+    "Footprint/Square@depth": 26.0, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 24.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/iber_ship_fire\t", 
+      "units/iber_ship_trireme"
+    ]
+  }, 
+  "structures/iber_farmstead": {
+    "Footprint/Square@depth": 14.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 12.0, 
+    "Obstruction/Static@width": 12.0
+  }, 
+  "structures/iber_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/iber_fortress": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 6000.0, 
+    "Obstruction/Static@depth": 27.0, 
+    "Obstruction/Static@width": 27.0, 
+    "ProductionQueue/Entities": [
+      "units/iber_hero_caros", 
+      "units/iber_hero_indibil", 
+      "units/iber_hero_viriato", 
+      "units/iber_champion_infantry", 
+      "units/iber_champion_cavalry", 
+      "units/iber_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/iber_house": {
+    "Footprint/Square@depth": 12.0, 
+    "Footprint/Square@width": 12.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 10.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/iber_market": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 16.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/iber_monument": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 10.0, 
+    "Obstruction/Static@width": 10.0
+  }, 
+  "structures/iber_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/iber_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/iber_temple": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/iber_wall": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/iber_wall_gate": {
+    "Footprint/Square@depth": 9.5, 
+    "Footprint/Square@width": 37.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/iber_wall_long": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 37.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 36.0
+  }, 
+  "structures/iber_wall_medium": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/iber_wall_short": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 13.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 12.0
+  }, 
+  "structures/iber_wall_tower": {
+    "Footprint/Square@depth": 6.0, 
+    "Footprint/Square@width": 6.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 10.0, 
+    "Obstruction/Static@width": 10.0
+  }, 
+  "structures/iber_wallset_stone": {}, 
+  "structures/iber_wonder": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 34.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0
+  }, 
+  "structures/mace_barracks": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/mace_infantry_spearman_b", 
+      "units/mace_infantry_javelinist_b", 
+      "units/mace_infantry_archer_b", 
+      "units/mace_infantry_slinger_b", 
+      "units/mace_champion_infantry_a_barracks", 
+      "units/mace_cavalry_spearman_b", 
+      "units/mace_cavalry_javelinist_b", 
+      "units/mace_champion_cavalry_barracks"
+    ]
+  }, 
+  "structures/mace_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/mace_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/mace_infantry_spearman_b", 
+      "units/mace_infantry_javelinist_b", 
+      "units/mace_cavalry_spearman_b"
+    ]
+  }, 
+  "structures/mace_corral": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/mace_defense_tower": {
+    "Footprint/Square@depth": 10.5, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/mace_dock": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 22.0, 
+    "ProductionQueue/Entities": [
+      "units/mace_ship_bireme", 
+      "units/mace_ship_trireme"
+    ]
+  }, 
+  "structures/mace_farmstead": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/mace_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/mace_fortress": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/mace_hero_philip", 
+      "units/mace_hero_alexander", 
+      "units/mace_hero_demetrius", 
+      "units/mace_champion_infantry_a", 
+      "units/mace_champion_cavalry"
+    ]
+  }, 
+  "structures/mace_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 1091.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/mace_library": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 29.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/mace_market": {
+    "Footprint/Square@depth": 29.0, 
+    "Footprint/Square@width": 33.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/mace_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/mace_siege_workshop": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 24.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/mace_mechanical_siege_oxybeles_packed", 
+      "units/mace_mechanical_siege_lithobolos_packed", 
+      "units/mace_mechanical_siege_ram", 
+      "units/mace_mechanical_siege_tower"
+    ]
+  }, 
+  "structures/mace_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/mace_temple": {
+    "Footprint/Square@depth": 31.5, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 17.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/mace_theatron": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 46.0, 
+    "Obstruction/Static@width": 46.0
+  }, 
+  "structures/mace_wall_gate": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 39.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/mace_wall_long": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/mace_wall_medium": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/mace_wall_short": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/mace_wall_tower": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/mace_wallset_stone": {}, 
+  "structures/mace_wonder": {
+    "Footprint/Square@depth": 58.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 57.0, 
+    "Obstruction/Static@width": 27.0
+  }, 
+  "structures/maur_barracks": {
+    "Footprint/Square@depth": 26.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/maur_infantry_spearman_b", 
+      "units/maur_infantry_swordsman_b", 
+      "units/maur_infantry_archer_b\t", 
+      "units/maur_champion_infantry_barracks\t", 
+      "units/maur_champion_maiden_barracks", 
+      "units/maur_cavalry_swordsman_b", 
+      "units/maur_cavalry_javelinist_b\t", 
+      "units/maur_champion_chariot_barracks"
+    ]
+  }, 
+  "structures/maur_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/maur_civil_centre": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 36.0, 
+    "ProductionQueue/Entities": [
+      "units/maur_infantry_spearman_b", 
+      "units/maur_infantry_archer_b", 
+      "units/maur_cavalry_javelinist_b", 
+      "units/maur_support_elephant"
+    ]
+  }, 
+  "structures/maur_corral": {
+    "Footprint/Square@depth": 14.5, 
+    "Footprint/Square@width": 14.5, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/maur_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/maur_dock": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/maur_ship_bireme", 
+      "units/maur_ship_trireme"
+    ]
+  }, 
+  "structures/maur_elephant_stables": {
+    "Footprint/Square@depth": 27.0, 
+    "Footprint/Square@width": 29.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 29.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/maur_support_elephant", 
+      "units/maur_elephant_archer_b", 
+      "units/maur_champion_elephant"
+    ]
+  }, 
+  "structures/maur_farmstead": {
+    "Footprint/Square@depth": 16.0, 
+    "Footprint/Square@width": 12.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 18.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/maur_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/maur_fortress": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/maur_hero_chanakya", 
+      "units/maur_hero_maurya", 
+      "units/maur_hero_ashoka", 
+      "units/maur_champion_infantry", 
+      "units/maur_champion_maiden", 
+      "units/maur_champion_chariot"
+    ]
+  }, 
+  "structures/maur_house": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 10.0, 
+    "Obstruction/Static@width": 10.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/maur_market": {
+    "Footprint/Square@depth": 26.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 24.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/maur_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/maur_pillar_ashoka": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 7.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 4.0, 
+    "Obstruction/Static@width": 4.0
+  }, 
+  "structures/maur_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/maur_temple": {
+    "Footprint/Square@depth": 30.5, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.5, 
+    "Obstruction/Static@width": 15.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/maur_wall": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/maur_wall_gate": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/maur_wall_long": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 36.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 35.0
+  }, 
+  "structures/maur_wall_medium": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 26.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/maur_wall_short": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 14.5, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/maur_wall_tower": {
+    "Footprint/Square@depth": 12.5, 
+    "Footprint/Square@width": 12.5, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 9.5, 
+    "Obstruction/Static@width": 9.5
+  }, 
+  "structures/maur_wallset_stone": {}, 
+  "structures/maur_wonder": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 34.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 59.0, 
+    "Obstruction/Static@width": 59.0
+  }, 
+  "structures/merc_camp_egyptian": {
+    "Footprint/Square@depth": 25.5, 
+    "Footprint/Square@width": 25.5, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 23.5, 
+    "Obstruction/Static@width": 23.5, 
+    "ProductionQueue/Entities": [
+      "units/ptol_infantry_spearman_2_b\t", 
+      "units/ptol_infantry_swordsman_b", 
+      "units/ptol_cavalry_spearman_b", 
+      "units/ptol_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/pers_apadana": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/pers_hero_cyrus", 
+      "units/pers_hero_darius", 
+      "units/pers_hero_xerxes", 
+      "units/pers_champion_infantry"
+    ]
+  }, 
+  "structures/pers_barracks": {
+    "Footprint/Square@depth": 19.0, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0, 
+    "ProductionQueue/Entities": [
+      "units/pers_infantry_spearman_b", 
+      "units/pers_infantry_javelinist_b", 
+      "units/pers_infantry_archer_b"
+    ]
+  }, 
+  "structures/pers_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/pers_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/pers_infantry_spearman_b", 
+      "units/pers_infantry_archer_b", 
+      "units/pers_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/pers_corral": {
+    "Footprint/Square@depth": 12.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 11.0, 
+    "Obstruction/Static@width": 17.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/pers_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/pers_dock": {
+    "Footprint/Square@depth": 16.0, 
+    "Footprint/Square@width": 23.5, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 15.0, 
+    "Obstruction/Static@width": 23.0, 
+    "ProductionQueue/Entities": [
+      "units/pers_ship_bireme", 
+      "units/pers_ship_trireme"
+    ]
+  }, 
+  "structures/pers_farmstead": {
+    "Footprint/Square@depth": 20.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 18.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/pers_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/pers_fortress": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/pers_champion_cavalry", 
+      "units/pers_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/pers_house": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 13.5, 
+    "Obstruction/Static@width": 13.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/pers_ishtar_gate": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 24.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/pers_market": {
+    "Footprint/Square@depth": 26.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 24.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/pers_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/pers_palace": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 22.5, 
+    "Obstruction/Static@width": 38.5
+  }, 
+  "structures/pers_sb2": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/pers_kardakes_hoplite", 
+      "units/pers_kardakes_skirmisher", 
+      "units/pers_champion_elephant"
+    ]
+  }, 
+  "structures/pers_stables": {
+    "Footprint/Square@depth": 20.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 18.0, 
+    "ProductionQueue/Entities": [
+      "units/pers_cavalry_spearman_b", 
+      "units/pers_cavalry_swordsman_b", 
+      "units/pers_cavalry_javelinist_b", 
+      "units/pers_cavalry_archer_b"
+    ]
+  }, 
+  "structures/pers_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/pers_temple": {
+    "Footprint/Square@depth": 19.0, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.5, 
+    "Obstruction/Static@width": 17.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/pers_wall": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/pers_wall_gate": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/pers_wall_long": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/pers_wall_medium": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/pers_wall_short": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/pers_wall_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 8.5, 
+    "Obstruction/Static@width": 8.5
+  }, 
+  "structures/pers_wallset_stone": {}, 
+  "structures/pers_wonder": {
+    "Footprint/Square@depth": 62.0, 
+    "Footprint/Square@width": 62.0, 
+    "Health/Max": 4400.0, 
+    "Obstruction/Static@depth": 59.0, 
+    "Obstruction/Static@width": 59.0
+  }, 
+  "structures/ptol_barracks": {
+    "Footprint/Square@depth": 23.0, 
+    "Footprint/Square@width": 23.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/ptol_infantry_spearman_b", 
+      "units/ptol_infantry_archer_b", 
+      "units/ptol_infantry_slinger_b", 
+      "units/ptol_cavalry_archer_b"
+    ]
+  }, 
+  "structures/ptol_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/ptol_civil_centre": {
+    "Footprint/Square@depth": 35.0, 
+    "Footprint/Square@width": 42.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 37.0, 
+    "Obstruction/Static@width": 40.0, 
+    "ProductionQueue/Entities": [
+      "units/ptol_infantry_spearman_b", 
+      "units/ptol_infantry_archer_b", 
+      "units/ptol_cavalry_archer_b"
+    ]
+  }, 
+  "structures/ptol_corral": {
+    "Footprint/Square@depth": 23.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 400.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 12.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/ptol_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 9.0
+  }, 
+  "structures/ptol_dock": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 29.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/ptol_ship_bireme", 
+      "units/ptol_ship_trireme", 
+      "units/ptol_ship_quinquereme", 
+      "units/ptol_champion_juggernaut"
+    ]
+  }, 
+  "structures/ptol_farmstead": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 400.0, 
+    "Obstruction/Static@depth": 18.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/ptol_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/ptol_fortress": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "\t", 
+      "units/ptol_hero_ptolemy_I\t", 
+      "units/ptol_hero_ptolemy_IV\t", 
+      "units/ptol_hero_cleopatra", 
+      "units/ptol_champion_cavalry", 
+      "units/ptol_champion_elephant", 
+      "units/ptol_mechanical_siege_polybolos_packed", 
+      "units/ptol_mechanical_siege_lithobolos_packed", 
+      "units/ptol_mechanical_siege_tower"
+    ]
+  }, 
+  "structures/ptol_house": {
+    "Footprint/Square@depth": 16.0, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/ptol_library": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 29.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/ptol_lighthouse": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 20.0
+  }, 
+  "structures/ptol_market": {
+    "Footprint/Square@depth": 27.0, 
+    "Footprint/Square@width": 27.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/ptol_mercenary_camp": {
+    "Footprint/Square@depth": 25.5, 
+    "Footprint/Square@width": 25.5, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 23.5, 
+    "Obstruction/Static@width": 23.5, 
+    "ProductionQueue/Entities": [
+      "units/ptol_infantry_spearman_2_b\t", 
+      "units/ptol_infantry_swordsman_b", 
+      "units/ptol_cavalry_spearman_b", 
+      "units/ptol_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/ptol_military_colony": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 23.0, 
+    "Obstruction/Static@width": 23.0, 
+    "ProductionQueue/Entities": [
+      "units/ptol_infantry_spearman_2_b\t", 
+      "units/ptol_infantry_swordsman_b", 
+      "units/ptol_cavalry_spearman_b", 
+      "units/ptol_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/ptol_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/ptol_storehouse": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 400.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 16.0
+  }, 
+  "structures/ptol_temple": {
+    "Footprint/Square@depth": 23.0, 
+    "Footprint/Square@width": 21.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 21.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/ptol_wall_gate": {
+    "Footprint/Square@depth": 14.0, 
+    "Footprint/Square@width": 42.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/ptol_wall_long": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 38.0
+  }, 
+  "structures/ptol_wall_medium": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 26.0
+  }, 
+  "structures/ptol_wall_short": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 14.0
+  }, 
+  "structures/ptol_wall_tower": {
+    "Footprint/Square@depth": 12.0, 
+    "Footprint/Square@width": 12.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 10.0, 
+    "Obstruction/Static@width": 10.0
+  }, 
+  "structures/ptol_wallset_stone": {}, 
+  "structures/ptol_wonder": {
+    "Footprint/Square@depth": 66.0, 
+    "Footprint/Square@width": 48.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 60.0, 
+    "Obstruction/Static@width": 44.0
+  }, 
+  "structures/rome_arch": {
+    "Footprint/Square@depth": 11.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 9.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/rome_army_camp": {
+    "Footprint/Square@depth": 40.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 3600.0, 
+    "Obstruction/Static@depth": 36.0, 
+    "Obstruction/Static@width": 36.0, 
+    "ProductionQueue/Entities": [
+      "units/rome_infantry_swordsman_b", 
+      "units/rome_infantry_spearman_a", 
+      "units/rome_infantry_javelinist_b", 
+      "units/rome_cavalry_spearman_b", 
+      "units/rome_mechanical_siege_ballista_packed", 
+      "units/rome_mechanical_siege_scorpio_packed", 
+      "units/rome_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/rome_barracks": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 24.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/rome_infantry_swordsman_b", 
+      "units/rome_infantry_spearman_a", 
+      "units/rome_infantry_javelinist_b\t", 
+      "units/rome_champion_infantry_barracks", 
+      "units/rome_cavalry_spearman_b", 
+      "units/rome_cavalry_javelinist_b\t", 
+      "units/rome_champion_cavalry_barracks"
+    ]
+  }, 
+  "structures/rome_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/rome_civil_centre": {
+    "Footprint/Square@depth": 40.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 37.0, 
+    "Obstruction/Static@width": 37.0, 
+    "ProductionQueue/Entities": [
+      "units/rome_infantry_swordsman_b", 
+      "units/rome_infantry_javelinist_b", 
+      "units/rome_cavalry_spearman_b"
+    ]
+  }, 
+  "structures/rome_corral": {
+    "Footprint/Square@depth": 23.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/rome_defense_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/rome_dock": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 24.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/rome_ship_bireme", 
+      "units/rome_ship_trireme", 
+      "units/rome_ship_quinquereme"
+    ]
+  }, 
+  "structures/rome_farmstead": {
+    "Footprint/Square@depth": 20.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 20.0
+  }, 
+  "structures/rome_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/rome_fortress": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 30.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 25.0, 
+    "Obstruction/Static@width": 25.0, 
+    "ProductionQueue/Entities": [
+      "units/rome_hero_marcellus", 
+      "units/rome_hero_maximus", 
+      "units/rome_hero_scipio", 
+      "units/rome_champion_infantry", 
+      "units/rome_champion_cavalry", 
+      "units/rome_mechanical_siege_ballista_packed", 
+      "units/rome_mechanical_siege_scorpio_packed", 
+      "units/rome_mechanical_siege_ram"
+    ]
+  }, 
+  "structures/rome_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/rome_market": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 36.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 32.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/rome_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/rome_siege_wall_gate": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 2000.0
+  }, 
+  "structures/rome_siege_wall_long": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 40.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 5.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/rome_siege_wall_medium": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 5.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/rome_siege_wall_short": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 16.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 5.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/rome_siege_wall_tower": {
+    "Footprint/Square@depth": 10.0, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/rome_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/rome_temple": {
+    "Footprint/Square@depth": 31.5, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 17.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/rome_temple_mars": {
+    "Footprint/Square@depth": 44.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 40.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/rome_temple_vesta": {
+    "Footprint/Square@depth": 31.5, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 19.0, 
+    "Obstruction/Static@width": 19.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/rome_tent": {
+    "Footprint/Square@depth": 11.0, 
+    "Footprint/Square@width": 11.0, 
+    "Health/Max": 200.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 8.0, 
+    "ProductionQueue/Entities": [
+      "-units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/rome_wall": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/rome_wall_gate": {
+    "Footprint/Square@depth": 8.5, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/rome_wall_long": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/rome_wall_medium": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 26.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/rome_wall_short": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 14.5, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/rome_wall_tower": {
+    "Footprint/Square@depth": 12.5, 
+    "Footprint/Square@width": 12.5, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 9.5, 
+    "Obstruction/Static@width": 9.5
+  }, 
+  "structures/rome_wallset_siege": {}, 
+  "structures/rome_wallset_stone": {}, 
+  "structures/rome_wonder": {
+    "Footprint/Square@depth": 44.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 40.0, 
+    "Obstruction/Static@width": 20.0
+  }, 
+  "structures/sele_barracks": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/sele_infantry_spearman_b", 
+      "units/sele_infantry_javelinist_b", 
+      "units/sele_cavalry_javelinist_b", 
+      "units/sele_cavalry_archer_b"
+    ]
+  }, 
+  "structures/sele_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/sele_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/sele_infantry_spearman_2_b", 
+      "units/sele_cavalry_javelinist", 
+      "units/sele_hero_seleucus_victor", 
+      "units/sele_hero_antiochus_great", 
+      "units/sele_hero_antiochus_righteous"
+    ]
+  }, 
+  "structures/sele_corral": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/sele_defense_tower": {
+    "Footprint/Square@depth": 10.5, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/sele_dock": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 22.0, 
+    "ProductionQueue/Entities": [
+      "units/sele_ship_bireme", 
+      "units/sele_ship_trireme", 
+      "units/sele_ship_quinquereme"
+    ]
+  }, 
+  "structures/sele_farmstead": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/sele_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/sele_fortress": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "\t", 
+      "units/sele_champion_infantry_pikeman\t", 
+      "units/sele_champion_chariot\t", 
+      "units/sele_champion_infantry_swordsman\t", 
+      "units/sele_champion_cavalry\t", 
+      "units/sele_champion_elephant", 
+      "units/sele_mechanical_siege_lithobolos_packed", 
+      "units/sele_mechanical_siege_tower"
+    ]
+  }, 
+  "structures/sele_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 1200.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/sele_library": {
+    "Footprint/Square@depth": 34.0, 
+    "Footprint/Square@width": 29.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 25.0
+  }, 
+  "structures/sele_market": {
+    "Footprint/Square@depth": 29.0, 
+    "Footprint/Square@width": 33.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/sele_military_colony": {
+    "Footprint/Square@depth": 25.5, 
+    "Footprint/Square@width": 25.5, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 23.0, 
+    "Obstruction/Static@width": 23.0, 
+    "ProductionQueue/Entities": [
+      "\t", 
+      "units/sele_infantry_swordsman_b\t", 
+      "units/sele_infantry_archer_b", 
+      "units/sele_cavalry_spearman_b"
+    ]
+  }, 
+  "structures/sele_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/sele_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/sele_temple": {
+    "Footprint/Square@depth": 31.5, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 17.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/sele_wall_gate": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 39.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/sele_wall_long": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/sele_wall_medium": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/sele_wall_short": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/sele_wall_tower": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/sele_wallset_stone": {}, 
+  "structures/sele_wonder": {
+    "Footprint/Square@depth": 62.0, 
+    "Footprint/Square@width": 62.0, 
+    "Health/Max": 4400.0, 
+    "Obstruction/Static@depth": 59.0, 
+    "Obstruction/Static@width": 59.0
+  }, 
+  "structures/spart_barracks": {
+    "Footprint/Square@depth": 25.0, 
+    "Footprint/Square@width": 25.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/spart_infantry_spearman_b", 
+      "units/spart_champion_infantry_sword", 
+      "units/spart_infantry_javelinist_b", 
+      "units/spart_cavalry_spearman_b", 
+      "units/spart_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/spart_blacksmith": {
+    "Footprint/Square@depth": 22.0, 
+    "Footprint/Square@width": 22.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 17.0, 
+    "Obstruction/Static@width": 17.0
+  }, 
+  "structures/spart_civil_centre": {
+    "Footprint/Square@depth": 32.0, 
+    "Footprint/Square@width": 32.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/spart_infantry_spearman_b", 
+      "units/spart_infantry_javelinist_b", 
+      "units/spart_cavalry_javelinist_b"
+    ]
+  }, 
+  "structures/spart_corral": {
+    "Footprint/Square@depth": 17.0, 
+    "Footprint/Square@width": 17.0, 
+    "Health/Max": 500.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "gaia/fauna_sheep"
+    ]
+  }, 
+  "structures/spart_defense_tower": {
+    "Footprint/Square@depth": 10.5, 
+    "Footprint/Square@width": 10.0, 
+    "Health/Max": 1000.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "structures/spart_dock": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 2500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 22.0, 
+    "ProductionQueue/Entities": [
+      "units/spart_ship_bireme", 
+      "units/spart_ship_trireme"
+    ]
+  }, 
+  "structures/spart_farmstead": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 900.0, 
+    "Obstruction/Static@depth": 16.0, 
+    "Obstruction/Static@width": 18.0
+  }, 
+  "structures/spart_field": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 100.0, 
+    "Obstruction/Static@depth": 22.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "structures/spart_fortress": {
+    "Footprint/Square@depth": 28.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 4200.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 24.0, 
+    "ProductionQueue/Entities": [
+      "units/spart_mechanical_siege_ram", 
+      "units/spart_mechanical_siege_oxybeles_packed"
+    ]
+  }, 
+  "structures/spart_gerousia": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 20.0, 
+    "Obstruction/Static@width": 20.0, 
+    "ProductionQueue/Entities": [
+      "units/spart_hero_leonidas"
+    ]
+  }, 
+  "structures/spart_house": {
+    "Footprint/Square@depth": 18.0, 
+    "Footprint/Square@width": 18.0, 
+    "Health/Max": 1091.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 14.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_female_citizen_house"
+    ]
+  }, 
+  "structures/spart_market": {
+    "Footprint/Square@depth": 29.0, 
+    "Footprint/Square@width": 33.0, 
+    "Health/Max": 1500.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 30.0, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_trader"
+    ]
+  }, 
+  "structures/spart_outpost": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "structures/spart_storehouse": {
+    "Footprint/Square@depth": 15.0, 
+    "Footprint/Square@width": 15.0, 
+    "Health/Max": 800.0, 
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/spart_syssiton": {
+    "Footprint/Square@depth": 30.0, 
+    "Footprint/Square@width": 20.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 26.0, 
+    "Obstruction/Static@width": 16.0, 
+    "ProductionQueue/Entities": [
+      "units/spart_hero_leonidas", 
+      "units/spart_hero_brasidas", 
+      "units/spart_hero_agis", 
+      "units/spart_champion_infantry_spear"
+    ]
+  }, 
+  "structures/spart_temple": {
+    "Footprint/Square@depth": 31.5, 
+    "Footprint/Square@width": 19.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 30.0, 
+    "Obstruction/Static@width": 17.5, 
+    "ProductionQueue/Entities": [
+      "units/{civ}_support_healer_b"
+    ]
+  }, 
+  "structures/spart_theatron": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 46.0, 
+    "Obstruction/Static@width": 46.0
+  }, 
+  "structures/spart_wall_gate": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 39.0, 
+    "Health/Max": 3000.0
+  }, 
+  "structures/spart_wall_long": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 38.5, 
+    "Health/Max": 4000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 37.0
+  }, 
+  "structures/spart_wall_medium": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 26.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 24.0
+  }, 
+  "structures/spart_wall_short": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 14.0, 
+    "Health/Max": 3000.0, 
+    "Obstruction/Static@depth": 6.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "structures/spart_wall_tower": {
+    "Footprint/Square@depth": 9.0, 
+    "Footprint/Square@width": 9.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 7.5, 
+    "Obstruction/Static@width": 7.5
+  }, 
+  "structures/spart_wallset_stone": {}, 
+  "structures/spart_wonder": {
+    "Footprint/Square@depth": 58.0, 
+    "Footprint/Square@width": 28.0, 
+    "Health/Max": 5000.0, 
+    "Obstruction/Static@depth": 57.0, 
+    "Obstruction/Static@width": 27.0
+  }, 
+  "structures/theb_theatron": {
+    "Footprint/Square@depth": 24.0, 
+    "Footprint/Square@width": 24.0, 
+    "Health/Max": 2000.0, 
+    "Obstruction/Static@depth": 46.0, 
+    "Obstruction/Static@width": 46.0
+  }
+};

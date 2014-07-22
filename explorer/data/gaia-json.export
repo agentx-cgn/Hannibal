@@ -1,0 +1,363 @@
+var GAIA = {
+  "gaia/fauna_bear": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_boar": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_camel": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_chicken": {
+    "Health/Max": 5.0
+  }, 
+  "gaia/fauna_crocodile": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 5.0, 
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_deer": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_elephant": {
+    "Health/Max": 200.0
+  }, 
+  "gaia/fauna_elephant_african_bush": {
+    "Health/Max": 300.0
+  }, 
+  "gaia/fauna_elephant_african_infant": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_elephant_asian": {
+    "Health/Max": 250.0
+  }, 
+  "gaia/fauna_elephant_north_african": {
+    "Health/Max": 200.0
+  }, 
+  "gaia/fauna_fish": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_fish_tilapia": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_fish_tuna": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_gazelle": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_giraffe": {
+    "Health/Max": 150.0
+  }, 
+  "gaia/fauna_giraffe_infant": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_goat": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_hawk": {}, 
+  "gaia/fauna_horse": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_lion": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_lioness": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_muskox": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_peacock": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_pig": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_rabbit": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_shark": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 5.0, 
+    "Health/Max": 150.0
+  }, 
+  "gaia/fauna_sheep": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_tiger": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_walrus": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_whale_fin": {
+    "Health/Max": 200.0
+  }, 
+  "gaia/fauna_whale_humpback": {
+    "Health/Max": 200.0
+  }, 
+  "gaia/fauna_wildebeest": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/fauna_wolf": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_wolf_snow": {
+    "Health/Max": 100.0
+  }, 
+  "gaia/fauna_zebra": {
+    "Health/Max": 50.0
+  }, 
+  "gaia/flora_bush_badlands": {}, 
+  "gaia/flora_bush_berry": {}, 
+  "gaia/flora_bush_grapes": {}, 
+  "gaia/flora_bush_temperate": {}, 
+  "gaia/flora_tree_aleppo_pine": {}, 
+  "gaia/flora_tree_apple": {}, 
+  "gaia/flora_tree_baobab": {}, 
+  "gaia/flora_tree_carob": {}, 
+  "gaia/flora_tree_cretan_date_palm_patch": {}, 
+  "gaia/flora_tree_cretan_date_palm_short": {}, 
+  "gaia/flora_tree_cretan_date_palm_tall": {}, 
+  "gaia/flora_tree_cypress": {}, 
+  "gaia/flora_tree_date_palm": {}, 
+  "gaia/flora_tree_dead": {}, 
+  "gaia/flora_tree_euro_beech": {}, 
+  "gaia/flora_tree_euro_beech_aut": {}, 
+  "gaia/flora_tree_fig": {}, 
+  "gaia/flora_tree_medit_fan_palm": {}, 
+  "gaia/flora_tree_oak": {}, 
+  "gaia/flora_tree_oak_aut": {}, 
+  "gaia/flora_tree_oak_large": {}, 
+  "gaia/flora_tree_olive": {}, 
+  "gaia/flora_tree_palm_tropic": {}, 
+  "gaia/flora_tree_palm_tropical": {}, 
+  "gaia/flora_tree_pine": {}, 
+  "gaia/flora_tree_pine_w": {}, 
+  "gaia/flora_tree_poplar": {}, 
+  "gaia/flora_tree_poplar_lombardy": {}, 
+  "gaia/flora_tree_senegal_date_palm": {}, 
+  "gaia/flora_tree_tamarix": {}, 
+  "gaia/flora_tree_toona": {}, 
+  "gaia/geology_metal_alpine": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_metal_alpine_slabs": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_metal_desert_badlands_slabs": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_metal_desert_slabs": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_metal_desert_small": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_metal_greek": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_metal_mediterranean": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_metal_mediterranean_slabs": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_metal_savanna_slabs": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_metal_temperate": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_metal_temperate_slabs": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_metal_tropic": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_metal_tropic_slabs": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_stone_alpine_a": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_stone_desert_small": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_stone_greek": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_stone_mediterranean": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_stone_savanna_small": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_stone_temperate": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_stone_tropic_a": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/geology_stonemine_alpine_quarry": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_stonemine_desert_badlands_quarry": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_stonemine_desert_quarry": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_stonemine_medit_quarry": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_stonemine_temperate_formation": {
+    "Footprint/Square@depth": 16.0, 
+    "Footprint/Square@width": 24.0, 
+    "Obstruction/Static@depth": 14.0, 
+    "Obstruction/Static@width": 22.0
+  }, 
+  "gaia/geology_stonemine_temperate_quarry": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/geology_stonemine_tropic_quarry": {
+    "Obstruction/Static@depth": 13.0, 
+    "Obstruction/Static@width": 13.0
+  }, 
+  "gaia/special_ruins": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/special_ruins_column_doric": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/special_ruins_standing_stone": {
+    "Obstruction/Static@depth": 2.0, 
+    "Obstruction/Static@width": 2.0
+  }, 
+  "gaia/special_ruins_stone_statues_egyptian": {
+    "Footprint/Square@depth": 4.0, 
+    "Footprint/Square@width": 4.0, 
+    "Obstruction/Static@depth": 3.5, 
+    "Obstruction/Static@width": 3.5
+  }, 
+  "gaia/special_ruins_stone_statues_roman": {
+    "Footprint/Square@depth": 4.0, 
+    "Footprint/Square@width": 4.0, 
+    "Obstruction/Static@depth": 3.5, 
+    "Obstruction/Static@width": 3.5
+  }, 
+  "gaia/special_treasure_food_barrel": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 1.5, 
+    "Obstruction/Static@width": 1.5
+  }, 
+  "gaia/special_treasure_food_barrels_buried": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/special_treasure_food_bin": {
+    "Footprint/Square@depth": 3.5, 
+    "Footprint/Square@width": 2.5, 
+    "Obstruction/Static@depth": 3.0, 
+    "Obstruction/Static@width": 2.0
+  }, 
+  "gaia/special_treasure_food_crate": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 1.75, 
+    "Obstruction/Static@width": 1.75
+  }, 
+  "gaia/special_treasure_food_jars": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "gaia/special_treasure_food_persian_big": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 8.0, 
+    "Obstruction/Static@width": 8.0
+  }, 
+  "gaia/special_treasure_food_persian_small": {
+    "Footprint/Square@depth": 6.0, 
+    "Footprint/Square@width": 6.0, 
+    "Obstruction/Static@depth": 5.0, 
+    "Obstruction/Static@width": 5.0
+  }, 
+  "gaia/special_treasure_golden_fleece": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/special_treasure_metal": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 1.5, 
+    "Obstruction/Static@width": 1.5
+  }, 
+  "gaia/special_treasure_metal_persian_bigl": {
+    "Footprint/Square@depth": 8.0, 
+    "Footprint/Square@width": 8.0, 
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/special_treasure_metal_persian_small": {
+    "Footprint/Square@depth": 3.5, 
+    "Footprint/Square@width": 5.5, 
+    "Obstruction/Static@depth": 3.0, 
+    "Obstruction/Static@width": 5.0
+  }, 
+  "gaia/special_treasure_pegasus": {
+    "Obstruction/Static@depth": 7.0, 
+    "Obstruction/Static@width": 7.0
+  }, 
+  "gaia/special_treasure_standing_stone": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 2.0, 
+    "Obstruction/Static@width": 2.0
+  }, 
+  "gaia/special_treasure_stone": {
+    "Footprint/Square@depth": 2.0, 
+    "Footprint/Square@width": 2.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 6.5
+  }, 
+  "gaia/special_treasure_wood": {
+    "Footprint/Square@depth": 7.0, 
+    "Footprint/Square@width": 4.0, 
+    "Obstruction/Static@depth": 6.5, 
+    "Obstruction/Static@width": 3.5
+  }
+};

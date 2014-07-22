@@ -262,7 +262,7 @@
               <div>
                 <label for="cvsMap" style="vertical-align: top">Map</label>
                 <div style="float: left; margin-left: 66px; margin-top: -12px;">
-                  <canvas id="cvsMap"></canvas>
+                  <canvas id="cvsMap" width="512" height="512"></canvas>
                 </div>
                 <div style="float: left">
                   <div style="margin-left: 8px; margin-top: -32px;">
@@ -270,13 +270,23 @@
                     <textarea id="txtMAP" maxlength="1000" rows="8" style=" width: 198px; font-size: 10px;"></textarea>       
                   </div>
                   <div style="margin-left: 8px; margin-top: 4px">
+                    <label for="txtTerrain" style="text-align: left;">Terrain</label>
+                    <span id="txtTerrain">[]</span>
+                  </div>
+                  <div style="margin-left: 8px; margin-top: 4px">
                     <label for="chkTopo" style="text-align: left;">Render</label>
-                    <input type="checkbox" id="chkTopo"  checked="checked"  /><span class="chklabel">Topo</span><br />
-                    <input type="checkbox" id="chkPass"  checked="checked"  /><span class="chklabel">Passability</span><br />
-                    <input type="checkbox" id="chkGrid"  checked="checked"  /><span class="chklabel">Grid</span><br />
-                    <input type="checkbox" id="chkEnts"  checked="checked"  /><span class="chklabel">Entities</span><br />
-                    <input type="checkbox" id="chkClus"  checked="checked"  /><span class="chklabel">Cluster</span><br />
-                    <input type="checkbox" id="chkPath"  checked="checked"  /><span class="chklabel">Paths</span><br />
+                    <input type="checkbox" id="chkTopo"  checked="checked"><span class="chklabel">Topo</span></input>
+                    <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input><br />
+                    <input type="checkbox" id="chkGrid"  checked="checked"><span class="chklabel">Grid</span></input>
+                    <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input><br />
+                    <input type="checkbox" id="chkClus"  checked="checked"><span class="chklabel">Cluster</span></input><br />
+
+                    <span class="chklabel" style="padding-left: 8px">Regions:</span>
+                    <input type="checkbox" id="chkRegw"  checked="checked"><span class="chklabel">Water</span></input>
+                    <input type="checkbox" id="chkRegl"  checked="checked"><span class="chklabel">Land</span></input><br />
+
+                    <input type="checkbox" id="chkPath"  checked="checked"><span class="chklabel">Paths</span></input><br />
+                    <input type="checkbox" id="chkAnim"  checked="checked"><span class="chklabel">Anim</span></input><br />
                   </div>
                   <div style="margin-left: 8px">
                     <label for="slcClus" style="text-align: left;">Actions</label>
@@ -299,8 +309,20 @@
                         <option>32</option>
                         <option>64</option>
                       </select>
-                      <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.render();">Cluster</button>     
-                    </div>   
+                    <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.render();">Cluster</button>     
+                  </div>   
+                  <div style="margin-left: 8px">
+                    <label for="slcPathStress" style="text-align: left;">Pathfinder</label>
+                      <select id="slcPathStress">
+                        <option >1</option>
+                        <option>10</option>
+                        <option selected>50</option>
+                        <option>100</option>
+                        <option>500</option>
+                        <option>1000</option>
+                      </select>
+                    <button id="btnPathStress" onclick="H.Maps.stressPath(); disabled="disabled">Stress</button>     
+                  </div>                     
                   <br />
                 </div>
               </div>
@@ -310,10 +332,12 @@
             <canvas id="cvsTopo" class="minimap" title="Topo"></canvas>
             <canvas id="cvsPass" class="minimap" title="Passability"></canvas>
             <img    id="imgPass" class="minimap" title="passability.png"  />
+            <canvas id="cvsRegw" class="minimap" title="Water Regions"></canvas>
+            <canvas id="cvsRegl" class="minimap" title="Land Regions"></canvas>
             <canvas id="cvsGrid" class="minimap" title="Grid" style="display:none"></canvas>
             <canvas id="cvsEnts" class="minimap" title="Entities"></canvas>
-            <canvas id="cvsClus" class="minimap" title="Cluster"></canvas>
-            <canvas id="cvsPath" class="minimap" title="Pathfinder"></canvas>
+            <canvas id="cvsClus" class="minimap" title="Cluster" style="display:none"></canvas>
+            <canvas id="cvsPath" class="minimap" title="Pathfinder" style="display:none"></canvas>
         </div>
         <div class="trenner"></div>
 
@@ -451,7 +475,11 @@
       <script type="text/javascript" src="../htn-tree-methods.js"></script>
       <script type="text/javascript" src="../htn-tree-operators.js"></script>
       <script type="text/javascript" src="../htn-planner.js"></script>
+      <script type="text/javascript" src="../grids.js"></script>
       <script type="text/javascript" src="../tools.js"></script>
+      <script type="text/javascript" src="data/structures-json.export"></script>
+      <script type="text/javascript" src="data/gaia-json.export"></script>
+      <script type="text/javascript" src="data/other-json.export"></script>
       <script type="text/javascript" src="data/store-json.export"></script>
       <script type="text/javascript" src="data/techs-json.export"></script>
       <script type="text/javascript" src="htn-eco-examples.js"></script>

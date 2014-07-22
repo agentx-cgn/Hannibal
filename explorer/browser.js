@@ -98,7 +98,7 @@ HANNIBAL = (function(H){
         H.Maps.readMapList(function(html){
           $("slcMaps").innerHTML = html;  
           select($("slcMaps"), H.Maps.default);
-          console.log($("slcMaps").value, H.Maps.default);
+          // console.log($("slcMaps").value, H.Maps.default);  
           // H.Maps.load(H.Maps.host() + H.Maps.path() + H.Maps.default);
           H.Maps.load(H.Maps.default);
         });
@@ -106,13 +106,14 @@ HANNIBAL = (function(H){
           // H.Maps.load(H.Maps.host() + H.Maps.path() + $("slcMaps").value);
           H.Maps.load($("slcMaps").value);
         }
-        "Topo Ents Grid Clus Path Pass".split(" ").forEach(function(token){
+        "Topo Ents Grid Clus Path Pass Regw Regl".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
             H.Maps.clear();
             H.Maps.render();
           }
         });
         $("cvsMap").onclick = H.Maps.onclick;
+        $("cvsMap").onmousemove = H.Maps.onmousemove;
 
         $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
         $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};

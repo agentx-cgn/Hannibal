@@ -166,8 +166,17 @@ div.container {
   float: left;
 }
 
-.chklabel {
+.chklabel, .chklabelindent  {
   font-size: 10px;  
+}
+
+#chkAnim{
+  margin-left: 16px;
+}
+
+#txtTerrain {
+  font-size: 10px;  
+  padding-left: 4px;
 }
 
 /*div#contMenu {
