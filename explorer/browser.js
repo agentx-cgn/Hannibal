@@ -106,7 +106,7 @@ HANNIBAL = (function(H){
           // H.Maps.load(H.Maps.host() + H.Maps.path() + $("slcMaps").value);
           H.Maps.load($("slcMaps").value);
         }
-        "Topo Ents Grid Clus Path Pass Regw Regl".split(" ").forEach(function(token){
+        "Topo Ents Grid Clus Path Pass Regw Regl Cost".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
             H.Maps.clear();
             H.Maps.render();

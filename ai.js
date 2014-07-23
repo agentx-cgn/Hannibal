@@ -298,12 +298,6 @@ HANNIBAL = (function(H){
     return path.reverse();
   }
 
-  function getHeap() {
-    return new BinaryHeap(function(node) {
-      return node.f;
-    });
-  }
-
   /**
   * A graph memory structure
   * @param {Array} gridIn 2D array of input weights
@@ -492,6 +486,13 @@ HANNIBAL = (function(H){
       this.scoreFunction = scoreFunction;
   }
 
+
+  function getHeap() {
+    return new BinaryHeap(function(node) {
+      return node.f;
+    });
+  }
+  
   BinaryHeap.prototype = {
     constructor: BinaryHeap,
     push: function(element) {

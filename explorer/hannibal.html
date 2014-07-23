@@ -277,16 +277,17 @@
                     <label for="chkTopo" style="text-align: left;">Render</label>
                     <input type="checkbox" id="chkTopo"  checked="checked"><span class="chklabel">Topo</span></input>
                     <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input><br />
-                    <input type="checkbox" id="chkGrid"  checked="checked"><span class="chklabel">Grid</span></input>
+                    <input type="checkbox" id="chkGrid"  checked="false"><span class="chklabel">Grid</span></input>
+                    <input type="checkbox" id="chkCost"  checked="false"><span class="chklabel">Cost</span></input>
                     <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input><br />
                     <input type="checkbox" id="chkClus"  checked="checked"><span class="chklabel">Cluster</span></input><br />
 
                     <span class="chklabel" style="padding-left: 8px">Regions:</span>
-                    <input type="checkbox" id="chkRegw"  checked="checked"><span class="chklabel">Water</span></input>
-                    <input type="checkbox" id="chkRegl"  checked="checked"><span class="chklabel">Land</span></input><br />
+                    <input type="checkbox" id="chkRegw"  checked="false"><span class="chklabel">Water</span></input>
+                    <input type="checkbox" id="chkRegl"  checked="false"><span class="chklabel">Land</span></input><br />
 
-                    <input type="checkbox" id="chkPath"  checked="checked"><span class="chklabel">Paths</span></input><br />
-                    <input type="checkbox" id="chkAnim"  checked="checked"><span class="chklabel">Anim</span></input><br />
+                    <input type="checkbox" id="chkPath"  checked="false"><span class="chklabel">Paths</span></input><br />
+                    <input type="checkbox" id="chkAnim"  checked="false" disabled="disabled">Anim</input><br />
                   </div>
                   <div style="margin-left: 8px">
                     <label for="slcClus" style="text-align: left;">Actions</label>
@@ -328,16 +329,20 @@
               </div>
             <br />
           </div>
+          <canvas id="cvsGrid" class="minimap" title="Grid" style="display:none"></canvas><br />
           <label for="cvsHeights" style="vertical-align: top;">Layer</label>
-            <canvas id="cvsTopo" class="minimap" title="Topo"></canvas>
-            <canvas id="cvsPass" class="minimap" title="Passability"></canvas>
-            <img    id="imgPass" class="minimap" title="passability.png"  />
+            <canvas id="cvsTopo" class="minimap" title="Topo (pmp)"></canvas>
+            <img    id="imgPass" class="minimap" title="Passability (png)"  />
+            <canvas id="cvsTerr" class="minimap" title="Terrain Grid (pass[])"></canvas>
+            <canvas id="cvsPass" class="minimap" title="Terrain Passability (interpreted)"></canvas><br />
+          <label for="cvsHeights" style="vertical-align: top;">Analysis</label>
             <canvas id="cvsRegw" class="minimap" title="Water Regions"></canvas>
             <canvas id="cvsRegl" class="minimap" title="Land Regions"></canvas>
-            <canvas id="cvsGrid" class="minimap" title="Grid" style="display:none"></canvas>
+            <canvas id="cvsCost" class="minimap" title="Pathfinder Cost"></canvas><br />
+          <label for="cvsHeights" style="vertical-align: top;">Overlays</label>
             <canvas id="cvsEnts" class="minimap" title="Entities"></canvas>
-            <canvas id="cvsClus" class="minimap" title="Cluster" style="display:none"></canvas>
-            <canvas id="cvsPath" class="minimap" title="Pathfinder" style="display:none"></canvas>
+            <canvas id="cvsClus" class="minimap" title="Cluster" ></canvas>
+            <canvas id="cvsPath" class="minimap" title="Pathfinder" ></canvas>
         </div>
         <div class="trenner"></div>
 

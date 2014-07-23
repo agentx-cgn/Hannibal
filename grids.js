@@ -99,6 +99,9 @@ HANNIBAL = (function(H){
 
       center: center,
       register: function(name, grid){grids[name] = grid;},
+      externalInit: function(w, h, c){
+        width = w; height = h, cellsize = c;
+      },
       init: function(){
 
         var i;
@@ -375,10 +378,10 @@ HANNIBAL = (function(H){
           new Uint8Array(this.data.buffer.slice())
       );
     },
-    render: function (canvas, alpha){
+    render: function (canvas, alpha, nozero=true){
 
       var
-        i, p, c, image, data, target, source,
+        i, p, c, image, target, source,
         len = width * width,
         ctx = canvas.getContext("2d");
 
@@ -388,13 +391,104 @@ HANNIBAL = (function(H){
       target = image.data;
       source = this.data;
 
-      for (i=0; i>len; i++){
-        p = i * 4; c = source[i];
-        data[p] = data[p + 1] = data[p + 2] = c;
-        data[p + 3] = alpha;
+      for (i=0; i<len; i++){
+        c = source[i];
+        p = i * 4; 
+        target[p] = target[p + 1] = target[p + 2] = c;
+        target[p + 3] = nozero && !c ? 0 : c;
       }
       
-      ctx.putImageData(target, 0, 0);
+      ctx.putImageData(image, 0, 0);
+
+    },
+    blur: function (radius){
+
+      // http://blog.ivank.net/fastest-gaussian-blur.html
+
+      var i, temp = [], target = new H.Grid(width, width, 8);
+      boxBlur_4(this.data, temp, width, height, radius);
+      target.data = new Uint8ClampedArray(temp);
+      return target;
+
+      // source channel, target channel, width, height, radius
+      function gaussBlur_4 (scl, tcl, w, h, r) {
+          var bxs = boxesForGauss(r, 3);
+          boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2);
+          boxBlur_4 (tcl, scl, w, h, (bxs[1]-1)/2);
+          boxBlur_4 (scl, tcl, w, h, (bxs[2]-1)/2);
+      }
+      function boxBlur_4 (scl, tcl, w, h, r) {
+          for(var i=0; i<scl.length; i++) {
+            tcl[i] = scl[i];
+          }
+          boxBlurH_4(tcl, scl, w, h, r);
+          boxBlurT_4(scl, tcl, w, h, r);
+      }
+      function boxBlurH_4 (scl, tcl, w, h, r) {
+
+          var i, j, ti, li, ri, fv, lv, val, iarr = 1 / (r+r+1);
+
+          for (i=0; i<h; i++) {
+
+              ti = i*w; li = ti; ri = ti+r;
+              fv = scl[ti]; lv = scl[ti+w-1]; val = (r+1)*fv;
+
+              for(j=0; j<r; j++) {
+                val += scl[ti+j];
+              }
+              for(j=0  ; j<=r ; j++) { 
+                val += scl[ri++] - fv;   
+                tcl[ti++] = Math.round(val*iarr); 
+              }
+              for(j=r+1; j<w-r; j++) { 
+                val += scl[ri++] - scl[li++];   
+                tcl[ti++] = Math.round(val*iarr); 
+              }
+              for(j=w-r; j<w  ; j++) { 
+                val += lv        - scl[li++];   
+                tcl[ti++] = Math.round(val*iarr); 
+              }
+          }
+      }
+      function boxBlurT_4 (scl, tcl, w, h, r) {
+
+          var i, j, ti, li, ri, fv, lv, val, iarr = 1 / (r+r+1);
+
+          for(i=0; i<w; i++) {
+
+              ti = i; li = ti; ri = ti+r*w;
+              fv = scl[ti]; lv = scl[ti+w*(h-1)]; val = (r+1)*fv;
+
+              for(j=0; j<r; j++) {
+                val += scl[ti+j*w];
+              }
+              for(j=0  ; j<=r ; j++) { 
+                val += scl[ri] - fv     ;  
+                tcl[ti] = Math.round(val*iarr);  ri+=w; ti+=w; 
+              }
+              for(j=r+1; j<h-r; j++) { 
+                val += scl[ri] - scl[li];  
+                tcl[ti] = Math.round(val*iarr);  li+=w; ri+=w; ti+=w; 
+              }
+              for(j=h-r; j<h  ; j++) { 
+                val += lv      - scl[li];  
+                tcl[ti] = Math.round(val*iarr);  li+=w; ti+=w; 
+              }
+          }
+
+      }
+      function boxesForGauss(sigma, n){  // standard deviation, number of boxes
+          var wIdeal = Math.sqrt((12*sigma*sigma/n)+1);  // Ideal averaging filter width 
+          var wl = Math.floor(wIdeal);  if(!wl%2) wl--;
+          var wu = wl+2;
+          var mIdeal = (12*sigma*sigma - n*wl*wl - 4*n*wl - 3*n)/(-4*wl - 4);
+          var m = Math.round(mIdeal);
+          // var sigmaActual = Math.sqrt( (m*wl*wl + (n-m)*wu*wu - n)/12 );
+          var sizes = [];  for(var i=0; i<n; i++) {
+            sizes.push(i<m?wl:wu);
+          }
+          return sizes;
+      }
 
     },
     searchSpiral: function (xs, ys, expression){
