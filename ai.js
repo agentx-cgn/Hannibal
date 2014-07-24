@@ -304,80 +304,69 @@ HANNIBAL = (function(H){
   * @param {Object} [options]
   * @param {bool} [options.diagonal] Specifies whether diagonal moves are allowed
   */
-  H.AI.Graph = function Graph(grid, options) {
-
-    var x, y, row, lenRow, node,
-        lenGrid = grid.length;
+  H.AI.Graph = function Graph(data, options) {
 
     options = options || {};
+    
+    this.diagonal = true; // !!options.diagonal; 
+    this.size  = data.length; // only quadratic grids
+    this.data  = data;
     this.nodes = [];
-    this.diagonal = !!options.diagonal;
-    this.grid = [];
+    this.grid  = [];
 
-    for (x = 0; x < lenGrid; x++) {
-      this.grid[x] = [];
-      row = grid[x];
-      lenRow = row.length;
-      for (y = 0; y < lenRow; y++) {
-        node = new GridNode(x, y, row[y]);
-        this.grid[x][y] = node;
-        this.nodes.push(node);
-      }
-    }
+    this.init();
+    this.clear();
 
-  }
+  };
 
   H.AI.Graph.prototype = {
     constructor: H.AI.Graph,
+    init: function() {
+      var node, row, y, x = this.size;
+      while (x--) {
+        this.grid[x] = [];
+        row = this.data[x];
+        y = this.size; 
+        while(y--) {
+          node = new GridNode(x, y, row[y]);
+          this.grid[x][y] = node;
+          this.nodes.push(node);
+        }
+      }
+    },
+    clear: function() {
+      var i = this.nodes.length, node;
+      while (i--) {
+        node = this.nodes[i];
+        node.f = 0;
+        node.g = 0;
+        node.h = 0;
+        node.visited = false;
+        node.closed = false;
+        node.parent = null;
+      }      
+    },
     neighbors: function(node) {
-      var ret = [],
-          x = node.x,
-          y = node.y,
-          grid = this.grid;
 
-      // West
-      if(grid[x-1] && grid[x-1][y]) {
-          ret.push(grid[x-1][y]);
-      }
+      var 
+        ret = [],
+        x = node.x,
+        y = node.y,
+        Z = this.size,
+        grid = this.grid;
 
-      // East
-      if(grid[x+1] && grid[x+1][y]) {
-          ret.push(grid[x+1][y]);
-      }
+      if (x - 1 >= 0) {ret.push(grid[x-1][y]);} // West
+      if (x + 1 <= Z) {ret.push(grid[x+1][y]);} // East
+      if (y - 1 >= 0) {ret.push(grid[x][y-1]);} // South
+      if (y + 1 <= Z) {ret.push(grid[x][y+1]);} // North
 
-      // South
-      if(grid[x] && grid[x][y-1]) {
-          ret.push(grid[x][y-1]);
-      }
-
-      // North
-      if(grid[x] && grid[x][y+1]) {
-          ret.push(grid[x][y+1]);
-      }
-
-      if (this.diagonal) {
-          // Southwest
-          if(grid[x-1] && grid[x-1][y-1]) {
-              ret.push(grid[x-1][y-1]);
-          }
-
-          // Southeast
-          if(grid[x+1] && grid[x+1][y-1]) {
-              ret.push(grid[x+1][y-1]);
-          }
-
-          // Northwest
-          if(grid[x-1] && grid[x-1][y+1]) {
-              ret.push(grid[x-1][y+1]);
-          }
-
-          // Northeast
-          if(grid[x+1] && grid[x+1][y+1]) {
-              ret.push(grid[x+1][y+1]);
-          }
-      }
+      if (y - 1 >= 0 && x - 1 >= 0) {ret.push(grid[x-1][y-1]);} // 
+      if (y + 1 <= Z && x - 1 >= 0) {ret.push(grid[x+1][y-1]);} // 
+      if (y - 1 >= 0 && x + 1 <= Z) {ret.push(grid[x-1][y+1]);} // 
+      if (y + 1 <= Z && x + 1 <= Z) {ret.push(grid[x+1][y+1]);} // 
 
       return ret;
+
     },
     toString: function() {
       var graphString = [],
@@ -396,101 +385,31 @@ HANNIBAL = (function(H){
 
   };
 
-
-  // Graph.prototype.neighbors = function(node) {
-  //     var ret = [],
-  //         x = node.x,
-  //         y = node.y,
-  //         grid = this.grid;
-
-  //     // West
-  //     if(grid[x-1] && grid[x-1][y]) {
-  //         ret.push(grid[x-1][y]);
-  //     }
-
-  //     // East
-  //     if(grid[x+1] && grid[x+1][y]) {
-  //         ret.push(grid[x+1][y]);
-  //     }
-
-  //     // South
-  //     if(grid[x] && grid[x][y-1]) {
-  //         ret.push(grid[x][y-1]);
-  //     }
-
-  //     // North
-  //     if(grid[x] && grid[x][y+1]) {
-  //         ret.push(grid[x][y+1]);
-  //     }
-
-  //     if (this.diagonal) {
-  //         // Southwest
-  //         if(grid[x-1] && grid[x-1][y-1]) {
-  //             ret.push(grid[x-1][y-1]);
-  //         }
-
-  //         // Southeast
-  //         if(grid[x+1] && grid[x+1][y-1]) {
-  //             ret.push(grid[x+1][y-1]);
-  //         }
-
-  //         // Northwest
-  //         if(grid[x-1] && grid[x-1][y+1]) {
-  //             ret.push(grid[x-1][y+1]);
-  //         }
-
-  //         // Northeast
-  //         if(grid[x+1] && grid[x+1][y+1]) {
-  //             ret.push(grid[x+1][y+1]);
-  //         }
-  //     }
-
-  //     return ret;
-  // };
-
-  // Graph.prototype.toString = function() {
-  //     var graphString = [],
-  //         nodes = this.grid, // when using grid
-  //         rowDebug, row, y, l;
-  //     for (var x = 0, len = nodes.length; x < len; x++) {
-  //         rowDebug = [];
-  //         row = nodes[x];
-  //         for (y = 0, l = row.length; y < l; y++) {
-  //             rowDebug.push(row[y].weight);
-  //         }
-  //         graphString.push(rowDebug.join(" "));
-  //     }
-  //     return graphString.join("\n");
-  // };
-
   function GridNode(x, y, weight) {
-      this.x = x;
-      this.y = y;
-      this.weight = weight;
+    this.x = x;
+    this.y = y;
+    this.weight = weight;
   }
-
-  GridNode.prototype.toString = function() {
-      return "[" + this.x + " " + this.y + "]";
+  GridNode.prototype.toString = function() { return "[" + this.x + " " + this.y + "]";};
+  GridNode.prototype.getCost = function(neighbor) { 
+    return (this.x !== neighbor.x && this.y !== neighbor.y ? 
+      this.weight * 1.4142135623730951 : 
+      // this.weight * 1.5132135623730951 : 
+      this.weight
+    );
   };
-
-  GridNode.prototype.getCost = function() {
-      return this.weight;
-  };
-
-  GridNode.prototype.isWall = function() {
-      return this.weight === 0;
-  };
-
-  function BinaryHeap(scoreFunction){
-      this.content = [];
-      this.scoreFunction = scoreFunction;
-  }
+  GridNode.prototype.isWall = function() { return this.weight === 0;};
 
 
   function getHeap() {
     return new BinaryHeap(function(node) {
       return node.f;
     });
+  }
+
+  function BinaryHeap(scoreFunction){
+    this.content = [];
+    this.scoreFunction = scoreFunction;
   }
   
   BinaryHeap.prototype = {
@@ -613,25 +532,32 @@ HANNIBAL = (function(H){
       },
       diagonal: function(pos0, pos1) {
         var D = 1;
-        var D2 = Math.sqrt(2);
+        var D2 = 1.4142135623730951; //Math.sqrt(2);
         var d1 = Math.abs(pos1.x - pos0.x);
         var d2 = Math.abs(pos1.y - pos0.y);
         return (D * (d1 + d2)) + ((D2 - (2 * D)) * Math.min(d1, d2));
+      },
+      euclidian: function(pos0, pos1) {
+        var D = 1, 
+            dx = Math.abs(pos0.x - pos1.x),
+            dy = Math.abs(pos0.y - pos1.y);
+        return D * Math.sqrt(dx * dx + dy * dy);
       }
     },
-    init: function(graph) {
-      var i, node, len;
-      this.graph = graph;
-      for (i = 0, len = graph.nodes.length; i < len; ++i) {
-        node = graph.nodes[i];
-        node.f = 0;
-        node.g = 0;
-        node.h = 0;
-        node.visited = false;
-        node.closed = false;
-        node.parent = null;
-      }
-    },
+    // ## moved to heap ##
+    // init: function(graph) {
+    //   var i, node, len;
+    //   this.graph = graph;
+    //   for (i = 0, len = graph.nodes.length; i < len; ++i) {
+    //     node = graph.nodes[i];
+    //     node.f = 0;
+    //     node.g = 0;
+    //     node.h = 0;
+    //     node.visited = false;
+    //     node.closed = false;
+    //     node.parent = null;
+    //   }
+    // },
 
     /**
     * Perform an A* Search on a graph given a start and end node.
@@ -644,20 +570,21 @@ HANNIBAL = (function(H){
     * @param {Function} [options.heuristic] Heuristic function (see
     *          astar.heuristics).
     */
-    search: function(start, end, options) {
+    search: function(graph, start, end, options) {
 
       // H.AI.AStar.init(graph);
 
       options = options || {};
 
       var 
+        // graph = this.graph,
         heuristic = options.heuristic || H.AI.AStar.heuristics.manhattan,
         openHeap = getHeap(),
         closest = options.closest || false,
         closestNode = start, // set the start node to be the closest if required
-        graph = this.graph,
         currentNode, neighbors, neighbor, 
-        i, il, gScore, beenVisited;
+        i, il, gScore, beenVisited,
+        tested = [];
         
       start.h = heuristic(start, end);
 
@@ -668,9 +595,12 @@ HANNIBAL = (function(H){
         // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
         currentNode = openHeap.pop();
 
+        // debug
+        tested.push(currentNode);
+
         // End case -- result has been found, return the traced path.
         if(currentNode === end) {
-          return pathTo(currentNode);
+          return {path: pathTo(currentNode), nodes: tested};
         }
 
         // Normal case -- move currentNode from open to closed, process each of its neighbors.
@@ -684,11 +614,13 @@ HANNIBAL = (function(H){
           neighbor = neighbors[i];
 
           // i fnot a valid node to process, skip to next neighbor.
-          if (neighbor.closed || neighbor.isWall()) {continue;}
+          // if (neighbor.closed || neighbor.isWall()) {continue;}
+          if (neighbor.closed || neighbor.weight === 0) {continue;}
 
           // The g score is the shortest distance from start to current node.
           // We need to check if the path we have arrived at this neighbor is the shortest one we have seen yet.
           gScore = currentNode.g + neighbor.getCost(currentNode);
+
           beenVisited = neighbor.visited;
 
           if (!beenVisited || gScore < neighbor.g) {
@@ -724,11 +656,14 @@ HANNIBAL = (function(H){
       }
 
       if (closest) {
-        return pathTo(closestNode);
+        // return pathTo(closestNode);
+        return {path: pathTo(closestNode), nodes: tested};
+
       }
 
       // No result was found - empty array signifies failure to find path.
-      return [];
+      // return [];
+      return {path: [], nodes: tested};  
 
     }
 

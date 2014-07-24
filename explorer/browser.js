@@ -106,14 +106,21 @@ HANNIBAL = (function(H){
           // H.Maps.load(H.Maps.host() + H.Maps.path() + $("slcMaps").value);
           H.Maps.load($("slcMaps").value);
         }
+        "chkPathCost chkPathMan chkPathDia chkPathEuc chkPathDebug".split(" ").forEach(function(token){
+          $(token).onchange = function(){
+            H.Maps.runPath();
+          }
+        });
+        $("chkPathDyna").onchange = H.Maps.toggleDyna;
+
         "Topo Ents Grid Clus Path Pass Regw Regl Cost".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
             H.Maps.clear();
             H.Maps.render();
           }
         });
-        $("cvsMap").onclick = H.Maps.onclick;
-        $("cvsMap").onmousemove = H.Maps.onmousemove;
+        $("cvsMap").onclick = $("cvsDyna").onclick = H.Maps.onclick;
+        $("cvsMap").onmousemove = $("cvsDyna").onmousemove = H.Maps.onmousemove;
 
         $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
         $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};

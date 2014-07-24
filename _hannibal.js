@@ -225,10 +225,10 @@ var HANNIBAL = (function() {
     this.civilisations  = H.Config.data.civilisation;  // all ['athen', ...]
     
     // init map, grids and related services
-    H.Map.width    = sharedScript.passabilityMap.width;
-    H.Map.height   = sharedScript.passabilityMap.height;
-    H.Map.circular = sharedScript.circularMap;
-    H.Map.cellsize = gs.cellSize;
+    H.Map.width         = sharedScript.passabilityMap.width;
+    H.Map.height        = sharedScript.passabilityMap.height;
+    H.Map.circular      = sharedScript.circularMap;
+    H.Map.cellsize      = gameState.cellSize;
 
     H.Numerus.init();                       // launches the stats extension
     H.Grids.init();                         // inits advanced map analysis
@@ -436,11 +436,12 @@ var HANNIBAL = (function() {
 
     // http://trac.wildfiregames.com/wiki/AIEngineAPI
 
-    var t0 = Date.now(),
-        self = this, 
-        msgTiming = "",
-        secs = (H.GameState.timeElapsed/1000).toFixed(1),
-        map = TESTERDATA ? TESTERDATA.map : "unkown"
+    var 
+      t0 = Date.now(),
+      self = this, 
+      msgTiming = "",
+      secs = (H.GameState.timeElapsed/1000).toFixed(1),
+      map = TESTERDATA ? TESTERDATA.map : "unkown";
 
     // logObject(sharedScript, "sharedScript");
 

@@ -85,6 +85,8 @@ div.mgn8 {margin: 8px; padding:0px;}
 
 #menu.bar {
   display: block;
+  z-index: 100;
+  position: relative;  
 }
 
 div.container {
@@ -144,10 +146,23 @@ div.container {
 
 /*Maps*/
 
+#cntMap {
+  float: left; 
+  margin-left: 66px; 
+  margin-top: -12px;
+  position: relative;
+  width: 512px;
+  height: 512px;
+}
 #cvsMap {
-  /*background: rgba(165, 197, 176, 1);*/
   background: rgba(128, 128, 128, 1);
-  /*border: 1px solid #fff;*/
+  z-index: 1;
+  position: absolute;
+}
+#cvsDyna {
+  background: rgba(0, 0, 0, 0);
+  z-index: 2;
+  position: absolute;
 }
 
 #slcMaps {

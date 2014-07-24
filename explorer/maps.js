@@ -15,8 +15,9 @@
 HANNIBAL = (function(H){
 
 
-  var size = 512, map, msgs, graph, terr, 
+  var size = 512, map, msgs, terr, isRendering = false, 
       cvsMap,  ctxMap,
+      cvsDyna, ctxDyna,
       cvsTopo, ctxTopo,
       cvsClus, ctxClus,
       cvsPath, ctxPath,
@@ -28,7 +29,7 @@ HANNIBAL = (function(H){
       cvsCost, ctxCost,
       cvsTemp, ctxTemp,
       cvsTerr, ctxTerr,
-      grdTerr, grdCost, 
+      grdTerr, grdCost, grdRegw, grdRegl,
       maps = [
         "Arcadia%2002.xml",
         "Azure%20Coast.xml",
@@ -60,6 +61,20 @@ HANNIBAL = (function(H){
       } catch(e){console.log("msg", e);}
     }
   }
+
+  function findPosXY(obj) {
+    var curleft = 0, curtop = 0;
+    if (obj.offsetParent) {
+      do {
+        curleft += obj.offsetLeft;
+        curtop  += obj.offsetTop;
+      } while ((obj = obj.offsetParent));
+      // return { x: curleft, y: curtop };
+      return [curleft, curtop];
+    }
+    return undefined;
+  }
+
 
   H.Maps = {
     default: "Arcadia%2002.xml",
@@ -109,6 +124,65 @@ HANNIBAL = (function(H){
         xhr.send();  
       }
     },
+    onmousemove: function(e){
+
+      if (!map){return;}
+
+      var x, y, t, cost, terrain, width = map.size -1, posCanvas = findPosXY(this);
+
+      x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - this.offsetLeft;
+      y = e.clientY + document.body.scrollTop  + document.documentElement.scrollTop  - this.offsetTop;
+
+      x = e.clientX - posCanvas[0];
+      y = e.clientY - posCanvas[1];
+
+      map.mouse.x  = x;
+      map.mouse.y  = y;
+      map.mouse.mx = ~~(x  / size * width);
+      map.mouse.my = ~~(y  / size * width);
+      map.mouse.mi = map.mouse.my * width + map.mouse.mx;
+      map.mouse.rg = "l" + grdRegl.data[map.mouse.mi] + "w" + grdRegw.data[map.mouse.mi];
+
+      if ($("chkPathDyna").checked && !isRendering){
+        setTimeout(function(){
+          isRendering = true;
+          map.pos0 = [map.mouse.mx, map.mouse.my, map.mouse.rg];
+          H.Maps.runPath();
+        }, 16);
+      }
+
+      if (map.graphNull){
+        cost = map.graphCost.data[map.mouse.mx][map.mouse.my];
+        t = grdTerr.data[map.mouse.mi];
+        terrain = (
+          t ===   0 ? "forbidden" : 
+          t ===   8 ? "land" : 
+          t ===  16 ? "shallow" : 
+          t ===  32 ? "deep" : 
+          t ===  64 ? "steep" : 
+          t === 255 ? "unknown" : 
+            "wtf"
+        );
+        terr.innerHTML = fmt("%s, %s, %s: %s, c: %s, %s", map.mouse.mx, map.mouse.my, t, terrain, cost, map.mouse.rg);
+      } else {
+        terr.innerHTML = fmt("[%s, %s] terrain unavailable", map.mouse.mx, map.mouse.my);
+      }
+
+    },
+    onclick: function( /* e */ ){
+
+      if (map.pos0 === null){
+        map.pos0 = [map.mouse.mx, map.mouse.my, map.mouse.rg];
+        H.Maps.renderPath();
+        H.Maps.render();
+
+      } else {
+        map.pos1 = map.pos0;
+        map.pos0 = [map.mouse.mx, map.mouse.my, map.mouse.rg];
+        H.Maps.runPath();
+      }
+
+    },
     load: function(xml){
 
       var url = H.Maps.host() + H.Maps.path() + xml;
@@ -133,14 +207,22 @@ HANNIBAL = (function(H){
         pos0: null,
         pos1: null,
         mouse: {x: null, y: null},
-        graph: null,
-        path: [],
+        graphCost: null,
+        graphNull: null,
+        result: null,
+        nodes: [],
+        path:  [],
+        regsWater: 0,
+        regsLand: 0,
       };
 
       msg(""); msg("map: " + xml);
 
-      cvsMap = $("cvsMap"); ctxMap = cvsMap.getContext("2d"); //ctxMap.mozImageSmoothingEnabled = false;
-      cvsMap.width = size; cvsMap.height = size;
+      cvsMap = $("cvsMap"); ctxMap = cvsMap.getContext("2d"); 
+      cvsMap.width = cvsMap.height = size;
+
+      cvsDyna = $("cvsDyna"); ctxDyna = cvsDyna.getContext("2d"); 
+      cvsDyna.width = cvsDyna.height = size;
 
       cvsTopo = $("cvsTopo"); ctxTopo = cvsTopo.getContext("2d");
       cvsEnts = $("cvsEnts"); ctxEnts = cvsEnts.getContext("2d");
@@ -167,25 +249,25 @@ HANNIBAL = (function(H){
             map.version  = map.view.getUint32(4, true);
             map.datasize = map.view.getUint32(8, true);
             map.mapsize  = map.view.getUint32(12, true);
-            map.length = (map.mapsize *16  +1) * (map.mapsize *16 +1);
-            map.factor = map.mapsize *16/128 * 512/size;
-            map.size = map.mapsize *16  +1;
+            map.length   = (map.mapsize *16  +1) * (map.mapsize *16 +1);
+            map.factor   = map.mapsize *16/128 * 512/size;
+            map.size     = map.mapsize *16  +1;
             msg("size: " + map.mapsize *16);
             H.Maps.loadPass(url, map.size -1, function(image){
               if (image){
-                grdTerr = new H.Grid(map.size -1, map.size -1, 8);
                 map.pass = image;
                 H.Grids.externalInit(map.size -1, map.size -1, 4);
                 H.Maps.initTerr();
                 H.Maps.initCost();
-                msg("terrain: good");
+                H.Maps.initRegions();
+                H.Maps.initGraph();
               } else {
                 map.pass = null;
                 $("chkPass").checked = false;
                 msg("terrain: failed");
               }
+              H.Maps.initMaps();
               H.Maps.renderMaps();
-              if(map.pass){H.Maps.createGraph();}
               H.Maps.render();
               TIM.step("MAPS.load.out", xml);
             });
@@ -200,69 +282,9 @@ HANNIBAL = (function(H){
       xhr.send();      
 
     },
-    onmousemove: function(e){
-
-      if (!map){return;}
-
-      var x, y, t, terrain, width = map.size -1;
-
-      x = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft - this.offsetLeft;
-      y = e.clientY + document.body.scrollTop  + document.documentElement.scrollTop  - this.offsetTop;
-
-      map.mouse.x = x;
-      map.mouse.y = y;
-      map.mouse.mx = ~~(x  / size * width);
-      map.mouse.my = ~~(y  / size * width);
-      map.mouse.mi = map.mouse.my * width + map.mouse.mx;
-
-      if (map.graph){
-        t = grdTerr.data[map.mouse.mi];
-        terrain = (
-          t ===   0 ? "forbidden" : 
-          t ===   8 ? "land" : 
-          t ===  16 ? "shallow water" : 
-          t ===  32 ? "deep water" : 
-          t ===  64 ? "too steep" : 
-          t === 255 ? "unknown" : 
-            "wtf"
-        );
-        terr.innerHTML = fmt("[%s, %s] %s, %s", map.mouse.mx, map.mouse.my, t, terrain);
-      } else {
-        terr.innerHTML = fmt("[%s, %s] terrain unavailable", map.mouse.mx, map.mouse.my);
-      }
-
-    },
-    onclick: function( /* e */ ){
-
-      var t0, t1, t2, graph, start, end;
-
-      if (map.pos0 === null){
-        map.pos0 = [map.mouse.mx, map.mouse.my];
-      } else {
-        map.pos1 = map.pos0;
-        map.pos0 = [map.mouse.mx, map.mouse.my];
-      }
-
-      if (map.pos1) {
-        t0 = Date.now();
-        graph  = new H.AI.Graph(map.graph, { diagonal: true, closest: true });
-        start  = graph.grid[map.pos1[0]][map.pos1[1]];
-        end    = graph.grid[map.pos0[0]][map.pos0[1]];
-        H.AI.AStar.init(graph);
-        t1 = Date.now();
-        map.path = H.AI.AStar.search(start, end, { diagonal: true, closest: true });
-        t2 = Date.now();
-        msg(fmt("path: %s steps, %s/%s ms", map.path.length, t1-t0, t2-t1));
-      }
-
-      H.Maps.renderPath();
-      H.Maps.render();
-
-      // console.log("onclick", JSON.stringify(map.mouse));
-
-    },
-    clear: function(){
-      cvsMap.width = cvsMap.height = size;
+    clear: function(){cvsMap.width = cvsMap.height = size;},
+    initMaps: function(){
+      cvsPath.width = cvsPath.height = size;
     },
     renderMaps: function(){
       H.Maps.renderTopo();
@@ -279,10 +301,10 @@ HANNIBAL = (function(H){
       cvsMap.width = cvsMap.width;
       if ($("chkTopo").checked) {ctxMap.drawImage(cvsTopo, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkPass").checked) {ctxMap.drawImage(cvsPass, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
+      if ($("chkCost").checked) {ctxMap.drawImage(cvsCost, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkRegw").checked) {ctxMap.drawImage(cvsRegw, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkRegl").checked) {ctxMap.drawImage(cvsRegl, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkGrid").checked) {ctxMap.drawImage(cvsGrid, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
-      if ($("chkCost").checked) {ctxMap.drawImage(cvsCost, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkPath").checked) {ctxMap.drawImage(cvsPath, 0, 0, size, size, 0, 0, size, size);}
       if ($("chkEnts").checked) {ctxMap.drawImage(cvsEnts, 0, 0, size, size, 0, 0, size, size);}
       if ($("chkClus").checked) {ctxMap.drawImage(cvsClus, 0, 0, size, size, 0, 0, size, size);}
@@ -298,14 +320,16 @@ HANNIBAL = (function(H){
       // unrestricted:64
 
       var 
-        i, s, t, source,
+        i, s, t, source, t0 = Date.now(), 
         width = map.size -1,
         len = width * width * 4,
-        target = grdTerr.data,
-        vals = {};
+        target, vals = {};
 
       cvsTemp.width = cvsTemp.height = width;
       cvsTerr.width = cvsTerr.height = width;
+
+      grdTerr = new H.Grid(width, width, 8);
+      target = grdTerr.data;
       ctxTemp.drawImage(map.pass, 0, 0, width, width, 0, 0, width, width);
       source = ctxTemp.getImageData(0, 0, width, width);
 
@@ -324,71 +348,39 @@ HANNIBAL = (function(H){
       }
 
       grdTerr.render(cvsTerr);
+
+      msg(fmt("terrain: %s ms", Date.now() - t0));
       TIM.step("MAPS.terr", JSON.stringify(vals));
 
 
     },
-    createGraphX: function(){
-
-      var i, source, r, c, p, g, t0 = Date.now(),
-          width = map.size -1,
-          len = width * width * 4;
-
-      cvsTemp.width = cvsTemp.height = width;
-      ctxTemp.drawImage(map.pass, 0, 0, width, width, 0, 0, width, width);
-      source = ctxTemp.getImageData(0, 0, width, width);
-
-      map.graph = [];
-      for (i=0;i<width;i++) {map.graph[i]=[];}
-
-      for (i=0; i<len; i+=4) {
-        p = source.data[i];
-        g = (
-          !(p & 16)  &&  (p & 64) ?  2 : // light blue : land and water
-           (p &  32) &&  (p & 64) ?  0 : // dark red : land too steep
-           (p &  32) && !(p & 64) ?  4 : // dark blue : deep water
-           (p &  16)              ?  1 : // green : land only
-             4 // gap to deep water
-        );
-        c = ~~((i>>2)/width);
-        r = (i>>2) % width;
-        map.graph[r][c] = g;
-      }
-
-      msg(fmt("graph: %s ms", (Date.now() - t0)));
-      return graph;
-
-    },
-    fillRegion: function(source, target, type, index, color){
+    fillRegion: function(source, target, type, index, value){
 
       var 
-        i, idx, s, region, point, nextX, nextY, isRegion, // counter = 0,
+        i, idx, s, region, nextX, nextY, isRegion, // counter = 0,
         width  = target.width,
         y = ~~((index) / width),
         x = (index) % width,
-        stack  = [[x,y]],
-        tgt = target.data,     // 4 byte data
+        stack  = [x, y],
+        tgt = target.data,     // 1 byte data
         src = source.data,     // 1 byte data
         dx = [ 0, -1, +1,  0],
         dy = [-1,  0,  0, +1];
 
       while (stack.length) {
 
-        point = stack.pop(); 
-        x = point[0]; y = point[1];
+        y = stack.pop();
+        x = stack.pop();
 
-        idx = (y * width + x) << 2;
-        tgt[idx + 0] = color[0];
-        tgt[idx + 1] = color[1];
-        tgt[idx + 2] = color[2];
-        tgt[idx + 3] = color[3];
+        idx = (y * width + x);
+        tgt[idx] = value;
 
         for (i = 0; i < 4; i++) {
 
           nextX  = x + dx[i];
           nextY  = y + dy[i];
           idx    = (nextY * width + nextX);
-          region = tgt[idx << 2];
+          region = tgt[idx];
 
           if (!region && nextX >= 0 && nextY >= 0 && nextX < width && nextY < width) {
 
@@ -400,7 +392,10 @@ HANNIBAL = (function(H){
                 false
             );
 
-            if (isRegion){stack.push([nextX, nextY]);}
+            if (isRegion){
+              stack.push(nextX);
+              stack.push(nextY);
+            }
 
           }
         }
@@ -409,7 +404,7 @@ HANNIBAL = (function(H){
       // console.log("fillRegion", region, counter);
 
     },
-    createGraph: function(){
+    initGraph: function(){
 
       //   t ===   0 ? "forbidden" : 
       //   t ===   8 ? "land" : 
@@ -418,40 +413,48 @@ HANNIBAL = (function(H){
       //   t ===  64 ? "too steep" : 
       //   t === 255 ? "unknown" : 
 
-      var i, source, r, c, ct, tr, gh, t0 = Date.now(),
+      var i, r, c, tr, ghn, ghc, t0 = Date.now(),
           width = map.size -1,
-          len = width * width;
+          len = width * width,
+          maxCost = 4,
+          facCost = 255/maxCost,
+          graphNull = [],
+          graphCost = [];
 
-      map.graph = [];
-      for (i=0;i<width;i++) {map.graph[i]=[];}
+      for (i=0;i<width;i++) {graphNull[i]=[]; graphCost[i]=[];}
 
       for (i=0; i<len; i++) {
-        ct = ~~(grdCost.data[i] / 48) ;
+
         tr = grdTerr.data[i];
-        gh = (
-          // no forbidden, deep, steep, gaps else cost.max => 4 else 1
-          (tr === 0 || tr === 32 || tr === 64 || tr === 255) ? 0 : ct + 1
-        );
-        c = ~~(i/width);
-        r = i % width;
-        map.graph[r][c] = gh;
+
+        // no forbidden, deep, steep, gaps else cost.max => 4 else 1
+        ghn = (tr === 0 || tr === 32 || tr === 64 || tr === 255) ? 0 : 1;
+        ghc = (tr === 0 || tr === 32 || tr === 64 || tr === 255) ? 0 : ~~(grdCost.data[i] / facCost) + 1;
+
+        c = ~~(i/width); r = i % width;
+        graphNull[r][c] = ghn;
+        graphCost[r][c] = ghc;
+
       }
 
+      map.graphNull = new H.AI.Graph(graphNull);
+      map.graphCost = new H.AI.Graph(graphCost);
+
       msg(fmt("graph: %s ms", (Date.now() - t0)));
-      return graph;
 
     },
     initCost: function(){
+
       var 
-        t0 = Date.now(), t1, i, s,
+        t0 = Date.now(), t1, s,
         width = map.size -1,
-        len = width * width,
+        i = width * width,
         source = grdTerr.data,
         grdTemp = new H.Grid(width, width, 8);
 
       t1 = Date.now();
 
-      for (i=0; i<len; i++) {
+      while (i--) {
         s = source[i];
         // around shallow, deep, steep, gaps/unknown
         grdTemp.data[i] = (s === 16 || s === 32 || s === 64 || s === 255) ? 255 : 0;
@@ -466,7 +469,7 @@ HANNIBAL = (function(H){
     renderCost: function(){
 
       var 
-        t0 = Date.now(), i, idx, s, c, t,
+        i, idx, s, t, target, color, 
         width = map.size -1,
         len = width * width,
         source  = grdCost.data,
@@ -478,7 +481,7 @@ HANNIBAL = (function(H){
       for (i=0; i<len; i++) {
         s = source[i];
         t = terrain[i];
-        color = (t ===  8 || t === 16) && (s > 0) ? [s, 0, 0, 128] : [0, 0, 0, 0];
+        color = (t ===  8 || t === 16) && (s > 0) ? [128, 0, 0, H.scale(s, 0, 255, 32, 128)] : [0, 0, 0, 0];
         idx = i << 2;
         target.data[idx + 0] = color[0];
         target.data[idx + 1] = color[1];
@@ -489,105 +492,182 @@ HANNIBAL = (function(H){
       ctxCost.putImageData(target, 0, 0);
 
     },
-    renderRegw: function(){
-
-      //   t ===   0 ? "forbidden" : 
-      //   t ===   8 ? "land" : 
-      //   t ===  16 ? "shallow" : 
-      //   t ===  32 ? "deep water" : 
-      //   t ===  64 ? "too steep" : 
-      //   t === 255 ? "unknown" : 
+    initRegions: function(){
 
       var 
-        t0 = Date.now(), t1, i, s, target, color = 0, 
-        width = map.size -1, 
-        len = width * width;
+        t0 = Date.now(), s, target, 
+        colorsWater = 0, colorsLand = 0, 
+        width = map.size -1, i = width * width,
+        source = grdTerr.data;
+
+      grdRegw = new H.Grid(width, width, 8);
+      grdRegl = new H.Grid(width, width, 8);
+
+      // water
+      target = grdRegw.data;
+      while (i--) {
+        if (!target[i]) {
+          s = source[i];
+          if ( s === 16 || s === 32 || s === 255){
+            H.Maps.fillRegion(grdTerr, grdRegw, "w", i, ++colorsWater);
+          }
+        }
+      }
+
+      // land
+      i = width * width;
+      target = grdRegl.data;
+      while (i--) {
+        if (!target[i]) {
+          s = source[i];
+          if ( s === 16 || s === 8 ){
+            H.Maps.fillRegion(grdTerr, grdRegl, "l", i, ++colorsLand);
+          }
+        }
+      }
+
+      map.regsWater = colorsWater;
+      map.regsLand  = colorsLand;
+
+      msg(fmt("regions: %s land, %s water, %s ms", colorsLand, colorsWater, Date.now()-t0));
+      TIM.step("MAPS.regions", fmt("%s", Date.now()-t0));
+
+    },
+    renderRegw: function(){
+
+      var 
+        s, idx, target, source = grdRegw.data, 
+        diffColor = ~~(255/(map.regsWater +1)),
+        width = map.size -1, i = width * width;
 
       cvsRegw.width = cvsRegw.height = width;
       target = ctxRegw.createImageData(width, width);
 
-      t1 = Date.now();
-      for (i=0; i<len; i++) {
-        if (!target.data[i << 2]) {
-          s = grdTerr.data[i];
-          if ( s === 16 || s === 32 || s === 255){
-            H.Maps.fillRegion(grdTerr, target, "w", i, [++color, 0, 0, 255]);
-          }
+      while (i--) {
+        s = source[i];
+        if (s){
+          idx = i << 2;
+          target.data[idx +0] = 0;
+          target.data[idx +1] = 0;
+          target.data[idx +2] = s * diffColor;
+          target.data[idx +3] = 255;
         }
       }
 
       ctxRegw.putImageData(target, 0, 0);
 
-      msg(fmt("water: %s regs. %s ms", color, Date.now()-t1));
-
-      TIM.step("MAPS.regw.out", fmt("%s/%s", t1-t0, Date.now()-t1));
-
     },
     renderRegl: function(){
 
-      //   t ===   0 ? "forbidden" : 
-      //   t ===   8 ? "land" : 
-      //   t ===  16 ? "shallow" : 
-      //   t ===  32 ? "deep water" : 
-      //   t ===  64 ? "too steep" : 
-      //   t === 255 ? "unknown" : 
-
       var 
-        t0 = Date.now(), i, s, target, color = 0, 
-        width = map.size -1, 
-        len = width * width;
+        s, idx, target, source = grdRegl.data, 
+        diffColor = ~~(255/(map.regsLand +1)),
+        width = map.size -1, i = width * width;
 
       cvsRegl.width = cvsRegl.height = width;
       target = ctxRegl.createImageData(width, width);
 
-      // console.profile( "renderRegl" );
-
-      for (i=0; i<len; i++) {
-        if (!target.data[i << 2]) {
-          s = grdTerr.data[i];
-          if ( s === 16 || s === 8){
-            H.Maps.fillRegion(grdTerr, target, "l", i, [++color, 0, 0, 255]);
-          }
+      while (i--) {
+        s = source[i];
+        if (s){
+          idx = i << 2;
+          target.data[idx +0] = 0;
+          target.data[idx +1] = s * diffColor;
+          target.data[idx +2] = 0;
+          target.data[idx +3] = 255;
         }
       }
 
-      // console.profileEnd();
-
       ctxRegl.putImageData(target, 0, 0);
 
-      msg(fmt("land: %s regs. %s ms", color, Date.now()-t0));
+    },
+    toggleDyna: function(){
 
-      TIM.step("MAPS.regl.out", Date.now()-t0);    
+      // var dynamic = $("chkPathDyna").checked;
+      map.pos1 = null; map.pos0 = null;
+      map.path = []; map.nodes = [];
+      ctxDyna.clearRect(0, 0, size, size);
+      ctxPath.clearRect(0, 0, size, size);
+      H.Maps.render();
+
+    },
+    runPath: function(){
+
+      var t0, t1, t2, graph, start, end, heuristic, useCost, dynamic;
+
+      if (!map.pos0 || !map.pos1){isRendering = false; return;}
+      if (map.pos0[2][1] !== map.pos1[2][1]){isRendering = false; return;}
+
+      isRendering = true;
+
+      dynamic   = $("chkPathDyna").checked;
+      useCost   = $("chkPathCost").checked;
+      heuristic = H.AI.AStar.heuristics[document.querySelector('input[name="chkHeur"]:checked').value];
+      graph     = useCost ? map.graphCost : map.graphNull;
+
+      t0 = Date.now();
+      start = graph.grid[map.pos1[0]][map.pos1[1]];
+      end   = graph.grid[map.pos0[0]][map.pos0[1]];
+      graph.clear();
+
+      t1 = Date.now();
+      map.result = H.AI.AStar.search(graph, start, end, { 
+        diagonal:  true, 
+        closest:   true,
+        heuristic: heuristic
+      });
+      t2 = Date.now();
+
+      map.path  = map.result.path;
+      map.nodes = map.result.nodes;
+
+      H.Maps.renderPath();
+      if (!dynamic){H.Maps.render();}
+
+      isRendering = false;
+
+      msg(fmt("path: %s/%s, %s/%s", map.path.length, map.nodes.length, t1-t0, t2-t1));
 
     },
     renderPath: function(){
 
-      var f = size / (map.size -1);
+      var 
+        dynamic = $("chkPathDyna").checked,
+        width = map.size -1, 
+        f = size / width, 
+        ctx;
 
-      cvsPath.width = cvsPath.height = size;
-      ctxPath.lineWidth = 1;
+      ctx = dynamic ? ctxDyna : ctxPath;
+      ctx.clearRect(0, 0, size, size);
 
-      ctxPath.strokeStyle = "rgba(255, 255, 255, 0.7";
+      if ($("chkPathDebug").checked){
+        ctx.strokeStyle = "rgba(255, 128, 0, 0.7";
+        map.nodes.forEach(function(p){
+          ctx.strokeRect(p.x *f, p.y *f , 0.5, 0.5);
+        });
+      }
+
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.7";
       map.path.forEach(function(p){
-        ctxPath.strokeRect(p.x *f, p.y *f , 1, 1);
+        ctx.strokeRect(p.x *f, p.y *f , 1, 1);
       });
 
       if (map.pos0){
-        ctxPath.strokeStyle = "rgba(255, 255, 255, 0.7";
-        ctxPath.beginPath();
-        ctxPath.arc(map.pos0[0] *f, map.pos0[1] *f, 7, 0, 2 * Math.PI, false);
-        ctxPath.stroke();
-        ctxPath.strokeStyle = "rgba(255, 255, 0, 0.7";
-        ctxPath.strokeRect(map.pos0[0] *f, map.pos0[1] *f , 1, 1);
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.7";
+        ctx.beginPath();
+        ctx.arc(map.pos0[0] *f, map.pos0[1] *f, 7, 0, 2 * Math.PI, false);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255, 255, 0, 0.7";
+        ctx.strokeRect(map.pos0[0] *f, map.pos0[1] *f , 1, 1);
       }
 
       if (map.pos1){
-        ctxPath.strokeStyle = "rgba(255, 0, 0, 0.7";
-        ctxPath.beginPath();
-        ctxPath.arc(map.pos1[0] *f, map.pos1[1] *f, 7, 0, 2 * Math.PI, false);
-        ctxPath.stroke();
-        ctxPath.strokeStyle = "rgba(255, 255, 0, 0.7";
-        ctxPath.strokeRect(map.pos1[0] *f, map.pos1[1] *f , 1, 1);
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.7";
+        ctx.beginPath();
+        ctx.arc(map.pos1[0] *f, map.pos1[1] *f, 7, 0, 2 * Math.PI, false);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(255, 255, 0, 0.7";
+        ctx.strokeRect(map.pos1[0] *f, map.pos1[1] *f , 1, 1);
       }
 
     },

@@ -261,8 +261,9 @@
           <div>
               <div>
                 <label for="cvsMap" style="vertical-align: top">Map</label>
-                <div style="float: left; margin-left: 66px; margin-top: -12px;">
-                  <canvas id="cvsMap" width="512" height="512"></canvas>
+                <div id="cntMap">
+                  <canvas id="cvsMap"  width="512" height="512"></canvas>
+                  <canvas id="cvsDyna" width="512" height="512"></canvas>
                 </div>
                 <div style="float: left">
                   <div style="margin-left: 8px; margin-top: -32px;">
@@ -274,21 +275,34 @@
                     <span id="txtTerrain">[]</span>
                   </div>
                   <div style="margin-left: 8px; margin-top: 4px">
+
                     <label for="chkTopo" style="text-align: left;">Render</label>
-                    <input type="checkbox" id="chkTopo"  checked="checked"><span class="chklabel">Topo</span></input>
-                    <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input><br />
-                    <input type="checkbox" id="chkGrid"  checked="false"><span class="chklabel">Grid</span></input>
-                    <input type="checkbox" id="chkCost"  checked="false"><span class="chklabel">Cost</span></input>
-                    <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input><br />
-                    <input type="checkbox" id="chkClus"  checked="checked"><span class="chklabel">Cluster</span></input><br />
+                      <input type="checkbox" id="chkTopo"  checked="checked"><span class="chklabel">Topo</span></input>
+                      <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input><br />
+                      <input type="checkbox" id="chkGrid"><span class="chklabel">Grid</span></input>
+                      <input type="checkbox" id="chkCost"><span class="chklabel">Cost</span></input>
+                      <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input><br />
+                      <input type="checkbox" id="chkClus"  ><span class="chklabel">Cluster</span></input><br />
+                      <input type="checkbox" id="chkPath"   checked="checked"><span class="chklabel">Paths</span></input><br />
 
                     <span class="chklabel" style="padding-left: 8px">Regions:</span>
-                    <input type="checkbox" id="chkRegw"  checked="false"><span class="chklabel">Water</span></input>
-                    <input type="checkbox" id="chkRegl"  checked="false"><span class="chklabel">Land</span></input><br />
+                      <input type="checkbox" id="chkRegw"><span class="chklabel">Water</span></input>
+                      <input type="checkbox" id="chkRegl"><span class="chklabel">Land</span></input><br />
 
-                    <input type="checkbox" id="chkPath"  checked="false"><span class="chklabel">Paths</span></input><br />
-                    <input type="checkbox" id="chkAnim"  checked="false" disabled="disabled">Anim</input><br />
                   </div>
+
+                  <div style="margin-left: 8px">
+
+                    <label for="chkPathDebug" style="text-align: left;">Pathfinder</label>
+                      <input type="checkbox" id="chkPathDebug"  checked="checked"><span class="chklabel">debug</span></input>
+                      <input type="checkbox" id="chkPathCost"  checked="checked"><span class="chklabel">cost</span></input>
+                      <input type="checkbox" id="chkPathDyna"  checked="checked"><span class="chklabel">dynamic</span></input><br />
+                      <input type="radio" name="chkHeur" id="chkPathMan"  value="manhattan" ><span class="chklabel">Manhattan</span></input><br />
+                      <input type="radio" name="chkHeur" id="chkPathDia"  checked="checked" value="diagonal" ><span class="chklabel">Diagonal</span></input>
+                      <input type="radio" name="chkHeur" id="chkPathEuc"  value="euclidian" ><span class="chklabel">Euclidian</span></input>
+                  
+                  </div>
+
                   <div style="margin-left: 8px">
                     <label for="slcClus" style="text-align: left;">Actions</label>
                       <select id="slcClus">
