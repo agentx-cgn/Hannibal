@@ -143,6 +143,23 @@ HANNIBAL = (function(H){
 
     // },
 
+    boxSelect: function(box, option){
+      H.toArray(box.getElementsByTagName('option')).forEach(function(opt){
+        // opt.selected = opt.value === option ? "selected" : "";
+        opt.selected = decodeURIComponent(opt.innerHTML) === decodeURIComponent(option) ? "selected" : "";
+      });
+    },
+    map: function(mapp){
+
+      console.log("Display.map:", mapp, H.Maps.default);
+
+      mapp = mapp || H.Maps.default;
+
+      H.Display.boxSelect($("slcMaps"), mapp);
+
+      H.Maps.load(mapp);
+
+    },
     query: function(hqc){
 
       var t0    = Date.now(), s, 

@@ -27,7 +27,7 @@ if (!H.extend){
 H.extend(H, {
 
   // looping
-  for:        function(n,fn){var i=n,a=[];while(n--){a.push(fn(i-n+1));}return a;},
+  // for:        function(n,fn){var i=n,a=[];while(n--){a.push(fn(i-n+1));}return a;},
   range:      function (st, ed, sp){
     var i,r=[],al=arguments.length;
     if(al===0){return r;}
@@ -55,7 +55,8 @@ H.extend(H, {
   // numbers
   bounds:     function (x, min, max){ return Math.min(Math.max(x, min), max); },
   scale:      function (x,xMin,xMax,min,max){return (max-min)*(x-xMin)/(xMax-xMin)+min;},
-  clamp:      function (val, min, max){return Math.max(Math.min(val, max), min);}, 
+  // clamp:      function (val, min, max){return Math.max(Math.min(val, max), min);}, 
+  clamp:      function (val, min, max){return val < min ? min : val > max ? max : val;}, 
   isInteger:  function (n){return Math.floor(n) === n;},
 
   // strings

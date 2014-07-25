@@ -29,9 +29,10 @@ HANNIBAL = (function(H){
       cvsCost, ctxCost,
       cvsTemp, ctxTemp,
       cvsTerr, ctxTerr,
-      grdTerr, grdCost, grdRegw, grdRegl,
+      cvsTree, ctxTree,
+      grdTerr, grdCost, grdRegw, grdRegl, grdTree, 
       maps = [
-        "Arcadia%2002.xml",
+        "Arcadia%2002.xml",                              //4205 size: 192
         "Azure%20Coast.xml",
         "Barcania.xml",
         "Belgian_Bog_night.xml",
@@ -124,9 +125,31 @@ HANNIBAL = (function(H){
         xhr.send();  
       }
     },
+    keymap: function(e){
+
+      function toggle(c){c.checked = !c.checked;}
+
+      return {
+        'd' : e => toggle($("chkPathDyna"))
+      };
+
+    },
+    pickMouse: function(){
+      var m = map.mouse;
+      return {
+        x:  m.x,
+        y:  m.y,
+        mx: m.mx,
+        my: m.my,
+        mi: m.mi,
+        rg: m.rg,
+        l:  ~~m.rg[1],
+        w:  ~~m.rg[3]
+      }; 
+    },
     onmousemove: function(e){
 
-      if (!map){return;}
+      if (!map || !grdRegl){return;}
 
       var x, y, t, cost, terrain, width = map.size -1, posCanvas = findPosXY(this);
 
@@ -136,19 +159,20 @@ HANNIBAL = (function(H){
       x = e.clientX - posCanvas[0];
       y = e.clientY - posCanvas[1];
 
-      map.mouse.x  = x;
-      map.mouse.y  = y;
-      map.mouse.mx = ~~(x  / size * width);
-      map.mouse.my = ~~(y  / size * width);
+      map.mouse.x  = ~~H.clamp(x, 0, size);
+      map.mouse.y  = ~~H.clamp(y, 0, size);
+      map.mouse.mx = ~~(map.mouse.x  / size * width);
+      map.mouse.my = ~~(map.mouse.y  / size * width);
       map.mouse.mi = map.mouse.my * width + map.mouse.mx;
       map.mouse.rg = "l" + grdRegl.data[map.mouse.mi] + "w" + grdRegw.data[map.mouse.mi];
 
-      if ($("chkPathDyna").checked && !isRendering){
-        setTimeout(function(){
-          isRendering = true;
-          map.pos0 = [map.mouse.mx, map.mouse.my, map.mouse.rg];
-          H.Maps.runPath();
-        }, 16);
+      if (!isRendering){
+        isRendering = true;
+        ctxDyna.clearRect(0, 0, size, size);
+        map.pos0 = H.Maps.pickMouse();
+        H.Maps.renderMouse();
+        // H.Maps.runPath();
+        setTimeout(function(){isRendering = false;}, 16);
       }
 
       if (map.graphNull){
@@ -171,16 +195,40 @@ HANNIBAL = (function(H){
     },
     onclick: function( /* e */ ){
 
-      if (map.pos0 === null){
-        map.pos0 = [map.mouse.mx, map.mouse.my, map.mouse.rg];
-        H.Maps.renderPath();
-        H.Maps.render();
+      var click = H.Maps.pickMouse();
+        
+      if (!click.l && !click.w){return;}
+
+      if (map.pos1 === null){
+        map.pos0 = click;
+        map.pos1 = click;
+        // H.Maps.renderPath();
+        // H.Maps.render();
 
       } else {
-        map.pos1 = map.pos0;
-        map.pos0 = [map.mouse.mx, map.mouse.my, map.mouse.rg];
+        map.pos2 = map.pos1;
+        map.pos1 = click;
         H.Maps.runPath();
+        // map.pos2 = null;
+        // map.pos1 = click;
+        // map.pos0 = click;
+
       }
+
+    },
+    runSequence: function(sequence, delay, cb){
+
+      var pointer = 0;
+
+      (function tick(){
+        if (sequence[pointer]) {
+          sequence[pointer]();
+          pointer += 1;
+          setTimeout(tick, delay);
+        } else {
+          cb();
+        }
+      }());
 
     },
     load: function(xml){
@@ -235,6 +283,7 @@ HANNIBAL = (function(H){
       cvsTemp = $("cvsTemp"); ctxTemp = cvsTemp.getContext("2d");
       cvsTerr = $("cvsTerr"); ctxTerr = cvsTerr.getContext("2d");
       cvsCost = $("cvsCost"); ctxCost = cvsCost.getContext("2d");
+      cvsTree = $("cvsTree"); ctxTree = cvsTree.getContext("2d");
 
       var xhr = new XMLHttpRequest();
       xhr.open("GET", url);
@@ -242,7 +291,7 @@ HANNIBAL = (function(H){
       xhr.onload = function() {
         if (this.status === 200) {
           map.ents = xhr.responseXML.getElementsByTagName("Entity");
-          msg("entities: " + H.toArray(map.ents).length);
+          msg("xml.entities: " + H.toArray(map.ents).length);
           H.Maps.loadHeights(url, function(buffer){
             map.buffer = buffer;
             map.view = new DataView(map.buffer);
@@ -255,21 +304,30 @@ HANNIBAL = (function(H){
             msg("size: " + map.mapsize *16);
             H.Maps.loadPass(url, map.size -1, function(image){
               if (image){
+                msg("terrain: good");
                 map.pass = image;
                 H.Grids.externalInit(map.size -1, map.size -1, 4);
-                H.Maps.initTerr();
-                H.Maps.initCost();
-                H.Maps.initRegions();
-                H.Maps.initGraph();
+                H.Maps.runSequence([
+                  H.Maps.initTerr,
+                  H.Maps.initTrees,
+                  H.Maps.initCost,
+                  H.Maps.initRegions,
+                  H.Maps.initGraph,
+                  H.Maps.initMaps,
+                  H.Maps.renderMaps,
+                  H.Maps.render,
+                ], 10, function(){TIM.step("MAPS.load.out", xml);});
+                
               } else {
+                msg("terrain: failed");
                 map.pass = null;
                 $("chkPass").checked = false;
-                msg("terrain: failed");
+                H.Maps.runSequence([
+                  H.Maps.initMaps,
+                  H.Maps.renderMaps,
+                  H.Maps.render,
+                ], 10, function(){TIM.step("MAPS.load.out", xml);});
               }
-              H.Maps.initMaps();
-              H.Maps.renderMaps();
-              H.Maps.render();
-              TIM.step("MAPS.load.out", xml);
             });
 
           });
@@ -296,12 +354,14 @@ HANNIBAL = (function(H){
       H.Maps.renderRegw();
       H.Maps.renderRegl();
       H.Maps.renderCost();
+      H.Maps.renderTree();
     },
     render: function(){
       cvsMap.width = cvsMap.width;
       if ($("chkTopo").checked) {ctxMap.drawImage(cvsTopo, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkPass").checked) {ctxMap.drawImage(cvsPass, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkCost").checked) {ctxMap.drawImage(cvsCost, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
+      if ($("chkTree").checked) {ctxMap.drawImage(cvsTree, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkRegw").checked) {ctxMap.drawImage(cvsRegw, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkRegl").checked) {ctxMap.drawImage(cvsRegl, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkGrid").checked) {ctxMap.drawImage(cvsGrid, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
@@ -357,10 +417,10 @@ HANNIBAL = (function(H){
     fillRegion: function(source, target, type, index, value){
 
       var 
-        i, idx, s, region, nextX, nextY, isRegion, // counter = 0,
+        i, idx, s, nextX, nextY, isRegion, // counter = 0,
         width  = target.width,
-        y = ~~((index) / width),
-        x = (index) % width,
+        y = ~~(index / width),
+        x = index % width,
         stack  = [x, y],
         tgt = target.data,     // 1 byte data
         src = source.data,     // 1 byte data
@@ -372,17 +432,15 @@ HANNIBAL = (function(H){
         y = stack.pop();
         x = stack.pop();
 
-        idx = (y * width + x);
-        tgt[idx] = value;
+        tgt[y * width + x] = value;
 
         for (i = 0; i < 4; i++) {
 
-          nextX  = x + dx[i];
-          nextY  = y + dy[i];
-          idx    = (nextY * width + nextX);
-          region = tgt[idx];
+          nextX = x + dx[i];
+          nextY = y + dy[i];
+          idx   = (nextY * width + nextX);
 
-          if (!region && nextX >= 0 && nextY >= 0 && nextX < width && nextY < width) {
+          if (!tgt[idx] && nextX >= 0 && nextY >= 0 && nextX < width && nextY < width) {
 
             s = src[idx];
 
@@ -414,16 +472,14 @@ HANNIBAL = (function(H){
       //   t === 255 ? "unknown" : 
 
       var i, r, c, tr, ghn, ghc, t0 = Date.now(),
-          width = map.size -1,
-          len = width * width,
-          maxCost = 4,
-          facCost = 255/maxCost,
-          graphNull = [],
-          graphCost = [];
+          width = map.size -1, len = width * width,
+          maxCost = 2, facCost = 255/maxCost,
+          graphNull = [], graphCost = [];
 
-      for (i=0;i<width;i++) {graphNull[i]=[]; graphCost[i]=[];}
+      i = width; while (i--) {graphNull[i]=[]; graphCost[i]=[];}
 
-      for (i=0; i<len; i++) {
+      i = len; 
+      while (i--) {
 
         tr = grdTerr.data[i];
 
@@ -447,10 +503,8 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), t1, s,
-        width = map.size -1,
-        i = width * width,
-        source = grdTerr.data,
-        grdTemp = new H.Grid(width, width, 8);
+        width = map.size -1, i = width * width,
+        source = grdTerr.data, grdTemp = new H.Grid(width, width, 8);
 
       t1 = Date.now();
 
@@ -462,23 +516,23 @@ HANNIBAL = (function(H){
 
       grdCost = grdTemp.blur(3);
 
-      msg(fmt("cost: %s ms", Date.now()-t0));
+      msg(fmt("cost.terrain %s ms", Date.now()-t0));
       TIM.step("MAPS.cost.out", fmt("%s ms, %s cnt", Date.now()-t0));    
 
     },
     renderCost: function(){
 
       var 
-        i, idx, s, t, target, color, 
+        idx, s, t, target, color, 
         width = map.size -1,
-        len = width * width,
+        i = width * width,
         source  = grdCost.data,
         terrain = grdTerr.data;
 
       cvsCost.width = cvsCost.height = width;
       target = ctxCost.createImageData(width, width);
 
-      for (i=0; i<len; i++) {
+      while (i--) {
         s = source[i];
         t = terrain[i];
         color = (t ===  8 || t === 16) && (s > 0) ? [128, 0, 0, H.scale(s, 0, 255, 32, 128)] : [0, 0, 0, 0];
@@ -529,7 +583,7 @@ HANNIBAL = (function(H){
       map.regsWater = colorsWater;
       map.regsLand  = colorsLand;
 
-      msg(fmt("regions: %s land, %s water, %s ms", colorsLand, colorsWater, Date.now()-t0));
+      msg(fmt("regions: %s/%s l/w, %s ms", colorsLand, colorsWater, Date.now()-t0));
       TIM.step("MAPS.regions", fmt("%s", Date.now()-t0));
 
     },
@@ -591,23 +645,74 @@ HANNIBAL = (function(H){
       H.Maps.render();
 
     },
+    renderMouse: function(){
+
+      // path goes from 1 -> 0
+
+      var c;
+
+      function color (l0, w0, l1, w1) {
+        // var w0 = ~~rg0[3], l0 = ~~rg0[1]; //w1 = rg1[3], l1 = rg1[1], 
+        return (
+          !w0 && !l0        ? "rgba(255,   0,   0, 0.9)" : // immer rot
+          !l1 &&  w0 &&  l0 ? "rgba(  0, 180, 200, 0.9)" : // türkis
+          !l1 &&         l0 ? "rgba(  0, 250,   0, 0.9)" : // grün
+          !l1 &&         w0 ? "rgba( 50,  50, 250, 0.9)" : // water
+
+           l0 !== l1 && w0 === w1 ? "rgba(255,   0,   0, 0.9)" : // grün
+           l0 && !w1 && l1 === l0 ? "rgba(  0, 250,   0, 0.9)" : // grün
+           l0 && !l1 && w1 === w0 ? "rgba( 50,  50, 250, 0.9)" : // water
+           l0 &&  w0 && l1 && w1  ? "rgba(  0, 180, 200, 0.9)" : // türkis
+             "rgba(255, 128,   0, 0.9)"
+        );
+      }
+
+      if (map.pos0 && !map.pos1){
+        ctxDyna.lineWidth = 2;
+        ctxDyna.strokeStyle = color(map.pos0.l, map.pos0.w);
+        ctxDyna.beginPath();
+        ctxDyna.arc(map.pos0.x, map.pos0.y, 7, 0, 2 * Math.PI, false);
+        ctxDyna.stroke();
+      
+      } else {
+
+        c = color(map.pos0.l, map.pos0.w, map.pos1.l, map.pos1.w);
+
+        if (map.pos2){
+          ctxDyna.strokeStyle = color(map.pos2.l, map.pos2.w);
+          ctxDyna.beginPath();
+          ctxDyna.arc(map.pos2.x, map.pos2.y, 7, 0, 2 * Math.PI, false);
+          ctxDyna.stroke();
+        }
+
+        ctxDyna.strokeStyle = c;
+        ctxDyna.beginPath();
+        ctxDyna.arc(map.pos0.x, map.pos0.y, 7, 0, 2 * Math.PI, false);
+        ctxDyna.stroke();
+
+        ctxDyna.strokeStyle = c;
+        ctxDyna.beginPath();
+        ctxDyna.arc(map.pos1.x, map.pos1.y, 7, 0, 2 * Math.PI, false);
+        ctxDyna.stroke();
+        ctxDyna.lineWidth = 1;
+        ctxDyna.strokeStyle = "rgba(255, 255, 0, 0.7";
+        ctxDyna.strokeRect(map.pos1.x, map.pos1.y , 1, 1);
+
+      }
+
+    },
     runPath: function(){
 
-      var t0, t1, t2, graph, start, end, heuristic, useCost, dynamic;
+      var t0, t1, t2, graph, start, end, heuristic;
 
-      if (!map.pos0 || !map.pos1){isRendering = false; return;}
-      if (map.pos0[2][1] !== map.pos1[2][1]){isRendering = false; return;}
+      if (!map.pos0 || !map.pos1){return;}
 
-      isRendering = true;
-
-      dynamic   = $("chkPathDyna").checked;
-      useCost   = $("chkPathCost").checked;
       heuristic = H.AI.AStar.heuristics[document.querySelector('input[name="chkHeur"]:checked').value];
-      graph     = useCost ? map.graphCost : map.graphNull;
+      graph     = $("chkPathCost").checked ? map.graphCost : map.graphNull;
 
       t0 = Date.now();
-      start = graph.grid[map.pos1[0]][map.pos1[1]];
-      end   = graph.grid[map.pos0[0]][map.pos0[1]];
+      start = graph.grid[map.pos2.mx][map.pos2.my];
+      end   = graph.grid[map.pos1.mx][map.pos1.my];
       graph.clear();
 
       t1 = Date.now();
@@ -621,61 +726,38 @@ HANNIBAL = (function(H){
       map.path  = map.result.path;
       map.nodes = map.result.nodes;
 
+      if (!$("chkPathDyna").checked){ctxPath.clearRect(0, 0, size, size);}
       H.Maps.renderPath();
-      if (!dynamic){H.Maps.render();}
-
-      isRendering = false;
+      if (!$("chkPathDyna").checked){H.Maps.render();}
 
       msg(fmt("path: %s/%s, %s/%s", map.path.length, map.nodes.length, t1-t0, t2-t1));
 
     },
     renderPath: function(){
 
-      var 
-        dynamic = $("chkPathDyna").checked,
-        width = map.size -1, 
-        f = size / width, 
-        ctx;
-
-      ctx = dynamic ? ctxDyna : ctxPath;
-      ctx.clearRect(0, 0, size, size);
+      var i, p, f = size / (map.size -1), 
+        ctx = $("chkPathDyna").checked ? ctxDyna : ctxPath;
 
       if ($("chkPathDebug").checked){
         ctx.strokeStyle = "rgba(255, 128, 0, 0.7";
-        map.nodes.forEach(function(p){
+        i = map.nodes.length;
+        while (p = map.nodes[--i]){
           ctx.strokeRect(p.x *f, p.y *f , 0.5, 0.5);
-        });
+        }
       }
 
       ctx.strokeStyle = "rgba(255, 255, 255, 0.7";
-      map.path.forEach(function(p){
-        ctx.strokeRect(p.x *f, p.y *f , 1, 1);
-      });
-
-      if (map.pos0){
-        ctx.strokeStyle = "rgba(255, 255, 255, 0.7";
-        ctx.beginPath();
-        ctx.arc(map.pos0[0] *f, map.pos0[1] *f, 7, 0, 2 * Math.PI, false);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(255, 255, 0, 0.7";
-        ctx.strokeRect(map.pos0[0] *f, map.pos0[1] *f , 1, 1);
+      i = map.path.length;
+      while (p = map.path[--i]){
+        ctx.strokeRect(p.x *f, p.y *f , 0.5, 0.5);
       }
 
-      if (map.pos1){
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.7";
-        ctx.beginPath();
-        ctx.arc(map.pos1[0] *f, map.pos1[1] *f, 7, 0, 2 * Math.PI, false);
-        ctx.stroke();
-        ctx.strokeStyle = "rgba(255, 255, 0, 0.7";
-        ctx.strokeRect(map.pos1[0] *f, map.pos1[1] *f , 1, 1);
-      }
 
     },
     renderGrid: function(){
       var x, y;
       cvsGrid.width = cvsGrid.height = map.size -1;
       ctxGrid.setTransform(1,0,0,1,0,0);
-      // ctxGrid.translate(0.5, 0.5);
       for (x=0; x<map.size -1; x++){
         for (y=0; y<map.size -1; y++){
           ctxGrid.fillStyle = (x+y)%2 ? "rgba( 255, 255, 255, 0.4)" : "rgba( 0, 0, 0, 0.4)";
@@ -684,13 +766,6 @@ HANNIBAL = (function(H){
       }
     },
     renderPass: function(){
-
-      //   t ===   0 ? "forbidden" : 
-      //   t ===   8 ? "land" : 
-      //   t ===  16 ? "shallow" : 
-      //   t ===  32 ? "deep water" : 
-      //   t ===  64 ? "too steep" : 
-      //   t === 255 ? "unknown" : 
 
       if (!map.pass){return;}
     
@@ -759,7 +834,78 @@ HANNIBAL = (function(H){
       ctxTopo.scale(1, -1);
       ctxTopo.drawImage(cvsTemp, 0, 0, map.size -1, map.size -1, 0, 0, map.size, map.size); // cutoff extra pixl
 
-      TIM.step("MAPS.topo.out", map.buffer.byteLength + " bytes");
+    },
+    initTrees: function(){
+
+      var 
+        t0 = Date.now(),
+        width = map.size -1, trees = {},
+        x, y, tpl, pos, idx, cntTrees = 0, cntTiles = 0;
+
+      function neighbors(x, y){
+        var nbs = 0, square = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]];
+        square.forEach(function(sq){
+          idx = width * (y + sq[1]) + x + sq[0];
+          nbs += trees[idx] ? 1 : 0;
+        });
+        return nbs;
+      }
+
+      grdTree = new H.Grid(width, width, 8);
+
+      H.toArray(map.ents).forEach(function(ent){
+
+        tpl = ent.getElementsByTagName("Template")[0].innerHTML;
+
+        if (tpl.contains("tree")){
+
+          cntTrees += 1;
+
+          pos = ent.getElementsByTagName("Position")[0];
+          x = ~~(pos.getAttribute("x")/4);
+          y = width - ~~(pos.getAttribute("z")/4 +0.5) ;
+          idx = width * y + x;
+
+          if (!trees[idx]){trees[idx] = [];}
+          trees[idx].push({ent: ent});
+          trees[idx].data = {x:x,y:y};
+
+        }
+
+      });
+
+      H.each(trees, function(idx /* ,list */){
+        cntTiles += 1;
+        x = trees[idx].data.x;
+        y = trees[idx].data.y;
+        grdTree.data[idx] = neighbors(x, y);
+      });
+
+      msg(fmt("cost.trees: %s/%s, %s ms", cntTiles, cntTrees, Date.now()-t0));
+
+    },
+    renderTree: function(){
+
+      var 
+        s, idx, diffColor = ~~(255/9),
+        width = map.size -1, i = width * width,
+        source = grdTree.data,
+        target = ctxTree.createImageData(width, width);
+
+      cvsTree.width = cvsTree.height = width;
+
+      while (i--) {
+        s = source[i];
+        if (s){
+          idx = i << 2;
+          target.data[idx +0] = 0;
+          target.data[idx +1] = s * diffColor;
+          target.data[idx +2] = 0;
+          target.data[idx +3] = 128;
+        }
+      }
+
+      ctxTree.putImageData(target, 0, 0);
 
     },
     renderEnts: function(){

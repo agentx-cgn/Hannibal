@@ -31,10 +31,10 @@ HANNIBAL = (function(H){
 
     var kmeans = function () {
       this.kmpp = true;
-      this.maxWidth = 640;
-      this.maxHeight = 480;
+      this.maxWidth   = 512;
+      this.maxHeight  = 512;
       this.iterations = 0;
-      this.converged = false;
+      this.converged  = false;
       this.maxIterations = 100;
       this.k = 0;
     };
@@ -393,7 +393,7 @@ HANNIBAL = (function(H){
   GridNode.prototype.toString = function() { return "[" + this.x + " " + this.y + "]";};
   GridNode.prototype.getCost = function(neighbor) { 
     return (this.x !== neighbor.x && this.y !== neighbor.y ? 
-      this.weight * 1.4142135623730951 : 
+      this.weight : //* 1.4142135623730951 : 
       // this.weight * 1.5132135623730951 : 
       this.weight
     );
@@ -414,31 +414,24 @@ HANNIBAL = (function(H){
   
   BinaryHeap.prototype = {
     constructor: BinaryHeap,
+    size: function() {return this.content.length;},
+    rescoreElement: function(node) {this.sinkDown(this.content.indexOf(node));},
     push: function(element) {
-        // Add the new element to the end of the array.
-        this.content.push(element);
-        // Allow it to sink down.
-        this.sinkDown(this.content.length - 1);
+      this.content.push(element);                // Add the new element to the end of the array.
+      this.sinkDown(this.content.length - 1);    // Allow it to sink down.
     },
     pop: function() {
-      // Store the first element so we can return it later.
-      var result = this.content[0],
-      // Get the element at the end of the array.
-          end = this.content.pop();
-      // If there are any elements left, put the end element at the
-      // start, and let it bubble up.
-      if (this.content.length) {
-        this.content[0] = end;
+      var result = this.content[0],              // Store the first element so we can return it later.
+          end = this.content.pop();              // Get the element at the end of the array.
+      if (this.content.length) {                 // If there are any elements left, put the end element 
+        this.content[0] = end;                   // at the start, and let it bubble up.
         this.bubbleUp(0);
       }
       return result;
     },
     remove: function(node) {
-      var i = this.content.indexOf(node);
-
-      // When it is found, the process seen in 'pop' is repeated
-      // to fill up the hole.
-      var end = this.content.pop();
+      var i = this.content.indexOf(node),
+          end = this.content.pop();             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
 
       if (i !== this.content.length - 1) {
         this.content[i] = end;
@@ -449,28 +442,17 @@ HANNIBAL = (function(H){
         }
       }
     },
-    size: function() {return this.content.length;},
-    rescoreElement: function(node) {this.sinkDown(this.content.indexOf(node));},
     sinkDown: function(n) {
-      // Fetch the element that has to be sunk.
-      var element = this.content[n],
+      var element = this.content[n],             // Fetch the element that has to be sunk.
           parentN, parent;
-
-      // When at 0, an element can not sink any further.
-      while (n) {
-        // Compute the parent element's index, and fetch it.
-        parentN = ((n + 1) >> 1) - 1,
+      while (n) {                                // When at 0, an element can not sink any further.
+        parentN = ((n + 1) >> 1) - 1;            // Compute the parent element's index, and fetch it.
         parent  = this.content[parentN];
-        // Swap the elements if the parent is greater.
         if (this.scoreFunction(element) < this.scoreFunction(parent)) {
-          this.content[parentN] = element;
+          this.content[parentN] = element;       // Swap the elements if the parent is greater.
           this.content[n] = parent;
-          // Update 'n' to continue at the new position.
-          n = parentN;
-        } else {
-          // Found a parent that is less, no need to sink any further.
-          break;
-        }
+          n = parentN;                           // Update 'n' to continue at the new position.
+        } else { break; }                        // Found a parent that is less, no need to sink any further.
       }
     },
     bubbleUp: function(n) {
@@ -482,42 +464,35 @@ HANNIBAL = (function(H){
           child1Score, child2Score;
 
       while(true) {
-        // Compute the indices of the child elements.
-        child2N = (n + 1) << 1;
+        child2N = (n + 1) << 1;                  // Compute the indices of the child elements.
         child1N = child2N - 1;
-        // This is used to store the new position of the element, if any.
-        swap = null;
+        swap = null;                             // This is used to store the new position of the element, if any.
         child1Score = undefined;
 
-        // If the first child exists (is inside the array)...
-        if (child1N < length) {
-          // Look it up and compute its score.
-          child1 = this.content[child1N];
+        if (child1N < length) {                  // If the first child exists (is inside the array)...          
+          child1 = this.content[child1N];        // Look it up and compute its score.
           child1Score = this.scoreFunction(child1);
-          // If the score is less than our element's, we need to swap.
-          if (child1Score < elemScore){
+          if (child1Score < elemScore){          // If the score is less than our element's, we need to swap.
             swap = child1N;
           }
         }
-
-        // Do the same checks for the other child.
-        if (child2N < length) {
+        
+        if (child2N < length) {                  // Do the same checks for the other child.
           child2 = this.content[child2N];
           child2Score = this.scoreFunction(child2);
           if (child2Score < (swap === null ? elemScore : child1Score)) {
             swap = child2N;
           }
         }
-
-        // If the element needs to be moved, swap it, and continue.
-        if (swap !== null) {
+        
+        if (swap !== null) {                     // If the element needs to be moved, swap it, and continue.
           this.content[n] = this.content[swap];
           this.content[swap] = element;
           n = swap;
 
-        // Otherwise, we are done.
-        } else {break;}
-      }
+        } else {break;}                          // Otherwise, we are done.
+
+      }                     
     }
   };
 
@@ -572,42 +547,30 @@ HANNIBAL = (function(H){
     */
     search: function(graph, start, end, options) {
 
-      // H.AI.AStar.init(graph);
-
       options = options || {};
 
       var 
-        // graph = this.graph,
-        heuristic = options.heuristic || H.AI.AStar.heuristics.manhattan,
-        openHeap = getHeap(),
-        closest = options.closest || false,
-        closestNode = start, // set the start node to be the closest if required
-        currentNode, neighbors, neighbor, 
-        i, il, gScore, beenVisited,
-        tested = [];
+        currentNode, neighbors, neighbor, visted = [], i, il, gScore, beenVisited, 
+        heuristic   = options.heuristic || H.AI.AStar.heuristics.manhattan,
+        openHeap    = getHeap(),
+        closest     = options.closest || false,
+        closestNode = start; 
         
       start.h = heuristic(start, end);
 
       openHeap.push(start);
 
       while(openHeap.size() > 0) {
+        
+        currentNode = openHeap.pop();            // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
+        visted.push(currentNode);                // debug
 
-        // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
-        currentNode = openHeap.pop();
-
-        // debug
-        tested.push(currentNode);
-
-        // End case -- result has been found, return the traced path.
-        if(currentNode === end) {
-          return {path: pathTo(currentNode), nodes: tested};
+        if(currentNode === end) {                // End case -- result has been found, return the traced path.
+          return {path: pathTo(currentNode), nodes: visted};
         }
-
-        // Normal case -- move currentNode from open to closed, process each of its neighbors.
-        currentNode.closed = true;
-
-        // Find all neighbors for the current node.
-        neighbors = graph.neighbors(currentNode);
+        
+        currentNode.closed = true;                 // Normal case -- move currentNode from open to closed, process each of its neighbors.
+        neighbors = graph.neighbors(currentNode);  // Find all neighbors for the current node.
 
         for (i = 0, il = neighbors.length; i < il; ++i) {
 
@@ -655,15 +618,12 @@ HANNIBAL = (function(H){
         }
       }
 
-      if (closest) {
-        // return pathTo(closestNode);
-        return {path: pathTo(closestNode), nodes: tested};
-
-      }
+      // return pathTo(closestNode);
+      if (closest) { return {path: pathTo(closestNode), nodes: visted}; }
 
       // No result was found - empty array signifies failure to find path.
       // return [];
-      return {path: [], nodes: tested};  
+      return {path: [], nodes: visted};  
 
     }
 

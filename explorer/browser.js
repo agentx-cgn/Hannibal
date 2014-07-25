@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
         'TREE':   function(){},
         'ECO':    function(){},
         'BLOCKS': function(){},
-        'MAPS':   function(){},
+        'MAPS':   function(){H.setKeys("MAPS"); $("cvsMap").focus();},
         'TECH':   function(){self.result("divResult", H.Display.pritJSON(techTemplates)); return null;},
       },
       menus = {
@@ -29,6 +29,26 @@ HANNIBAL = (function(H){
         'TOP':    function(){document.documentElement.scrollTop = 0; return null;},
         'LOAD':   function(){location.reload(); return null;},
       };
+
+  H.setKeys = function(context){
+
+    // http://craig.is/killing/mice
+
+    var map;
+
+    switch (context){
+      case "MAPS" :
+        map = H.Maps.keymap();
+      break;
+      default:
+    }
+
+    Mousetrap.reset();
+    H.each(map, function(keys, fn){
+      Mousetrap.bind(keys.split(","), e => {fn(e); return false;});
+    });
+
+  };
 
 
   H.Browser = (function(){
@@ -64,12 +84,12 @@ HANNIBAL = (function(H){
       return items.filter(p => p !== undefined);
     }
 
-    function select(box, option){
-      H.toArray(box.getElementsByTagName('option')).forEach(function(opt){
-        // opt.selected = opt.value === option ? "selected" : "";
-        opt.selected = opt.innerHTML === option ? "selected" : "";
-      });
-    }
+    // function select(box, option){
+    //   H.toArray(box.getElementsByTagName('option')).forEach(function(opt){
+    //     // opt.selected = opt.value === option ? "selected" : "";
+    //     opt.selected = opt.innerHTML === option ? "selected" : "";
+    //   });
+    // }
 
     return {
       boot: function(){ self = this; return this; },
@@ -97,14 +117,17 @@ HANNIBAL = (function(H){
 
         H.Maps.readMapList(function(html){
           $("slcMaps").innerHTML = html;  
-          select($("slcMaps"), H.Maps.default);
+          // select($("slcMaps"), H.Maps.default);
           // console.log($("slcMaps").value, H.Maps.default);  
           // H.Maps.load(H.Maps.host() + H.Maps.path() + H.Maps.default);
-          H.Maps.load(H.Maps.default);
+          
+          // H.Maps.load(H.Maps.default);
+
         });
         $("slcMaps").onchange = $("slcMaps").onselect = $("slcMaps").onkeyyup = $("btnMAPLoad").onclick = function(){
           // H.Maps.load(H.Maps.host() + H.Maps.path() + $("slcMaps").value);
-          H.Maps.load($("slcMaps").value);
+          // H.Display.map($("slcMaps").value);
+          H.Browser.do('*;*;MAPS;map;' + $("slcMaps").value);
         }
         "chkPathCost chkPathMan chkPathDia chkPathEuc chkPathDebug".split(" ").forEach(function(token){
           $(token).onchange = function(){
@@ -113,7 +136,7 @@ HANNIBAL = (function(H){
         });
         $("chkPathDyna").onchange = H.Maps.toggleDyna;
 
-        "Topo Ents Grid Clus Path Pass Regw Regl Cost".split(" ").forEach(function(token){
+        "Topo Ents Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
             H.Maps.clear();
             H.Maps.render();

@@ -70,7 +70,7 @@
           <li id="menBLOCKS"    onclick="H.Browser.do('*;*;BLOCKS');" >BLOCKS</li>
           <li id="menTECH"      onclick="H.Browser.do('*;*;TECH');">TECH</li>
           <li id="menMMAP"      onclick="H.Browser.menu('MMAP');">MMAP</li>
-          <li id="menMAPS"      onclick="H.Browser.do('*;*;MAPS');">MAPS</li>
+          <li id="menMAPS"      onclick="H.Browser.do('*;*;MAPS;map');">MAPS</li>
           <li id="menLOAD"      onclick="H.Browser.menu('LOAD');" style="float: right;" >rel</li>
           <li id="menTop"       onclick="H.Browser.menu('TOP');"  onmouseover="H.Browser.menu('TOP');" style="float: right;" 
           >top</li>
@@ -265,7 +265,7 @@
                   <canvas id="cvsMap"  width="512" height="512"></canvas>
                   <canvas id="cvsDyna" width="512" height="512"></canvas>
                 </div>
-                <div style="float: left">
+                <div style="float: left; width: 220px; position: relative">
                   <div style="margin-left: 8px; margin-top: -32px;">
                     <label for="txtMAP" style="margin-top: -12px; text-align: right;">Info</label>
                     <textarea id="txtMAP" maxlength="1000" rows="8" style=" width: 198px; font-size: 10px;"></textarea>       
@@ -281,7 +281,8 @@
                       <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input><br />
                       <input type="checkbox" id="chkGrid"><span class="chklabel">Grid</span></input>
                       <input type="checkbox" id="chkCost"><span class="chklabel">Cost</span></input>
-                      <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input><br />
+                      <input type="checkbox" id="chkTree"><span class="chklabel">Trees</span></input><br />
+                      <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input>
                       <input type="checkbox" id="chkClus"  ><span class="chklabel">Cluster</span></input><br />
                       <input type="checkbox" id="chkPath"   checked="checked"><span class="chklabel">Paths</span></input><br />
 
@@ -352,6 +353,7 @@
           <label for="cvsHeights" style="vertical-align: top;">Analysis</label>
             <canvas id="cvsRegw" class="minimap" title="Water Regions"></canvas>
             <canvas id="cvsRegl" class="minimap" title="Land Regions"></canvas>
+            <canvas id="cvsTree" class="minimap" title="Tree Cost"></canvas>
             <canvas id="cvsCost" class="minimap" title="Pathfinder Cost"></canvas><br />
           <label for="cvsHeights" style="vertical-align: top;">Overlays</label>
             <canvas id="cvsEnts" class="minimap" title="Entities"></canvas>
@@ -440,11 +442,11 @@
 
   <!-- Scripts -->
     <div>
-      <script>
+      <script type="text/javascript" >
 
         var errors = 0, bInitializes = true;
 
-        window.onerrorXX = function(e, f, l){
+        window.onerror = function(e, f, l){
           var error = "";
           if (bInitializes){
             error += "Browser not supported. Try this one ";
@@ -481,6 +483,7 @@
       </script>
 
     <!-- simulates alphabetic loading sequence -->
+      <script type="text/javascript" src="mousetrap.js"></script>
       <script type="text/javascript" src="../_helper.js"></script>
       <!-- // <script type="text/javascript" src="../asm.js"></script> -->
       <script type="text/javascript" src="../config.js"></script>
