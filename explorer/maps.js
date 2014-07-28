@@ -33,22 +33,23 @@ HANNIBAL = (function(H){
     cvsTerr, ctxTerr,
     cvsTree, ctxTree,
     grdTerr, grdCost, grdRegw, grdRegl, grdTree, 
+    graphNull = [], graphCost = [], graphTree = [], graphCoTr = [],
     maps = [
       "topo-128.xml",
       "Arcadia 02.xml",                              // ents: 4205 size: 192
-      "Azure Coast.xml",
-      "Barcania.xml",
-      "Belgian_Bog_night.xml",
-      "Death Canyon - Invasion Force.xml",
-      "Laconia 01.xml",
-      "Miletus.xml",
-      "Saharan Oases.xml",
-      "Sahel.xml",
-      "Sandbox - Ptolemies.xml",
-      "Savanna Ravine.xml",
-      "Siwa Oasis.xml",
+      "Azure Coast.xml",                             // 8673, 384
+      "Barcania.xml",                                //  983, 256
+      "Belgian_Bog_night.xml",                       // 4036, 256
+      "Death Canyon - Invasion Force.xml",           //  349, 256
+      "Laconia 01.xml",                              // 1104, 256
+      "Miletus.xml",                                 // 1190, 192
+      "Saharan Oases.xml",                           // 2807, 320
+      "Sahel.xml",                                   // 3242, 320
+      "Sandbox - Ptolemies.xml",                     // 1805, 256
+      "Savanna Ravine.xml",                          //  692, 256
+      "Siwa Oasis.xml",                              // 2825, 256 , test for tee cost
       "The Persian Gates.xml",                       // 1195, 384
-      "Tropical Island.xml",      
+      "Tropical Island.xml",                         //  867, 256
    ],
    fmt;
 
@@ -207,6 +208,7 @@ HANNIBAL = (function(H){
           doPath  = !!$("chkPath").checked;
 
       mouse.active = true;
+      window.focus();
 
       x = e.clientX - posCanvas[0] + window.pageXOffset;
       y = e.clientY - posCanvas[1] + window.pageYOffset;
@@ -336,6 +338,7 @@ HANNIBAL = (function(H){
                   H.Maps.initCost,
                   H.Maps.initRegions,
                   H.Maps.initGraph,
+                  H.Maps.finiGraphs,
                   H.Maps.renderLayers,
                   H.Maps.blitLayers,
                   function(){doAnimate = true;},
@@ -467,7 +470,7 @@ HANNIBAL = (function(H){
 
       grdTerr.render(cvsTerr);
 
-      msg(fmt("terrain: %s ms", Date.now() - t0));
+      // msg(fmt("terrain: %s ms", Date.now() - t0));
       TIM.step("MAPS.terr", JSON.stringify(vals));
 
 
@@ -475,10 +478,10 @@ HANNIBAL = (function(H){
     fillRegion: function(source, target, type, index, value){
 
       var 
-        i, idx, s, nextX, nextY, isRegion, // counter = 0,
-        width  = target.width,
-        y = ~~(index / width),
-        x = index % width,
+        i = 0, idx = 0, s = 0, nextX = 0, nextY = 0, isRegion = false,
+        width  = target.width | 0,
+        y = ~~(index / width) | 0,
+        x = index % width  | 0,
         stack  = [x, y],
         tgt = target.data,     // 1 byte data
         src = source.data,     // 1 byte data
@@ -492,7 +495,8 @@ HANNIBAL = (function(H){
 
         tgt[y * width + x] = value;
 
-        for (i = 0; i < 4; i++) {
+        i = 4;
+        while (i--) {
 
           nextX = x + dx[i];
           nextY = y + dy[i];
@@ -529,33 +533,56 @@ HANNIBAL = (function(H){
       //   t ===  64 ? "too steep" : 
       //   t === 255 ? "unknown" : 
 
-      var i, r, c, tr, ghn, ghc, t0 = Date.now(),
-          width = map.size -1, len = width * width,
-          maxCost = 2, facCost = 255/maxCost,
-          graphNull = [], graphCost = [];
+      var t0 = Date.now(), i, r, c, terr, ghn, ghc, ght, 
+          width = map.size -1, 
+          maxCost = 2, facCost = 255/maxCost;
 
-      i = width; while (i--) {graphNull[i]=[]; graphCost[i]=[];}
+      i = width; 
+      while (i--) {
+        graphNull[i]=[]; 
+        graphCost[i]=[];
+        graphTree[i]=[];
+        graphCoTr[i]=[];
+      }
 
-      i = len; 
+      i = width * width; 
       while (i--) {
 
-        tr = grdTerr.data[i];
-
-        // no forbidden, deep, steep, gaps else cost.max => 4 else 1
-        ghn = (tr === 0 || tr === 32 || tr === 64 || tr === 255) ? 0 : 1;
-        ghc = (tr === 0 || tr === 32 || tr === 64 || tr === 255) ? 0 : ~~(grdCost.data[i] / facCost) + 1;
-
         c = ~~(i/width); r = i % width;
+        terr = grdTerr.data[i];
+        // no forbidden, deep, steep, gaps else cost.max => 4 else 1
+        ghn = terr === 0 || terr === 32 || terr === 64 || terr === 255 ? 0 : 1;
+        ghc = ghn === 0 ? 0 : ~~(grdCost.data[i] / facCost) + 1;
+        ght = (
+          ghn === 0 ? 0             :  // wall is wall
+          grdTree.data[i]  >  4 ? 0 :  // too crowded
+          grdTree.data[i] === 0 ? 1 :  // normal cost
+          grdTree.data[i] === 1 ? 1 :  // ignore one tree
+            grdTree.data[i] -1         // else 
+        );
+
+
         graphNull[r][c] = ghn;
         graphCost[r][c] = ghc;
+        graphTree[r][c] = ght;
+        graphCoTr[r][c] = (
+          !ghc || !ght ? 0 :     // wall is wall
+          ght === 1    ? ghc :   // ignore single tree
+            ghc + ght -1         // count normal cost only once
+        );
 
       }
 
+      msg(fmt("graph init: %s ms", (Date.now() - t0)));
+
+    },
+    finiGraphs: function(){
+      var t0 = Date.now();
       map.graphNull = new H.AI.Graph(graphNull);
       map.graphCost = new H.AI.Graph(graphCost);
-
-      msg(fmt("graph: %s ms", (Date.now() - t0)));
-
+      map.graphTree = new H.AI.Graph(graphTree);
+      map.graphCoTr = new H.AI.Graph(graphCoTr);
+      msg(fmt("graph fini: %s ms", (Date.now() - t0)));
     },
     initCost: function(){
 
@@ -812,7 +839,7 @@ HANNIBAL = (function(H){
         }
       }
 
-      ctxPath.fillStyle = "rgba(255, 255, 255, 0.9";
+      ctxPath.fillStyle = "rgba(255, 255, 255, 1.0";
 
       i = map.path.length;
       while ((p = map.path[--i])){
@@ -905,15 +932,16 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(),
-        width = map.size -1, trees = {},
-        x, y, tpl, pos, idx, cntTrees = 0, cntTiles = 0;
+        width = map.size -1, tiles = {},
+        x, y, i, tpl, nbs, pos, idx, tile, keys, cntTrees = 0, cntTiles = 0;
 
       function neighbors(x, y){
-        var nbs = 0, square = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]];
-        square.forEach(function(sq){
+        var square = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]],
+            nbs = 0, sq, i = square.length;
+        while((sq = square[--i])){
           idx = width * (y + sq[1]) + x + sq[0];
-          nbs += trees[idx] ? 1 : 0;
-        });
+          nbs += tiles[idx] ? tiles[idx].trees : 0;
+        }
         return nbs;
       }
 
@@ -932,20 +960,23 @@ HANNIBAL = (function(H){
           y = width - ~~(pos.getAttribute("z")/4 +0.5) ;
           idx = width * y + x;
 
-          if (!trees[idx]){trees[idx] = [];}
-          trees[idx].push({ent: ent});
-          trees[idx].data = {x:x,y:y};
+          if (!tiles[idx]){
+            tiles[idx] = {x:x, y:y, trees: 1};
+          } else {
+            tiles[idx].trees += 1;
+          }
 
         }
 
       });
 
-      H.each(trees, function(idx /* ,list */){
+      keys = Object.keys(tiles);
+      i = keys.length;
+      while ((tile = tiles[keys[--i]])){
         cntTiles += 1;
-        x = trees[idx].data.x;
-        y = trees[idx].data.y;
-        grdTree.data[idx] = neighbors(x, y);
-      });
+        nbs = neighbors(tile.x, tile.y);
+        grdTree.data[idx] = nbs;
+      }
 
       msg(fmt("cost.trees: %s/%s, %s ms", cntTiles, cntTrees, Date.now()-t0));
 
@@ -953,7 +984,7 @@ HANNIBAL = (function(H){
     renderTree: function(){
 
       var 
-        s, idx, diffColor = ~~(255/9),
+        s, idx, diffColor = ~~(255/4),
         width = map.size -1, i = width * width,
         source, target;
 
@@ -965,12 +996,12 @@ HANNIBAL = (function(H){
 
       while (i--) {
         s = source[i];
-        if (s){
+        if (s > 1){
           idx = i << 2;
-          target.data[idx +0] = 0;
-          target.data[idx +1] = s * diffColor;
+          target.data[idx +0] = s * diffColor;
+          target.data[idx +1] = s * diffColor/2;
           target.data[idx +2] = 0;
-          target.data[idx +3] = 128;
+          target.data[idx +3] = 200;
         }
       }
 

@@ -567,7 +567,8 @@ HANNIBAL = (function(H){
           algo === 1 ? 1                                     : 
           algo === 2 ? length                                : 
           algo === 3 ? length * neighbor.weight              :
-          algo === 4 ? length * neighbor.weight - 0.01       :
+          algo === 4 ? (length -0.01) * neighbor.weight      :
+          algo === 5 ? (length -0.1)  * neighbor.weight      :
             3
         );
 
