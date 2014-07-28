@@ -149,15 +149,15 @@ HANNIBAL = (function(H){
         opt.selected = decodeURIComponent(opt.innerHTML) === decodeURIComponent(option) ? "selected" : "";
       });
     },
-    map: function(mapp){
+    map: function(map){
 
-      console.log("Display.map:", mapp, H.Maps.default);
+      console.log("Display.map:", map, H.Maps.default);
 
-      mapp = mapp || H.Maps.default;
+      map = map || H.Maps.default;
 
-      H.Display.boxSelect($("slcMaps"), mapp);
-
-      H.Maps.load(mapp);
+      H.Maps.load(map, function(){
+        H.Display.boxSelect($("slcMaps"), map);
+      });
 
     },
     query: function(hqc){

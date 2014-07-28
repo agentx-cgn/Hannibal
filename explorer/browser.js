@@ -117,29 +117,22 @@ HANNIBAL = (function(H){
 
         H.Maps.readMapList(function(html){
           $("slcMaps").innerHTML = html;  
-          // select($("slcMaps"), H.Maps.default);
-          // console.log($("slcMaps").value, H.Maps.default);  
-          // H.Maps.load(H.Maps.host() + H.Maps.path() + H.Maps.default);
-          
-          // H.Maps.load(H.Maps.default);
-
         });
         $("slcMaps").onchange = $("slcMaps").onselect = $("slcMaps").onkeyyup = $("btnMAPLoad").onclick = function(){
-          // H.Maps.load(H.Maps.host() + H.Maps.path() + $("slcMaps").value);
-          // H.Display.map($("slcMaps").value);
           H.Browser.do('*;*;MAPS;map;' + $("slcMaps").value);
         }
-        "chkPathCost chkPathMan chkPathDia chkPathEuc chkPathDebug".split(" ").forEach(function(token){
-          $(token).onchange = function(){
-            H.Maps.runPath();
-          }
+
+        $("chkPathDyna").onchange = function(){H.Maps.toggleDynamic();};
+        $("slcPathTweak").onchange = $("slcPathTweak").onselect = $("slcPathTweak").onkeyup = function(){H.Maps.setDirtyPath();};
+        "Tree Cost Man Dia Euc Squ Ign Debug".split(" ").forEach(function(token){
+          $("chkPath" + token).onchange = function(){
+            H.Maps.setDirtyPath();
+          };
         });
-        $("chkPathDyna").onchange = H.Maps.toggleDyna;
 
         "Topo Ents Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
-            H.Maps.clear();
-            H.Maps.render();
+            H.Maps.setDirtyLayer();
           }
         });
         $("cvsMap").onclick = $("cvsDyna").onclick = H.Maps.onclick;

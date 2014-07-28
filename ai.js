@@ -302,13 +302,11 @@ HANNIBAL = (function(H){
   * A graph memory structure
   * @param {Array} gridIn 2D array of input weights
   * @param {Object} [options]
-  * @param {bool} [options.diagonal] Specifies whether diagonal moves are allowed
   */
   H.AI.Graph = function Graph(data, options) {
 
     options = options || {};
     
-    this.diagonal = true; // !!options.diagonal; 
     this.size  = data.length; // only quadratic grids
     this.data  = data;
     this.nodes = [];
@@ -391,12 +389,17 @@ HANNIBAL = (function(H){
     this.weight = weight;
   }
   GridNode.prototype.toString = function() { return "[" + this.x + " " + this.y + "]";};
-  GridNode.prototype.getCost = function(neighbor) { 
-    return (this.x !== neighbor.x && this.y !== neighbor.y ? 
-      this.weight : //* 1.4142135623730951 : 
-      // this.weight * 1.5132135623730951 : 
-      this.weight
-    );
+  GridNode.prototype.getCost = function(neighbor, heuristic) { 
+
+    return heuristic(this, neighbor) * this.weight - 0.01;
+
+    // return (this.x !== neighbor.x && this.y !== neighbor.y ? 
+    //   // this.weight : //* 1.4142135623730951 : 
+    //   // this.weight * 1.4142135623730951 : 
+    //   this.weight : 
+    //   this.weight
+    // );
+
   };
   GridNode.prototype.isWall = function() { return this.weight === 0;};
 
@@ -500,6 +503,10 @@ HANNIBAL = (function(H){
   H.AI.AStar = {
     // See list of heuristics: http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
     heuristics: {
+      ignore: function() {
+        // return 1.4142135623730951;
+        return 1;
+      },
       manhattan: function(pos0, pos1) {
         var d1 = Math.abs(pos1.x - pos0.x);
         var d2 = Math.abs(pos1.y - pos0.y);
@@ -512,6 +519,13 @@ HANNIBAL = (function(H){
         var d2 = Math.abs(pos1.y - pos0.y);
         return (D * (d1 + d2)) + ((D2 - (2 * D)) * Math.min(d1, d2));
       },
+      square: function(pos0, pos1) {
+        var D = 1, 
+            dx = Math.abs(pos0.x - pos1.x),
+            dy = Math.abs(pos0.y - pos1.y);
+        return D * (dx * dx + dy * dy);
+        
+      },
       euclidian: function(pos0, pos1) {
         var D = 1, 
             dx = Math.abs(pos0.x - pos1.x),
@@ -519,20 +533,6 @@ HANNIBAL = (function(H){
         return D * Math.sqrt(dx * dx + dy * dy);
       }
     },
-    // ## moved to heap ##
-    // init: function(graph) {
-    //   var i, node, len;
-    //   this.graph = graph;
-    //   for (i = 0, len = graph.nodes.length; i < len; ++i) {
-    //     node = graph.nodes[i];
-    //     node.f = 0;
-    //     node.g = 0;
-    //     node.h = 0;
-    //     node.visited = false;
-    //     node.closed = false;
-    //     node.parent = null;
-    //   }
-    // },
 
     /**
     * Perform an A* Search on a graph given a start and end node.
@@ -554,7 +554,24 @@ HANNIBAL = (function(H){
         heuristic   = options.heuristic || H.AI.AStar.heuristics.manhattan,
         openHeap    = getHeap(),
         closest     = options.closest || false,
-        closestNode = start; 
+        closestNode = start,
+        algo        = options.algotweak || 3;
+
+      function cost(node, neighbor){
+
+        var length = (node.x !== neighbor.x && node.y !== neighbor.y ? 
+          1.4142135623730951 : 1 
+        );
+
+        return (
+          algo === 1 ? 1                                     : 
+          algo === 2 ? length                                : 
+          algo === 3 ? length * neighbor.weight              :
+          algo === 4 ? length * neighbor.weight - 0.01       :
+            3
+        );
+
+      }
         
       start.h = heuristic(start, end);
 
@@ -582,7 +599,7 @@ HANNIBAL = (function(H){
 
           // The g score is the shortest distance from start to current node.
           // We need to check if the path we have arrived at this neighbor is the shortest one we have seen yet.
-          gScore = currentNode.g + neighbor.getCost(currentNode);
+          gScore = currentNode.g + cost(currentNode, neighbor);
 
           beenVisited = neighbor.visited;
 

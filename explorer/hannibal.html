@@ -295,13 +295,33 @@
                   <div style="margin-left: 8px">
 
                     <label for="chkPathDebug" style="text-align: left;">Pathfinder</label>
-                      <input type="checkbox" id="chkPathDebug"  checked="checked"><span class="chklabel">debug</span></input>
-                      <input type="checkbox" id="chkPathCost"  checked="checked"><span class="chklabel">cost</span></input>
-                      <input type="checkbox" id="chkPathDyna"  checked="checked"><span class="chklabel">dynamic</span></input><br />
+                    <div style="padding-left: 8px">
+                      <span class="chklabel">Options:</span><br />
+                        <input type="checkbox" id="chkPathDebug" checked="checked"><span class="chklabel">debug</span></input>
+                        <input type="checkbox" id="chkPathDyna"  checked="checked"><span class="chklabel">dynamic</span></input><br />
+                        <input type="checkbox" id="chkPathCost"  checked="checked"><span class="chklabel">Terrain cost</span></input>
+                        <input type="checkbox" id="chkPathTree"  disabled="disabled"><span class="chklabel">Tree cost</span></input><br />
+                    </div>
+
+                    <div style="padding-left: 8px">
+                      <span class="chklabel" style="">Heuristics:</span><br />
+                      <input type="radio" name="chkHeur" id="chkPathIgn"  value="ignore" ><span class="chklabel">None</span></input>
                       <input type="radio" name="chkHeur" id="chkPathMan"  value="manhattan" ><span class="chklabel">Manhattan</span></input><br />
                       <input type="radio" name="chkHeur" id="chkPathDia"  checked="checked" value="diagonal" ><span class="chklabel">Diagonal</span></input>
-                      <input type="radio" name="chkHeur" id="chkPathEuc"  value="euclidian" ><span class="chklabel">Euclidian</span></input>
-                  
+                      <input type="radio" name="chkHeur" id="chkPathSqu"  value="square" ><span class="chklabel">Square</span></input><br />
+                      <input type="radio" name="chkHeur" id="chkPathEuc"  value="euclidian" ><span class="chklabel">Euclidian</span></input><br />
+
+                      <span class="chklabel" style="padding-left: 8px">Tweak:</span>
+                        <select id="slcPathTweak">
+                          <option>1</option>
+                          <option>2</option>
+                          <option selected>3</option>
+                          <option>4</option>
+                        </select>
+
+
+                    </div>
+
                   </div>
 
                   <div style="margin-left: 8px">
@@ -325,9 +345,9 @@
                         <option>32</option>
                         <option>64</option>
                       </select>
-                    <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.render();">Cluster</button>     
+                    <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.blitLayers();">Cluster</button>     
                   </div>   
-                  <div style="margin-left: 8px">
+                  <div style="margin-left: 8px; display: none">
                     <label for="slcPathStress" style="text-align: left;">Pathfinder</label>
                       <select id="slcPathStress">
                         <option >1</option>
@@ -337,7 +357,7 @@
                         <option>500</option>
                         <option>1000</option>
                       </select>
-                    <button id="btnPathStress" onclick="H.Maps.stressPath(); disabled="disabled">Stress</button>     
+                    <button id="btnPathStress" onclick="H.Maps.stressPath();" disabled="disabled">Stress</button>     
                   </div>                     
                   <br />
                 </div>
@@ -346,19 +366,25 @@
           </div>
           <canvas id="cvsGrid" class="minimap" title="Grid" style="display:none"></canvas><br />
           <label for="cvsHeights" style="vertical-align: top;">Layer</label>
-            <canvas id="cvsTopo" class="minimap" title="Topo (pmp)"></canvas>
-            <img    id="imgPass" class="minimap" title="Passability (png)"  />
-            <canvas id="cvsTerr" class="minimap" title="Terrain Grid (pass[])"></canvas>
-            <canvas id="cvsPass" class="minimap" title="Terrain Passability (interpreted)"></canvas><br />
+            <div>
+              <canvas id="cvsTopo" class="minimap" title="Topo (pmp)"></canvas>
+              <img    id="imgPass" class="minimap" title="Passability (png)"  />
+              <canvas id="cvsTerr" class="minimap" title="Terrain Grid (pass[])"></canvas>
+              <canvas id="cvsPass" class="minimap" title="Terrain Passability (interpreted)"></canvas>
+            </div><br />
           <label for="cvsHeights" style="vertical-align: top;">Analysis</label>
-            <canvas id="cvsRegw" class="minimap" title="Water Regions"></canvas>
-            <canvas id="cvsRegl" class="minimap" title="Land Regions"></canvas>
-            <canvas id="cvsTree" class="minimap" title="Tree Cost"></canvas>
-            <canvas id="cvsCost" class="minimap" title="Pathfinder Cost"></canvas><br />
+            <div>
+              <canvas id="cvsRegw" class="minimap" title="Water Regions"></canvas>
+              <canvas id="cvsRegl" class="minimap" title="Land Regions"></canvas>
+              <canvas id="cvsTree" class="minimap" title="Tree Cost"></canvas>
+              <canvas id="cvsCost" class="minimap" title="Pathfinder Cost"></canvas>
+            </div><br />
           <label for="cvsHeights" style="vertical-align: top;">Overlays</label>
-            <canvas id="cvsEnts" class="minimap" title="Entities"></canvas>
-            <canvas id="cvsClus" class="minimap" title="Cluster" ></canvas>
-            <canvas id="cvsPath" class="minimap" title="Pathfinder" ></canvas>
+            <div>
+              <canvas id="cvsEnts" class="minimap" title="Entities"></canvas>
+              <canvas id="cvsClus" class="minimap" title="Cluster" ></canvas>
+              <canvas id="cvsPath" class="minimap" title="Pathfinder" ></canvas>
+            </div><br />
         </div>
         <div class="trenner"></div>
 
