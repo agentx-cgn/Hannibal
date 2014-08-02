@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL */
 
 /*---------------  A I --------------------------------------------------------
 
@@ -325,13 +325,11 @@ HANNIBAL = (function(H){
     },
     clear: function() {
       var i = this.nodes.length, node;
-      // while (i--) {
-      //   node = this.nodes[i];
       while ((node = this.nodes[--i])) {
         node.f = 0;
         node.g = 0;
         node.h = 0;
-        node.index   = 0; //-1;
+        node.index   = 0;
         node.visited = false;
         node.closed  = false;
         node.parent  = null;
@@ -355,43 +353,7 @@ HANNIBAL = (function(H){
       neighbors[6] = (y - 1 >= 0 && x + 1 <= Z) ? grid[x-1][y+1] : null;
       neighbors[7] = (y + 1 <= Z && x + 1 <= Z) ? grid[x+1][y+1] : null;
 
-    },
-    neighborsX: function(node) {
-
-      var 
-        ret = [],
-        x = node.x,
-        y = node.y,
-        Z = this.size,
-        grid = this.grid;
-
-      if (x - 1 >= 0) {ret.push(grid[x-1][y]);} // West
-      if (x + 1 <= Z) {ret.push(grid[x+1][y]);} // East
-      if (y - 1 >= 0) {ret.push(grid[x][y-1]);} // South
-      if (y + 1 <= Z) {ret.push(grid[x][y+1]);} // North
-
-      if (y - 1 >= 0 && x - 1 >= 0) {ret.push(grid[x-1][y-1]);} // 
-      if (y + 1 <= Z && x - 1 >= 0) {ret.push(grid[x+1][y-1]);} // 
-      if (y - 1 >= 0 && x + 1 <= Z) {ret.push(grid[x-1][y+1]);} // 
-      if (y + 1 <= Z && x + 1 <= Z) {ret.push(grid[x+1][y+1]);} // 
-
-      return ret;
-
-    },
-    toString: function() {
-      var graphString = [],
-          nodes = this.grid, // when using grid
-          rowDebug, row, y, l;
-      for (var x = 0, len = nodes.length; x < len; x++) {
-        rowDebug = [];
-        row = nodes[x];
-        for (y = 0, l = row.length; y < l; y++) {
-          rowDebug.push(row[y].weight);
-        }
-        graphString.push(rowDebug.join(" "));
-      }
-      return graphString.join("\n");
-    },
+    }
 
   };
 
@@ -416,24 +378,23 @@ HANNIBAL = (function(H){
   
   BinaryHeap.prototype = {
     constructor: BinaryHeap,
-    size: function() {return this.content.length;},
-    rescoreElement: function(node) {
-      this.sinkDown(node.index);
-    },
+    // rescoreElement: function(node) {
+    //   this.sinkDown(node.index);
+    // },
     push: function(element) {
       element.index = this.content.length;       
       this.content.push(element);                // Add the new element to the end of the array.
-      this.sinkDown(this.content.length - 1);    // Allow it to sink down.
+      this.sinkDown(element.index);              // Allow it to sink down.
     },
     pop: function() {
 
       var 
         content = this.content,
-        result  = content[0],              // Store the first element so we can return it later.
-        end     = content.pop();              // Get the element at the end of the array.
+        result  = content[0],                    // Store the first element so we can return it later.
+        end     = content.pop();                 // Get the element at the end of the array.
 
-      if (content.length) {                 // If there are any elements left, put the end element 
-        content[0] = end;                   // at the start, and let it bubble up.
+      if (content.length) {                      // If there are any elements left, put the end element 
+        content[0] = end;                        // at the start, and let it bubble up.
         this.bubbleUp(0);
       }
 
@@ -494,7 +455,7 @@ HANNIBAL = (function(H){
 
       while(true) {
 
-        swap = null;                             // This is used to store the new position of the element, if any.
+        swap = undefined;                             // This is used to store the new position of the element, if any.
         child1Score = undefined;
 
         child2N = (n + 1) << 1;                  // Compute the indices of the child elements.
@@ -506,10 +467,10 @@ HANNIBAL = (function(H){
         }
         
         if (child2N < length) {                  // Do the same checks for the other child.
-          swap = content[child2N].f < (swap === null ? elemScore : child1Score) ? child2N : swap;
+          swap = content[child2N].f < (swap === undefined ? elemScore : child1Score) ? child2N : swap;
         }
         
-        if (swap !== null) {                     // If the element needs to be moved, swap it, and continue.
+        if (swap !== undefined) {                     // If the element needs to be moved, swap it, and continue.
 
           content[n] = content[swap];
           content[swap] = element;
@@ -586,7 +547,7 @@ HANNIBAL = (function(H){
         neighbors   = [null, null, null, null, null, null, null, null],
         currentNode, neighbor, i, gScore, beenVisited;
 
-      function cost(node, neighbor){
+      function neighborCost(node, neighbor){
 
         var length = (node.x !== neighbor.x && node.y !== neighbor.y ? 
           1.4142135623730951 : 1 
@@ -612,14 +573,15 @@ HANNIBAL = (function(H){
         currentNode = openHeap.pop();            // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
         visited.push(currentNode);               // debug
 
-        if(currentNode === end) {                // End case -- result has been found, return the traced path.
+        // End case -- result has been found, return the traced path.
+
+        if(currentNode === end) {                
           return {path: pathTo(currentNode), success: true, nodes: visited};
         }
         
         currentNode.closed = true;                    // Normal case -- move currentNode from open to closed, process each of its neighbors.
         graph.setNeighbors(neighbors, currentNode);   // Find all neighbors for the current node.
 
-        // for (i = 0, il = neighbors.length; i < il; ++i) {
         for (i = 0; i < 8; i++) {
 
           neighbor = neighbors[i];
@@ -633,7 +595,7 @@ HANNIBAL = (function(H){
           // We need to check if the path we have arrived at this neighbor 
           // is the shortest one we have seen yet.
 
-          gScore = currentNode.g + cost(currentNode, neighbor);
+          gScore = currentNode.g + neighborCost(currentNode, neighbor);
 
           beenVisited = neighbor.visited;
 
@@ -664,7 +626,8 @@ HANNIBAL = (function(H){
 
             // Already seen the node, but since it has been rescored we need to reorder it in the heap
             } else {
-              openHeap.rescoreElement(neighbor);
+              // openHeap.rescoreElement(neighbor);
+              openHeap.sinkDown(neighbor.index);
 
             }
 
@@ -677,13 +640,6 @@ HANNIBAL = (function(H){
         closest ? {path: pathTo(closestNode), success: false, nodes: visited} :
           {path: [], success: false, nodes: visited}
       );
-
-      // // return pathTo(closestNode);
-      // if (closest) { return {path: pathTo(closestNode), nodes: visited}; }
-
-      // // No result was found - empty array signifies failure to find path.
-      // // return [];
-      // return {path: [], nodes: visited};  
 
     }
 
@@ -707,7 +663,7 @@ HANNIBAL = (function(H){
         polygons = [a, b],
         aLen = a.length, bLen = b.length, pLen, 
         minA, maxA, projected, i, i1, j, minB, maxB,
-        polygon, i2, p1, p2, normX, normY; //normal;
+        polygon, i2, p1, p2, normX, normY; 
 
       for (i = 0; i < polygons.length; i++) {
 
@@ -759,6 +715,7 @@ HANNIBAL = (function(H){
 
           // if there is no overlap between the projects, the edge we are looking at separates the two
           // polygons, and we know there is no overlap
+
           if (maxA < minB || maxB < minA) {
             return false;
           }
