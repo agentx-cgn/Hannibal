@@ -325,11 +325,13 @@ HANNIBAL = (function(H){
     },
     clear: function() {
       var i = this.nodes.length, node;
-      while (i--) {
-        node = this.nodes[i];
+      // while (i--) {
+      //   node = this.nodes[i];
+      while ((node = this.nodes[--i])) {
         node.f = 0;
         node.g = 0;
         node.h = 0;
+        node.index   = 0; //-1;
         node.visited = false;
         node.closed  = false;
         node.parent  = null;
@@ -408,23 +410,6 @@ HANNIBAL = (function(H){
     return path.reverse();
   }
 
-
-  // GridNode.prototype.toString = function() { return "[" + this.x + " " + this.y + "]";};
-  // GridNode.prototype.getCost = function(neighbor, heuristic) { 
-
-  //   return heuristic(this, neighbor) * this.weight - 0.01;
-
-  //   // return (this.x !== neighbor.x && this.y !== neighbor.y ? 
-  //   //   // this.weight : //* 1.4142135623730951 : 
-  //   //   // this.weight * 1.4142135623730951 : 
-  //   //   this.weight : 
-  //   //   this.weight
-  //   // );
-
-  // };
-  // GridNode.prototype.isWall = function() { return this.weight === 0;};
-
-
   function BinaryHeap(){
     this.content = [];
   }
@@ -433,9 +418,10 @@ HANNIBAL = (function(H){
     constructor: BinaryHeap,
     size: function() {return this.content.length;},
     rescoreElement: function(node) {
-      this.sinkDown(this.content.indexOf(node));
+      this.sinkDown(node.index);
     },
     push: function(element) {
+      element.index = this.content.length;       
       this.content.push(element);                // Add the new element to the end of the array.
       this.sinkDown(this.content.length - 1);    // Allow it to sink down.
     },
@@ -457,8 +443,8 @@ HANNIBAL = (function(H){
     remove: function(node) {
 
       var 
+        i = node.index,                  
         content = this.content,
-        i = content.indexOf(node),
         end = content.pop();             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
 
       if (i !== content.length - 1) {
@@ -472,30 +458,39 @@ HANNIBAL = (function(H){
 
     },
     sinkDown: function(n) {
+
       var 
         content = this.content,
         element = content[n],               // Fetch the element that has to be sunk.
         parentN = 0, parent = null;
 
       while (n) {                           // When at 0, an element can not sink any further.
+
         parentN = ((n + 1) >> 1) - 1;       // Compute the parent element's index, and fetch it.
         parent  = content[parentN];
+        
         if (element.f < parent.f) {
+
           content[parentN] = element;       // Swap the elements if the parent is greater.
           content[n] = parent;
+
+          element.index = parentN;          
+          parent.index  = n;                 
+
           n = parentN;                      // Update 'n' to continue at the new position.
+
         } else { break; }                   // Found a parent that is less, no need to sink any further.
       }
 
     },
     bubbleUp: function(n) {
-      // Look up the target element and its score.
+
       var 
+        child2N, child1N, swap, child1Score,
         content   = this.content,
         length    = content.length,
         element   = content[n],
-        elemScore = element.f,
-        child2N, child1N, swap, child1Score;
+        elemScore = element.f;
 
       while(true) {
 
@@ -515,8 +510,13 @@ HANNIBAL = (function(H){
         }
         
         if (swap !== null) {                     // If the element needs to be moved, swap it, and continue.
+
           content[n] = content[swap];
           content[swap] = element;
+
+          content[n].index = n;
+          element.index = swap;
+
           n = swap;
 
         } else {break;}                          // Otherwise, we are done.
@@ -584,7 +584,7 @@ HANNIBAL = (function(H){
         visited     = [], 
         tweak       = options.algotweak || 3,
         neighbors   = [null, null, null, null, null, null, null, null],
-        currentNode, neighbor, i, il, gScore, beenVisited;
+        currentNode, neighbor, i, gScore, beenVisited;
 
       function cost(node, neighbor){
 

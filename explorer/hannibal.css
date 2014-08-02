@@ -233,6 +233,7 @@ li.tabberitem a {
 #txtTerrain {
   font-size: 10px;  
   padding-left: 4px;
+  white-space: nowrap;
 }
 
 /*div#contMenu {
