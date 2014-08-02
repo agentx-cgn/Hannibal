@@ -50,7 +50,6 @@ HANNIBAL = (function(H){
 
   };
 
-
   H.Browser = (function(){
 
     var history = [], pointer = null, c = {}, 
@@ -130,13 +129,15 @@ HANNIBAL = (function(H){
           };
         });
 
-        "Topo Ents Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
+        "Topo Obst Ents Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
             H.Maps.setDirtyLayer();
           }
         });
         $("cvsMap").onclick = $("cvsDyna").onclick = H.Maps.onclick;
         $("cvsMap").onmousemove = $("cvsDyna").onmousemove = H.Maps.onmousemove;
+
+        H.Display.activateTab("tabberPathVill", "tabPath");
 
         $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
         $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};

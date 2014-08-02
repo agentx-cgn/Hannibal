@@ -47,101 +47,18 @@ HANNIBAL = (function(H){
       ele.value = str;
     },
 
-    // kmeans: function(){
 
-    //   var t0, t1, cvs = $("cvsMap"),
-    //       ctx = cvs.getContext("2d"),
-    //       cvsHeights = $("cvsHeights"),
-    //       ctxHeights = cvsHeights.getContext("2d"),
-    //       nCluster = ~~$("slcKMeans").value,
-    //       k = new H.AI.KMeans(),
-    //       c = 0;
-
-    //   // k.kmpp = true;
-    //   k.k = nCluster;
-    //   k.maxIterations = 50;
-    //   k.setPoints(map.points);
-    //   k.initCentroids();
-    //   t0 = Date.now();
-    //   k.cluster(function(centroids){
-    //     c += 5;
-    //     ctx.fillStyle = "rgba(" + c + ", 250, 0, 0.3";
-    //     centroids.forEach(function(ctr){
-    //       ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
-    //     });
-    //   });
-    //   t1 = Date.now();  
-
-    //   ctx.fillStyle = "rgba(255, 0, 0, 0.9";
-    //   ctx.strokeStyle = "rgba(255, 255, 255, 0.9";
-    //   k.centroids.forEach(function(ctr){
-    //     ctx.fillRect(ctr.x -4, ctr.z -4, 8, 8);
-    //     ctx.fillRect(ctr.x -5, ctr.z -5, 10, 10);
-    //   });
-
-    //   console.log("kmeans", map.points.length, k.centroids.length, "iter", k.iterations, k.converged, (t1-t0));
-
-    // },
-
-    // paintMap: function(){
-
-    //   // http://trac.wildfiregames.com/wiki/PMP_File_Format
-
-    //   var x, z, i, off, h, length, data,
-    //       cvs = $("cvsMap"),
-    //       ctx = cvs.getContext("2d"),
-    //       cvsHeights = $("cvsHeights"),
-    //       ctxHeights = cvsHeights.getContext("2d"),
-    //       view = new DataView(map.buffer),
-    //       size = 512, rec = 0;
-
-    //   cvs.width = size; cvs.height = size;
-
-    //   map.version  = view.getUint32(4, true),
-    //   map.datasize = view.getUint32(8, true),
-    //   map.mapsize  = view.getUint32(12, true),
-    //   map.length = (map.mapsize *16  +1) * (map.mapsize *16 +1),
-    //   map.factor = map.mapsize *16/128 * 512/size;
-    //   map.size = map.mapsize *16  +1;
-
-    //   console.log("paintMap:", "bytes", map.buffer.byteLength, "mapsize", map.mapsize, "factor", map.factor, "size", map.size);
-
-    //   cvsHeights.width = cvsHeights.height = map.size;
-
-    //   data = ctxHeights.getImageData(0, 0, map.size, map.size);
-
-    //   for (i=0, off=16; i<map.length; i++, off+=2) {
-    //     h = view.getUint16(off, true) >> 8;
-    //     if (h) {
-    //       data.data[i *4 + 0] = h;
-    //       data.data[i *4 + 1] = h;
-    //       data.data[i *4 + 2] = h;
-    //     } else {
-    //       data.data[i *4 + 0] = 80;
-    //       data.data[i *4 + 1] = 140;
-    //       data.data[i *4 + 2] = 220;
-    //     }
-    //     data.data[i *4 + 3] = 256;
-    //   }
-    //   ctxHeights.putImageData(data, 0, 0);
-
-    //   ctxHeights.setTransform(1, 0, 0, 1, 0, 0);
-    //   ctxHeights.translate(0, map.size);
-    //   ctxHeights.scale(1, -1);
-
-    //   ctxHeights.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, map.size, map.size);
-
-    //   cvs.width = cvs.width;
-
-    //   ctx.drawImage(cvsHeights, 0, 0, map.size, map.size, 0, 0, size, size);
-
-    //   ctx.setTransform(1, 0, 0, 1, 0, 0);
-    //   ctx.translate(0, cvs.height);
-    //   ctx.scale(1, -1);
-
-
-
-    // },
+    activateTab: function(tabCtrl, pageId) {
+      tabCtrl = $(tabCtrl);
+      pageId  = $(pageId);
+      for (var i = 0; i < tabCtrl.childNodes.length; i++) {
+        var node = tabCtrl.childNodes[i];
+        if (node.nodeType == 1) { /* Element */
+          node.style.display = (node == pageId) ? 'block' : 'none';
+          console.log("activateTab", tabCtrl, pageId);
+        }
+      }
+    },
 
     boxSelect: function(box, option){
       H.toArray(box.getElementsByTagName('option')).forEach(function(opt){

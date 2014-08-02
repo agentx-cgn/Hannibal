@@ -266,25 +266,29 @@
                   <canvas id="cvsDyna" width="512" height="512"></canvas>
                 </div>
                 <div style="float: left; width: 220px; position: relative">
-                  <div style="margin-left: 8px; margin-top: -32px;">
-                    <label for="txtMAP" style="margin-top: -12px; text-align: right;">Info</label>
-                    <textarea id="txtMAP" maxlength="1000" rows="8" style=" width: 198px; font-size: 10px;"></textarea>       
+                  <div style="margin-left: 8px; margin-top: -38px;">
+                    <!-- <label for="txtMAP" style="margin-top: -12px; text-align: right;">Info</label> -->
+                    <textarea id="txtMAP" maxlength="1000" rows="7" style="width: 198px; font-size: 10px;"></textarea>       
                   </div>
                   <div style="margin-left: 8px; margin-top: 4px">
-                    <label for="txtTerrain" style="text-align: left;">Terrain</label>
+                    <label for="txtTerrain" style="text-align: left;" class="uline">Terrain</label>
                     <span id="txtTerrain">[]</span>
                   </div>
                   <div style="margin-left: 8px; margin-top: 4px">
 
-                    <label for="chkTopo" style="text-align: left;">Render</label>
+                    <label for="chkTopo" style="text-align: left;" class="uline">Render</label>
                       <input type="checkbox" id="chkTopo"  checked="checked"><span class="chklabel">Topo</span></input>
                       <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input><br />
                       <input type="checkbox" id="chkGrid"><span class="chklabel">Grid</span></input>
-                      <input type="checkbox" id="chkCost"><span class="chklabel">Cost</span></input>
-                      <input type="checkbox" id="chkTree"><span class="chklabel">Trees</span></input><br />
+                      <input type="checkbox" id="chkObst"  checked="checked"><span class="chklabel">Obstructions</span></input><br />
                       <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input>
-                      <input type="checkbox" id="chkClus"  ><span class="chklabel">Cluster</span></input><br />
+                      <input type="checkbox" id="chkClus"><span class="chklabel">Cluster</span></input>
                       <input type="checkbox" id="chkPath"   checked="checked"><span class="chklabel">Paths</span></input><br />
+                      <input type="checkbox" id="chkVill"   checked="checked"><span class="chklabel">Village</span></input><br />
+
+                    <span class="chklabel" style="padding-left: 8px">Cost:</span>
+                      <input type="checkbox" id="chkCost"><span class="chklabel">Terrain</span></input>
+                      <input type="checkbox" id="chkTree"><span class="chklabel">Trees</span></input><br />
 
                     <span class="chklabel" style="padding-left: 8px">Regions:</span>
                       <input type="checkbox" id="chkRegw"><span class="chklabel">Water</span></input>
@@ -294,39 +298,63 @@
 
                   <div style="margin-left: 8px">
 
-                    <label for="chkPathDebug" style="text-align: left;">Pathfinder</label>
-                    <div style="padding-left: 8px">
-                      <span class="chklabel">Options:</span><br />
-                        <input type="checkbox" id="chkPathDebug" checked="checked"><span class="chklabel">debug</span></input>
-                        <input type="checkbox" id="chkPathDyna"  checked="checked"><span class="chklabel">dynamic</span></input><br />
-                        <input type="checkbox" id="chkPathCost"  checked="checked"><span class="chklabel">Terrain cost</span></input>
-                        <input type="checkbox" id="chkPathTree"><span class="chklabel">Tree cost</span></input><br />
-                    </div>
+                    <ul class="tabber">
+                      <li class="tabberitem">
+                        <a href="javascript:H.Display.activateTab('tabberPathVill', 'tabPath')">Pathfinder</a>
+                      </li>
+                      <li class="tabberitem">
+                        <a href="javascript:H.Display.activateTab('tabberPathVill', 'tabVill')">Villages</a>
+                      </li>
+                    </ul>
 
-                    <div style="padding-left: 8px">
-                      <span class="chklabel" style="">Heuristics:</span><br />
-                      <input type="radio" name="chkHeur" id="chkPathIgn"  value="ignore" ><span class="chklabel">None</span></input>
-                      <input type="radio" name="chkHeur" id="chkPathSqu"  value="square" ><span class="chklabel">Square</span></input><br />
-                      <input type="radio" name="chkHeur" id="chkPathMan"  value="manhattan" ><span class="chklabel">Manhattan</span></input>
-                      <input type="radio" name="chkHeur" id="chkPathDia"  checked="checked" value="diagonal" ><span class="chklabel">Diagonal</span></input><br />
-                      <input type="radio" name="chkHeur" id="chkPathEuc"  value="euclidian" ><span class="chklabel">Euclidian</span></input><br />
+                    <div id="tabberPathVill" >
 
-                      <span class="chklabel" style="padding-left: 8px">Tweak:</span>
-                        <select id="slcPathTweak">
-                          <option>1</option>
-                          <option>2</option>
-                          <option selected>3</option>
-                          <option>4</option>
-                          <option>5</option>
-                        </select>
+                      <div id="tabPath" class="divTabber">
+                        <div style="padding-left: 8px">
+                          <span class="chklabel">Options:</span><br />
+                            <input type="checkbox" id="chkPathDebug" checked="checked"><span class="chklabel">debug</span></input>
+                            <input type="checkbox" id="chkPathDyna"  checked="checked"><span class="chklabel">dynamic</span></input><br />
+                            <input type="checkbox" id="chkPathCost"  checked="checked"><span class="chklabel">Terrain cost</span></input>
+                            <input type="checkbox" id="chkPathTree"><span class="chklabel">Tree cost</span></input><br />
+                        </div>
+
+                        <div style="padding-left: 8px">
+                          <span class="chklabel" style="">Heuristics:</span><br />
+                          <input type="radio" name="chkHeur" id="chkPathIgn"  value="ignore" ><span class="chklabel">None</span></input>
+                          <input type="radio" name="chkHeur" id="chkPathSqu"  value="square" ><span class="chklabel">Square</span></input><br />
+                          <input type="radio" name="chkHeur" id="chkPathMan"  value="manhattan" ><span class="chklabel">Manhattan</span></input>
+                          <input type="radio" name="chkHeur" id="chkPathDia"  value="diagonal" ><span class="chklabel">Diagonal</span></input><br />
+                          <input type="radio" name="chkHeur" id="chkPathEuc"  checked="checked" value="euclidian" ><span class="chklabel">Euclidian</span></input><br />
+
+                          <span class="chklabel" style="padding-left: 8px">Tweak:</span>
+                            <select id="slcPathTweak">
+                              <option>1</option>
+                              <option>2</option>
+                              <option>3</option>
+                              <option>4</option>
+                              <option selected>5</option>
+                            </select>
 
 
-                    </div>
+                        </div>
+
+                      </div>
+
+                      <div id="tabVill" class="divTabber">
+
+                        <button id="btnVillTest1" onclick="H.Village.test1();">Test 1</button>     
+                        <button id="btnVillTest2" onclick="H.Village.test2();">Test 2</button><br />
+                        <button id="btnVillClear" onclick="H.Village.clear();">Clear</button>     
+
+                      </div>
+                    </div>                    
+
+                    
 
                   </div>
 
                   <div style="margin-left: 8px">
-                    <label for="slcClus" style="text-align: left;">Actions</label>
+                    <label for="slcClus" style="text-align: left;" class="uline">Actions</label>
                       <select id="slcClus">
                         <option selected>trees</option>
                         <option>units</option>
@@ -348,7 +376,7 @@
                       </select>
                     <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.blitLayers();">Cluster</button>     
                   </div>   
-                  <div style="margin-left: 8px; display: none">
+                  <div style="margin-left: 8px;">
                     <label for="slcPathStress" style="text-align: left;">Pathfinder</label>
                       <select id="slcPathStress">
                         <option >1</option>
@@ -358,7 +386,7 @@
                         <option>500</option>
                         <option>1000</option>
                       </select>
-                    <button id="btnPathStress" onclick="H.Maps.stressPath();" disabled="disabled">Stress</button>     
+                    <button id="btnPathStress" onclick="H.Maps.stressPath();">Stress</button>     
                   </div>                     
                   <br />
                 </div>
@@ -372,6 +400,7 @@
               <img    id="imgPass" class="minimap" title="Passability (png)"  />
               <canvas id="cvsTerr" class="minimap" title="Terrain Grid (pass[])"></canvas>
               <canvas id="cvsPass" class="minimap" title="Terrain Passability (interpreted)"></canvas>
+              <canvas id="cvsObst" class="minimap" title="Obstructions"></canvas>
             </div><br />
           <label for="cvsHeights" style="vertical-align: top;">Analysis</label>
             <div>
@@ -383,8 +412,9 @@
           <label for="cvsHeights" style="vertical-align: top;">Overlays</label>
             <div>
               <canvas id="cvsEnts" class="minimap" title="Entities"></canvas>
-              <canvas id="cvsClus" class="minimap" title="Cluster" ></canvas>
-              <canvas id="cvsPath" class="minimap" title="Pathfinder" ></canvas>
+              <canvas id="cvsClus" class="minimap" title="Cluster"></canvas>
+              <canvas id="cvsPath" class="minimap" title="Pathfinder"></canvas>
+              <canvas id="cvsVill" class="minimap" title="Villages" ></canvas>
             </div><br />
         </div>
         <div class="trenner"></div>
@@ -537,6 +567,8 @@
       <script type="text/javascript" src="display.js"></script>
       <script type="text/javascript" src="browser.js"></script>
       <script type="text/javascript" src="maps.js"></script>
+      <script type="text/javascript" src="village.js"></script>
+      <script type="text/javascript" src="c.pretty.js"></script>
       
     <!--- Init -->
       <script>

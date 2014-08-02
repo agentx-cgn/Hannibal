@@ -12,7 +12,7 @@
   Binary Heap : Marijn Haverbeke, Credit: http://eloquentjavascript.net/appendix2.html
                 License: http://creativecommons.org/licenses/by/3.0/
 
-  V: 0.1, agentx, CGN, Feb, 2014
+  V: 0.1, agentx, CGN, JUl, 2014
 
 */
 
@@ -289,15 +289,6 @@ HANNIBAL = (function(H){
 
   })();
 
-  function pathTo(node){
-    var curr = node, path = [];
-    while(curr.parent) {
-      path.push(curr);
-      curr = curr.parent;
-    }
-    return path.reverse();
-  }
-
   /**
   * A graph memory structure
   * @param {Array} gridIn 2D array of input weights
@@ -320,7 +311,7 @@ HANNIBAL = (function(H){
   H.AI.Graph.prototype = {
     constructor: H.AI.Graph,
     init: function() {
-      var node, row, y, x = this.size;
+      var node = null, row = 0, y = 0, x = this.size;
       while (x--) {
         this.grid[x] = [];
         row = this.data[x];
@@ -340,11 +331,30 @@ HANNIBAL = (function(H){
         node.g = 0;
         node.h = 0;
         node.visited = false;
-        node.closed = false;
-        node.parent = null;
+        node.closed  = false;
+        node.parent  = null;
       }      
     },
-    neighbors: function(node) {
+    setNeighbors: function(neighbors, node) {
+
+      var 
+        x = node.x,
+        y = node.y,
+        Z = this.size,
+        grid = this.grid;
+
+      neighbors[0] = (x - 1 >= 0) ? grid[x-1][y] : null;
+      neighbors[1] = (x + 1 >= 0) ? grid[x+1][y] : null;
+      neighbors[2] = (y - 1 >= 0) ? grid[x][y-1] : null;
+      neighbors[3] = (y + 1 >= 0) ? grid[x][y+1] : null;
+
+      neighbors[4] = (y - 1 >= 0 && x - 1 >= 0) ? grid[x-1][y-1] : null;
+      neighbors[5] = (y + 1 <= Z && x - 1 >= 0) ? grid[x+1][y-1] : null;
+      neighbors[6] = (y - 1 >= 0 && x + 1 <= Z) ? grid[x-1][y+1] : null;
+      neighbors[7] = (y + 1 <= Z && x + 1 <= Z) ? grid[x+1][y+1] : null;
+
+    },
+    neighborsX: function(node) {
 
       var 
         ret = [],
@@ -388,115 +398,132 @@ HANNIBAL = (function(H){
     this.y = y;
     this.weight = weight;
   }
-  GridNode.prototype.toString = function() { return "[" + this.x + " " + this.y + "]";};
-  GridNode.prototype.getCost = function(neighbor, heuristic) { 
 
-    return heuristic(this, neighbor) * this.weight - 0.01;
-
-    // return (this.x !== neighbor.x && this.y !== neighbor.y ? 
-    //   // this.weight : //* 1.4142135623730951 : 
-    //   // this.weight * 1.4142135623730951 : 
-    //   this.weight : 
-    //   this.weight
-    // );
-
-  };
-  GridNode.prototype.isWall = function() { return this.weight === 0;};
-
-
-  function getHeap() {
-    return new BinaryHeap(function(node) {
-      return node.f;
-    });
+  function pathTo(node){
+    var curr = node, path = [];
+    while(curr.parent) {
+      path.push(curr);
+      curr = curr.parent;
+    }
+    return path.reverse();
   }
 
-  function BinaryHeap(scoreFunction){
+
+  // GridNode.prototype.toString = function() { return "[" + this.x + " " + this.y + "]";};
+  // GridNode.prototype.getCost = function(neighbor, heuristic) { 
+
+  //   return heuristic(this, neighbor) * this.weight - 0.01;
+
+  //   // return (this.x !== neighbor.x && this.y !== neighbor.y ? 
+  //   //   // this.weight : //* 1.4142135623730951 : 
+  //   //   // this.weight * 1.4142135623730951 : 
+  //   //   this.weight : 
+  //   //   this.weight
+  //   // );
+
+  // };
+  // GridNode.prototype.isWall = function() { return this.weight === 0;};
+
+
+  function BinaryHeap(){
     this.content = [];
-    this.scoreFunction = scoreFunction;
   }
   
   BinaryHeap.prototype = {
     constructor: BinaryHeap,
     size: function() {return this.content.length;},
-    rescoreElement: function(node) {this.sinkDown(this.content.indexOf(node));},
+    rescoreElement: function(node) {
+      this.sinkDown(this.content.indexOf(node));
+    },
     push: function(element) {
       this.content.push(element);                // Add the new element to the end of the array.
       this.sinkDown(this.content.length - 1);    // Allow it to sink down.
     },
     pop: function() {
-      var result = this.content[0],              // Store the first element so we can return it later.
-          end = this.content.pop();              // Get the element at the end of the array.
-      if (this.content.length) {                 // If there are any elements left, put the end element 
-        this.content[0] = end;                   // at the start, and let it bubble up.
+
+      var 
+        content = this.content,
+        result  = content[0],              // Store the first element so we can return it later.
+        end     = content.pop();              // Get the element at the end of the array.
+
+      if (content.length) {                 // If there are any elements left, put the end element 
+        content[0] = end;                   // at the start, and let it bubble up.
         this.bubbleUp(0);
       }
+
       return result;
+
     },
     remove: function(node) {
-      var i = this.content.indexOf(node),
-          end = this.content.pop();             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
 
-      if (i !== this.content.length - 1) {
-        this.content[i] = end;
-        if (this.scoreFunction(end) < this.scoreFunction(node)) {
+      var 
+        content = this.content,
+        i = content.indexOf(node),
+        end = content.pop();             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
+
+      if (i !== content.length - 1) {
+        content[i] = end;
+        if (end.f < node.f) {
           this.sinkDown(i);
         } else {
           this.bubbleUp(i);
         }
       }
+
     },
     sinkDown: function(n) {
-      var element = this.content[n],             // Fetch the element that has to be sunk.
-          parentN, parent;
-      while (n) {                                // When at 0, an element can not sink any further.
-        parentN = ((n + 1) >> 1) - 1;            // Compute the parent element's index, and fetch it.
-        parent  = this.content[parentN];
-        if (this.scoreFunction(element) < this.scoreFunction(parent)) {
-          this.content[parentN] = element;       // Swap the elements if the parent is greater.
-          this.content[n] = parent;
-          n = parentN;                           // Update 'n' to continue at the new position.
-        } else { break; }                        // Found a parent that is less, no need to sink any further.
+      var 
+        content = this.content,
+        element = content[n],               // Fetch the element that has to be sunk.
+        parentN = 0, parent = null;
+
+      while (n) {                           // When at 0, an element can not sink any further.
+        parentN = ((n + 1) >> 1) - 1;       // Compute the parent element's index, and fetch it.
+        parent  = content[parentN];
+        if (element.f < parent.f) {
+          content[parentN] = element;       // Swap the elements if the parent is greater.
+          content[n] = parent;
+          n = parentN;                      // Update 'n' to continue at the new position.
+        } else { break; }                   // Found a parent that is less, no need to sink any further.
       }
+
     },
     bubbleUp: function(n) {
       // Look up the target element and its score.
-      var length    = this.content.length,
-          element   = this.content[n],
-          elemScore = this.scoreFunction(element),
-          child1, child2, child2N, child1N, swap,
-          child1Score, child2Score;
+      var 
+        content   = this.content,
+        length    = content.length,
+        element   = content[n],
+        elemScore = element.f,
+        child2N, child1N, swap, child1Score;
 
       while(true) {
-        child2N = (n + 1) << 1;                  // Compute the indices of the child elements.
-        child1N = child2N - 1;
+
         swap = null;                             // This is used to store the new position of the element, if any.
         child1Score = undefined;
 
+        child2N = (n + 1) << 1;                  // Compute the indices of the child elements.
+        child1N = child2N - 1;
+
         if (child1N < length) {                  // If the first child exists (is inside the array)...          
-          child1 = this.content[child1N];        // Look it up and compute its score.
-          child1Score = this.scoreFunction(child1);
-          if (child1Score < elemScore){          // If the score is less than our element's, we need to swap.
-            swap = child1N;
-          }
+          child1Score = content[child1N].f;
+          swap = child1Score < elemScore ? child1N : swap;
         }
         
         if (child2N < length) {                  // Do the same checks for the other child.
-          child2 = this.content[child2N];
-          child2Score = this.scoreFunction(child2);
-          if (child2Score < (swap === null ? elemScore : child1Score)) {
-            swap = child2N;
-          }
+          swap = content[child2N].f < (swap === null ? elemScore : child1Score) ? child2N : swap;
         }
         
         if (swap !== null) {                     // If the element needs to be moved, swap it, and continue.
-          this.content[n] = this.content[swap];
-          this.content[swap] = element;
+          content[n] = content[swap];
+          content[swap] = element;
           n = swap;
 
         } else {break;}                          // Otherwise, we are done.
 
       }                     
     }
+    
   };
 
 
@@ -508,15 +535,16 @@ HANNIBAL = (function(H){
         return 1;
       },
       manhattan: function(pos0, pos1) {
-        var d1 = Math.abs(pos1.x - pos0.x);
-        var d2 = Math.abs(pos1.y - pos0.y);
-        return d1 + d2;
+        // var d1 = Math.abs(pos1.x - pos0.x),
+        //     d2 = Math.abs(pos1.y - pos0.y);
+        // return d1 + d2;
+        return Math.abs(pos1.x - pos0.x) + Math.abs(pos1.y - pos0.y);
       },
       diagonal: function(pos0, pos1) {
-        var D = 1;
-        var D2 = 1.4142135623730951; //Math.sqrt(2);
-        var d1 = Math.abs(pos1.x - pos0.x);
-        var d2 = Math.abs(pos1.y - pos0.y);
+        var D  = 1,
+            D2 = 1.4142135623730951, //Math.sqrt(2);
+            d1 = Math.abs(pos1.x - pos0.x),
+            d2 = Math.abs(pos1.y - pos0.y);
         return (D * (d1 + d2)) + ((D2 - (2 * D)) * Math.min(d1, d2));
       },
       square: function(pos0, pos1) {
@@ -524,7 +552,6 @@ HANNIBAL = (function(H){
             dx = Math.abs(pos0.x - pos1.x),
             dy = Math.abs(pos0.y - pos1.y);
         return D * (dx * dx + dy * dy);
-        
       },
       euclidian: function(pos0, pos1) {
         var D = 1, 
@@ -550,12 +577,14 @@ HANNIBAL = (function(H){
       options = options || {};
 
       var 
-        currentNode, neighbors, neighbor, visted = [], i, il, gScore, beenVisited, 
+        openHeap    = new BinaryHeap(),
         heuristic   = options.heuristic || H.AI.AStar.heuristics.manhattan,
-        openHeap    = getHeap(),
         closest     = options.closest || false,
         closestNode = start,
-        algo        = options.algotweak || 3;
+        visited     = [], 
+        tweak       = options.algotweak || 3,
+        neighbors   = [null, null, null, null, null, null, null, null],
+        currentNode, neighbor, i, il, gScore, beenVisited;
 
       function cost(node, neighbor){
 
@@ -564,11 +593,11 @@ HANNIBAL = (function(H){
         );
 
         return (
-          algo === 1 ? 1                                     : 
-          algo === 2 ? length                                : 
-          algo === 3 ? length * neighbor.weight              :
-          algo === 4 ? (length -0.01) * neighbor.weight      :
-          algo === 5 ? (length -0.1)  * neighbor.weight      :
+          tweak === 1 ? 1                                     : 
+          tweak === 2 ? length                                : 
+          tweak === 3 ? length * neighbor.weight              :
+          tweak === 4 ? (length -0.01) * neighbor.weight      :
+          tweak === 5 ? (length -0.1)  * neighbor.weight      :
             3
         );
 
@@ -578,43 +607,51 @@ HANNIBAL = (function(H){
 
       openHeap.push(start);
 
-      while(openHeap.size() > 0) {
+      while(openHeap.content.length) {
         
         currentNode = openHeap.pop();            // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
-        visted.push(currentNode);                // debug
+        visited.push(currentNode);               // debug
 
         if(currentNode === end) {                // End case -- result has been found, return the traced path.
-          return {path: pathTo(currentNode), nodes: visted};
+          return {path: pathTo(currentNode), success: true, nodes: visited};
         }
         
-        currentNode.closed = true;                 // Normal case -- move currentNode from open to closed, process each of its neighbors.
-        neighbors = graph.neighbors(currentNode);  // Find all neighbors for the current node.
+        currentNode.closed = true;                    // Normal case -- move currentNode from open to closed, process each of its neighbors.
+        graph.setNeighbors(neighbors, currentNode);   // Find all neighbors for the current node.
 
-        for (i = 0, il = neighbors.length; i < il; ++i) {
+        // for (i = 0, il = neighbors.length; i < il; ++i) {
+        for (i = 0; i < 8; i++) {
 
           neighbor = neighbors[i];
 
-          // i fnot a valid node to process, skip to next neighbor.
+          // if not a valid node to process, skip to next neighbor.
           // if (neighbor.closed || neighbor.isWall()) {continue;}
-          if (neighbor.closed || neighbor.weight === 0) {continue;}
+
+          if (!neighbor || neighbor.closed || neighbor.weight === 0) {continue;}
 
           // The g score is the shortest distance from start to current node.
-          // We need to check if the path we have arrived at this neighbor is the shortest one we have seen yet.
+          // We need to check if the path we have arrived at this neighbor 
+          // is the shortest one we have seen yet.
+
           gScore = currentNode.g + cost(currentNode, neighbor);
 
           beenVisited = neighbor.visited;
 
           if (!beenVisited || gScore < neighbor.g) {
 
-            // Found an optimal (so far) path to this node.  Take score for node to see how good it is.
+            // Found an optimal (so far) path to this node.  
+            // Take score for node to see how good it is.
+
             neighbor.visited = true;
             neighbor.parent = currentNode;
             neighbor.h = neighbor.h || heuristic(neighbor, end);
             neighbor.g = gScore;
             neighbor.f = neighbor.g + neighbor.h;
 
-            // If the neighbour is closer than the current closestNode or if it's equally close but has
-            // a cheaper path than the current closest node then it becomes the closest node
+            // If the neighbour is closer than the current closestNode or 
+            // if it's equally close but has a cheaper path than the current closest node 
+            // then it becomes the closest node
+            
             if (closest) {
               if (neighbor.h < closestNode.h || (neighbor.h === closestNode.h && neighbor.g < closestNode.g)) {
                 closestNode = neighbor;
@@ -636,16 +673,105 @@ HANNIBAL = (function(H){
         }
       }
 
-      // return pathTo(closestNode);
-      if (closest) { return {path: pathTo(closestNode), nodes: visted}; }
+      return (
+        closest ? {path: pathTo(closestNode), success: false, nodes: visited} :
+          {path: [], success: false, nodes: visited}
+      );
 
-      // No result was found - empty array signifies failure to find path.
-      // return [];
-      return {path: [], nodes: visted};  
+      // // return pathTo(closestNode);
+      // if (closest) { return {path: pathTo(closestNode), nodes: visited}; }
+
+      // // No result was found - empty array signifies failure to find path.
+      // // return [];
+      // return {path: [], nodes: visited};  
 
     }
 
   };
+
+  H.Math = {
+
+    /**
+     * http://stackoverflow.com/questions/10962379/how-to-check-intersection-between-2-rotated-rectangles/12414951#12414951
+     * Helper function to determine whether there is an intersection between the two polygons described
+     * by the lists of vertices. Uses the Separating Axis Theorem
+     *
+     * @param a an array of connected points [{x:, y:}, {x:, y:},...] that form a closed polygon
+     * @param b an array of connected points [{x:, y:}, {x:, y:},...] that form a closed polygon
+     * @return true if there is any intersection between the 2 polygons, false otherwise
+     */
+
+    doPolygonsIntersect: function (a, b) {
+
+      var 
+        polygons = [a, b],
+        aLen = a.length, bLen = b.length, pLen, 
+        minA, maxA, projected, i, i1, j, minB, maxB,
+        polygon, i2, p1, p2, normX, normY; //normal;
+
+      for (i = 0; i < polygons.length; i++) {
+
+        // for each polygon, look at each edge of the polygon, 
+        // and determine if it separates the two shapes
+
+        polygon = polygons[i];
+        pLen = polygon.length;
+
+        for (i1 = 0; i1 < pLen; i1++) {
+
+          // grab 2 vertices to create an edge
+
+          i2 = (i1 + 1) % pLen;
+          p1 = polygon[i1];
+          p2 = polygon[i2];
+
+          // find the line perpendicular to this edge
+          normX = p2.y - p1.y;
+          normY = p1.x - p2.x;
+
+          minA = maxA = undefined;
+
+          // for each vertex in the first shape, project it onto the line perpendicular to the edge
+          // and keep track of the min and max of these values
+          
+          for (j = 0; j < aLen; j++) {
+
+            projected = normX * a[j].x + normY * a[j].y;
+
+            minA = (minA === undefined || projected < minA) ? projected : minA;
+            maxA = (maxA === undefined || projected > maxA) ? projected : maxA;
+
+          }
+
+          minB = maxB = undefined;
+
+          // for each vertex in the second shape, project it onto the line perpendicular to the edge
+          // and keep track of the min and max of these values
+
+          for (j = 0; j < bLen; j++) {
+
+            projected = normX * b[j].x + normY * b[j].y;
+
+            minB = (minB === undefined || projected < minB) ? projected : minB;
+            maxB = (maxB === undefined || projected > maxB) ? projected : maxB;
+
+          }
+
+          // if there is no overlap between the projects, the edge we are looking at separates the two
+          // polygons, and we know there is no overlap
+          if (maxA < minB || maxB < minA) {
+            return false;
+          }
+
+        }
+      }
+
+      return true;
+
+    }
+
+  };
+
 
 
 return H; }(HANNIBAL));
