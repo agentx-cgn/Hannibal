@@ -371,12 +371,21 @@ HANNIBAL = (function(H){
     mulVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
     divVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
     addGrid: function(grd){var g=this.data,l=this.length;while(l--){g[l] += grd[l];}return this;},
-    copy: function(){
+    copyData: function(){
       return (
         this.bits ===  8 ? new Uint8ClampedArray(this.data.buffer.slice()) : 
         this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : 
           new Uint8Array(this.data.buffer.slice())
       );
+    },
+    copy: function(){
+      var cp = new H.Grid(this.width, this.height, this.bits);
+      cp.data = (
+        this.bits ===  8 ? new Uint8ClampedArray(this.data.buffer.slice()) : 
+        this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : 
+          new Uint8Array(this.data.buffer.slice())
+      );
+      return cp;
     },
     render: function (canvas, alpha, nozero=true){
 

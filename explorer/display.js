@@ -55,7 +55,7 @@ HANNIBAL = (function(H){
         var node = tabCtrl.childNodes[i];
         if (node.nodeType == 1) { /* Element */
           node.style.display = (node == pageId) ? 'block' : 'none';
-          console.log("activateTab", tabCtrl, pageId);
+          // console.log("activateTab", tabCtrl, pageId);
         }
       }
     },

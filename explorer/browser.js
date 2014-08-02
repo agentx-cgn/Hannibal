@@ -137,7 +137,7 @@ HANNIBAL = (function(H){
         $("cvsMap").onclick = $("cvsDyna").onclick = H.Maps.onclick;
         $("cvsMap").onmousemove = $("cvsDyna").onmousemove = H.Maps.onmousemove;
 
-        H.Display.activateTab("tabberPathVill", "tabPath");
+        H.Display.activateTab("tabberPathVill", "tabVill");
 
         $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
         $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};

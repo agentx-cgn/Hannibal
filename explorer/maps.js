@@ -16,7 +16,8 @@ HANNIBAL = (function(H){
 
 
   var 
-    size = 512, map, $msgs, $terr, $chkPathDebug, doAnimate = false, 
+    size = 512, map, doAnimate = false, 
+    $msgs, $terr, $chkPathDebug, $chkPath, $chkPathDyna, 
     dirtyLayer = true, dirtyPath = false,
     cvsMap,  ctxMap,
     cvsDyna, ctxDyna,
@@ -109,11 +110,19 @@ HANNIBAL = (function(H){
     // default: "topo-128.xml",
     // default: "Fast Oasis.xml",
     msg: msg,
+    get: function(what){
+      switch (what) {
+        case "grdObst": return grdObst;
+        default: console.log("Maps.get.unknown: " + what);
+      }
+    },
     init: function(){
       fmt  = H.format;
       $msgs = $("txtMAP");
       $terr = $("txtTerrain");
+      $chkPath      = $("chkPath");
       $chkPathDebug = $("chkPathDebug");
+      $chkPathDyna  = $("chkPathDyna");
     },
     host: function(){return "//" + location.host;},
     path: function(){ 
@@ -202,8 +211,8 @@ HANNIBAL = (function(H){
 
       var x, y, mouse = map.mouse, width = map.size -1, 
           posCanvas = findPosXY(this),
-          dynamic = !!$("chkPathDyna").checked,
-          doPath  = !!$("chkPath").checked;
+          dynamic = !!$chkPathDyna.checked,
+          doPath  = !!$chkPath.checked;
 
       mouse.active = true;
       window.focus();
@@ -343,7 +352,7 @@ HANNIBAL = (function(H){
                   H.Maps.initObst,
                   H.Maps.initTrees,
                   H.Maps.initCost,
-                  H.Maps.initRegions,
+                  // H.Maps.initRegions,
                   H.Maps.initGraphs,
                   H.Maps.finiGraphs,
                   H.Maps.renderLayers,
@@ -380,12 +389,12 @@ HANNIBAL = (function(H){
 
     },
     renderLayers: function(){
-      "Topo Ents Path Clus Grid Pass Regw Regl Cost Tree".split(" ").forEach(function (map) {
+      "Topo Ents Path Obst Clus Grid Pass Regw Regl Cost Tree".split(" ").forEach(function (map) {
         H.Maps["render" + map]();
       });
     },
     blitLayers: function(){
-      var dynamic = !!$("chkPathDyna").checked;
+      var dynamic = !!$("chkPathDyna").checked, sizeVill = Math.sqrt(H.Village.grid().data.length) | 0;
       ctxMap.clearRect(0, 0, size, size);
       if ($("chkTopo").checked) {ctxMap.drawImage(cvsTopo, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkPass").checked) {ctxMap.drawImage(cvsPass, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
@@ -396,7 +405,7 @@ HANNIBAL = (function(H){
       if ($("chkRegl").checked) {ctxMap.drawImage(cvsRegl, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkGrid").checked) {ctxMap.drawImage(cvsGrid, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkPath").checked && !dynamic) {ctxMap.drawImage(cvsPath, 0, 0, size, size, 0, 0, size, size);}
-      if ($("chkVill").checked) {ctxMap.drawImage(cvsVill, 0, 0, size, size, 0, 0, size, size);}
+      if ($("chkVill").checked) {ctxMap.drawImage(cvsVill, 0, 0, sizeVill, sizeVill, 0, 0, size, size);}
       if ($("chkEnts").checked) {ctxMap.drawImage(cvsEnts, 0, 0, size, size, 0, 0, size, size);}
       if ($("chkClus").checked) {ctxMap.drawImage(cvsClus, 0, 0, size, size, 0, 0, size, size);}
     },
@@ -479,8 +488,7 @@ HANNIBAL = (function(H){
 
       grdTerr.render(cvsTerr);
 
-      // msg(fmt("terrain: %s ms", Date.now() - t0));
-      TIM.step("MAPS.terr", JSON.stringify(vals));
+      TIM.step("MAPS.terr", JSON.stringify(vals), Date.now() - t0);
 
 
     },
@@ -511,23 +519,43 @@ HANNIBAL = (function(H){
       for (i=0; i<len; i+=4) {
         s = source.data[i];
         t = (
-          (s  &  1)  ?  1 : // dark   red : pathfinder obstruction forbidden
-          (s  &  2)  ?  2 : // dark   red : pathfinder obstruction forbidden
-          (s  &  4)  ?  4 : //        red : land too steep
-          (s  &  8)  ?  8 : // dark  blue : deep water
-            255                         // unknown
+          (s & 1 || s & 2 || s & 4 || s & 8 || !(s & 16) && (s & 64))  ?  1 : 0 // land obstructions
         );
         target[i >>> 2] = t;
         vals[t] = vals[t] ? vals[t] +1 : 1;
       }
 
-      grdObst.render(cvsObst);
-
-      // msg(fmt("terrain: %s ms", Date.now() - t0));
-      TIM.step("MAPS.obst", JSON.stringify(vals));
+      TIM.step("MAPS.initObst", JSON.stringify(vals), Date.now() - t0);
 
     },
+    renderObst: function(){
 
+      var 
+        idx, target, color, 
+        width = map.size -1,
+        i = width * width;
+
+      if (!grdObst){return;}
+
+      cvsObst.width = cvsObst.height = width;
+      target = ctxObst.createImageData(width, width);
+
+      while (i--) {
+        color = ( 
+          grdObst.data[i] === 1 ? [255,   0, 255,  127] :  // Land Buildings
+          grdObst.data[i] === 2 ? [  0, 255, 255,  127] : 
+            [0, 0, 0, 0]
+        );
+        idx = i << 2;
+        target.data[idx + 0] = color[0];
+        target.data[idx + 1] = color[1];
+        target.data[idx + 2] = color[2];
+        target.data[idx + 3] = color[3];
+      }
+
+      ctxObst.putImageData(target, 0, 0);      
+
+    },
     fillRegion: function(source, target, type, index, value){
 
       var 
