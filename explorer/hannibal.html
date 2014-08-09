@@ -278,12 +278,11 @@
 
                     <label for="chkTopo" style="text-align: left;" class="uline">Render</label>
                       <input type="checkbox" id="chkTopo"  checked="checked"><span class="chklabel">Topo</span></input>
-                      <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input><br />
-                      <input type="checkbox" id="chkGrid"><span class="chklabel">Grid</span></input>
-                      <input type="checkbox" id="chkObst"  checked="checked"><span class="chklabel">Obstructions</span></input><br />
+                      <input type="checkbox" id="chkPass"  checked="checked"><span class="chklabel">Passability</span></input>
+                      <input type="checkbox" id="chkGrid"><span class="chklabel">Grid</span></input><br />
                       <input type="checkbox" id="chkEnts"  checked="checked"><span class="chklabel">Entities</span></input>
                       <input type="checkbox" id="chkClus"><span class="chklabel">Cluster</span></input>
-                      <input type="checkbox" id="chkPath"   checked="checked"><span class="chklabel">Paths</span></input><br />
+                      <input type="checkbox" id="chkPath"   checked="checked"><span class="chklabel">Paths</span></input>
                       <input type="checkbox" id="chkVill"   checked="checked"><span class="chklabel">Village</span></input><br />
 
                     <span class="chklabel" style="padding-left: 8px">Cost:</span>
@@ -293,6 +292,10 @@
                     <span class="chklabel" style="padding-left: 8px">Regions:</span>
                       <input type="checkbox" id="chkRegw"><span class="chklabel">Water</span></input>
                       <input type="checkbox" id="chkRegl"><span class="chklabel">Land</span></input><br />
+
+                    <span class="chklabel" style="padding-left: 8px">Obstructions:</span>
+                      <input type="checkbox" id="chkObLa"  checked="checked"><span class="chklabel">Land</span></input>
+                      <input type="checkbox" id="chkObSh"><span class="chklabel">Shore</span></input><br />
 
                   </div>
 
@@ -400,7 +403,7 @@
               <img    id="imgPass" class="minimap" title="Passability (png)"  />
               <canvas id="cvsTerr" class="minimap" title="Terrain Grid (pass[])"></canvas>
               <canvas id="cvsPass" class="minimap" title="Terrain Passability (interpreted)"></canvas>
-              <canvas id="cvsObst" class="minimap" title="Obstructions"></canvas>
+              <canvas id="cvsObLa" class="minimap" title="Obstructions Land"></canvas>
             </div><br />
           <label for="cvsHeights" style="vertical-align: top;">Analysis</label>
             <div>
@@ -408,6 +411,7 @@
               <canvas id="cvsRegl" class="minimap" title="Land Regions"></canvas>
               <canvas id="cvsTree" class="minimap" title="Tree Cost"></canvas>
               <canvas id="cvsCost" class="minimap" title="Pathfinder Cost"></canvas>
+              <canvas id="cvsObSh" class="minimap" title="Obstructions Shore"></canvas>
             </div><br />
           <label for="cvsHeights" style="vertical-align: top;">Overlays</label>
             <div>

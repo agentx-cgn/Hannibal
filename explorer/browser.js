@@ -129,7 +129,7 @@ HANNIBAL = (function(H){
           };
         });
 
-        "Topo Obst Ents Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
+        "Topo ObLa ObSh Ents Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
             H.Maps.setDirtyLayer();
           }

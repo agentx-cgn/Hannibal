@@ -62,6 +62,97 @@ HANNIBAL = (function(H){
     }
   };
 
+  function Raster(size){
+    var i;
+    this.size = size | 0;
+    this.length = size * size;
+    this.data = [];
+    this.counters = {};
+    i = this.size;
+    while (i--){this.data[i] = [];}
+  }
+  Raster.prototype = {
+    constructor: Raster,
+    import: function(grid, value){
+
+      var 
+        x, y, i = this.length,
+        size = this.size;
+
+      this.counters[1] = 0;
+
+      while (i--){
+        x = i % size; y = ~~(i/size);
+        if (grid[i] === value){
+          this.data[x][y] = new Rect(x, y, 1, 1, 0);
+          this.counters[1] += 1;
+        }
+      }      
+
+    },
+    optimize: function(){
+
+      var 
+        b, b2, x, y, r0, r1, r2, r3,
+        size = this.size,
+        raster = this.data,
+        counters = this.counters;
+
+      for ( b of [2, 4, 8, 16, 32, 64, 128] ){
+
+        b2 = b/2;
+        counters[b] = 0;
+
+        x = size;
+        while (x--){
+
+          y = size;
+          while (y--){
+
+            if (!((x+y)%b)){
+              r0 = raster[x][y];
+              r1 = x < size -b2 ? raster[x+b2][y] : null;
+              r2 = y < size -b2 ? raster[x][y+b2] : null;
+              r3 = x < size -b2 && y < size -b2 ? raster[x+b2][y+b2] : null;
+              if (r0 && r1 && r2 && r3){
+                if (r0.width === b2 && r1.width === b2 && r2.width === b2 && r3.width === b2){
+                  r0.width = r0.height = b; 
+                  raster[x+b2][y]    = null;
+                  raster[x][y+b2]    = null;
+                  raster[x+b2][y+b2] = null;
+                  counters[b]   += 1;
+                  counters[b/2] -= 4;
+      } } } } } } 
+
+    },
+    reduce: function(posX, posY, range){
+
+      var size = this.size, r, x, y, 
+          raster = this.data, out = [],
+          polygon = new Rect(posX, posY, range, range, 0).polygon();
+
+      x = size;
+      while (x--){
+
+        y = size;
+        while (y--){
+
+          r = raster[x][y];
+          if (r){
+            if (H.Math.doPolygonsIntersect(r, polygon)){
+              out.push(r);
+            }
+          }
+
+      } }
+
+      return out; 
+
+    },
+    search: function(){},
+
+  };
+
   H.Village = {
 
     grid: function(){return grdVill;},
@@ -71,7 +162,7 @@ HANNIBAL = (function(H){
       cvs = canvas; ctx = context;
       cvs.width = cvs.height = size;
       msg = function(){
-        H.Maps.msg(H.format.apply(null, arguments));
+        H.Maps.msg.call(null, H.format.apply(null, arguments));
       };
     },
     clear: function(){
@@ -82,89 +173,75 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), source, mapsize,
-        r, r0, r1, r2, r3, recs = [],
-        b, b2, x, y, i, counters = {}, counter = 0;
+        i, x, y, r, tpl, pos, raster, counter = 0,
+        recs = [],
+        cc = H.Maps.centres[0],
+        ents = H.Maps.entities;
 
-      grdVill = H.Maps.get("grdObst").copy();
-      source = grdVill.data;
-      mapsize = Math.sqrt(source.length) | 0;
+      grdVill = H.Maps.grdObst.copy();
+      source  = grdVill.data;
+      mapsize = grdVill.width;
       cvs.width = cvs.height = mapsize;
 
-      i = mapsize;
-      while (i--){recs[i] = [];}
+      raster = new Raster(mapsize);
+      raster.import(grdVill.data, 1); // land
+      raster.optimize();
+      recs = raster.reduce(~~(cc.x/4), ~~(cc.y/4), cc.radius/4);
 
-      // first step, create 1x1 recs
-      counters[1] = 0;
-      i = mapsize * mapsize;
-      while (i--){
-        x = i % mapsize; y = ~~(i/mapsize);
-        if (source[i] === 1){
-          recs[x][y] = new Rect(x, y, 1, 1, 0);
-          counters[1] += 1;
-        }
+      msg("test2: recs: %s", recs.length);
+
+      x = cc.x /4; y = mapsize - cc.y /4; radius = cc.radius /4;
+
+      ctx.lineWidth = 1.0;
+      ctx.strokeStyle = "rgba(255,0,0,1)";
+      ctx.strokeRect(12, 12, 8, 8);
+      ctx.strokeStyle = "rgba(255,255,0,1)";
+      ctx.strokeRect(x - radius , y - radius, radius * 2, radius * 2);
+
+      ctx.lineWidth = 0.5;
+      ctx.strokeStyle = "rgba(255,0,255,1)";
+
+      i = recs.length;
+      while(r = recs[--i]){
+        // ctx.strokeRect(r.x, r.y, r.width, r.height);
       }
 
-      for ( b of [2, 4, 8, 16, 32] ){
+      H.toArray(ents).forEach(function(ent){
 
-        b2 = b/2;
-        counters[b] = 0;
+        tpl = ent.getElementsByTagName("Template")[0].innerHTML;
 
-        x = mapsize;
-        while (x--){
+        obs = ent.getElementsByTagName("Obstruction");
 
-          y = mapsize;
-          while (y--){
+        if (!obs.length){
+          console.log(ent.getElementsByTagName("Template")[0].innerHTML);
 
-            if (!((x+y)%b)){
-              r0 = recs[x][y];
-              r1 = x < mapsize -b2 ? recs[x+b2][y] : undefined;
-              r2 = y < mapsize -b2 ? recs[x][y+b2] : undefined;
-              r3 = x < mapsize -b2 && y < mapsize -b2 ? recs[x+b2][y+b2] : undefined;
-              if (r0 && r1 && r2 && r3){
-                if (r0.width === b2 && r1.width === b2 && r2.width === b2 && r3.width === b2){
-                  r0.width  = b; 
-                  r0.height = b;
-                  recs[x+b2][y]   = undefined;
-                  recs[x][y+b2]   = undefined;
-                  recs[x+b2][y+b2] = undefined;
-                  counters[b] += 1;
-                }
-              }
-            }
-
-          }
+        } else {
+          pos = ent.getElementsByTagName("Position")[0];
+          x = ~~(pos.getAttribute("x")/4);
+          y = mapsize - ~~(pos.getAttribute("z")/4) ;
+          ctx.lineWidth = 0.5;
+          ctx.strokeStyle = "rgba(255,255,0,1)";
+          ctx.strokeRect(x -1, y -1, 2, 2);
         }
 
-      }
 
-      x = mapsize;
-      while (x--){
+      });      
 
-        y = mapsize;
-        while (y--){
-
-          r = recs[x][y];
-          if (r){
-
-            ctx.fillStyle = (
-              r.width ===  1 ? "rgba(100,  60,  60, 0.8)" :
-              r.width ===  2 ? "rgba(100,  90,  90, 0.8)" :
-              r.width ===  4 ? "rgba(100, 120, 120, 0.8)" :
-              r.width ===  8 ? "rgba(100, 150, 150, 0.8)" :
-              r.width === 16 ? "rgba(100, 180, 180, 0.8)" :
-              r.width === 32 ? "rgba(100, 210, 210, 0.8)" :
-                "rgba(255, 0, 0, 1)"
-            );
-            ctx.fillRect(r.x, r.y, r.width, r.height);
-            counter += 1;
-          }
-
-      }}      
+      // x = mapsize;
+      // while (x--){
+      //   y = mapsize;
+      //   while (y--){
+      //     r = raster.data[x][y];
+      //     if (r){
+      //       ctx.strokeRect(r.x, r.y, r.width, r.height);
+      //       counter += 1;
+      //     }
+      // }}      
 
       H.Maps.blitLayers();
 
+      msg("test2: r: %s", JSON.stringify(raster.counters));
       msg("test2: r: %s, ms: %s", counter, Date.now() - t0);
-      msg("test2: r: %s", JSON.stringify(counters));
 
     },
     test1: function(){
