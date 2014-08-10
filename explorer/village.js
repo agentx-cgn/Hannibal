@@ -1,9 +1,9 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals TIM, HANNIBAL, H, deb */
 
-/*--------------- B R O W S E R -----------------------------------------------
+/*--------------- V I L L A G E  ----------------------------------------------
 
-  manages explorer history
+  plans village layout, handles claims and foundation placement
 
 
 

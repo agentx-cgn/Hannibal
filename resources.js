@@ -15,16 +15,19 @@
 HANNIBAL = (function(H){
 
   /*
-treasure  
-wood.tree  
-wood.ruins  
-stone.ruins  
-stone.rock  
-metal.ore  
-food.meat  
-food.grain  
-food.fruit  
-food.fish
+    treasure  
+    wood.tree  
+    wood.ruins  
+    stone.ruins  
+    stone.rock  
+    metal.ore  
+    food.meat  
+    food.grain  
+    food.fruit  
+    food.fish
+
+    API uses: resourceSupplyMax, resourceSupplyType, resourceSupplyAmount, _template, owner
+
   */
 
 
@@ -37,7 +40,7 @@ food.fish
     this.resources = [this.id];   // make asset gatherable
     this.name      = (tpl.Identity && tpl.Identity.SpecificName) ? tpl.Identity.SpecificName.toLowerCase() : "unknown";
     this.isPrey    = H.Config.data.prey.indexOf(this.name) !== -1;
-    this.supply    = ent.resourceSupplyMax();
+    this.maxSupply = ent.resourceSupplyMax();
     this.generic   = ent.resourceSupplyType().generic;
     this.specific  = ent.resourceSupplyType().specific;
     this.update();
@@ -47,7 +50,13 @@ food.fish
     constructor: Resource,
     update: function(){
       var ent = H.Entities[this.id];
-      this.position = ent.position();
+      if (ent){
+        this.position = ent.position();
+        this.found = !this.found ? H.Map.isOwnTerritory(this.position) ? true : false;
+        this.supply = ent.resourceSupplyAmount();
+      } else {
+        this.consumed = true;
+      }
     },
     log: function(){
       var t = this;
@@ -60,22 +69,23 @@ food.fish
 
   H.Resources = (function(){
 
-    var self, 
-        generics  = ["food", "wood", "metal", "stone", "treasure"],
-        resources = {
-          wood:  {},
-          food:  {},
-          metal: {},
-          stone: {},
-          treasure: {},
-        },
-        stats = {
-          wood: {    ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
-          food: {    ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
-          metal: {   ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
-          stone: {   ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
-          treasure: {ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
-        };
+    var 
+      self, 
+      generics  = ["food", "wood", "metal", "stone", "treasure"],
+      resources = {
+        wood:  {},
+        food:  {},
+        metal: {},
+        stone: {},
+        treasure: {},
+      },
+      stats = {
+        wood: {    ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
+        food: {    ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
+        metal: {   ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
+        stone: {   ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
+        treasure: {ents: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0},
+      };
 
     return {
       boot: function(){return self = this;},
@@ -87,9 +97,6 @@ food.fish
           type = ent.resourceSupplyType(); // return { "generic": type, "specific": subtype };
           if (!!type && type.generic){
             res = resources[type.generic][ent.id()] = new Resource(ent);
-            if (H.Map.isOwnTerritory(res.position)){
-              res.found = true;
-            }
           }
         });
 

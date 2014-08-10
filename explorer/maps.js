@@ -17,7 +17,7 @@ HANNIBAL = (function(H){
 
   var 
     size = 512, map, doAnimate = false, centres = [], 
-    $msgs, $terr, $chkPathDebug, $chkPath, $chkPathDyna, 
+    $msgs, $terr, $chkPathDebug, $chkPath, $chkPathDyna, $pass, 
     dirtyLayer = true, dirtyPath = false,
     cvsMap,  ctxMap,
     cvsDyna, ctxDyna,
@@ -36,7 +36,8 @@ HANNIBAL = (function(H){
     cvsVill, ctxVill,
     cvsObLa, ctxObLa,
     cvsObSh, ctxObSh,
-    grdTerr, grdCost, grdRegw, grdRegl, grdTree, grdObst,
+    // grdTerr, grdCost, grdRegw, grdRegl, 
+    grdTree, grdObst,
     graphNull = [], graphCost = [], graphTree = [], graphCoTr = [],
     maps = [
       "topo-128.xml",
@@ -84,10 +85,14 @@ HANNIBAL = (function(H){
   }
 
   function runSequence (sequence, delay, cb){
-    var pointer = 0;
+    var pointer = 0, t0;
     (function tick(){
       if (sequence[pointer]) {
-        sequence[pointer]();
+        try {
+          t0 = Date.now();
+          sequence[pointer][0]();
+          console.log("Seq:", pointer, H.tab(Date.now() - t0, 4), sequence[pointer][1]);
+        } catch (e) {console.log("error", pointer, sequence[pointer][1], e);}
         pointer += 1;
         setTimeout(tick, delay);
       } else {cb();}
@@ -120,6 +125,7 @@ HANNIBAL = (function(H){
       fmt  = H.format;
       $msgs = $("txtMAP");
       $terr = $("txtTerrain");
+      $pass = $("txtPass");
       $chkPath      = $("chkPath");
       $chkPathDebug = $("chkPathDebug");
       $chkPathDyna  = $("chkPathDyna");
@@ -188,15 +194,17 @@ HANNIBAL = (function(H){
 
       if (mouse.active && map.graphNull){
 
-        cost = map.graphCost.data[map.mouse.mx][map.mouse.my];
-        t = grdTerr.data[map.mouse.mi];
+        $pass.innerHTML = fmt("passability: %s", H.Grids.pass.data[map.mouse.mi]);
+
+        cost = (map.graphCost.data[map.mouse.mx][map.mouse.my]).toFixed(2);
+        t = H.Grids.terr.data[map.mouse.mi];
         terrain = (
           t ===   0 ? "forbidden" : 
-          t ===   8 ? "land" : 
-          t ===  16 ? "shallow" : 
+          t ===   4 ? "land" : 
+          t ===   8 ? "shallow" : 
+          t ===  16 ? "mixed" : 
           t ===  32 ? "deep" : 
           t ===  64 ? "steep" : 
-          t === 255 ? "unknown" : 
             "wtf"
         );
         $terr.innerHTML = fmt("%s, %s, %s: %s, c: %s, %s", map.mouse.mx, map.mouse.my, t, terrain, cost, map.mouse.rg);
@@ -207,7 +215,7 @@ HANNIBAL = (function(H){
     },
     onmousemove: function(e){
 
-      if (!map || !grdRegl){return;}
+      if (!map || !H.Grids.regw){return;}
 
       var x, y, mouse = map.mouse, width = map.size -1, 
           posCanvas = findPosXY(this),
@@ -227,8 +235,8 @@ HANNIBAL = (function(H){
       mouse.x  = mouse.mx / width * size;
       mouse.y  = mouse.my / width * size;
       mouse.mi = mouse.my * width + mouse.mx;
-      mouse.l  =  grdRegl.data[mouse.mi];
-      mouse.w  =  grdRegw.data[mouse.mi];
+      mouse.l  =  H.Grids.regl.data[mouse.mi];
+      mouse.w  =  H.Grids.regw.data[mouse.mi];
       mouse.rg = "l" + mouse.l + "w" + mouse.w;
 
       map.pos0 = H.Maps.pickMouse();
@@ -346,25 +354,36 @@ HANNIBAL = (function(H){
                 msg("terrain: good");
                 map.pass = image;
                 cvsPath.width = cvsPath.height = size;
-                H.Grids.externalInit(map.size -1, map.size -1, 4);
                 "Cost Tree Pass Path PathDyna Regw Regl".split(" ").forEach(function(token){
                   setCtrl("chk" + token, true);
                 });
+                H.Grids.initExtern(map.size -1, map.view, image);
                 runSequence([
-                  H.Maps.initTerr,
-                  H.Maps.initObst,
-                  H.Maps.initTrees,
-                  H.Maps.initCost1,
-                  H.Maps.initCost2,
-                  H.Maps.initRegions,  // disable to make loading faster
-                  H.Maps.initGraphs,
-                  H.Maps.finiGraphs,
-                  H.Maps.renderLayers,
-                  H.Maps.blitLayers,
-                  function(){doAnimate = true;},
-                  H.Maps.animate,
-                  cb,
-                ], 10, function(){TIM.step("MAPS.load.out", xml);});
+                  [H.Grids.initMasks, "initMasks"],
+                  [H.Grids.initPassTopo, "initPassTopo"],
+                  [H.Grids.initTerrain, "initTerrain"],
+                  [H.Grids.initCost, "initCost"],
+                  [H.Grids.initTrees, "initTrees"],
+                  [H.Grids.initRegionsLand, "initRegionsLand"],
+                  [H.Grids.initRegionsWater, "initRegionsWater"],
+
+                  // H.Maps.initObst,
+                  // H.Maps.initTrees,
+
+                  [H.Maps.initEntities, "initEntities"],
+                  [H.Maps.initGraphs, "initGraphs"],
+                  [H.Maps.finiGraphs, "finiGraphs"],
+                  [H.Maps.renderLayers, "renderLayers"],
+                  [H.Maps.blitLayers, "blitLayers"],
+                  [function(){doAnimate = true;}, "doAnimate"],
+                  [H.Maps.animate, "animate"],
+                  [cb, "callback"]
+                ], 30, function(){
+                  msg("regions land : " + H.Grids.regl.regions);
+                  msg("regions water: " + H.Grids.regw.regions);
+                  msg("OK loaded");
+                  TIM.step("MAPS.load.out", xml); 
+                });
                 
               } else {
                 msg("terrain: failed");
@@ -392,8 +411,11 @@ HANNIBAL = (function(H){
       xhr.send();      
 
     },
+    setDirtyLayer: function(){dirtyLayer = true;},
+    setDirtyPath: function(){dirtyPath = true;},
     renderLayers: function(){
-      "Topo Ents Path Obst Clus Grid Pass Regw Regl Cost Tree".split(" ").forEach(function (map) {
+      // "Topo Pass Terr Ents Path Obst Clus Grid Regw Regl Cost Tree".split(" ").forEach(function (map) {
+      "Topo Pass Terr Cost Regw Regl Grid Ents".split(" ").forEach(function (map) {
         H.Maps["render" + map]();
       });
     },
@@ -402,6 +424,7 @@ HANNIBAL = (function(H){
       ctxMap.clearRect(0, 0, size, size);
       if ($("chkTopo").checked) {ctxMap.drawImage(cvsTopo, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkPass").checked) {ctxMap.drawImage(cvsPass, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
+      if ($("chkTerr").checked) {ctxMap.drawImage(cvsTerr, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkObLa").checked) {ctxMap.drawImage(cvsObLa, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkObSh").checked) {ctxMap.drawImage(cvsObSh, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
       if ($("chkCost").checked) {ctxMap.drawImage(cvsCost, 0, 0, map.size -1, map.size -1, 0, 0, size, size);}
@@ -414,8 +437,6 @@ HANNIBAL = (function(H){
       if ($("chkEnts").checked) {ctxMap.drawImage(cvsEnts, 0, 0, size, size, 0, 0, size, size);}
       if ($("chkClus").checked) {ctxMap.drawImage(cvsClus, 0, 0, size, size, 0, 0, size, size);}
     },
-    setDirtyLayer: function(){dirtyLayer = true;},
-    setDirtyPath: function(){dirtyPath = true;},
     animate: function animate(){
 
       var self = H.Maps,
@@ -453,50 +474,108 @@ HANNIBAL = (function(H){
       window.requestAnimationFrame(animate);
 
     },
-    initTerr: function(){
-
-      // pathfinderObstruction:1, 
-      // foundationObstruction:2, 
-      // building-land:4, 
-      // building-shore:8, 
-      // default:16, 
-      // ship:32, 
-      // unrestricted:64
+    renderColorGrid: function(grid1, grid2, cvs, fnColor){
 
       var 
-        i, s, t, source, t0 = Date.now(), 
-        width = map.size -1,
-        len = width * width * 4,
-        target, vals = {};
+        idx, color, target, i = grid1.length,
+        ctx = cvs.getContext("2d");
 
-      cvsTemp.width = cvsTemp.height = width;
-      cvsTerr.width = cvsTerr.height = width;
+        cvs.width = cvs.height = grid1.width;
+        target = ctx.createImageData(grid1.width, grid1.width);
 
-      grdTerr = new H.Grid(width, width, 8);
-      target = grdTerr.data;
-      ctxTemp.drawImage(map.pass, 0, 0, width, width, 0, 0, width, width);
-      source = ctxTemp.getImageData(0, 0, width, width);
+        while (i--) {
+          idx = i << 2;
+          color = grid2 ? fnColor(grid1.data[i], grid2.data[i]) : fnColor(grid1.data[i]);
+          target.data[idx + 0] = color[0];
+          target.data[idx + 1] = color[1];
+          target.data[idx + 2] = color[2];
+          target.data[idx + 3] = color[3];
+        }
 
-      for (i=0; i<len; i+=4) {
-        s = source.data[i];
-        t = (
-          (s  &  1)              ?  0 : // dark   red : pathfinder obstruction forbidden
-          (s  & 32) &&  (s & 64) ? 64 : //        red : land too steep
-          (s  & 32) && !(s & 64) ? 32 : // dark  blue : deep water
-          !(s & 16) &&  (s & 64) ? 16 : // light blue : land and water
-          (s  & 16)              ?  8 : //      green : land only
-            255                         // the gaps
-        );
-        target[i >>> 2] = t;
-        vals[t] = vals[t] ? vals[t] +1 : 1;
-      }
-
-      grdTerr.render(cvsTerr);
-
-      TIM.step("MAPS.terr", JSON.stringify(vals), Date.now() - t0);
-
+        ctx.putImageData(target, 0, 0);        
 
     },
+    renderTopo: function(){H.Grids.topo.render(cvsTopo, 255, false);},
+    renderPass: function(){H.Grids.pass.render(cvsPass, 160);},
+    renderGrid: function(){
+      var x, y;
+      cvsGrid.width = cvsGrid.height = map.size -1;
+      ctxGrid.setTransform(1,0,0,1,0,0);
+      for (x=0; x<map.size -1; x++){
+        for (y=0; y<map.size -1; y++){
+          ctxGrid.fillStyle = (x+y)%2 ? "rgba( 255, 255, 255, 0.4)" : "rgba( 0, 0, 0, 0.4)";
+          ctxGrid.fillRect(x, y, 1, 1);
+        }
+      }
+    },
+    renderTerr: function(){
+      H.Maps.renderColorGrid(H.Grids.terr, null, cvsTerr, function(s){
+        return (
+          s ===   0 ? [ 128,   0,   0, 160] : // forbidden, dark red
+          s ===   4 ? [   0, 255,   0,  48] : // land, green
+          s ===   8 ? [ 100, 180, 200, 160] : // shallow, light blue
+          s ===  16 ? [ 200, 100, 255,  96] : // mixed water + land, violett
+          s ===  32 ? [   0, 100, 200,  64] : // deep water, dark blue
+          s ===  64 ? [ 255,   0,   0,  96] : // land too steep, light red
+            [ 255,   0,   0,  255]           // error, bright red 
+        );
+      });
+    },
+    renderCost: function(){
+      H.Maps.renderColorGrid(H.Grids.cost, H.Grids.terr, cvsCost, function(c, t){
+        return (
+          (t ===  4 || t ===  8 || t === 16) && (c > 0) ? 
+            [128, 0, 0, H.scale(c, 0, 255, 32, 160)] : 
+            [0, 0, 0, 0]
+        );
+      });
+    },
+    renderRegw: function(){
+
+      var 
+        idx, target, 
+        diffColor = ~~(255/(H.Grids.regw.regions +1)),
+        width = H.Grids.regw.width, i = width * width;
+
+      cvsRegw.width = cvsRegw.height = width;
+      target = ctxRegw.createImageData(width, width);
+
+      while (i--) {
+        if (H.Grids.regw.data[i]){
+          idx = i << 2;
+          target.data[idx +0] = 0;
+          target.data[idx +1] = 0;
+          target.data[idx +2] = H.Grids.regw.data[i] * diffColor;
+          target.data[idx +3] = 220;
+        }
+      }
+
+      ctxRegw.putImageData(target, 0, 0);
+
+    },
+    renderRegl: function(){
+
+      var 
+        idx, target, 
+        diffColor = ~~(255/(H.Grids.regl.regions +1)),
+        width = H.Grids.regl.width, i = width * width;
+
+      cvsRegl.width = cvsRegl.height = width;
+      target = ctxRegl.createImageData(width, width);
+
+      while (i--) {
+        if (H.Grids.regl.data[i]){
+          idx = i << 2;
+          target.data[idx +0] = 0;
+          target.data[idx +1] = H.Grids.regl.data[i] * diffColor;
+          target.data[idx +2] = 0;
+          target.data[idx +3] = 220;
+        }
+      }
+
+      ctxRegl.putImageData(target, 0, 0);
+
+    },    
     initObst: function(){
 
       // pathfinderObstruction:1, 
@@ -564,67 +643,19 @@ HANNIBAL = (function(H){
       ctxObLa.putImageData(target, 0, 0);      
 
     },
-    fillRegion: function(source, target, type, index, value){
-
-      var 
-        i = 0, idx = 0, s = 0, nextX = 0, nextY = 0, isRegion = false,
-        width  = target.width | 0,
-        y = ~~(index / width) | 0,
-        x = index % width  | 0,
-        stack  = [x, y],
-        tgt = target.data,     // 1 byte data
-        src = source.data,     // 1 byte data
-        dx = [ 0, -1, +1,  0],
-        dy = [-1,  0,  0, +1];
-
-      while (stack.length) {
-
-        y = stack.pop();
-        x = stack.pop();
-
-        tgt[y * width + x] = value;
-
-        i = 4;
-        while (i--) {
-
-          nextX = x + dx[i];
-          nextY = y + dy[i];
-          idx   = (nextY * width + nextX);
-
-          if (!tgt[idx] && nextX >= 0 && nextY >= 0 && nextX < width && nextY < width) {
-
-            s = src[idx];
-
-            isRegion = (
-              type === "l" ? ( s ===  8 || s === 16  ) : 
-              type === "w" ? ( s === 16 || s === 32 || s === 255) : 
-                false
-            );
-
-            if (isRegion){
-              stack.push(nextX);
-              stack.push(nextY);
-            }
-
-          }
-        }
-      }
-
-      // console.log("fillRegion", region, counter);
-
-    },
     initGraphs: function(){
 
       //   t ===   0 ? "forbidden" : 
-      //   t ===   8 ? "land" : 
-      //   t ===  16 ? "shallow" : 
+      //   t ===   4 ? "land" : 
+      //   t ===   8 ? "shallow" : 
+      //   t ===  16 ? "mixed" : 
       //   t ===  32 ? "deep water" : 
       //   t ===  64 ? "too steep" : 
       //   t === 255 ? "unknown" : 
 
       var t0 = Date.now(), i, r, c, terr, ghn, ghc, ght, 
           width = map.size -1, 
-          maxCost = 2, facCost = 255/maxCost;
+          maxCost = 3;
 
       i = width; 
       while (i--) {
@@ -638,16 +669,16 @@ HANNIBAL = (function(H){
       while (i--) {
 
         c = ~~(i/width); r = i % width;
-        terr = grdTerr.data[i];
-        // no forbidden, deep, steep, gaps else cost.max => 4 else 1
-        ghn = terr === 0 || terr === 32 || terr === 64 || terr === 255 ? 0 : 1;
-        ghc = ghn === 0 ? 0 : ~~(grdCost.data[i] / facCost) + 1;
+        terr = H.Grids.terr.data[i];
+        // no forbidden, deep, steep else cost.max => 4 else 1
+        ghn = terr === 0 || terr === 32 || terr === 64 ? 0 : 1;
+        ghc = ghn === 0 ? 0 : H.scale(H.Grids.cost.data[i], 0, 255, 1, maxCost);
         ght = (
           ghn === 0 ? 0             :  // wall is wall
-          grdTree.data[i]  >  4 ? 0 :  // too crowded
-          grdTree.data[i] === 0 ? 1 :  // normal cost
-          grdTree.data[i] === 1 ? 1 :  // ignore one tree
-            grdTree.data[i] -1         // else 
+          H.Grids.tree.data[i]  >  4 ? 0 :  // too crowded
+          H.Grids.tree.data[i] === 0 ? 1 :  // normal cost
+          H.Grids.tree.data[i] === 1 ? 1 :  // ignore one tree
+            H.Grids.tree.data[i] -1         // else 
         );
 
 
@@ -673,161 +704,6 @@ HANNIBAL = (function(H){
       map.graphCoTr = new H.AI.Graph(graphCoTr);
       msg(fmt("graph fini: %s ms", (Date.now() - t0)));
     },
-    deriveGrid: function(source, fn){
-
-      var 
-        target = new H.Grid(source.width, source.height, source.bits),
-        i = target.length;
-
-      while (i--){
-        target.data[i] = fn(source.data[i]);
-      }
-
-      return target;
-
-    },
-    initCost1: function(){
-      var t0 = Date.now();
-    },
-    initCost2: function(){
-
-      var 
-        t0 = Date.now(), s,
-        width = map.size -1, i = width * width,
-        source = grdTerr.data, 
-        grdTemp = new H.Grid(width, width, 8);
-
-      while (i--) {
-        s = source[i];
-        // around shallow, deep, steep, gaps/unknown
-        grdTemp.data[i] = (s === 16 || s === 32 || s === 64 || s === 255) ? 255 : 0;
-      }
-
-      grdCost = grdTemp.blur(3);
-
-      msg(fmt("cost2.terrain %s ms", Date.now()-t0));
-
-    },
-    renderCost: function(){
-
-      var 
-        idx, s, t, target, color, 
-        width = map.size -1,
-        i = width * width,
-        source, terrain;
-
-      if (!grdCost){return;}
-
-      cvsCost.width = cvsCost.height = width;
-      target = ctxCost.createImageData(width, width);
-      source  = grdCost.data;
-      terrain = grdTerr.data;
-
-      while (i--) {
-        s = source[i];
-        t = terrain[i];
-        color = (t ===  8 || t === 16) && (s > 0) ? [128, 0, 0, H.scale(s, 0, 255, 32, 128)] : [0, 0, 0, 0];
-        idx = i << 2;
-        target.data[idx + 0] = color[0];
-        target.data[idx + 1] = color[1];
-        target.data[idx + 2] = color[2];
-        target.data[idx + 3] = color[3];
-      }
-
-      ctxCost.putImageData(target, 0, 0);
-
-    },
-    initRegions: function(){
-
-      var 
-        t0 = Date.now(), s, t, target, 
-        colorsWater = 0, colorsLand = 0, 
-        width = map.size -1, i = width * width,
-        source = grdTerr.data;
-
-      grdRegw = new H.Grid(width, width, 8);
-      grdRegl = new H.Grid(width, width, 8);
-
-      // water
-      target = grdRegw.data;
-      while (i--) {
-        s = source[i]; t = target[i];
-        if (t === 0 && ( s === 16 || s === 32 || s === 255) ) {
-          H.Maps.fillRegion(grdTerr, grdRegw, "w", i, ++colorsWater);
-        }
-      }
-
-      // land
-      i = width * width;
-      target = grdRegl.data;
-      while (i--) {
-        s = source[i]; t = target[i];
-        if (t === 0 && ( s === 16 || s === 8 ) ) {
-          H.Maps.fillRegion(grdTerr, grdRegl, "l", i, ++colorsLand);
-        }
-      }
-
-      map.regsWater = colorsWater;
-      map.regsLand  = colorsLand;
-
-      msg(fmt("regions: %s/%s l/w, %s ms", colorsLand, colorsWater, Date.now()-t0));
-      TIM.step("MAPS.regions", fmt("%s", Date.now()-t0));
-
-    },
-    renderRegw: function(){
-
-      var 
-        s, idx, target, source, 
-        diffColor = ~~(255/(map.regsWater +1)),
-        width = map.size -1, i = width * width;
-
-      if (!grdRegw){return;}
-
-      cvsRegw.width = cvsRegw.height = width;
-      target = ctxRegw.createImageData(width, width);
-      source = grdRegw.data;
-
-      while (i--) {
-        s = source[i];
-        if (s){
-          idx = i << 2;
-          target.data[idx +0] = 0;
-          target.data[idx +1] = 0;
-          target.data[idx +2] = s * diffColor;
-          target.data[idx +3] = 255;
-        }
-      }
-
-      ctxRegw.putImageData(target, 0, 0);
-
-    },
-    renderRegl: function(){
-
-      var 
-        s, idx, target, source, 
-        diffColor = ~~(255/(map.regsLand +1)),
-        width = map.size -1, i = width * width;
-
-      if (!grdRegw){return;}
-
-      cvsRegl.width = cvsRegl.height = width;
-      target = ctxRegl.createImageData(width, width);
-      source = grdRegl.data;
-
-      while (i--) {
-        s = source[i];
-        if (s){
-          idx = i << 2;
-          target.data[idx +0] = 0;
-          target.data[idx +1] = s * diffColor;
-          target.data[idx +2] = 0;
-          target.data[idx +3] = 255;
-        }
-      }
-
-      ctxRegl.putImageData(target, 0, 0);
-
-    },
     renderCircle: function(pos, radius, color){
       ctxDyna.strokeStyle = color;
       ctxDyna.beginPath();
@@ -839,22 +715,6 @@ HANNIBAL = (function(H){
       // path goes from 1 -> 0
 
       var color, dynamic = !!$("chkPathDyna").checked;
-
-      // function colorX (l0, w0, l1, w1) {
-      //   // var w0 = ~~rg0[3], l0 = ~~rg0[1]; //w1 = rg1[3], l1 = rg1[1], 
-      //   return (
-      //     !w0 && !l0        ? "rgba(255,   0,   0, 0.9)" : // immer rot
-      //     !l1 &&  w0 &&  l0 ? "rgba(  0, 180, 200, 0.9)" : // türkis
-      //     !l1 &&         l0 ? "rgba(  0, 250,   0, 0.9)" : // grün
-      //     !l1 &&         w0 ? "rgba( 50,  50, 250, 0.9)" : // water
-
-      //      l0 !== l1 && w0 === w1 ? "rgba(255,   0,   0, 0.9)" : // grün
-      //      l0 && !w1 && l1 === l0 ? "rgba(  0, 250,   0, 0.9)" : // grün
-      //      l0 && !l1 && w1 === w0 ? "rgba( 50,  50, 250, 0.9)" : // water
-      //      l0 &&  w0 && l1 && w1  ? "rgba(  0, 180, 200, 0.9)" : // türkis
-      //        "rgba(255, 128,   0, 0.9)"
-      //   );
-      // }
 
       ctxDyna.lineWidth = 1;
 
@@ -994,87 +854,131 @@ HANNIBAL = (function(H){
       }
 
     },
-    renderGrid: function(){
-      var x, y;
-      cvsGrid.width = cvsGrid.height = map.size -1;
-      ctxGrid.setTransform(1,0,0,1,0,0);
-      for (x=0; x<map.size -1; x++){
-        for (y=0; y<map.size -1; y++){
-          ctxGrid.fillStyle = (x+y)%2 ? "rgba( 255, 255, 255, 0.4)" : "rgba( 0, 0, 0, 0.4)";
-          ctxGrid.fillRect(x, y, 1, 1);
-        }
-      }
-    },
-    renderPass: function(){
+    initEntities: function(){
 
-      if (!map.pass){return;}
-    
-      var 
-        i, t, source, target, vals = {}, c, 
-        len = grdTerr.length,
-        width = map.size -1;
+      H.Entities = {};
 
-      cvsPass.width = cvsPass.height = width;
-
-      source = grdTerr.data;
-      target = ctxPass.createImageData(width, width);
-
-      for (i=0; i<len; i++) {
-        t = source[i];
-        c = (
-          t ===   0 ? [ 128,   0,   0, 160] : // forbidden, dark red
-          t ===   8 ? [   0, 255,   0,  48] : // land, gree
-          t ===  16 ? [ 100, 220, 255,  96] : // shallow, light blue
-          t ===  32 ? [ 100, 100, 255,  64] : // deep water, dark blue
-          t ===  64 ? [ 255,   0,   0,  96] : // too steep, light red
-          t === 255 ? [ 100, 100, 255,  64] : // assuming deep water for gaps, dark blue
-            [ 255,   0,   0,  255] // error, bright red 
-        );
-        target.data[i *4 + 0] = c[0];
-        target.data[i *4 + 1] = c[1];
-        target.data[i *4 + 2] = c[2];
-        target.data[i *4 + 3] = c[3];
-        vals[t] = vals[t] ? vals[t] +1 : 1;
+      function check(tpl, item, array){
+        var found = tpl.contains(item);
+        if (found){array.push(item);}
+        return found;
       }
 
-      ctxPass.putImageData(target, 0, 0);
+      H.toArray(map.ents).forEach(function(entity){
 
-      console.log("renderPass", vals);  // here is some undefined
- 
+        // entity = HTMLCollection [ <Template>, <Player>, <Position>, <Orientation>, <Actor> ]
+
+        var 
+          uid = entity.getAttribute("uid"),
+          pos = entity.getElementsByTagName("Position")[0],
+          ori = entity.getElementsByTagName("Orientation")[0],
+          tpl = entity.getElementsByTagName("Template")[0].innerHTML,
+          plr = entity.getElementsByTagName("Player").length ? ~~entity.getElementsByTagName("Player")[0].innerHTML : null,
+          x = +pos.getAttribute("x")/map.factor,
+          z = +pos.getAttribute("z")/map.factor,
+          y = +ori.getAttribute("y"),
+
+          ent = H.Entities[uid] = {
+            _template:   tpl,
+            classes:     [],
+            Footprint:   {},
+            Obstruction: {},
+            style:        [0.0, "rgba(0,0,0,0.0)"],
+            position:    function(){return [x, z];},
+            orientation: function(){return y;},
+            player:      function(){return plr;},
+          };
+
+          check(tpl, "units", ent.classes);
+          check(tpl, "structures", ent.classes);
+
+          if (check(tpl, "civil_centre", ent.classes)){
+            ent.radius = 140;
+            H.Maps.centres.push(ent);            
+          }
+
+          if (plr !== null){
+            ent.style = [1.1, "rgba(255, 255, 255, 1)"];
+            if (check(tpl, "ship", ent.classes))        {ent.style = [3.0, "rgba(  180, 180, 255, 0.9)"];}
+            if (check(tpl, "units", ent.classes))       {ent.style = [2.0, "rgba(  255, 255,   0, 0.9)"];}
+            if (check(tpl, "tree", ent.classes))        {ent.style = [2.0, "rgba(    0, 255,   0, 0.9)"];}
+            if (check(tpl, "bush", ent.classes))        {ent.style = [0.5, "rgba(    0, 100,   0, 0.5)"];}
+            if (check(tpl, "grass", ent.classes))       {ent.style = [0.5, "rgba(    0, 100,   0, 0.5)"];}
+            if (check(tpl, "gaia/fauna", ent.classes))  {ent.style = [1.0, "rgba(    0, 200, 100, 0.9)"];}
+            if (check(tpl, "gaia/geology", ent.classes)){ent.style = [2.0, "rgba(  255,   0,   0, 0.9)"];}
+            if (check(tpl, "treasure", ent.classes))    {ent.style = [2.0, "rgba(  255,   0, 128, 0.9)"];}
+            if (check(tpl, "column", ent.classes))      {ent.style = [2.0, "rgba(  255,   0, 128, 0.9)"];}
+          }
+
+          if (STRUCTURES[tpl]){
+            ent.Footprint.width   = STRUCTURES[tpl]['Footprint/Square@width'];
+            ent.Footprint.depth   = STRUCTURES[tpl]['Footprint/Square@depth'];
+            ent.Obstruction.width = STRUCTURES[tpl]['Obstruction/Square@width'];
+            ent.Obstruction.depth = STRUCTURES[tpl]['Obstruction/Square@depth'];
+            ent.style = [4.0, "rgba( 255, 128,  0, 0.7)", "rgba(  255, 255, 255, 0.7)"];
+          }
+
+          if (OTHER[tpl]){
+            ent.Footprint.width   = OTHER[tpl]['Footprint/Square@width'];
+            ent.Footprint.depth   = OTHER[tpl]['Footprint/Square@depth'];
+            ent.Obstruction.width = OTHER[tpl]['Obstruction/Square@width'];
+            ent.Obstruction.depth = OTHER[tpl]['Obstruction/Square@depth'];
+            ent.style = [4.0, "rgba( 255, 128,  0, 0.7)", "rgba(  255, 255, 255, 0.7)"];
+          }
+
+      });
+
     },
-    renderTopo: function(){
+    renderEnts: function(){
 
-      var i, off, h, data;
+      cvsEnts.width = cvsEnts.height = size;
 
-      // console.log("Maps.renderTopo:", "bytes", map.buffer.byteLength, "mapsize", map.mapsize, "factor", map.factor, "size", map.size);
+      ctxEnts.setTransform(1, 0, 0, 1, 0, 0);
+      ctxEnts.translate(0, size);
+      ctxEnts.scale(1, -1);
 
-      cvsTopo.width = cvsTopo.height = map.size -1;
-      cvsTemp.width = cvsTemp.height = map.size;
+      H.each(H.Entities, function(id, ent){
 
-      data = ctxTemp.getImageData(0, 0, map.size, map.size);
+        var 
+          rec, w1, h1, w2, h2,
+          tpl = ent._template, style = ent.style, 
+          [x, z] = ent.position(), y = ent.orientation();
 
-      for (i=0, off=16; i<map.length; i++, off+=2) {
-        h = map.view.getUint16(off, true) >> 8;
-        if (h) {
-          data.data[i *4 + 0] = h;
-          data.data[i *4 + 1] = h;
-          data.data[i *4 + 2] = h;
+        if (STRUCTURES[tpl] || OTHER[tpl]){
+
+          w1 = ent.Footprint.width/map.factor;
+          h1 = ent.Footprint.depth/map.factor;
+          w2 = ent.Obstruction.width/map.factor;
+          h2 = ent.Obstruction.depth/map.factor;
+
+          ctxEnts.save();
+          ctxEnts.translate(x, z);
+          ctxEnts.rotate(-y);
+          ctxEnts.fillStyle = style[1];
+          ctxEnts.fillRect(-w2/2, -h2/2, w2, h2);
+          ctxEnts.strokeStyle = style[2];
+          ctxEnts.strokeRect(-w1/2, -h1/2, w1, h1);
+
+          if (H.contains(ent.classes, "civil_centre")){
+            ctxEnts.strokeStyle = H.Maps.centres.length === 0 ? "white" : "orange";
+            ctxEnts.beginPath();
+            ctxEnts.arc(0, 0, 140/map.factor, 0, 2 * Math.PI, false);
+            ctxEnts.stroke();          
+          }
+
+          ctxEnts.restore();
+        
         } else {
-          data.data[i *4 + 0] =  80;
-          data.data[i *4 + 1] = 140;
-          data.data[i *4 + 2] = 220;
+          rec = style[0];
+          ctxEnts.fillStyle = style[1];
+          ctxEnts.fillRect(x -rec/2, z -rec/2, rec, rec);  
+
         }
-        data.data[i *4 + 3] = 256;
-      }
 
-      ctxTemp.putImageData(data, 0, 0);
-
-      ctxTopo.setTransform(1, 0, 0, 1, 0, 0);
-      ctxTopo.translate(0, map.size -1);
-      ctxTopo.scale(1, -1);
-      ctxTopo.drawImage(cvsTemp, 0, 0, map.size -1, map.size -1, 0, 0, map.size, map.size); // cutoff extra pixl
+      });
 
     },
+
     initTrees: function(){
 
       var 
@@ -1155,7 +1059,7 @@ HANNIBAL = (function(H){
       ctxTree.putImageData(target, 0, 0);
 
     },
-    renderEnts: function(){
+    renderEntsX: function(){
 
       var style, rec, w1, h1, w2, h2;
 
@@ -1216,7 +1120,7 @@ HANNIBAL = (function(H){
           if (tpl.contains("civil_centre")){
             ctxEnts.strokeStyle = H.Maps.centres.length === 0 ? "white" : "orange";
             ctxEnts.beginPath();
-            ctxEnts.arc(0, 0, 140/map.factor, 0, 2 * Math.PI, false);
+            // ctxEnts.arc(0, 0, 140/map.factor, 0, 2 * Math.PI, false);
             ctxEnts.stroke();          
             H.Maps.centres.push({tpl: tpl, radius: 140, x: +pos.getAttribute("x"), y: +pos.getAttribute("z")});
           }

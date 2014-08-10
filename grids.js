@@ -3,12 +3,12 @@
 
 /*--------------- G R I D S ---------------------------------------------------
 
-  An API onto UintArrays, used as map module,
+  An API onto UintArrays, used for map analysis, path finding, attack planning
   includes cosmetical rewritten functions from API3
 
 
 
-  V: 1.1, noiv11, CGN, Feb, 2014
+  V: 1.1, agentx, CGN, Feb, 2014
 
 */
 
@@ -40,22 +40,8 @@ HANNIBAL = (function(H){
       square  = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]],
       square0 = [[-1,-1],[-1,1],[1,-1],[1,1]],
       square2 = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
-                 [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]],
-      grids = {
-        pass: null,
-        topo: null,
-        food: null,
-        wood: null,
-        stone: null,
-        metal: null,
-        territory: null,
-        passability: null,  // Uint16Array 
-        obstruction: null, // Trees, Geology
-        landPass: null,
-        navalPass: null,
-        attacks: null,
-        scouting: null,
-      };
+                 [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]];
+
 
   function dump(name, grid, threshold){
     threshold = threshold || grid.max() || 255;
@@ -91,77 +77,274 @@ HANNIBAL = (function(H){
     return grid;
   }
 
+  function fnBody(fn){
+    
+    var body, source = fn.toString();
+    
+    if (source.indexOf("return") !== -1){
+      body = source.slice(source.indexOf("return") + 6, source.lastIndexOf("}")).trim();
+      
+    } else if (source.indexOf("=>") !== -1){
+       body = source.slice(source.indexOf("=>") + 2).trim();
+      
+    } else {
+      throw "can't handle that";
+    }
+    
+    return body;
+    
+  }
+
+  // self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
+  // self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
+  // self.passability = gridFromMap(H.SharedScript.passabilityMap);
+  // self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
+  // self.food        = gridFromMap(H.SharedScript.resourceMaps.food);
+  // self.wood        = gridFromMap(H.SharedScript.resourceMaps.wood);
+  // self.stone       = gridFromMap(H.SharedScript.resourceMaps.stone);
+  // self.metal       = gridFromMap(H.SharedScript.resourceMaps.metal);
+  // self.obstruction = obstructions();
+
+  // self.attacks  = new H.Grid(width, height, 8);
+  // self.pass     = new H.Grid(width, height, 8);
+  // self.topo     = new H.Grid(width, height, 8);
+
+  // deb();deb();
+  // deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
+
+  /*
+    
+    handles the grids in use
+    works in Explorer (browser) and in 0 A.D (jsshell)
+
+  */
+
+
   H.Grids = (function(){
 
-    var self = {};
+    var 
+      self = {
+        topo: null,           // if avail
+        pass: null,           // water, land, forbidden, shallow, steep
+        terr: null,           // internal terrain code
+        cost: null,           // pathinder cost arond water and hills
+        regw: null,           // connected regions on water
+        regl: null,           // connected regions on land
+        food: null,
+        wood: null,
+        stone: null,
+        metal: null,
+        terrain: null,       
+        territory: null,
+        passability: null,   // Uint16Array 
+        obstruction: null,   // Trees, Geology
+        landPass: null,
+        navalPass: null,
+        attacks: null,
+        scouting: null,
+      },
+      isBrowser = false, topoBuffer, passImage;
 
-    H.extend(self, grids, {
-
+    H.extend(self, {
       center: center,
-      register: function(name, grid){grids[name] = grid;},
-      externalInit: function(w, h, c){
-        width = w; height = h, cellsize = c;
+      // register: function(name, grid){grids[name] = grid;},
+      initExtern: function(size, buffer, image){
+        isBrowser  = true;
+        width      = self.width    = size; 
+        height     = self.height   = size;
+        length     = self.length   = width * height;
+        cellsize   = self.cellsize = 4;      
+        center[0]  = ~~(width  / 2);
+        center[1]  = ~~(height / 2);
+        topoBuffer = buffer;
+        passImage  = image;
       },
       init: function(){
-
-        var i;
-
         width     = self.width    = H.SharedScript.passabilityMap.width;
         height    = self.height   = H.SharedScript.passabilityMap.height;
         length    = self.length   = width * height;
         cellsize  = self.cellsize = H.GameState.cellSize;
-
         center[0] = ~~(width  / 2);
         center[1] = ~~(height / 2);
-        
-        // pathfinder.xml
-        // <unrestricted/>
-        // <default>
-        //   <MaxWaterDepth>2
-        //   <MaxTerrainSlope>1.0
-        // <ship>
-        //   <MinWaterDepth>1
-        // <building-land>
-        //   <MaxWaterDepth>0
-        //   <MinShoreDistance>1.0
-        //   <MaxTerrainSlope>1.0
-        // <building-shore>
-        //   <MaxShoreDistance>2.0
-        //   <MaxTerrainSlope>1.25
-
+        self.initMasks();  
+        self.initPassTopo();  
+        self.initTerrain();  
+        self.initCost();  
+        self.initRegionsLand();  
+        self.initRegionsWater();  
+      },
+      initMasks: function(){
         // http://trac.wildfiregames.com/wiki/AIEngineAPI
-        maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
-        maskFoundation  = H.SharedScript.passabilityClasses["foundationObstruction"] | 0;    // 2
-        maskBldgLand    = H.SharedScript.passabilityClasses["building-land"] | 0;            // 4
-        maskBldgShore   = H.SharedScript.passabilityClasses["building-shore"] | 0;           // 8
-        maskLand        = H.SharedScript.passabilityClasses["default"] | 0;                  // 16
-        maskWater       = H.SharedScript.passabilityClasses["ship"] | 0;                     // 32
-        maskOpen        = H.SharedScript.passabilityClasses["unrestricted"] | 0;             // 64
-        maskShore       = maskBldgShore | maskFoundation;
+        var pc = H.SharedScript && H.SharedScript.passabilityClasses ? H.SharedScript.passabilityClasses : undefined;
+        maskPathfinder  = pc ? pc["pathfinderObstruction"] :  1;
+        maskFoundation  = pc ? pc["foundationObstruction"] :  2;
+        maskBldgLand    = pc ? pc["building-land"]         :  4;
+        maskBldgShore   = pc ? pc["building-shore"]        :  8;
+        maskLand        = pc ? pc["default"]               : 16;
+        maskWater       = pc ? pc["ship"]                  : 32;
+        maskOpen        = pc ? pc["unrestricted"]          : 64;
+        maskShore       = maskBldgShore | maskFoundation;    // 1
+      },
+      initPassTopo: function(){
 
-        self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
-        self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
-        self.passability = gridFromMap(H.SharedScript.passabilityMap);
-        self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
-        self.food        = gridFromMap(H.SharedScript.resourceMaps.food);
-        self.wood        = gridFromMap(H.SharedScript.resourceMaps.wood);
-        self.stone       = gridFromMap(H.SharedScript.resourceMaps.stone);
-        self.metal       = gridFromMap(H.SharedScript.resourceMaps.metal);
-        self.obstruction = obstructions();
+        var i, h, off, idx, x, y, cvs, ctx, source, len, iwidth = width +1, max = 0, min = 10e7;
 
-        self.attacks  = new H.Grid(width, height, 8);
-        self.pass     = new H.Grid(width, height, 8);
-        self.topo     = new H.Grid(width, height, 8);
+        self.topo = new H.Grid(width, height, 8);
+        self.pass = new H.Grid(width, height, 8);
 
-        for (i=0; i<length; i++){
-          self.pass.data[i] = self.passability.data[i] >> 0; 
-          self.topo.data[i] = self.passability.data[i] >> 8; 
+        if (isBrowser){
+
+          len = (iwidth) * (iwidth);
+          
+          for (i=0, off=16; i<len; i++, off+=2) {
+            x = i % iwidth; y = ~~(i/iwidth);
+            if (x < width && y < height){
+              idx = (width - y) * width + x;
+              h = topoBuffer.getUint16(off, true) >> 8;
+              self.topo.data[idx] = h;
+              max = h > max ? h : max;
+              min = h < min ? h : min;
+            }
+          }
+          i = length; while(i--){
+            h = H.scale(self.topo.data[i], min, max, 0, 255);
+            self.topo.data[i] = h;
+          }
+
+          // console.log("idx", idx, length, "max", max, "min", min);
+
+          cvs = document.createElement("canvas");
+          cvs.width = cvs.height = width;
+          ctx = cvs.getContext("2d");
+          ctx.drawImage(passImage, 0, 0, width, width, 0, 0, width, width);
+          source = ctx.getImageData(0, 0, width, width).data;
+
+          for (i=0; i<length *4; i+=4) {
+            self.pass.data[i >> 2] = source[i];
+          }
+
+        } else {
+
+          for (i=0; i<length; i++){
+            self.pass.data[i] = self.passability.data[i] >> 0; 
+            self.topo.data[i] = self.passability.data[i] >> 8; 
+          }
+
         }
 
-        deb();deb();
-        deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
+      },
+      initCost: function(){
+
+        var 
+          i = length, s, maskCost = 8 + 16 + 32 + 64,
+          grdTemp = new H.Grid(width, height, 8);
+
+        while(i--){
+          // s = self.terr.data[i];
+          // self.cost.data[i] = (s === 16 || s === 32 || s === 64 || s === 255) ? 255 : 0;
+          // s = self.terr.data[i];
+          grdTemp.data[i] = self.terr.data[i] & maskCost ? 255 : 0;
+        }
+        self.cost = grdTemp.blur(3);
 
       },
+      initTrees: function(){
+        // var i = length, s, t;
+        self.tree = new H.Grid(width, height, 8);
+      },
+      initTerrain: function(){
+
+        var i = length, s, t;
+
+        self.terr = new H.Grid(width, height, 8);
+
+        while(i--){
+
+          s = self.pass.data[i];
+          t = (
+             (s &  1)                             ?   0 : //  dark red : pathfinder obstruction forbidden
+             (s & 16) && !(s & 32) &&   (s & 64) ?   4 : //  land
+            !(s & 16) && !(s & 32) &&   (s & 64) ?   8 : //  shallow
+            !(s & 16) && !(s & 32) &&  !(s & 64) ?  16 : //  mixed
+            !(s & 16) &&  (s & 32) &&  !(s & 64) ?  32 : //  deep water
+             (s & 16) &&  (s & 32) &&   (s & 64) ?  64 : //  red : land too steep
+            !(s & 16) &&  (s & 32) &&   (s & 64) ?  64 : //  red : land also too steep
+              255                                          // errorr
+          );
+          self.terr.data[i] = t;
+
+        }
+
+      },
+      initRegionsLand: function(){
+
+        var r, t, i = length, cntLand = 0, maskLand = 16 + 8 + 4;
+
+        self.regl = new H.Grid(width, height, 8);
+
+        while (i--) {
+          t = self.terr.data[i]; 
+          r = self.regl.data[i];
+          if (r === 0 && ( t & maskLand) ) {
+            H.Grids.fillRegion(self.terr.data, self.regl.data, maskLand, i, ++cntLand);
+          }
+        }
+
+        self.regl.regions = cntLand;
+
+      },
+      initRegionsWater: function(){
+
+        var r, t, i = length, cntWater = 0, maskWater = 16 + 32;
+
+        self.regw = new H.Grid(width, height, 8);
+
+        while (i--) {
+          t = self.terr.data[i]; 
+          r = self.regw.data[i];
+          if (r === 0 && ( t & maskWater ) ) {
+            H.Grids.fillRegion(self.terr.data, self.regw.data, maskWater, i, ++cntWater);
+          }
+        }
+
+        self.regw.regions = cntWater;
+
+      },
+      fillRegion: function(src, tgt, mask, index, region){
+
+        var 
+          i, idx, nextX, nextY,
+          y = ~~(index / width) | 0,
+          x = index % width | 0,
+          stack = [x, y], pointer = 2, // push/pop is too slow
+          dx = [ 0, -1, +1,  0], 
+          dy = [-1,  0,  0, +1]; 
+
+        while (pointer) {
+
+          y = stack[pointer -1];
+          x = stack[pointer -2];
+          pointer -= 2;
+
+          tgt[y * width + x] = region;
+
+          i = 4; while (i--) {
+
+            nextX = x + dx[i];
+            nextY = y + dy[i];
+            idx   = (nextY * width + nextX);
+
+            if (!tgt[idx] && (src[idx] & mask) && nextX && nextY && nextX < width && nextY < width) {
+              stack[pointer]    = nextX;
+              stack[pointer +1] = nextY;
+              pointer += 2;
+            }
+
+          }
+
+        }
+
+      },      
       tick: function(secs){
 
         var t0 = Date.now();
@@ -209,82 +392,6 @@ HANNIBAL = (function(H){
         }
 
       },
-      // analyze: function(what, resource){
-
-        //   // unknown           = 0
-        //   // land, seen        = 32
-        //   // land, visited     = 48
-        //   // shore, seen       = 64
-        //   // shore, visited    = 80
-        //   // water, seen       = 128
-        //   // water, visited    = 144
-        //   // unidentified      = 200
-        //   // impassable        = 255
-
-        //   // obstructions
-        //   // 0 is impassable
-        //   // 200 is deep water (ie non-passable by land units)
-        //   // 201 is shallow water (passable by land units and water units)
-        //   // 255 is land (or extremely shallow water where ships can't go).
-        //   // 40 is "tree".
-        //   // The following 41-49 range is "near a tree", with the second number showing how many trees this tile neighbors.
-        //   // 30 is "geological component", such as a mine
-
-        //   if (what === 'scout') {
-
-        //     var t0 = Date.now(), counter = 0,
-        //         node = H.QRY("INGAME WITH id = " + resource.id).first(),
-        //         [cx, cy] = gamePosToMapPos(node.position),
-        //         radius = ~~(node.vision / cellsize),
-        //         dataScout = self.scouting.data,
-        //         dataNaval = self.navalPass.data,
-        //         dataLand  = self.landPass.data,
-        //         dataObst  = self.obstruction.data,
-        //         dataPass  = self.passability.data,
-        //         x0 = ~~Math.max(0, cx - radius),
-        //         y0 = ~~Math.max(0, cy - radius),
-        //         x1 = ~~Math.min(width,  cx + radius),
-        //         y1 = ~~Math.min(height, cy + radius),
-        //         x = 0, y = 0, index = 0, value = 0,
-        //         dx = 0, dy = 0, r2 = 0.0;
-                
-        //     this.analyzeLifted(dataScout, dataObst, x0, x1, y0, y1, cx, cy, radius, width);
-
-
-        //     // for ( y = y0; y < y1; ++y) {
-        //     //   for ( x = x0; x < x1; ++x) {
-        //     //     dx = x - cx; dy = y - cy;
-        //     //     r2 = Math.sqrt(dx * dx + dy * dy);
-        //     //     index = x + y * width;
-        //     //     if (dataScout[index] === 0 && r2 < radius){
-        //     //     // if (dataScout[index] === 0){
-        //     //       // dataScout[index] = (
-        //     //       //   // !(dataLand[index]  & maskShore) ?  64 :
-        //     //       //   !(dataPass[index]  & maskLand)  ?  32 :
-        //     //       //   !(dataNaval[index] & maskWater) ? 128 :
-        //     //       //   (dataObst[index]  === 0)        ? 255 :
-        //     //       //     200
-        //     //       // );
-        //     //       dataScout[index] = (
-        //     //         (dataObst[index]  === 0)        ? 255 :
-        //     //         (dataObst[index]  === 255)      ?  32 :
-        //     //         (dataObst[index]  === 200)      ? 128 :
-        //     //           200
-        //     //       );
-        //     //     }
-        //     //     counter += 1;
-        //     //   }
-        //     // }
-        //     // mark as seen
-        //     dataScout[cx + cy * width] += 16;
-
-        //     // deb("analyze: %s", Date.now() - t0);
-        //     // typical analyze: analyze: 900, 6, 6
-
-
-        //   }
-
-        // },
       record: function(what, where, amplitude){
 
         deb("  GRDS: record: what: %s, where: %s, amp: %s", what, pritp(where), pritn(amplitude));
@@ -387,14 +494,24 @@ HANNIBAL = (function(H){
       );
       return cp;
     },
-    render: function (canvas, alpha, nozero=true){
+    process: function(target, fn){
+
+      var body = "", proc = fnBody(fn);
+      
+      body += "var i = " + this.length + ";";
+      body += "while (i--) { t[i] = " + proc + "}";
+
+      Function("s", "t", body)(this.data, target.data);  
+
+    },
+    render: function (canvas, alpha=255, nozero=true){
 
       var
         i, p, c, image, target, source,
         len = width * width,
         ctx = canvas.getContext("2d");
 
-      alpha = alpha !== undefined ? alpha : 255;
+      // alpha = alpha !== undefined ? alpha : 255;
       canvas.width = canvas.height = width;
       image = ctx.getImageData(0, 0, width, width);
       target = image.data;
@@ -404,7 +521,7 @@ HANNIBAL = (function(H){
         c = source[i];
         p = i * 4; 
         target[p] = target[p + 1] = target[p + 2] = c;
-        target[p + 3] = nozero && !c ? 0 : c;
+        target[p + 3] = nozero && !c ? 0 : alpha;
       }
       
       ctx.putImageData(image, 0, 0);
@@ -414,18 +531,18 @@ HANNIBAL = (function(H){
 
       // http://blog.ivank.net/fastest-gaussian-blur.html
 
-      var i, temp = [], target = new H.Grid(width, width, 8);
+      var temp = [], target = new H.Grid(width, width, 8);
       boxBlur_4(this.data, temp, width, height, radius);
       target.data = new Uint8ClampedArray(temp);
       return target;
 
       // source channel, target channel, width, height, radius
-      function gaussBlur_4 (scl, tcl, w, h, r) {
-          var bxs = boxesForGauss(r, 3);
-          boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2);
-          boxBlur_4 (tcl, scl, w, h, (bxs[1]-1)/2);
-          boxBlur_4 (scl, tcl, w, h, (bxs[2]-1)/2);
-      }
+      // function gaussBlur_4 (scl, tcl, w, h, r) {
+      //     var bxs = boxesForGauss(r, 3);
+      //     boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2);
+      //     boxBlur_4 (tcl, scl, w, h, (bxs[1]-1)/2);
+      //     boxBlur_4 (scl, tcl, w, h, (bxs[2]-1)/2);
+      // }
       function boxBlur_4 (scl, tcl, w, h, r) {
           for(var i=0; i<scl.length; i++) {
             tcl[i] = scl[i];
@@ -486,18 +603,18 @@ HANNIBAL = (function(H){
           }
 
       }
-      function boxesForGauss(sigma, n){  // standard deviation, number of boxes
-          var wIdeal = Math.sqrt((12*sigma*sigma/n)+1);  // Ideal averaging filter width 
-          var wl = Math.floor(wIdeal);  if(!wl%2) wl--;
-          var wu = wl+2;
-          var mIdeal = (12*sigma*sigma - n*wl*wl - 4*n*wl - 3*n)/(-4*wl - 4);
-          var m = Math.round(mIdeal);
-          // var sigmaActual = Math.sqrt( (m*wl*wl + (n-m)*wu*wu - n)/12 );
-          var sizes = [];  for(var i=0; i<n; i++) {
-            sizes.push(i<m?wl:wu);
-          }
-          return sizes;
-      }
+      // function boxesForGauss(sigma, n){  // standard deviation, number of boxes
+      //     var wIdeal = Math.sqrt((12*sigma*sigma/n)+1);  // Ideal averaging filter width 
+      //     var wl = Math.floor(wIdeal);  if(!wl%2) wl--;
+      //     var wu = wl+2;
+      //     var mIdeal = (12*sigma*sigma - n*wl*wl - 4*n*wl - 3*n)/(-4*wl - 4);
+      //     var m = Math.round(mIdeal);
+      //     // var sigmaActual = Math.sqrt( (m*wl*wl + (n-m)*wu*wu - n)/12 );
+      //     var sizes = [];  for(var i=0; i<n; i++) {
+      //       sizes.push(i<m?wl:wu);
+      //     }
+      //     return sizes;
+      // }
 
     },
     searchSpiral: function (xs, ys, expression){

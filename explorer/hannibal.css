@@ -231,7 +231,7 @@ li.tabberitem a {
   margin-left: 16px;
 }
 
-#txtTerrain {
+#txtTerrain, #txtPass {
   font-size: 10px;  
   padding-left: 4px;
   white-space: nowrap;
