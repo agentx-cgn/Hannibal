@@ -1,363 +1,1480 @@
 var GAIA = {
   "gaia/fauna_bear": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Bear", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_boar": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Boar", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 150.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_camel": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Camel", 
+    "Obstruction/Unit@radius": 1.75, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 9.0, 
+    "UnitMotion/WalkSpeed": 3.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_chicken": {
-    "Health/Max": 5.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Domestic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 5.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Chicken", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 40.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 6.0, 
+    "UnitMotion/WalkSpeed": 1.0, 
+    "Vision/Range": 6.0
   }, 
   "gaia/fauna_crocodile": {
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
     "Footprint/Square@depth": 8.0, 
     "Footprint/Square@width": 5.0, 
-    "Health/Max": 100.0
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Crocodylus niloticus", 
+    "Obstruction/Unit@radius": 2.4, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 18.0, 
+    "UnitMotion/WalkSpeed": 2.0, 
+    "Vision/Range": 20.0
   }, 
   "gaia/fauna_deer": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Deer", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 10.0, 
+    "UnitMotion/WalkSpeed": 2.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_elephant": {
-    "Health/Max": 200.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Elephant"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 200.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Elephant", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 500.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_elephant_african_bush": {
-    "Health/Max": 300.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Elephant"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 300.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "African Bush Elephant", 
+    "Obstruction/Unit@radius": 3.5, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 800.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_elephant_african_infant": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Elephant"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "African Elephant (Infant)", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_elephant_asian": {
-    "Health/Max": 250.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Elephant"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 250.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Asian Elephant", 
+    "Obstruction/Unit@radius": 2.7, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 650.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_elephant_north_african": {
-    "Health/Max": 200.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Elephant"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 200.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "North African Elephant", 
+    "Obstruction/Unit@radius": 2.6, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 500.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 10.0, 
+    "UnitMotion/WalkSpeed": 3.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_fish": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "SeaCreature"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Tuna Fish", 
+    "Obstruction/Unit@radius": 4.0, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "food.fish", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_fish_tilapia": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "SeaCreature"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Tilapia Fish", 
+    "Obstruction/Unit@radius": 4.0, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "food.fish", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_fish_tuna": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "SeaCreature"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Tuna Fish", 
+    "Obstruction/Unit@radius": 4.0, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "food.fish", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_gazelle": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Gazelle", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_giraffe": {
-    "Health/Max": 150.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 150.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Giraffe (Adult)", 
+    "Obstruction/Unit@radius": 2.0, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 350.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 12.0, 
+    "UnitMotion/WalkSpeed": 4.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_giraffe_infant": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Giraffe (Juvenile)", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 150.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 10.0, 
+    "UnitMotion/WalkSpeed": 4.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_goat": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Domestic"
+    ], 
+    "Cost/BuildTime": 40.0, 
+    "Cost/Population": 1.0, 
+    "Cost/Resources/food": 60.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Goat", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 120.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 6.0
   }, 
-  "gaia/fauna_hawk": {}, 
+  "gaia/fauna_hawk": {
+    "Classes": [], 
+    "UnitMotion/WalkSpeed": 5.0
+  }, 
   "gaia/fauna_horse": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Horse", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 12.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_lion": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Lion", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 3.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_lioness": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Lioness", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 3.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_muskox": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Domestic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Muskox", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 6.0
   }, 
   "gaia/fauna_peacock": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Peacock", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 5.0, 
+    "UnitMotion/WalkSpeed": 2.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_pig": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Domestic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Pig", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 6.0
   }, 
   "gaia/fauna_rabbit": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Rabbit", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 50.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_shark": {
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "SeaCreature"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
     "Footprint/Square@depth": 8.0, 
     "Footprint/Square@width": 5.0, 
-    "Health/Max": 150.0
+    "Health/Max": 150.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Great White", 
+    "Obstruction/Unit@radius": 3.5, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 35.0, 
+    "UnitMotion/WalkSpeed": 4.0, 
+    "Vision/Range": 100.0
   }, 
   "gaia/fauna_sheep": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "Domestic", 
+      "Domestic"
+    ], 
+    "Cost/BuildTime": 35.0, 
+    "Cost/Population": 1.0, 
+    "Cost/Resources/food": 50.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Sheep", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 3.0, 
+    "Vision/Range": 6.0
   }, 
   "gaia/fauna_tiger": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Tiger", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_walrus": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Walrus", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_whale_fin": {
-    "Health/Max": 200.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "SeaCreature"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 200.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Fin Whale", 
+    "Obstruction/Unit@radius": 4.0, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 2000.0, 
+    "ResourceSupply/Type": "food.fish", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 10.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_whale_humpback": {
-    "Health/Max": 200.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic", 
+      "SeaCreature"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 200.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Humpback Whale", 
+    "Obstruction/Unit@radius": 4.0, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 2000.0, 
+    "ResourceSupply/Type": "food.fish", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 10.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_wildebeest": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Wildebeest", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 150.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 6.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_wolf": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Wolf", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_wolf_snow": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Snow Wolf", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 5.0, 
+    "Vision/Range": 10.0
   }, 
   "gaia/fauna_zebra": {
-    "Health/Max": 50.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Animal", 
+      "Organic"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Zebra", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "ResourceSupply/Amount": 150.0, 
+    "ResourceSupply/Type": "food.meat", 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 6.0, 
+    "Vision/Range": 10.0
   }, 
-  "gaia/flora_bush_badlands": {}, 
-  "gaia/flora_bush_berry": {}, 
-  "gaia/flora_bush_grapes": {}, 
-  "gaia/flora_bush_temperate": {}, 
-  "gaia/flora_tree_aleppo_pine": {}, 
-  "gaia/flora_tree_apple": {}, 
-  "gaia/flora_tree_baobab": {}, 
-  "gaia/flora_tree_carob": {}, 
-  "gaia/flora_tree_cretan_date_palm_patch": {}, 
-  "gaia/flora_tree_cretan_date_palm_short": {}, 
-  "gaia/flora_tree_cretan_date_palm_tall": {}, 
-  "gaia/flora_tree_cypress": {}, 
-  "gaia/flora_tree_date_palm": {}, 
-  "gaia/flora_tree_dead": {}, 
-  "gaia/flora_tree_euro_beech": {}, 
-  "gaia/flora_tree_euro_beech_aut": {}, 
-  "gaia/flora_tree_fig": {}, 
-  "gaia/flora_tree_medit_fan_palm": {}, 
-  "gaia/flora_tree_oak": {}, 
-  "gaia/flora_tree_oak_aut": {}, 
-  "gaia/flora_tree_oak_large": {}, 
-  "gaia/flora_tree_olive": {}, 
-  "gaia/flora_tree_palm_tropic": {}, 
-  "gaia/flora_tree_palm_tropical": {}, 
-  "gaia/flora_tree_pine": {}, 
-  "gaia/flora_tree_pine_w": {}, 
-  "gaia/flora_tree_poplar": {}, 
-  "gaia/flora_tree_poplar_lombardy": {}, 
-  "gaia/flora_tree_senegal_date_palm": {}, 
-  "gaia/flora_tree_tamarix": {}, 
-  "gaia/flora_tree_toona": {}, 
+  "gaia/flora_bush_badlands": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Hardy Bush", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 75.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_bush_berry": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Berries", 
+    "Obstruction/Unit@radius": 2.0, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "food.fruit"
+  }, 
+  "gaia/flora_bush_grapes": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Grapes", 
+    "Obstruction/Unit@radius": 1.0, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "food.fruit"
+  }, 
+  "gaia/flora_bush_temperate": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Deciduous Bush", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 50.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_aleppo_pine": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Aleppo Pine Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_apple": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Apple Tree", 
+    "Obstruction/Unit@radius": 0.9, 
+    "ResourceSupply/Amount": 400.0, 
+    "ResourceSupply/Type": "food.fruit"
+  }, 
+  "gaia/flora_tree_baobab": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Baobab", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 400.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_carob": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Carob Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_cretan_date_palm_patch": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Cretan Date Palm", 
+    "Obstruction/Unit@radius": 2.25, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_cretan_date_palm_short": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Cretan Date Palm", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_cretan_date_palm_tall": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Cretan Date Palm", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_cypress": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Cypress Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_date_palm": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Date Palm", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_dead": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Dead Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_euro_beech": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "European Beech Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_euro_beech_aut": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "European Beech Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_fig": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Fig", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 500.0, 
+    "ResourceSupply/Type": "food.fruit"
+  }, 
+  "gaia/flora_tree_medit_fan_palm": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Mediterranean Fan Palm", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_oak": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Oak Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_oak_aut": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Oak Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_oak_large": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Large Oak Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_olive": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Olive Tree", 
+    "Obstruction/Unit@radius": 0.9, 
+    "ResourceSupply/Amount": 400.0, 
+    "ResourceSupply/Type": "food.fruit"
+  }, 
+  "gaia/flora_tree_palm_tropic": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Palm", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_palm_tropical": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Tropical Palm", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_pine": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Pine Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_pine_w": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Pine Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_poplar": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Poplar Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_poplar_lombardy": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Lombardy Poplar Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_senegal_date_palm": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Senegal Date Palm", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_tamarix": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Tamarix Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
+  "gaia/flora_tree_toona": {
+    "Classes": [
+      "ForestPlant"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Toona Tree", 
+    "Obstruction/Unit@radius": 1.5, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "wood.tree"
+  }, 
   "gaia/geology_metal_alpine": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_alpine_slabs": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_desert_badlands_slabs": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_desert_slabs": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_desert_small": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_greek": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_mediterranean": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_mediterranean_slabs": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_savanna_slabs": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_temperate": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_temperate_slabs": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_tropic": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_metal_tropic_slabs": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Metal Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "metal.ore"
   }, 
   "gaia/geology_stone_alpine_a": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stone_desert_small": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stone_greek": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stone_mediterranean": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stone_savanna_small": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stone_temperate": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stone_tropic_a": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stonemine_alpine_quarry": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stonemine_desert_badlands_quarry": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stonemine_desert_quarry": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stonemine_medit_quarry": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stonemine_temperate_formation": {
+    "Classes": [], 
     "Footprint/Square@depth": 16.0, 
     "Footprint/Square@width": 24.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 14.0, 
-    "Obstruction/Static@width": 22.0
+    "Obstruction/Static@width": 22.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stonemine_temperate_quarry": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/geology_stonemine_tropic_quarry": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Mine", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 13.0
+    "Obstruction/Static@width": 13.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.rock"
   }, 
   "gaia/special_ruins": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Ancient Ruins", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 500.0, 
+    "ResourceSupply/Type": "stone.ruins"
   }, 
   "gaia/special_ruins_column_doric": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Ancient Ruins", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 500.0, 
+    "ResourceSupply/Type": "stone.ruins"
   }, 
   "gaia/special_ruins_standing_stone": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Celtic Standing Stone", 
     "Obstruction/Static@depth": 2.0, 
-    "Obstruction/Static@width": 2.0
+    "Obstruction/Static@width": 2.0, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "stone.ruins"
   }, 
   "gaia/special_ruins_stone_statues_egyptian": {
+    "Classes": [], 
     "Footprint/Square@depth": 4.0, 
     "Footprint/Square@width": 4.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Ptolemaic Egyptian Statues", 
     "Obstruction/Static@depth": 3.5, 
-    "Obstruction/Static@width": 3.5
+    "Obstruction/Static@width": 3.5, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "stone.ruins"
   }, 
   "gaia/special_ruins_stone_statues_roman": {
+    "Classes": [], 
     "Footprint/Square@depth": 4.0, 
     "Footprint/Square@width": 4.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Roman Statues", 
     "Obstruction/Static@depth": 3.5, 
-    "Obstruction/Static@width": 3.5
+    "Obstruction/Static@width": 3.5, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "stone.ruins"
   }, 
   "gaia/special_treasure_food_barrel": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Food Treasure", 
     "Obstruction/Static@depth": 1.5, 
-    "Obstruction/Static@width": 1.5
+    "Obstruction/Static@width": 1.5, 
+    "ResourceSupply/Amount": 100.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "gaia/special_treasure_food_barrels_buried": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Half-buried Barrels", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "gaia/special_treasure_food_bin": {
+    "Classes": [], 
     "Footprint/Square@depth": 3.5, 
     "Footprint/Square@width": 2.5, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Food Treasure", 
     "Obstruction/Static@depth": 3.0, 
-    "Obstruction/Static@width": 2.0
+    "Obstruction/Static@width": 2.0, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "gaia/special_treasure_food_crate": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Food Treasure", 
     "Obstruction/Static@depth": 1.75, 
-    "Obstruction/Static@width": 1.75
+    "Obstruction/Static@width": 1.75, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "gaia/special_treasure_food_jars": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Food Treasure", 
     "Obstruction/Static@depth": 6.5, 
-    "Obstruction/Static@width": 6.5
+    "Obstruction/Static@width": 6.5, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "gaia/special_treasure_food_persian_big": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Persian Food Stores", 
     "Obstruction/Static@depth": 8.0, 
-    "Obstruction/Static@width": 8.0
+    "Obstruction/Static@width": 8.0, 
+    "ResourceSupply/Amount": 600.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "gaia/special_treasure_food_persian_small": {
+    "Classes": [], 
     "Footprint/Square@depth": 6.0, 
     "Footprint/Square@width": 6.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Persian Food Treasure", 
     "Obstruction/Static@depth": 5.0, 
-    "Obstruction/Static@width": 5.0
+    "Obstruction/Static@width": 5.0, 
+    "ResourceSupply/Amount": 400.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "gaia/special_treasure_golden_fleece": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Golden Fleece", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "treasure.metal"
   }, 
   "gaia/special_treasure_metal": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Secret Box", 
     "Obstruction/Static@depth": 1.5, 
-    "Obstruction/Static@width": 1.5
+    "Obstruction/Static@width": 1.5, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "treasure.metal"
   }, 
   "gaia/special_treasure_metal_persian_bigl": {
+    "Classes": [], 
     "Footprint/Square@depth": 8.0, 
     "Footprint/Square@width": 8.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Persian Wares", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 500.0, 
+    "ResourceSupply/Type": "treasure.metal"
   }, 
   "gaia/special_treasure_metal_persian_small": {
+    "Classes": [], 
     "Footprint/Square@depth": 3.5, 
     "Footprint/Square@width": 5.5, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Persian Rugs", 
     "Obstruction/Static@depth": 3.0, 
-    "Obstruction/Static@width": 5.0
+    "Obstruction/Static@width": 5.0, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "treasure.metal"
   }, 
   "gaia/special_treasure_pegasus": {
+    "Classes": [], 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Pegasus", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 1000.0, 
+    "ResourceSupply/Type": "treasure.metal"
   }, 
   "gaia/special_treasure_standing_stone": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Celtic Standing Stone", 
     "Obstruction/Static@depth": 2.0, 
-    "Obstruction/Static@width": 2.0
+    "Obstruction/Static@width": 2.0, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "treasure.stone"
   }, 
   "gaia/special_treasure_stone": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Treasure", 
     "Obstruction/Static@depth": 6.5, 
-    "Obstruction/Static@width": 6.5
+    "Obstruction/Static@width": 6.5, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "treasure.stone"
   }, 
   "gaia/special_treasure_wood": {
+    "Classes": [], 
     "Footprint/Square@depth": 7.0, 
     "Footprint/Square@width": 4.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Wood Treasure", 
     "Obstruction/Static@depth": 6.5, 
-    "Obstruction/Static@width": 3.5
+    "Obstruction/Static@width": 3.5, 
+    "ResourceSupply/Amount": 300.0, 
+    "ResourceSupply/Type": "treasure.wood"
   }
 };

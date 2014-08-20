@@ -1,46 +1,134 @@
 var RUBBLE = {
-  "rubble/rubble_1x1": {}, 
-  "rubble/rubble_1x1pal": {}, 
-  "rubble/rubble_1x3pal": {}, 
-  "rubble/rubble_2x2": {}, 
-  "rubble/rubble_2x4": {}, 
-  "rubble/rubble_3x3": {}, 
-  "rubble/rubble_3x6": {}, 
-  "rubble/rubble_4x2": {}, 
-  "rubble/rubble_4x4": {}, 
-  "rubble/rubble_4x4_dock": {}, 
-  "rubble/rubble_4x6": {}, 
-  "rubble/rubble_5x5": {}, 
-  "rubble/rubble_6x4": {}, 
-  "rubble/rubble_6x4_dock": {}, 
-  "rubble/rubble_6x6": {}, 
-  "rubble/rubble_8x8": {}, 
-  "rubble/rubble_celt_cc": {}, 
-  "rubble/rubble_celt_dock": {}, 
-  "rubble/rubble_field": {}, 
-  "rubble/rubble_hele_cc": {}, 
-  "rubble/rubble_hele_dock": {}, 
-  "rubble/rubble_iber_cc": {}, 
-  "rubble/rubble_iber_dock": {}, 
-  "rubble/rubble_kart_cc": {}, 
-  "rubble/rubble_kart_dock": {}, 
-  "rubble/rubble_maur_cc": {}, 
-  "rubble/rubble_pers_cc": {}, 
-  "rubble/rubble_pers_dock": {}, 
-  "rubble/rubble_rome_cc": {}, 
-  "rubble/rubble_rome_dock": {}, 
-  "rubble/rubble_rome_sb": {}, 
-  "rubble/rubble_stone_2x2": {}, 
-  "rubble/rubble_stone_3x3": {}, 
-  "rubble/rubble_stone_4x2": {}, 
-  "rubble/rubble_stone_4x4": {}, 
-  "rubble/rubble_stone_4x6": {}, 
-  "rubble/rubble_stone_5x5": {}, 
-  "rubble/rubble_stone_6x4": {}, 
-  "rubble/rubble_stone_6x6": {}, 
-  "rubble/rubble_stone_wall_long": {}, 
-  "rubble/rubble_stone_wall_medium": {}, 
-  "rubble/rubble_stone_wall_short": {}, 
-  "rubble/rubble_stone_wall_tower": {}, 
-  "rubble/rubble_wall": {}
+  "rubble/rubble_1x1": {
+    "Classes": []
+  }, 
+  "rubble/rubble_1x1pal": {
+    "Classes": []
+  }, 
+  "rubble/rubble_1x3pal": {
+    "Classes": []
+  }, 
+  "rubble/rubble_2x2": {
+    "Classes": []
+  }, 
+  "rubble/rubble_2x4": {
+    "Classes": []
+  }, 
+  "rubble/rubble_3x3": {
+    "Classes": []
+  }, 
+  "rubble/rubble_3x6": {
+    "Classes": []
+  }, 
+  "rubble/rubble_4x2": {
+    "Classes": []
+  }, 
+  "rubble/rubble_4x4": {
+    "Classes": []
+  }, 
+  "rubble/rubble_4x4_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_4x6": {
+    "Classes": []
+  }, 
+  "rubble/rubble_5x5": {
+    "Classes": []
+  }, 
+  "rubble/rubble_6x4": {
+    "Classes": []
+  }, 
+  "rubble/rubble_6x4_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_6x6": {
+    "Classes": []
+  }, 
+  "rubble/rubble_8x8": {
+    "Classes": []
+  }, 
+  "rubble/rubble_celt_cc": {
+    "Classes": []
+  }, 
+  "rubble/rubble_celt_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_field": {
+    "Classes": []
+  }, 
+  "rubble/rubble_hele_cc": {
+    "Classes": []
+  }, 
+  "rubble/rubble_hele_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_iber_cc": {
+    "Classes": []
+  }, 
+  "rubble/rubble_iber_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_kart_cc": {
+    "Classes": []
+  }, 
+  "rubble/rubble_kart_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_maur_cc": {
+    "Classes": []
+  }, 
+  "rubble/rubble_pers_cc": {
+    "Classes": []
+  }, 
+  "rubble/rubble_pers_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_rome_cc": {
+    "Classes": []
+  }, 
+  "rubble/rubble_rome_dock": {
+    "Classes": []
+  }, 
+  "rubble/rubble_rome_sb": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_2x2": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_3x3": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_4x2": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_4x4": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_4x6": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_5x5": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_6x4": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_6x6": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_wall_long": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_wall_medium": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_wall_short": {
+    "Classes": []
+  }, 
+  "rubble/rubble_stone_wall_tower": {
+    "Classes": []
+  }, 
+  "rubble/rubble_wall": {
+    "Classes": []
+  }
 };

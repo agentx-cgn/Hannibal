@@ -49,12 +49,16 @@ HANNIBAL = (function(H){
 
 
     activateTab: function(tabCtrl, pageId) {
+      var lis = $$("#menu" + tabCtrl + " li");
+      var li = 0;
       tabCtrl = $(tabCtrl);
       pageId  = $(pageId);
       for (var i = 0; i < tabCtrl.childNodes.length; i++) {
         var node = tabCtrl.childNodes[i];
         if (node.nodeType == 1) { /* Element */
           node.style.display = (node == pageId) ? 'block' : 'none';
+          if (lis[li]){lis[li].style.background = (node == pageId) ? '#456' : '#987';}
+          li += 1;
           // console.log("activateTab", tabCtrl, pageId);
         }
       }

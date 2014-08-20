@@ -83,20 +83,13 @@ HANNIBAL = (function(H){
       return items.filter(p => p !== undefined);
     }
 
-    // function select(box, option){
-    //   H.toArray(box.getElementsByTagName('option')).forEach(function(opt){
-    //     // opt.selected = opt.value === option ? "selected" : "";
-    //     opt.selected = opt.innerHTML === option ? "selected" : "";
-    //   });
-    // }
-
     return {
       boot: function(){ self = this; return this; },
       init: function(hash){
 
         defHash = hash;
 
-        "Next, Back, Curr, Hist, Verbose, Civ, Info".split(", ").forEach(function(name){
+        "Next, Back, Curr, Hist, Verbose, Civ, Info, Error".split(", ").forEach(function(name){
           c[name] = $("c" + name);
         });
 
@@ -104,6 +97,7 @@ HANNIBAL = (function(H){
         c.Back.onclick  = function(){H.Browser.back();};
         c.Curr.onclick  = function(){H.Browser.show(c.Curr.value);};
         c.Hist.onchange = function(){H.Browser.show(c.List.value);};
+        c.Error.ondblclick  = function(){H.Browser.error("");};
 
         $("btnBlocksExample1").onclick = function(){H.HTN.Blocks.example1('slcVerbose');};
         $("btnBlocksExample2").onclick = function(){H.HTN.Blocks.example2('slcVerbose');};
@@ -129,7 +123,7 @@ HANNIBAL = (function(H){
           };
         });
 
-        "Topo Terr ObLa ObSh Ents Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
+        "Topo Terr ObLa ObSh Ents Vill Grid Clus Path Pass Regw Regl Cost Tree".split(" ").forEach(function(token){
           $("chk" + token).onchange = function(){
             H.Maps.setDirtyLayer();
           }
@@ -137,8 +131,8 @@ HANNIBAL = (function(H){
         $("cvsMap").onclick = $("cvsDyna").onclick = H.Maps.onclick;
         $("cvsMap").onmousemove = $("cvsDyna").onmousemove = H.Maps.onmousemove;
 
-        // H.Display.activateTab("tabberPathVill", "tabVill");
-        H.Display.activateTab("tabberPathVill", "tabPath");
+        // H.Display.activateTab("tabberPathVill", "tabPath");
+        H.Display.activateTab("tabberPathVill", "tabVill");
 
         $("btnTREET1").onclick = function(){H.HTN.Tree.test1('slcVerbose');};
         $("btnTREET2").onclick = function(){H.HTN.Tree.test2('slcVerbose');};

@@ -3,12 +3,23 @@
 
 /*--------------- V I L L A G E  ----------------------------------------------
 
-  plans village layout, handles claims and foundation placement
+  plans village layout, handles claims, foundation placement and walls
 
 
 
   tested with 0 A.D. Alpha 15 Osiris
   V: 0.1, agentx, CGN, Feb, 2014
+
+*/
+
+
+/*
+
+  Buildings as recs, trees as points, mines as cells
+  Mark all trees in own area at start
+  claim space for roads, mark gates,
+  claims space for walls, fields + dropzone, 2-3 barracks, 1 smith, houses for pop of 50?
+  market, temple, 4-6 defense towers, ship yard?
 
 */
 
@@ -283,7 +294,7 @@ HANNIBAL = (function(H){
         }
 
       }
-      msg("rects: %s, ms: %s", list.length, Date.now() - t0);
+      msg("recs: %s, coll: %s, ms: %s", list.length, max, Date.now() - t0);
       H.Maps.blitLayers();
 
     },

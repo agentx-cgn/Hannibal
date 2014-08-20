@@ -1,0 +1,3644 @@
+var TECHNOLOGIES  = {
+  "armor_cav_chamfron": {
+    "affects": [
+      "Cavalry"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Metal armor for a horse's face.", 
+    "genericName": "Chamfron", 
+    "icon": "armor_plates_cavalry.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Armour/Hack"
+      }
+    ], 
+    "pair": "pair_cav_01", 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "celt"
+        }, 
+        {
+          "civ": "brit"
+        }, 
+        {
+          "civ": "gaul"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Prometoopidion", 
+      "hele": "Prometoopidion", 
+      "mace": "Prometoopidion", 
+      "ptol": "Prometoopidion", 
+      "sele": "Prometoopidion", 
+      "spart": "Prometoopidion", 
+      "theb": "Prometoopidion"
+    }, 
+    "tooltip": "Equip your cavalry mounts with armor. All Cavalry +1 Hack armor level."
+  }, 
+  "armor_hero_01": {
+    "affects": [
+      "Hero"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 600, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Body armor fashioned completely of iron, the hardest workable metal known to the ancients.", 
+    "genericName": "Iron Hero Armor", 
+    "icon": "armor_cuirass_empire.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Hack"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Pierce"
+      }, 
+      {
+        "add": 50, 
+        "value": "Cost/Resources/metal"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Sidi\u0331r\u00f3 Panopl\u00eda", 
+      "hele": "Sidi\u0331r\u00f3 Panopl\u00eda", 
+      "mace": "Sidi\u0331r\u00f3 Panopl\u00eda", 
+      "ptol": "Sidi\u0331r\u00f3 Panopl\u00eda", 
+      "rome": "Lorica Ferrea", 
+      "sele": "Sidi\u0331r\u00f3 Panopl\u00eda", 
+      "spart": "Sidi\u0331r\u00f3 Panopl\u00eda"
+    }, 
+    "tooltip": "All heroes +2 Hack Armor Levels and +2 Pierce Armor Levels, but also +50 Metal Cost."
+  }, 
+  "armor_infantry_hack_01": {
+    "affects": [
+      "Infantry"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 50
+    }, 
+    "description": "Quilted linen or leather body armor for infantrymen.", 
+    "genericName": "Quilted Body Armor", 
+    "icon": "armor_leather.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Armour/Hack"
+      }
+    ], 
+    "pair": "pair_inf_armor_01", 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "celt"
+        }, 
+        {
+          "civ": "brit"
+        }, 
+        {
+          "civ": "gaul"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Spolas", 
+      "brit": "Spolas", 
+      "cart": "Spolas", 
+      "celt": "Spolas", 
+      "gaul": "Spolas", 
+      "generic": "Spolas", 
+      "hele": "Spolas", 
+      "iber": "Spolas", 
+      "mace": "Spolas", 
+      "maur": "Spolas", 
+      "pers": "Spolas", 
+      "rome": "Spolas", 
+      "spart": "Spolas"
+    }, 
+    "tooltip": "All Infantry +1 Hack Armor Level."
+  }, 
+  "armor_infantry_hack_02": {
+    "affects": [
+      "Infantry"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "Laminated linen body armor for infantrymen.", 
+    "genericName": "Laminated Linen Body Armor", 
+    "icon": "armor_pteruges.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Armour/Hack"
+      }
+    ], 
+    "pair": "pair_inf_armor_02", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Linothorakes", 
+      "cart": "Linothorakes", 
+      "hele": "Linothorakes", 
+      "mace": "Linothorakes", 
+      "pers": "Linothorakes", 
+      "ptol": "Linothorakes", 
+      "rome": "Linothorakes", 
+      "sele": "Linothorakes", 
+      "spart": "Linothorakes"
+    }, 
+    "tooltip": "All Infantry +1 Hack Armor Level."
+  }, 
+  "armor_infantry_hack_03": {
+    "affects": [
+      "Infantry"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 150, 
+      "metal": 150, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Body armor reinforced with bronze scales.", 
+    "genericName": "Scale Body Armor", 
+    "icon": "armor_plates_gold.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Armour/Hack"
+      }
+    ], 
+    "pair": "pair_inf_armor_03", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "rome": "Lorica Squamata"
+    }, 
+    "tooltip": "All Infantry +1 Hack Armor Level."
+  }, 
+  "armor_infantry_hack_04": {
+    "affects": [
+      "Champion"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 500, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Body armor fashioned completely of bronze. Only the best soldiers were equipped with such body armor, as it was very expensive and time-consuming to fabricate.", 
+    "genericName": "Bronze Cuirass Body Armor", 
+    "icon": "armor_cuirass_bronze.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Hack"
+      }, 
+      {
+        "add": 10, 
+        "value": "Cost/Resources/metal"
+      }
+    ], 
+    "pair": "pair_inf_armor_04", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "rome": "Lorica Musculata"
+    }, 
+    "tooltip": "Champions +2 Hack Armor Levels, but also +10 Metal Cost."
+  }, 
+  "armor_infantryspearmen_pierce_01": {
+    "affects": [
+      "Infantry Spear"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 50
+    }, 
+    "description": "Plywood construction for large shields.", 
+    "genericName": "Plywood Shield Construction", 
+    "icon": "shields_generic_wood.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Pierce"
+      }
+    ], 
+    "pair": "pair_inf_armor_01", 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "celt"
+        }, 
+        {
+          "civ": "brit"
+        }, 
+        {
+          "civ": "gaul"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Aspidisk\u00e8", 
+      "hele": "Aspidisk\u00e8", 
+      "mace": "Aspidisk\u00e8", 
+      "ptol": "Aspidisk\u00e8", 
+      "sele": "Aspidisk\u00e8", 
+      "spart": "Aspidisk\u00e8"
+    }, 
+    "tooltip": "Infantry Spearmen +2 Pierce Armor Levels."
+  }, 
+  "armor_infantryspearmen_pierce_02": {
+    "affects": [
+      "Infantry Spear"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 100, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The best shields have reinforcements either on the corners (Roman scutum) or around the rim (Greek aspis).", 
+    "genericName": "Reinforced Shield", 
+    "icon": "shields_generic_bronze.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Armour/Pierce"
+      }
+    ], 
+    "pair": "pair_inf_armor_02", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Aspides", 
+      "hele": "Aspides", 
+      "mace": "Aspides", 
+      "ptol": "Aspides", 
+      "sele": "Aspides", 
+      "spart": "Aspides"
+    }, 
+    "tooltip": "Infantry Spearmen +1 Pierce Armor Levels."
+  }, 
+  "armor_infantryspearmen_pierce_03": {
+    "affects": [
+      "Infantry Spear"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "A bronze skin hammered over the face of the shield.", 
+    "genericName": "Bronze Shield Facing", 
+    "icon": "shields_generic_gold.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Armour/Pierce"
+      }
+    ], 
+    "pair": "pair_inf_armor_03", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Chalkaspides", 
+      "hele": "Chalkaspides", 
+      "mace": "Chrysaspides", 
+      "ptol": "Chalkaspides", 
+      "sele": "Chalkaspides", 
+      "spart": "Chalkaspides"
+    }, 
+    "tooltip": "Infantry Spearmen +1 Pierce Armor Level."
+  }, 
+  "armor_infantryspearmen_pierce_04": {
+    "affects": [
+      "Champion"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 500, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Only the most celebrated soldiers had shields faced with silver, as did the famous 'Silver Shields' regiment in Alexander the Great's army.", 
+    "genericName": "Silver Shields", 
+    "icon": "shields_generic_silver.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Pierce"
+      }, 
+      {
+        "add": 10, 
+        "value": "Cost/Resources/metal"
+      }
+    ], 
+    "pair": "pair_inf_armor_04", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Argyraspides", 
+      "hele": "Argyraspides", 
+      "mace": "Argyraspides", 
+      "ptol": "Argyraspides", 
+      "sele": "Argyraspides", 
+      "spart": "Argyraspides"
+    }, 
+    "tooltip": "Champions +2 Pierce Armor Levels, but also +10 Metal Cost."
+  }, 
+  "armor_ship_hullsheathing": {
+    "affects": [
+      "Ship"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 350, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Lead sheathing protects ship hulls.", 
+    "genericName": "Lead hull sheathing", 
+    "icon": "armor_ship_gold.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Hack"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Pierce"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Crush"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "supersedes": "armor_ship_hypozomata", 
+    "tooltip": "Lead sheathing protects ship hulls. +2 levels to all ship armor types."
+  }, 
+  "armor_ship_hypozomata": {
+    "affects": [
+      "Ship"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 150, 
+      "stone": 0, 
+      "wood": 150
+    }, 
+    "description": "The hypozomata braces the structure of a ship.", 
+    "genericName": "Hypozomata undergirding", 
+    "icon": "armor_ship_silver.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Hack"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Pierce"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Crush"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "supersedes": "armor_ship_reinforcedhull", 
+    "tooltip": "The hypozomata braces the ship's structure. +2 levels to all ship armor types."
+  }, 
+  "armor_ship_reinforcedhull": {
+    "affects": [
+      "Ship"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 250
+    }, 
+    "description": "Wooden reinforcement beams for ship hulls.", 
+    "genericName": "Reinforced hull", 
+    "icon": "armor_ship_bronze.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Hack"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Pierce"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Crush"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Unlocked in Village Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Wooden reinforcement beams for hulls. +2 levels to all ship armor types."
+  }, 
+  "armor_trade_convoys": {
+    "affects": [
+      "Trader"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Increases defensive capability of traders.", 
+    "genericName": "Trade convoys", 
+    "icon": "wheel.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Hack"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Pierce"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Traders +2 Hack and Pierce armor levels."
+  }, 
+  "attack_cav_lance": {
+    "affects": [
+      "Cavalry Melee"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 150, 
+      "stone": 0, 
+      "wood": 50
+    }, 
+    "description": "A long spear made specifically for cavalry.", 
+    "genericName": "Cavalry Lance", 
+    "icon": "spear_cavalry.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Attack/Melee/Hack"
+      }
+    ], 
+    "pair": "pair_cav_01", 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "celt"
+        }, 
+        {
+          "civ": "brit"
+        }, 
+        {
+          "civ": "gaul"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Xyston", 
+      "hele": "Xyston", 
+      "mace": "Xyston", 
+      "ptol": "Xyston", 
+      "rome": "Hasta", 
+      "sele": "Xyston", 
+      "spart": "Xyston", 
+      "theb": "Xyston"
+    }, 
+    "tooltip": "Equip your melee cavalry with better weapons. Melee Cavalry +2 Hack Attack."
+  }, 
+  "attack_champions_elite": {
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 300, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Guard units have uncommon bravery and valor in battle.", 
+    "genericName": "Heroism", 
+    "icon": "helmet_hero_side.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "affects": "Champion Melee", 
+        "value": "Attack/Melee/Hack"
+      }, 
+      {
+        "add": 2.0, 
+        "affects": "Champion Ranged", 
+        "value": "Attack/Ranged/Pierce"
+      }
+    ], 
+    "pair": "pair_champ_02", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Andreia", 
+      "hele": "Andreia", 
+      "mace": "Andreia", 
+      "ptol": "Andreia", 
+      "rome": "Fortitudo", 
+      "sele": "Andreia", 
+      "spart": "Andreia"
+    }, 
+    "tooltip": "Guard units have uncommon courage and valor in battle. Champions +2 attack."
+  }, 
+  "attack_citizensoldiers_will": {
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 300, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The will to fight is crucial to victory.", 
+    "genericName": "Will to fight", 
+    "icon": "clenched_fist.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "affects": "CitizenSoldier Melee", 
+        "value": "Attack/Melee/Hack"
+      }, 
+      {
+        "add": 2.0, 
+        "affects": "CitizenSoldier Ranged", 
+        "value": "Attack/Ranged/Pierce"
+      }
+    ], 
+    "pair": "pair_champ_02", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Dynamis", 
+      "hele": "Dynamis", 
+      "mace": "Dynamis", 
+      "ptol": "Dynamis", 
+      "sele": "Dynamis", 
+      "spart": "Dynamis"
+    }, 
+    "tooltip": "Inspire your troops with higher pay. All citizen-Soldiers +2 attack."
+  }, 
+  "attack_inf_spearfighting": {
+    "affects": [
+      "Infantry Spear"
+    ], 
+    "civi": "hele", 
+    "cost": {
+      "food": 0, 
+      "metal": 100, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Spear fighting training increases damage of infantry spear units.", 
+    "genericName": "Infantry Spear Fighting", 
+    "icon": "spear.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Attack/Melee/Hack"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "any": [
+            {
+              "civ": "hele"
+            }, 
+            {
+              "civ": "athen"
+            }, 
+            {
+              "civ": "mace"
+            }, 
+            {
+              "civ": "spart"
+            }, 
+            {
+              "civ": "theb"
+            }
+          ]
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Doratismos", 
+      "hele": "Doratismos", 
+      "mace": "Doratismos", 
+      "spart": "Doratismos", 
+      "theb": "Doratismos"
+    }, 
+    "tooltip": "Spearmen +2 hack attack."
+  }, 
+  "attack_steel_working": {
+    "affects": [
+      "Sword"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 200
+    }, 
+    "description": "Secret steel working techniques give sword blades distinctive and beautiful markings. Not only that, but the steel's hardness is unparalleled.", 
+    "genericName": "Steel Working", 
+    "icon": "metalworker.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Attack/Melee/Hack"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "iber": "Toledo Steel", 
+      "maur": "Wootz Steel"
+    }, 
+    "tooltip": "+2 attack for all sword units."
+  }, 
+  "attack_tower_crenellations": {
+    "affects": [
+      "Defensive Tower"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 100, 
+      "stone": 100, 
+      "wood": 0
+    }, 
+    "description": "Crenellations on the battlements allow soldiers wider range of fire in defending a keep.", 
+    "genericName": "Crenellations", 
+    "icon": "crenelations.png", 
+    "modifications": [
+      {
+        "multiply": 1.4, 
+        "value": "BuildingAI/GarrisonArrowMultiplier"
+      }
+    ], 
+    "pair": "pair_tower_01", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Install crenellations and murder holes to have 40% more arrows fired per garrisoned soldier."
+  }, 
+  "attack_tower_watch": {
+    "affects": [
+      "Defensive Tower"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "A night's watch increases vigilance.", 
+    "genericName": "Sentries", 
+    "icon": "helmet_corinthian_bronze.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "BuildingAI/DefaultArrowCount"
+      }
+    ], 
+    "pair": "pair_tower_01", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Nyktophylakes", 
+      "hele": "Nyktophylakes", 
+      "mace": "Nyktophylakes", 
+      "ptol": "Nyktophylakes", 
+      "rome": "Vigiles", 
+      "sele": "Nyktophylakes", 
+      "spart": "Nyktophylakes"
+    }, 
+    "tooltip": "Post sentries to double the number of default arrows in ungarrisoned Towers."
+  }, 
+  "buildtime_walls_rubble": {
+    "affects": [
+      "StoneWall"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 200
+    }, 
+    "description": "Using rubble materials reduces the costs and build times of walls.", 
+    "genericName": "Rubble Materials", 
+    "icon": "stone_blocks_brown.png", 
+    "modifications": [
+      {
+        "multiply": 0.8, 
+        "value": "Cost/BuildTime"
+      }, 
+      {
+        "add": -1.0, 
+        "value": "Armour/Crush"
+      }
+    ], 
+    "pair": "pair_walls_01", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "City walls -20% build time, but -1 crush armor level."
+  }, 
+  "civbonus_celts_wooden_struct": {
+    "affects": [
+      "Structure"
+    ], 
+    "autoResearch": true, 
+    "civi": "celt", 
+    "description": "Celtic structures were mostly made of wood with rubble foundations. Consequently, their structures have less health than other cultures do, but they also construct faster.", 
+    "genericName": "Wooden Construction", 
+    "modifications": [
+      {
+        "multiply": 0.8, 
+        "value": "Health/Max"
+      }, 
+      {
+        "multiply": 0.8, 
+        "value": "Cost/BuildTime"
+      }
+    ], 
+    "requirements": {
+      "any": [
+        {
+          "civ": "celt"
+        }, 
+        {
+          "civ": "brit"
+        }, 
+        {
+          "civ": "gaul"
+        }
+      ]
+    }
+  }, 
+  "civbonus_hellenic_architecture": {
+    "affects": [
+      "Structure"
+    ], 
+    "autoResearch": true, 
+    "civi": "hele", 
+    "description": "The Greeks used stone construction from early Mycenaean times.", 
+    "genericName": "Hellenic Architecture", 
+    "modifications": [
+      {
+        "multiply": 1.1, 
+        "value": "Health/Max"
+      }, 
+      {
+        "multiply": 1.1, 
+        "value": "Cost/BuildTime"
+      }
+    ], 
+    "requirements": {
+      "any": [
+        {
+          "civ": "hele"
+        }, 
+        {
+          "civ": "athen"
+        }, 
+        {
+          "civ": "mace"
+        }, 
+        {
+          "civ": "spart"
+        }, 
+        {
+          "civ": "theb"
+        }
+      ]
+    }
+  }, 
+  "civbonus_maur_popcap": {
+    "autoResearch": true, 
+    "civi": "maur", 
+    "description": "The Mauryan Empire encompassed dozens of formerly independent kingdoms over an area of 5 million square kilometers, with a population of close to 60 million people. The Mauryan regents held the title Emperor of Emperors and commanded a standing army of 600,000 infantry, 9000 elephants, 8000 chariots, and 30,000 cavalry, making it arguably the largest army of its time.", 
+    "genericName": "Emperor of Emperors", 
+    "modifications": [
+      {
+        "multiply": 1.1, 
+        "value": "Player/MaxPopulation"
+      }
+    ], 
+    "requirements": {
+      "civ": "maur"
+    }, 
+    "specificName": {
+      "maur": "Chakravarti Samr\u0101t"
+    }
+  }, 
+  "civbonus_pers_popcap": {
+    "autoResearch": true, 
+    "civi": "pers", 
+    "description": "The Persians could and did levy a large number of infantry during wartime due to the sheer size of the Achaemenid Empire and the way in which it was set-up. In general the Persian infantry was well trained and fought with great tenacity. However while this was true the infantry were poor hand-to-hand, close combat fighters. Also, with the exception of the elite regiments, the Persian infantry was not a standing professional force.", 
+    "genericName": "Great King's Levy", 
+    "modifications": [
+      {
+        "multiply": 1.1, 
+        "value": "Player/MaxPopulation"
+      }
+    ], 
+    "requirements": {
+      "civ": "pers"
+    }
+  }, 
+  "civpenalty_spart_popcap": {
+    "autoResearch": true, 
+    "civi": "hele", 
+    "description": "The Spartans did not have the largest army in the world, but they did have the best army in the world for their time. What they didn't have in quantity, they made up with quality. It was said that Sparta did not need strong city walls, for its men were its walls.", 
+    "genericName": "Underdogs", 
+    "modifications": [
+      {
+        "multiply": 0.9, 
+        "value": "Player/MaxPopulation"
+      }
+    ], 
+    "requirements": {
+      "civ": "spart"
+    }
+  }, 
+  "decay_logistics": {
+    "affects": [
+      "ArmyCamp", 
+      "SiegeWall"
+    ], 
+    "civi": "roma", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 100, 
+      "wood": 100
+    }, 
+    "description": "The Romans were masters of the logistics of warfare.", 
+    "genericName": "Roman Logistics", 
+    "icon": "handcart_empty.png", 
+    "modifications": [
+      {
+        "multiply": 0.5, 
+        "value": "TerritoryDecay/HealthDecayRate"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "rome"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Entrenched Camps and Siege Walls decay 50% slower."
+  }, 
+  "decay_outpost": {
+    "affects": [
+      "Outpost"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 100, 
+      "wood": 0
+    }, 
+    "description": "Outposts survive twice as long in neutral territory.", 
+    "genericName": "Stone Foundations", 
+    "icon": "blocks_three.png", 
+    "modifications": [
+      {
+        "multiply": 0.5, 
+        "value": "TerritoryDecay/HealthDecayRate"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Territory decay -50% for Outposts."
+  }, 
+  "gather_animals_stockbreeding": {
+    "affects": [
+      "Domestic"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 50, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Breeding livestock for food.", 
+    "genericName": "Stockbreeding", 
+    "icon": "meat.png", 
+    "modifications": [
+      {
+        "multiply": 0.75, 
+        "value": "Cost/BuildTime"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Breed time -25% for domestic animals (sheep, goats, cattle, etc.)."
+  }, 
+  "gather_capacity_wheelbarrow": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "Increases shuttling capacity for all resources.", 
+    "genericName": "Wheelbarrow", 
+    "icon": "wheelbarrow_empty.png", 
+    "modifications": [
+      {
+        "add": 5, 
+        "value": "ResourceGatherer/Capacities/food"
+      }, 
+      {
+        "add": 5, 
+        "value": "ResourceGatherer/Capacities/wood"
+      }, 
+      {
+        "add": 5, 
+        "value": "ResourceGatherer/Capacities/stone"
+      }, 
+      {
+        "add": 5, 
+        "value": "ResourceGatherer/Capacities/metal"
+      }
+    ], 
+    "pair": "pair_gather_wood_01", 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Unlocked in Village Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Workers use wheelbarrows. +5 shuttle capacity for all resources."
+  }, 
+  "gather_farming_plows": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 100, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "A horse drawn instrument to turn the sod.", 
+    "genericName": "Iron Plow", 
+    "icon": "plow.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/food.grain"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Equip your workers with iron plows. +25% farming rate."
+  }, 
+  "gather_lumbering_ironaxes": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 50, 
+      "stone": 0, 
+      "wood": 50
+    }, 
+    "description": "Increases wood gathering rates for trees.", 
+    "genericName": "Iron Ax Heads", 
+    "icon": "wood_axe.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/wood.tree"
+      }
+    ], 
+    "pair": "pair_gather_wood_01", 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Unlocked in Village Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Workers +25% lumbering rate for trees."
+  }, 
+  "gather_mining_serfs": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "Increases stone gathering rates.", 
+    "genericName": "Serfs", 
+    "icon": "mining_stone.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/stone.rock"
+      }
+    ], 
+    "pair": "pair_gather_02", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Heilotes", 
+      "hele": "Heilotes", 
+      "mace": "Heilotes", 
+      "spart": "Heilotes"
+    }, 
+    "tooltip": "Compel serfs to help your workers mine stone. +25% stone gathering rate."
+  }, 
+  "gather_mining_servants": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 50, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Increases stone gathering rates.", 
+    "genericName": "Servants", 
+    "icon": "mining_stone.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/stone.rock"
+      }
+    ], 
+    "pair": "pair_gather_01", 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Hire servants to help mine stone. No requirements.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Douloi", 
+      "hele": "Douloi", 
+      "mace": "Douloi", 
+      "spart": "Douloi"
+    }, 
+    "tooltip": "+25% stone gathering rate."
+  }, 
+  "gather_mining_shaftmining": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "Increases metal gathering rates.", 
+    "genericName": "Shaft Mining", 
+    "icon": "mining_metal.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/metal.ore"
+      }
+    ], 
+    "pair": "pair_gather_02", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Develop shaft mining. +25% metal gathering rate."
+  }, 
+  "gather_mining_silvermining": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 100, 
+      "wood": 100
+    }, 
+    "description": "Increases metal gathering rates.", 
+    "genericName": "Silver Mining", 
+    "icon": "mining_metal.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/metal.ore"
+      }
+    ], 
+    "pair": "pair_gather_03", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Mines of Laureion", 
+      "mace": "Mines of Krenides"
+    }, 
+    "tooltip": "Strike a vein of precious silver. +25% metal gathering rate."
+  }, 
+  "gather_mining_slaves": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 100, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "Increases stone gathering rates.", 
+    "genericName": "Slaves", 
+    "icon": "mining_stone.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/stone.rock"
+      }
+    ], 
+    "pair": "pair_gather_03", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Andrapodon", 
+      "hele": "Andrapodon", 
+      "mace": "Andrapodon", 
+      "spart": "Andrapodon"
+    }, 
+    "tooltip": "Buy slaves to help your workers mine for stone. +25% stone gathering rate."
+  }, 
+  "gather_mining_wedgemallet": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 50
+    }, 
+    "description": "Increases metal gathering rates.", 
+    "genericName": "Wedge and Mallet", 
+    "icon": "mining_metal.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/metal.ore"
+      }
+    ], 
+    "pair": "pair_gather_01", 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Equip your workers with helpful tools. No requirements.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "+25% metal gathering rate."
+  }, 
+  "gather_wicker_baskets": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "Baskets to carry foraged food stuffs.", 
+    "genericName": "Wicker Baskets", 
+    "icon": "gather_basket.png", 
+    "modifications": [
+      {
+        "multiply": 1.5, 
+        "value": "ResourceGatherer/Rates/food.fruit"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Equip your foragers with wicker baskets. +50% fruit foraging rate."
+  }, 
+  "heal_range": {
+    "affects": [
+      "Healer"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 100, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Increases the healing range of all healers.", 
+    "genericName": "Healing Range", 
+    "icon": "healing_range.png", 
+    "modifications": [
+      {
+        "add": 4.0, 
+        "value": "Heal/Range"
+      }
+    ], 
+    "pair": "pair_heal_01", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Olympic Pantheon", 
+      "hele": "Olympic Pantheon", 
+      "mace": "Olympic Pantheon", 
+      "spart": "Olympic Pantheon"
+    }, 
+    "tooltip": "Healers +4 Healing Range."
+  }, 
+  "heal_range_2": {
+    "affects": [
+      "Healer"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Increases the healing range of all healers.", 
+    "genericName": "Healing Range 2", 
+    "icon": "healing_range.png", 
+    "modifications": [
+      {
+        "add": 4.0, 
+        "value": "Heal/Range"
+      }
+    ], 
+    "pair": "pair_heal_02", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Akademia", 
+      "hele": "Akademia", 
+      "mace": "Akademia", 
+      "spart": "Akademia"
+    }, 
+    "tooltip": "Healers +4 Healing Range."
+  }, 
+  "heal_rate": {
+    "affects": [
+      "Healer"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Increases the Healing Rate of all healers.", 
+    "genericName": "Healing Rate", 
+    "icon": "healing_rate.png", 
+    "modifications": [
+      {
+        "add": -500.0, 
+        "value": "Heal/Rate"
+      }
+    ], 
+    "pair": "pair_heal_01", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Sphagia", 
+      "hele": "Sphagia", 
+      "mace": "Sphagia", 
+      "spart": "Sphagia"
+    }, 
+    "tooltip": "Healers +25% healing rate."
+  }, 
+  "heal_rate_2": {
+    "affects": [
+      "Healer"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 200, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Increases the Healing Rate of all healers.", 
+    "genericName": "Healing Rate 2", 
+    "icon": "healing_rate.png", 
+    "modifications": [
+      {
+        "add": -500.0, 
+        "value": "Heal/Rate"
+      }
+    ], 
+    "pair": "pair_heal_02", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Hippocratic Oath", 
+      "hele": "Hippocratic Oath", 
+      "mace": "Hippocratic Oath", 
+      "spart": "Hippocratic Oath"
+    }, 
+    "tooltip": "Healers +25% healing rate."
+  }, 
+  "heal_temple": {
+    "affects": [
+      "Temple"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Units garrisoned in a temple are healed faster.", 
+    "genericName": "Divine Offerings", 
+    "icon": "cauldron.png", 
+    "modifications": [
+      {
+        "multiply": 1.5, 
+        "value": "GarrisonHolder/BuffHeal"
+      }
+    ], 
+    "pair": "pair_heal_03", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Eleusian Mysteries", 
+      "hele": "Olympic Games", 
+      "mace": "Olympic Games", 
+      "spart": "Olympic Games"
+    }, 
+    "tooltip": "Temples +50% garrisoned healing rate."
+  }, 
+  "health_females_01": {
+    "affects": [
+      "Female Citizen"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "The Loom allowed the creation of finer clothing to clothe citizens in the settlement. Women of the household were taught from a young age how to weave on the loom, and subsequently spent a large  share of their lives working with it.", 
+    "genericName": "The Loom", 
+    "icon": "wives_festival.png", 
+    "modifications": [
+      {
+        "multiply": 1.5, 
+        "value": "Health/Max"
+      }
+    ], 
+    "pair": "pair_house_01", 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Unlocked in Village Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Female Citizens +50% Health."
+  }, 
+  "health_regen_units": {
+    "affects": [
+      "Unit Organic"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 100, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Unlock health regeneration for your units.", 
+    "genericName": "Battlefield Medicine", 
+    "icon": "bandage.png", 
+    "modifications": [
+      {
+        "add": 0.5, 
+        "value": "Health/RegenRate"
+      }
+    ], 
+    "pair": "pair_heal_03", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Organic units will slowly regenerate health over time when idle."
+  }, 
+  "health_walls_geometric_masonry": {
+    "affects": [
+      "StoneWall"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 200, 
+      "wood": 0
+    }, 
+    "description": "Using geometric masonry increases the sturdiness of defensive walls.", 
+    "genericName": "Geometric Masonry", 
+    "icon": "stone_blocks.png", 
+    "modifications": [
+      {
+        "multiply": 1.1, 
+        "value": "Cost/BuildTime"
+      }, 
+      {
+        "add": 2.0, 
+        "value": "Armour/Crush"
+      }
+    ], 
+    "pair": "pair_walls_01", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "City walls +2 crush armor levels, but +10% build time."
+  }, 
+  "immortals": {
+    "affects": [
+      "Champion Infantry"
+    ], 
+    "civi": "pers", 
+    "cost": {
+      "food": 200, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The Anusiya champion infantry train twice as fast, but lose a little max health.", 
+    "genericName": "Immortals", 
+    "icon": "fist_spear.png", 
+    "modifications": [
+      {
+        "multiply": 0.5, 
+        "value": "Cost/BuildTime"
+      }, 
+      {
+        "add": -20, 
+        "value": "Health/Max"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Anusiya Champion Infantry -50% train time, but also -20 health."
+  }, 
+  "melee_inf_sidearms": {
+    "affects": [
+      "Infantry Melee"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 50, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Often, an infantryman would carry a secondary weapon in addition to his primary weapon of choice, to be drawn when the primary weapon has failed or been broken.", 
+    "genericName": "Side Arms", 
+    "icon": "sword.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Attack/Melee/Hack"
+      }
+    ], 
+    "pair": "pair_inf_01", 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "celt"
+        }, 
+        {
+          "civ": "brit"
+        }, 
+        {
+          "civ": "gaul"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "X\u00edphos", 
+      "hele": "X\u00edphos", 
+      "mace": "X\u00edphos", 
+      "ptol": "X\u00edphos", 
+      "rome": "Pugio", 
+      "sele": "X\u00edphos", 
+      "spart": "X\u00edphos", 
+      "theb": "X\u00edphos"
+    }, 
+    "tooltip": "Melee infantry +1 hack attack."
+  }, 
+  "melee_inf_spearheads": {
+    "affects": [
+      "Spear"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Using iron instead of bronze gave spears additional piercing power.", 
+    "genericName": "Iron Spearheads", 
+    "icon": "spear.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Attack/Melee/Hack"
+      }
+    ], 
+    "pair": "pair_inf_02", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Sider\u00e9nies Aichm\u00e9s", 
+      "hele": "Sider\u00e9nies Aichm\u00e9s", 
+      "mace": "Sider\u00e9nies Aichm\u00e9s", 
+      "ptol": "Sider\u00e9nies Aichm\u00e9s", 
+      "sele": "Sider\u00e9nies Aichm\u00e9s", 
+      "spart": "Sider\u00e9nies Aichm\u00e9s", 
+      "theb": "Sider\u00e9nies Aichm\u00e9s"
+    }, 
+    "tooltip": "All Spear units +2 hack attack."
+  }, 
+  "pair_cav_01": {
+    "bottom": "armor_cav_chamfron", 
+    "civi": "all", 
+    "genericName": "Lance vs. Chamfron", 
+    "top": "attack_cav_lance"
+  }, 
+  "pair_champ_02": {
+    "bottom": "attack_citizensoldiers_will", 
+    "civi": "all", 
+    "genericName": "Champions vs. Part-timers", 
+    "top": "attack_champions_elite"
+  }, 
+  "pair_gather_01": {
+    "bottom": "gather_mining_wedgemallet", 
+    "civi": "all", 
+    "genericName": "Servants vs. Wedge and Mallet", 
+    "top": "gather_mining_servants"
+  }, 
+  "pair_gather_02": {
+    "bottom": "gather_mining_shaftmining", 
+    "civi": "all", 
+    "genericName": "Serfs vs. Shaft Mining", 
+    "supersedes": "pair_gather_01", 
+    "top": "gather_mining_serfs"
+  }, 
+  "pair_gather_03": {
+    "bottom": "gather_mining_silvermining", 
+    "civi": "all", 
+    "genericName": "Slaves vs. Silver Mining", 
+    "supersedes": "pair_gather_02", 
+    "top": "gather_mining_slaves"
+  }, 
+  "pair_gather_wood_01": {
+    "bottom": "gather_capacity_wheelbarrow", 
+    "civi": "all", 
+    "genericName": "Iron Axes vs. Wheelbarrow", 
+    "top": "gather_lumbering_ironaxes"
+  }, 
+  "pair_heal_01": {
+    "bottom": "heal_rate", 
+    "civi": "all", 
+    "genericName": "Heal Range and Rate", 
+    "top": "heal_range"
+  }, 
+  "pair_heal_02": {
+    "bottom": "heal_rate_2", 
+    "civi": "all", 
+    "genericName": "Heal Range and Rate #2", 
+    "supersedes": "pair_heal_01", 
+    "top": "heal_range_2"
+  }, 
+  "pair_heal_03": {
+    "bottom": "health_regen_units", 
+    "civi": "all", 
+    "genericName": "Garrison Healing vs. Self-Healing", 
+    "top": "heal_temple"
+  }, 
+  "pair_house_01": {
+    "bottom": "pop_house_01", 
+    "civi": "all", 
+    "genericName": "Females vs. Population", 
+    "top": "health_females_01"
+  }, 
+  "pair_house_02": {
+    "bottom": "pop_house_02", 
+    "civi": "all", 
+    "genericName": "Females vs. Population", 
+    "top": "unlock_females_house"
+  }, 
+  "pair_inf_01": {
+    "bottom": "ranged_inf_irregulars", 
+    "civi": "all", 
+    "genericName": "Side Arms vs. Irregulars", 
+    "top": "melee_inf_sidearms"
+  }, 
+  "pair_inf_02": {
+    "bottom": "ranged_inf_skirmishers", 
+    "civi": "all", 
+    "genericName": "Spear Fighting vs. Skirmishing", 
+    "supersedes": "pair_inf_01", 
+    "top": "melee_inf_spearheads"
+  }, 
+  "pair_inf_armor_01": {
+    "bottom": "armor_infantryspearmen_pierce_01", 
+    "civi": "all", 
+    "genericName": "Infantry Hack Armor vs. Spearmen Pierce Armor", 
+    "top": "armor_infantry_hack_01"
+  }, 
+  "pair_inf_armor_02": {
+    "bottom": "armor_infantryspearmen_pierce_02", 
+    "civi": "all", 
+    "genericName": "Infantry Hack Armor vs. Spearmen Pierce Armor", 
+    "supersedes": "pair_inf_armor_01", 
+    "top": "armor_infantry_hack_02"
+  }, 
+  "pair_inf_armor_03": {
+    "bottom": "armor_infantryspearmen_pierce_03", 
+    "civi": "all", 
+    "genericName": "Infantry Hack Armor vs. Spearmen Pierce Armor", 
+    "supersedes": "pair_inf_armor_02", 
+    "top": "armor_infantry_hack_03"
+  }, 
+  "pair_inf_armor_04": {
+    "bottom": "armor_infantryspearmen_pierce_04", 
+    "civi": "all", 
+    "genericName": "Infantry Hack Armor vs. Spearmen Pierce Armor", 
+    "supersedes": "pair_inf_armor_03", 
+    "top": "armor_infantry_hack_04"
+  }, 
+  "pair_levy_01": {
+    "bottom": "training_levy_cavalry", 
+    "civi": "all", 
+    "genericName": "Levy Infantry vs. Levy Cavalry", 
+    "top": "training_levy_infantry"
+  }, 
+  "pair_siege_attack_cost": {
+    "bottom": "siege_cost_metal", 
+    "civi": "all", 
+    "genericName": "Attack vs. Cost", 
+    "top": "siege_attack"
+  }, 
+  "pair_siege_attack_pack": {
+    "bottom": "siege_packing", 
+    "civi": "all", 
+    "genericName": "Attack vs. Packing", 
+    "top": "siege_attack"
+  }, 
+  "pair_siege_cost_armor": {
+    "bottom": "siege_armor", 
+    "civi": "all", 
+    "genericName": "Cost vs. Armor", 
+    "top": "siege_cost_wood"
+  }, 
+  "pair_tower_01": {
+    "bottom": "attack_tower_crenellations", 
+    "civi": "all", 
+    "genericName": "Night's Watch vs. Crenellations", 
+    "top": "attack_tower_watch"
+  }, 
+  "pair_unlock_champions": {
+    "bottom": "successors/unlock_reform_army", 
+    "civi": "", 
+    "genericName": "Traditional Army vs. Reform Army", 
+    "top": "successors/unlock_traditional_army"
+  }, 
+  "pair_walls_01": {
+    "bottom": "health_walls_geometric_masonry", 
+    "civi": "all", 
+    "genericName": "Walls build time vs. Health", 
+    "top": "buildtime_walls_rubble"
+  }, 
+  "persian_architecture": {
+    "affects": [
+      "Structure"
+    ], 
+    "civi": "pers", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 200, 
+      "wood": 200
+    }, 
+    "description": "The Persians built the wonderful 1677 mile-long Royal Highway from Sardis to Susa; Darius the Great and Xerxes also built the magnificent Persepolis; Cyrus the Great greatly improved Ecbatana and virtually 'rebuilt' the old Elamite capital of Susa.", 
+    "genericName": "Persian Architecture", 
+    "icon": "stone_blocks.png", 
+    "modifications": [
+      {
+        "multiply": 1.2, 
+        "value": "Cost/BuildTime"
+      }, 
+      {
+        "multiply": 1.25, 
+        "value": "Health/Max"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_village"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "All Persian structures +25% health, but also +20% build time."
+  }, 
+  "phase_city": {
+    "affects": [
+      "CivCentre"
+    ], 
+    "autoResearch": true, 
+    "civi": "all", 
+    "genericName": "City Phase", 
+    "modifications": [
+      {
+        "multiply": 1.5, 
+        "value": "TerritoryInfluence/Radius"
+      }
+    ], 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_city_generic"
+        }, 
+        {
+          "tech": "phase_city_britons"
+        }, 
+        {
+          "tech": "city_phase_gauls"
+        }, 
+        {
+          "tech": "phase_city_pair_celts"
+        }, 
+        {
+          "tech": "phase_city_athen"
+        }
+      ]
+    }, 
+    "soundComplete": "interface/alarm/alarm_phase.xml"
+  }, 
+  "phase_city_athen": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 1000, 
+      "stone": 1000, 
+      "wood": 0
+    }, 
+    "description": "Advances from a bustling town to a veritable metropolis, full of the wonders of modern technology. This is the Athenian city phase, where metal gathering rates are boosted because of the 'Silver Owls' bonus.", 
+    "genericName": "City Phase", 
+    "icon": "city_phase.png", 
+    "modifications": [
+      {
+        "multiply": 1.1, 
+        "value": "ResourceGatherer/Rates/metal.ore"
+      }
+    ], 
+    "requirements": {
+      "class": "Town", 
+      "number": 4
+    }, 
+    "requirementsTooltip": "Requires 4 new Town Phase structures (except Walls and Civic Centers).", 
+    "researchTime": 80, 
+    "soundComplete": "interface/alarm/alarm_phase.xml", 
+    "specificName": {
+      "athen": "Megalopolis"
+    }, 
+    "supersedes": "phase_town_athen", 
+    "tooltip": "Advance to City Phase, which unlocks more structures and units. Territory radius for Civic Centers increased by another +50%. Silver Owls civ bonus grants an extra +10% metal gather rate to all workers."
+  }, 
+  "phase_city_britons": {
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 1000, 
+      "stone": 1000, 
+      "wood": 0
+    }, 
+    "description": "Advance from a bustling town to large city.", 
+    "genericName": "City Phase - Britons", 
+    "icon": "city_phase.png", 
+    "pair": "phase_city_pair_celts", 
+    "requirements": {
+      "class": "Town", 
+      "number": 4
+    }, 
+    "requirementsTooltip": "Requires 4 new Town Phase structures (except Walls and Civic Centers).", 
+    "researchTime": 80, 
+    "soundComplete": "interface/alarm/alarm_phase.xml", 
+    "tooltip": "Advance to City Phase, which unlocks Brythonic structures and units. Territory radius for Civic Centers increased by another +50%"
+  }, 
+  "phase_city_gauls": {
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 1000, 
+      "stone": 1000, 
+      "wood": 0
+    }, 
+    "description": "Advance from a bustling town to large city.", 
+    "genericName": "City Phase - Gauls", 
+    "icon": "city_phase.png", 
+    "pair": "phase_city_pair_celts", 
+    "requirements": {
+      "class": "Town", 
+      "number": 4
+    }, 
+    "requirementsTooltip": "Requires 4 new Town Phase structures (except Walls and Civic Centers).", 
+    "researchTime": 80, 
+    "soundComplete": "interface/alarm/alarm_phase.xml", 
+    "tooltip": "Advance to City Phase, which unlocks Gallic structures and units. Territory radius for Civilization Centers increased by another +50%"
+  }, 
+  "phase_city_generic": {
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 1000, 
+      "stone": 1000, 
+      "wood": 0
+    }, 
+    "description": "Advances from a bustling town to a veritable metropolis, full of the wonders of modern technology.", 
+    "genericName": "City Phase", 
+    "icon": "city_phase.png", 
+    "requirements": {
+      "class": "Town", 
+      "number": 4
+    }, 
+    "requirementsTooltip": "Requires 4 new Town Phase structures (except Walls and Civic Centers).", 
+    "researchTime": 80, 
+    "soundComplete": "interface/alarm/alarm_phase.xml", 
+    "specificName": {
+      "athen": "Megalopolis", 
+      "hele": "Megalopolis", 
+      "mace": "Megalopolis", 
+      "spart": "Megalopolis"
+    }, 
+    "supersedes": "phase_town_generic", 
+    "tooltip": "Advance to City Phase, which unlocks more structures and units. Territory radius for Civic Centers increased by another +50%"
+  }, 
+  "phase_city_pair_celts": {
+    "bottom": "phase_city_gauls", 
+    "civi": "all", 
+    "genericName": "Britons vs. Gauls", 
+    "supersedes": "phase_town_generic", 
+    "top": "phase_city_britons"
+  }, 
+  "phase_town": {
+    "affects": [
+      "CivCentre"
+    ], 
+    "autoResearch": true, 
+    "civi": "all", 
+    "genericName": "Town Phase", 
+    "modifications": [
+      {
+        "multiply": 1.3, 
+        "value": "TerritoryInfluence/Radius"
+      }
+    ], 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_town_generic"
+        }, 
+        {
+          "tech": "phase_town_athen"
+        }
+      ]
+    }, 
+    "soundComplete": "interface/alarm/alarm_phase.xml"
+  }, 
+  "phase_town_athen": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 800, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 800
+    }, 
+    "description": "Advances from a bustling town to a veritable metropolis, full of the wonders of modern technology. This is the Athenian city phase, where metal gathering rates are boosted because of the Silver Owls bonus.", 
+    "genericName": "Town Phase", 
+    "icon": "town_phase.png", 
+    "modifications": [
+      {
+        "multiply": 1.1, 
+        "value": "ResourceGatherer/Rates/metal.ore"
+      }
+    ], 
+    "requirements": {
+      "class": "Village", 
+      "number": 5
+    }, 
+    "requirementsTooltip": "Requires 5 Village Phase structures (except Palisades and Farm Fields).", 
+    "researchTime": 80, 
+    "soundComplete": "interface/alarm/alarm_phase.xml", 
+    "specificName": {
+      "athen": "Kom\u00f3polis"
+    }, 
+    "supersedes": "phase_village", 
+    "tooltip": "Advance to Town Phase, which unlocks more structures and units. Territory radius for Civic Centers increased by +30%. 'Silver Owls' civ bonus grants an extra +10% metal gather rate to all workers."
+  }, 
+  "phase_town_generic": {
+    "civi": "all", 
+    "cost": {
+      "food": 800, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 800
+    }, 
+    "description": "Advances from a small village to a bustling town, ready to expand rapidly.", 
+    "genericName": "Town Phase", 
+    "icon": "town_phase.png", 
+    "requirements": {
+      "class": "Village", 
+      "number": 5
+    }, 
+    "requirementsTooltip": "Requires 5 Village Phase structures (except Palisades and Farm Fields).", 
+    "researchTime": 80, 
+    "soundComplete": "interface/alarm/alarm_phase.xml", 
+    "specificName": {
+      "athen": "Kom\u00f3polis", 
+      "hele": "Kom\u00f3polis", 
+      "mace": "Kom\u00f3polis", 
+      "spart": "Kom\u00f3polis", 
+      "theb": "Kom\u00f3polis"
+    }, 
+    "supersedes": "phase_village", 
+    "tooltip": "Advance to Town Phase, which unlocks more structures and units. Territory radius for Civic Centers increased by +30%"
+  }, 
+  "phase_village": {
+    "autoResearch": true, 
+    "civi": "all", 
+    "genericName": "Village Phase"
+  }, 
+  "pop_civic_01": {
+    "affects": [
+      "CivCentre"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 100, 
+      "wood": 100
+    }, 
+    "description": "The state or tribe would often construct a dining hall for public feasts or to receive foreign emissaries.", 
+    "genericName": "Dining Hall", 
+    "icon": "population.png", 
+    "modifications": [
+      {
+        "add": 5.0, 
+        "value": "Cost/PopulationBonus"
+      }
+    ], 
+    "pair": "pair_pop_01", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Tholos"
+    }, 
+    "tooltip": "Civic Centers +5 population cap bonus."
+  }, 
+  "pop_civic_02": {
+    "affects": [
+      "CivCentre"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 200, 
+      "wood": 0
+    }, 
+    "description": "Public assembly places were often the center of civic life for ancient societies. Athens had the Ekklesia, the citizens' assembly which met on the Pnyx Hill near the agora in full view of the Acropolis. The Romans had an open-aired assembly place in the great Forum Romanum called the Comitium. Here citizens could air grievances and present petitions to the patrician politicians who ruled their city in the Senate.", 
+    "genericName": "Public Assembly", 
+    "icon": "population.png", 
+    "modifications": [
+      {
+        "add": 5.0, 
+        "value": "Cost/PopulationBonus"
+      }
+    ], 
+    "pair": "pair_pop_02", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Ekklesia", 
+      "rome": "Comitium"
+    }, 
+    "tooltip": "Civic Centers +5 population cap bonus."
+  }, 
+  "pop_house_01": {
+    "affects": [
+      "House"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 100, 
+      "wood": 0
+    }, 
+    "description": "Home gardens ranged from simple fenced-in areas to large manicured and colonnaded enclosures.", 
+    "genericName": "Home Garden", 
+    "icon": "population.png", 
+    "modifications": [
+      {
+        "add": 1.0, 
+        "value": "Cost/PopulationBonus"
+      }
+    ], 
+    "pair": "pair_house_01", 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "requirementsTooltip": "Unlocked in Village Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Peristyle", 
+      "hele": "Peristyle", 
+      "mace": "Peristyle", 
+      "pers": "Paradise", 
+      "ptol": "Peristyle", 
+      "rome": "Peristyle", 
+      "sele": "Peristyle", 
+      "spart": "Peristyle"
+    }, 
+    "tooltip": "Houses +1 population cap bonus."
+  }, 
+  "pop_house_02": {
+    "affects": [
+      "House"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 300, 
+      "wood": 300
+    }, 
+    "description": "Homes tended to expand as the wealth and population of a settlement grew.", 
+    "genericName": "Manors", 
+    "icon": "population.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Cost/PopulationBonus"
+      }
+    ], 
+    "pair": "pair_house_02", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "rome": "Insulae"
+    }, 
+    "tooltip": "Houses +2 population cap bonus."
+  }, 
+  "ranged_inf_irregulars": {
+    "affects": [
+      "Infantry Ranged"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 50
+    }, 
+    "description": "Training increases damage of ranged infantry units.", 
+    "genericName": "Ranged Infantry Irregulars", 
+    "icon": "arrow.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Attack/Ranged/Pierce"
+      }
+    ], 
+    "pair": "pair_inf_01", 
+    "requirements": {
+      "any": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "celt"
+        }, 
+        {
+          "civ": "brit"
+        }, 
+        {
+          "civ": "gaul"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "\u00c1taktoi", 
+      "hele": "\u00c1taktoi", 
+      "mace": "\u00c1taktoi", 
+      "ptol": "\u00c1taktoi", 
+      "sele": "\u00c1taktoi", 
+      "spart": "\u00c1taktoi", 
+      "theb": "\u00c1taktoi"
+    }, 
+    "tooltip": "Ranged infantry +2 pierce attack."
+  }, 
+  "ranged_inf_skirmishers": {
+    "affects": [
+      "Javelin"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 200
+    }, 
+    "description": "The javelin thong (the Greeks also called them loops, or bronkhos) increased the fulcrum action of the throwing arm mid-throw, increasing speed and range of the javelin.", 
+    "genericName": "Javelin Thong", 
+    "icon": "javelin_thong.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Attack/Ranged/Pierce"
+      }, 
+      {
+        "add": 4.0, 
+        "value": "Attack/Ranged/MaxRange"
+      }
+    ], 
+    "pair": "pair_inf_02", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 30, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Ankyle", 
+      "hele": "Ankyle", 
+      "mace": "Ankyle", 
+      "ptol": "Ankyle", 
+      "rome": "Amentum", 
+      "sele": "Ankyle", 
+      "spart": "Ankyle", 
+      "theb": "Ankyle"
+    }, 
+    "tooltip": "All Javelin units +2 pierce attack and +4 range."
+  }, 
+  "siege_armor": {
+    "affects": [
+      "Siege"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 350, 
+      "stone": 0, 
+      "wood": 300
+    }, 
+    "description": "Increased armor on siege weapons", 
+    "genericName": "Armor plating", 
+    "icon": "armor_plates_gold.png", 
+    "modifications": [
+      {
+        "add": 2.0, 
+        "value": "Armour/Hack"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "All Siege weapons +2 Hack armor levels."
+  }, 
+  "siege_attack": {
+    "affects": [
+      "Siege"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 250, 
+      "stone": 0, 
+      "wood": 200
+    }, 
+    "description": "Advanced technologies improve siege efficiency", 
+    "genericName": "Advanced Siege", 
+    "icon": "siege_ram.png", 
+    "modifications": [
+      {
+        "add": 5, 
+        "value": "Attack/Melee/Crush"
+      }, 
+      {
+        "add": 5, 
+        "value": "Attack/Ranged/Crush"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "All siege weapons +5 Crush damage."
+  }, 
+  "siege_bolt_accuracy": {
+    "affects": [
+      "Bolt Shooter"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 220, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Improvement to projectile accuracy", 
+    "genericName": "Bolt Accuracy", 
+    "icon": "accuracy_bolt.png", 
+    "modifications": [
+      {
+        "multiply": 0.75, 
+        "value": "Attack/Ranged/Spread"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Bolt shooter accuracy increased 25%"
+  }, 
+  "siege_cost_metal": {
+    "affects": [
+      "Siege"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 200, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Siege weapons require less metal resource", 
+    "genericName": "Metalworker", 
+    "icon": "metalworker.png", 
+    "modifications": [
+      {
+        "multiply": 0.8, 
+        "value": "Cost/Resources/metal"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Siege weapons cost 20% less metal"
+  }, 
+  "siege_cost_wood": {
+    "affects": [
+      "Siege"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Siege weapons cost less wood", 
+    "genericName": "Artillery Instructors", 
+    "icon": "anvil.png", 
+    "modifications": [
+      {
+        "multiply": 0.8, 
+        "value": "Cost/Resources/wood"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Siege weapons cost 20% less wood"
+  }, 
+  "siege_packing": {
+    "affects": [
+      "Siege"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 200, 
+      "metal": 100, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Immobile siege weapons are assembled and disassembled faster", 
+    "genericName": "Military Engineers", 
+    "icon": "military_engineers.png", 
+    "modifications": [
+      {
+        "multiply": 0.75, 
+        "value": "Pack/Time"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Immobile siege weapons pack/unpack 25% faster"
+  }, 
+  "spartans_agoge": {
+    "affects": [
+      "Spear Infantry"
+    ], 
+    "civi": "hele", 
+    "cost": {
+      "food": 500, 
+      "metal": 500, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Spartans were housed and trained from a young age to be superlative warriors and to endure any hardship a military life can give them.", 
+    "genericName": "The Agoge", 
+    "icon": "agoge.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "Health/Max"
+      }, 
+      {
+        "multiply": 1.1, 
+        "value": "Cost/BuildTime"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "spart"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "+25% health for spear infantry, but also +10% train time."
+  }, 
+  "special_archery_tradition": {
+    "affects": [
+      "Archer"
+    ], 
+    "civi": "pers", 
+    "cost": {
+      "food": 200, 
+      "metal": 150, 
+      "stone": 0, 
+      "wood": 300
+    }, 
+    "description": "The Persians had a tradition of fine archery and a penchant for using massed archers in battle.", 
+    "genericName": "Archery Tradition", 
+    "icon": "armor_plates_ranged.png", 
+    "modifications": [
+      {
+        "add": 10.0, 
+        "value": "Attack/Ranged/MaxRange"
+      }, 
+      {
+        "multiply": 0.8, 
+        "value": "Cost/BuildTime"
+      }, 
+      {
+        "multiply": 0.8, 
+        "value": "Health/Max"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_village"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Village Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Range +10 meters for bow-wielding units. Archer units train time -20%, but also -20% health."
+  }, 
+  "special_equine_transports": {
+    "civi": "pers", 
+    "cost": {
+      "food": 0, 
+      "metal": 300, 
+      "stone": 0, 
+      "wood": 300
+    }, 
+    "description": "Early Achaemenid rulers acted towards making Persia the first great Asian empire to rule the seas. The Great King behaved favourably towards the various sea peoples in order to secure their services, but also carried out various marine initiatives. During the reign of Darius the Great, for example, a canal was built in Egypt and a Persian navy was sent exploring the Indus river. According to Herodotus, some 300 ships in the Persian navy were retrofitted to carry horses and their riders.", 
+    "genericName": "Equine Transports", 
+    "icon": "horse_rider.png", 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Phoenician Triremes gain the ability to train cavalry units."
+  }, 
+  "special_gather_crop_rotation": {
+    "affects": [
+      "Worker"
+    ], 
+    "civi": "celt", 
+    "cost": {
+      "food": 300, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 300
+    }, 
+    "description": "Crop rotation increases yield by preventing the depletion of vital nutrients and minerals from the soil.", 
+    "genericName": "Crop Rotation", 
+    "icon": "crop_rotation.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "ResourceGatherer/Rates/food.grain"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "any": [
+            {
+              "civ": "celt"
+            }, 
+            {
+              "civ": "brit"
+            }, 
+            {
+              "civ": "gaul"
+            }
+          ]
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Increase the yield of your farms. +25% farming rate."
+  }, 
+  "special_hellenistic_metropolis": {
+    "affects": [
+      "CivCentre"
+    ], 
+    "civi": "", 
+    "cost": {
+      "food": 0, 
+      "metal": 500, 
+      "stone": 500, 
+      "wood": 0
+    }, 
+    "description": "Beginning with Alexander, the Hellenistic monarchs founded many cities throughout their empires, where Greek culture and art blended with local customs to create the motley Hellenistic civilization.", 
+    "genericName": "Hellenistic Metropolis", 
+    "icon": "statue_face_stone.png", 
+    "modifications": [
+      {
+        "multiply": 2.0, 
+        "value": "BuildingAI/DefaultArrowCount"
+      }, 
+      {
+        "multiply": 2.0, 
+        "value": "Health/Max"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "any": [
+            {
+              "civ": "sele"
+            }
+          ]
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Civic centers +100% health and double default arrows."
+  }, 
+  "special_iphicratean_reforms": {
+    "civi": "hele", 
+    "cost": {
+      "food": 300, 
+      "metal": 300, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Athenian triremes can train Marines (Epibates Athenaikos) and Cretan Mercenary Archers (Toxotes Kretikos).", 
+    "genericName": "Iphicratean Reforms", 
+    "icon": "helmet_corinthian_crest.png", 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "athen"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Athenian triremes can train Marines and Cretan Mercenary Archers."
+  }, 
+  "special_long_walls": {
+    "affects": [
+      "StoneWall"
+    ], 
+    "civi": "hele", 
+    "cost": {
+      "food": 0, 
+      "metal": 250, 
+      "stone": 250, 
+      "wood": 0
+    }, 
+    "description": "The Long Walls of Athens were constructed under the auspices of the wily Themistocles and extended 6 km from the city to the port of Piraeus. This secured the city's sea supply routes and prevented an enemy from starving out the city during a siege.", 
+    "genericName": "Athenian Long Walls", 
+    "icon": "crenelations.png", 
+    "modifications": [
+      {
+        "replace": [
+          "own", 
+          "neutral"
+        ], 
+        "value": "BuildRestrictions/Territory"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "athen"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Build stone walls in neutral territory."
+  }, 
+  "special_parade_of_daphne": {
+    "affects": [
+      "Fortress"
+    ], 
+    "civi": "", 
+    "cost": {
+      "food": 500, 
+      "metal": 500, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Significantly increase training speed of champions and siege weapons at the fortress by training them in large batches or battalions.", 
+    "genericName": "Parade of Daphne", 
+    "icon": "parade_of_daphne.png", 
+    "modifications": [
+      {
+        "add": -0.2, 
+        "value": "ProductionQueue/BatchTimeModifier"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "sele"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Faster batch training speed for the Fortress."
+  }, 
+  "special_war_horses": {
+    "affects": [
+      "Cavalry"
+    ], 
+    "civi": "", 
+    "cost": {
+      "food": 200, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The now-extinct Nisian breed of horse was one of the largest and robust horses of ancient times. They were highly sought after by the Seleucids and Persians as both rider and mount gained heavier armor as time progressed.", 
+    "genericName": "Nisean War Horses", 
+    "icon": "nisean_war_horses.png", 
+    "modifications": [
+      {
+        "multiply": 1.2, 
+        "value": "Health/Max"
+      }, 
+      {
+        "multiply": 1.1, 
+        "value": "Cost/BuildTime"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "sele"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "sele": "Nisioi"
+    }, 
+    "tooltip": "All cavalry +20% health, but also +10% train time."
+  }, 
+  "speed_trader_01": {
+    "affects": [
+      "Trader"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Increases movement rate of traders, which in turn increases trade income.", 
+    "genericName": "Trade Convoys", 
+    "icon": "wheel.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "UnitMotion/WalkSpeed"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Traders +25% Walk Speed, which quickly increases trade income."
+  }, 
+  "teambonus_athen_delian_league": {
+    "affects": [
+      "Warship"
+    ], 
+    "autoResearch": true, 
+    "civi": "hele", 
+    "description": "Shortly after the great naval victories at Salamis and Mycale, the Greek city-states instituted the so-called Delian League in 478 BC, whose purpose was to push the Persians out of the Aegean region. The allied states contributed ships and money, while the Athenians offered their entire navy.", 
+    "genericName": "Delian League", 
+    "modifications": [
+      {
+        "multiply": 0.75, 
+        "value": "Cost/BuildTime"
+      }
+    ], 
+    "requirements": {
+      "civ": "athen"
+    }
+  }, 
+  "temp_special_hellenization": {
+    "affects": [
+      "Structure"
+    ], 
+    "civi": "hele", 
+    "cost": {
+      "food": 0, 
+      "metal": 1000, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The Hellenic culture was very influential. Greek became the spoken language of commerce and politics for much of the Mediterranean basin and Middle East for centuries.", 
+    "genericName": "Hellenization", 
+    "icon": "political_face.png", 
+    "modifications": [
+      {
+        "multiply": 1.2, 
+        "value": "TerritoryInfluence/Radius"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "any": [
+            {
+              "civ": "hele"
+            }, 
+            {
+              "civ": "athen"
+            }, 
+            {
+              "civ": "mace"
+            }, 
+            {
+              "civ": "spart"
+            }, 
+            {
+              "civ": "theb"
+            }
+          ]
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Exellinism\u00f3s", 
+      "hele": "Exellinism\u00f3s", 
+      "mace": "Exellinism\u00f3s", 
+      "spart": "Exellinism\u00f3s", 
+      "theb": "Exellinism\u00f3s"
+    }, 
+    "tooltip": "The Hellenic culture is very influential. +20% territory effect for all buildings."
+  }, 
+  "training_conscription": {
+    "affects": [
+      "Barracks"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 500, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Significantly increase training speed of soldiers at the barracks by training them in large batches or battalions.", 
+    "genericName": "Conscription", 
+    "icon": "fist_spear.png", 
+    "modifications": [
+      {
+        "add": -0.1, 
+        "value": "ProductionQueue/BatchTimeModifier"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "supersedes": "pair_levy_01", 
+    "tooltip": "Faster batch training speed for the Barracks."
+  }, 
+  "training_conscription_cavalry": {
+    "affects": [
+      "Stables"
+    ], 
+    "civi": "pers", 
+    "cost": {
+      "food": 500, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Significantly increase training speed of cavalry at the stables by training them in large batches or battalions.", 
+    "genericName": "Cavalry Conscription", 
+    "icon": "horse_rider.png", 
+    "modifications": [
+      {
+        "add": -0.1, 
+        "value": "ProductionQueue/BatchTimeModifier"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "supersedes": "persians/training_levy_cavalry", 
+    "tooltip": "Faster batch training speed for the Stables."
+  }, 
+  "training_conscription_infantry": {
+    "affects": [
+      "Barracks"
+    ], 
+    "civi": "pers", 
+    "cost": {
+      "food": 500, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Significantly increase training speed of soldiers at the barracks by training them in large batches or battalions.", 
+    "genericName": "Infantry Conscription", 
+    "icon": "fist_spear.png", 
+    "modifications": [
+      {
+        "add": -0.1, 
+        "value": "ProductionQueue/BatchTimeModifier"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "supersedes": "persians/training_levy_infantry", 
+    "tooltip": "Faster batch training speed for the Barracks."
+  }, 
+  "training_levy_cavalry": {
+    "affects": [
+      "Cavalry"
+    ], 
+    "civi": "pers", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Calling up cavalry levies in time of war helps bolster the ranks of a king's army.", 
+    "genericName": "Levy Cavalry", 
+    "icon": "horse_trainer.png", 
+    "modifications": [
+      {
+        "multiply": 0.8, 
+        "value": "Cost/BuildTime"
+      }, 
+      {
+        "add": -10, 
+        "value": "Health/Max"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "All cavalry -20% train time, but also -10 health. Unlocks Cavalry Conscription."
+  }, 
+  "training_levy_infantry": {
+    "affects": [
+      "Infantry"
+    ], 
+    "civi": "pers", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Calling up infantry levies in time of war helps bolster the ranks of a king's army.", 
+    "genericName": "Levy Infantry", 
+    "icon": "clenched_fist.png", 
+    "modifications": [
+      {
+        "multiply": 0.9, 
+        "value": "Cost/BuildTime"
+      }, 
+      {
+        "add": -5, 
+        "value": "Health/Max"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_town"
+        }, 
+        {
+          "civ": "pers"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "All infantry -10% train time, but also -5 health. Unlocks Infantry Conscription."
+  }, 
+  "training_naval_architects": {
+    "affects": [
+      "Dock"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 200, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 200
+    }, 
+    "description": "Significantly increase build speed of batches of ships at the Dock.", 
+    "genericName": "Naval Architects", 
+    "icon": "calipers.png", 
+    "modifications": [
+      {
+        "add": -0.1, 
+        "value": "ProductionQueue/BatchTimeModifier"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Docks increased batch construction speed bonus."
+  }, 
+  "unlock_champion_units": {
+    "civi": "all", 
+    "cost": {
+      "food": 0, 
+      "metal": 500, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Guard units (Champions) are professionals who wield the best weapons and have the best training.", 
+    "genericName": "Unlock Champion Units", 
+    "icon": "helmet_corinthian_crest.png", 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Ag\u00e8ma", 
+      "hele": "Ag\u00e8ma", 
+      "mace": "Ag\u00e8ma", 
+      "rome": "Regio Cohors", 
+      "spart": "Ag\u00e8ma"
+    }, 
+    "tooltip": "Unlock the ability to train Champions at the barracks."
+  }, 
+  "unlock_females_house": {
+    "civi": "all", 
+    "cost": {
+      "food": 200, 
+      "metal": 200, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "A festival attended by women-only, to celebrate female fertility.", 
+    "genericName": "Fertility Festival", 
+    "icon": "wives_festival.png", 
+    "pair": "pair_house_02", 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 60, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Thesmophoria", 
+      "hele": "Thesmophoria", 
+      "mace": "Thesmophoria", 
+      "rome": "Bona Dea", 
+      "spart": "Thesmophoria"
+    }, 
+    "tooltip": "Unlock the ability to train women from houses."
+  }, 
+  "unlock_reform_army": {
+    "civi": "", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The reform army of the Seleucids.", 
+    "genericName": "Reform Army", 
+    "icon": "helmet_corinthian_crest.png", 
+    "pair": "successors/pair_unlock_champions", 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "sele"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 0, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Unlock the Romanized Heavy Swordsman and Seleucid Cataphract."
+  }, 
+  "unlock_traditional_army": {
+    "civi": "", 
+    "cost": {
+      "food": 0, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The traditional army of the Seleucids.", 
+    "genericName": "Traditional Army", 
+    "icon": "helmet_corinthian_crest.png", 
+    "pair": "successors/pair_unlock_champions", 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "sele"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 0, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Unlock the Silver Shield Pikeman and Scythed Chariot."
+  }, 
+  "upgrade_mace_silvershields": {
+    "affects": [
+      "Champion Infantry"
+    ], 
+    "civi": "", 
+    "cost": {
+      "food": 0, 
+      "metal": 500, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The Silver Shields, or Argyraspidai, were the elite heavy infantry arm of the Macedonian army.", 
+    "genericName": "Silver Shields Regiment", 
+    "icon": "shields_generic_silver.png", 
+    "modifications": [
+      {
+        "replace": 0, 
+        "value": "Promotion/RequiredXp"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "mace"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Upgrade Shield Bearer Champion Infantry to Silver Shields, with greater attack, health, and armor."
+  }, 
+  "upgrade_rank_advanced_cavalry": {
+    "affects": [
+      "Cavalry Basic"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 400, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 100
+    }, 
+    "description": "Promote all of your citizen-soldier cavalrymen to Advanced rank.", 
+    "genericName": "Advanced Citizen-Cavalry", 
+    "icon": "upgrade_advanced.png", 
+    "modifications": [
+      {
+        "replace": 0, 
+        "value": "Promotion/RequiredXp"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Promote all of your citizen-soldier cavalrymen to Advanced rank. This increases their military prowess, but decreases their meat gathering rates -25%. Unlocks Elite Citizen-Cavalry technology."
+  }, 
+  "upgrade_rank_advanced_infantry": {
+    "affects": [
+      "Infantry Basic"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 200, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 300
+    }, 
+    "description": "Upgrade all of your citizen-soldier infantrymen to Advanced rank.", 
+    "genericName": "Advanced Citizen-Infantry", 
+    "icon": "upgrade_advanced.png", 
+    "modifications": [
+      {
+        "replace": 0, 
+        "value": "Promotion/RequiredXp"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_town"
+    }, 
+    "requirementsTooltip": "Unlocked in Town Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Metikoi", 
+      "hele": "Metikoi", 
+      "mace": "Metikoi", 
+      "spart": "Metikoi"
+    }, 
+    "tooltip": "Upgrade all of your citizen-soldier infantrymen to Advanced rank. This increases their military prowess, but decreases their resource gathering rates -25%. Unlocks Elite Citizen-Infantry technology."
+  }, 
+  "upgrade_rank_elite_cavalry": {
+    "affects": [
+      "Cavalry Advanced"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 600, 
+      "metal": 400, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Promote all of your citizen-soldier cavalrymen to Advanced rank.", 
+    "genericName": "Elite Citizen-Cavalry", 
+    "icon": "upgrade_elite.png", 
+    "modifications": [
+      {
+        "replace": 0, 
+        "value": "Promotion/RequiredXp"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "supersedes": "upgrade_rank_advanced_cavalry", 
+    "tooltip": "Promote all of your citizen-soldier cavalrymen to Elite rank. This increases their military prowess, but decreases their meat gathering rates another -25%."
+  }, 
+  "upgrade_rank_elite_infantry": {
+    "affects": [
+      "Infantry Advanced"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 500, 
+      "metal": 500, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Upgrade all of your citizen-soldier infantrymen to Elite rank.", 
+    "genericName": "Elite Citizen-Infantry", 
+    "icon": "upgrade_elite.png", 
+    "modifications": [
+      {
+        "replace": 0, 
+        "value": "Promotion/RequiredXp"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_city"
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": {
+      "athen": "Zeugites", 
+      "hele": "Zeugites", 
+      "mace": "Zeugites", 
+      "spart": "Zeugites"
+    }, 
+    "supersedes": "upgrade_rank_advanced_infantry", 
+    "tooltip": "Upgrade all of your citizen-soldier infantrymen to Elite rank. This increases their military prowess, but decreases their resource gathering rates another -25%."
+  }, 
+  "vision_outpost": {
+    "affects": [
+      "Outpost"
+    ], 
+    "civi": "all", 
+    "cost": {
+      "food": 100, 
+      "metal": 0, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "Outposts gain longer vision for scouting.", 
+    "genericName": "Carrier Pigeons", 
+    "icon": "pigeon.png", 
+    "modifications": [
+      {
+        "multiply": 1.5, 
+        "value": "Vision/Range"
+      }
+    ], 
+    "requirements": {
+      "tech": "phase_village"
+    }, 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "tooltip": "Vision Range +50% for Outposts."
+  }, 
+  "vision_sibylline": {
+    "affects": [
+      "Unit"
+    ], 
+    "civi": "roma", 
+    "cost": {
+      "food": 0, 
+      "metal": 250, 
+      "stone": 0, 
+      "wood": 0
+    }, 
+    "description": "The Sibylline Books or 'Libri Sibyllini' were a collection of oracular utterances, set out in Greek hexameters, purchased from a sibyl by the last king of Rome, Tarquinius Superbus, and consulted at momentous crises through the history of the Republic and the Empire.", 
+    "genericName": "Sibylline Books", 
+    "icon": "sibylline_books.png", 
+    "modifications": [
+      {
+        "multiply": 1.25, 
+        "value": "Vision/Range"
+      }
+    ], 
+    "requirements": {
+      "all": [
+        {
+          "tech": "phase_city"
+        }, 
+        {
+          "civ": "rome"
+        }
+      ]
+    }, 
+    "requirementsTooltip": "Unlocked in City Phase.", 
+    "researchTime": 40, 
+    "soundComplete": "interface/alarm/alarm_upgradearmory.xml", 
+    "specificName": "Libri Sibyllini", 
+    "tooltip": "+25% Vision range for all units."
+  }, 
+  "wooden_walls": {
+    "affects": [
+      "StoneWall"
+    ], 
+    "autoResearch": true, 
+    "civi": "maur", 
+    "description": "The Mauryans built their city walls out of wood, an abundant natural resource in India. Consequently, Mauryan city walls have -20% health, but build 20% faster.", 
+    "genericName": "Wooden Walls", 
+    "modifications": [
+      {
+        "multiply": 0.8, 
+        "value": "Health/Max"
+      }, 
+      {
+        "multiply": 0.8, 
+        "value": "Cost/BuildTime"
+      }
+    ], 
+    "requirements": {
+      "civ": "maur"
+    }
+  }
+};

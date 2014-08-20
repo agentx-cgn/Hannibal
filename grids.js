@@ -167,7 +167,9 @@ HANNIBAL = (function(H){
         center[0] = ~~(width  / 2);
         center[1] = ~~(height / 2);
         self.initMasks();  
-        self.initPassTopo();  
+        self.initTopo();  
+        self.initPass();  
+        self.initProp();  
         self.initTerrain();  
         self.initCost();  
         self.initRegionsLand();  
@@ -185,12 +187,11 @@ HANNIBAL = (function(H){
         maskOpen        = pc ? pc["unrestricted"]          : 64;
         maskShore       = maskBldgShore | maskFoundation;    // 1
       },
-      initPassTopo: function(){
+      initTopo: function(){
 
-        var i, h, off, idx, x, y, cvs, ctx, source, len, iwidth = width +1, max = 0, min = 10e7;
+        var i, h, off, idx, x, y, len, iwidth = width +1, max = 0, min = 10e7;
 
         self.topo = new H.Grid(width, height, 8);
-        self.pass = new H.Grid(width, height, 8);
 
         if (isBrowser){
 
@@ -207,11 +208,25 @@ HANNIBAL = (function(H){
             }
           }
           i = length; while(i--){
-            h = H.scale(self.topo.data[i], min, max, 0, 255);
+            h = H.scale(self.topo.data[i], min, max, 0, 220);
             self.topo.data[i] = h;
           }
 
-          // console.log("idx", idx, length, "max", max, "min", min);
+        } else {
+          for (i=0; i<length; i++){
+            self.topo.data[i] = self.passability.data[i] >> 8; 
+          }
+
+        }
+
+      },
+      initPass: function(){
+
+        var i, cvs, ctx, source;
+
+        self.pass = new H.Grid(width, height, 8);
+
+        if (isBrowser){
 
           cvs = document.createElement("canvas");
           cvs.width = cvs.height = width;
@@ -227,22 +242,32 @@ HANNIBAL = (function(H){
 
           for (i=0; i<length; i++){
             self.pass.data[i] = self.passability.data[i] >> 0; 
-            self.topo.data[i] = self.passability.data[i] >> 8; 
           }
 
         }
 
       },
+      initProp: function(){
+
+        if (isBrowser){
+
+          self.prop = new H.Grid(width, height, 8);
+
+        } else {
+
+          self.prop = gridFromMap(H.Bot.gameState.ai.territoryMap);
+
+        }
+
+
+      },
       initCost: function(){
 
         var 
-          i = length, s, maskCost = 8 + 16 + 32 + 64,
+          i = length, maskCost = 8 + 16 + 32 + 64,
           grdTemp = new H.Grid(width, height, 8);
 
         while(i--){
-          // s = self.terr.data[i];
-          // self.cost.data[i] = (s === 16 || s === 32 || s === 64 || s === 255) ? 255 : 0;
-          // s = self.terr.data[i];
           grdTemp.data[i] = self.terr.data[i] & maskCost ? 255 : 0;
         }
         self.cost = grdTemp.blur(3);
@@ -253,6 +278,14 @@ HANNIBAL = (function(H){
         self.tree = new H.Grid(width, height, 8);
       },
       initTerrain: function(){
+
+        // pathfinderObstruction:1, 
+        // foundationObstruction:2, trees, mines
+        // building-land:4, 
+        // building-shore:8, 
+        // default:16, 
+        // ship:32, 
+        // unrestricted:64
 
         var i = length, s, t;
 
@@ -267,9 +300,10 @@ HANNIBAL = (function(H){
             !(s & 16) && !(s & 32) &&   (s & 64) ?   8 : //  shallow
             !(s & 16) && !(s & 32) &&  !(s & 64) ?  16 : //  mixed
             !(s & 16) &&  (s & 32) &&  !(s & 64) ?  32 : //  deep water
+             (s & 16) &&  (s & 32) &&  !(s & 64) ?  32 : //  deep steep water, check with Azure Coast
              (s & 16) &&  (s & 32) &&   (s & 64) ?  64 : //  red : land too steep
             !(s & 16) &&  (s & 32) &&   (s & 64) ?  64 : //  red : land also too steep
-              255                                          // errorr
+              255                                          // error
           );
           self.terr.data[i] = t;
 
@@ -504,16 +538,16 @@ HANNIBAL = (function(H){
       Function("s", "t", body)(this.data, target.data);  
 
     },
-    render: function (canvas, alpha=255, nozero=true){
+    render: function (cvs, alpha=255, nozero=true){
 
       var
         i, p, c, image, target, source,
         len = width * width,
-        ctx = canvas.getContext("2d");
+        ctx = cvs.getContext("2d");
 
       // alpha = alpha !== undefined ? alpha : 255;
-      canvas.width = canvas.height = width;
-      image = ctx.getImageData(0, 0, width, width);
+      cvs.width = cvs.height = width;
+      image  = ctx.getImageData(0, 0, width, width);
       target = image.data;
       source = this.data;
 

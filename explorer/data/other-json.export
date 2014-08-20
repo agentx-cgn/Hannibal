@@ -1,153 +1,410 @@
 var OTHER = {
   "other/bench": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 4.25, 
     "Footprint/Square@width": 1.5, 
     "Health/Max": 75.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Wooden Bench", 
     "Obstruction/Static@depth": 4.0, 
-    "Obstruction/Static@width": 1.0
+    "Obstruction/Static@width": 1.0, 
+    "Vision/Range": 4.0
   }, 
   "other/bridge_hele": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 15.5, 
     "Footprint/Square@width": 62.0, 
-    "Health/Max": 200000.0
+    "Health/Max": 200000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Bridge", 
+    "Vision/Range": 72.0
   }, 
   "other/bridge_wooden": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 15.5, 
     "Footprint/Square@width": 62.0, 
-    "Health/Max": 200000.0
+    "Health/Max": 200000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Wooden Bridge", 
+    "Vision/Range": 72.0
   }, 
   "other/cart_tophet": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Town", 
+      "Temple"
+    ], 
+    "Cost/BuildTime": 200.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/metal": 100.0, 
+    "Cost/Resources/stone": 200.0, 
     "Footprint/Square@depth": 26.0, 
     "Footprint/Square@width": 24.0, 
+    "GarrisonHolder/List": [
+      "Support", 
+      "Infantry", 
+      "Cavalry"
+    ], 
+    "GarrisonHolder/Max": 20.0, 
     "Health/Max": 2000.0, 
+    "Identity/Civ": "cart", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Tophet", 
     "Obstruction/Static@depth": 24.0, 
     "Obstruction/Static@width": 22.0, 
     "ProductionQueue/Entities": [
       "\t", 
       "units/cart_champion_cavalry"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 40.0, 
+    "TerritoryInfluence/Weight": 30000.0, 
+    "Vision/Range": 40.0
   }, 
   "other/celt_homestead": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "CivilCentre", 
+      "Defensive", 
+      "CivCentre"
+    ], 
+    "Cost/BuildTime": 600.0, 
+    "Cost/PopulationBonus": 20.0, 
+    "Cost/Resources/metal": 100.0, 
+    "Cost/Resources/stone": 100.0, 
+    "Cost/Resources/wood": 100.0, 
     "Footprint/Square@depth": 32.0, 
     "Footprint/Square@width": 32.0, 
+    "GarrisonHolder/List": [
+      "Support", 
+      "Infantry", 
+      "Cavalry"
+    ], 
+    "GarrisonHolder/Max": 20.0, 
     "Health/Max": 3000.0, 
+    "Identity/Civ": "celt", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Caer", 
     "Obstruction/Static@depth": 24.0, 
     "Obstruction/Static@width": 24.0, 
     "ProductionQueue/Entities": [
       "units/celt_cavalry_javelinist_b", 
       "units/celt_infantry_javelinist_b", 
       "units/celt_infantry_spearman_b"
-    ]
+    ], 
+    "ResourceDropsite/Types": "food wood stone metal", 
+    "TerritoryInfluence/Radius": 100.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 80.0
   }, 
   "other/celt_hut": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 2.0, 
+    "Cost/Resources/wood": 50.0, 
     "Footprint/Square@depth": 18.0, 
     "Footprint/Square@width": 18.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 500.0, 
+    "Identity/Civ": "celt", 
+    "Identity/SpecificName": "Hut", 
     "Obstruction/Static@depth": 7.0, 
     "Obstruction/Static@width": 7.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/celt_longhouse": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 300.0, 
+    "Cost/PopulationBonus": 10.0, 
+    "Cost/Resources/stone": 100.0, 
+    "Cost/Resources/wood": 100.0, 
     "Footprint/Square@depth": 16.0, 
     "Footprint/Square@width": 12.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "celt", 
+    "Identity/SpecificName": "Longhouse", 
     "Obstruction/Static@depth": 14.0, 
     "Obstruction/Static@width": 10.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/column_doric": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 2.5, 
     "Footprint/Square@width": 2.5, 
     "Health/Max": 200.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Doric Column", 
     "Obstruction/Static@depth": 2.0, 
-    "Obstruction/Static@width": 2.0
+    "Obstruction/Static@width": 2.0, 
+    "Vision/Range": 4.0
   }, 
   "other/column_doric_fallen": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 12.5, 
     "Footprint/Square@width": 2.5, 
     "Health/Max": 200.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Fallen Doric Column", 
     "Obstruction/Static@depth": 12.0, 
-    "Obstruction/Static@width": 2.0
+    "Obstruction/Static@width": 2.0, 
+    "Vision/Range": 4.0
   }, 
   "other/column_doric_fallen_b": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 2.5, 
     "Footprint/Square@width": 2.5, 
     "Health/Max": 100.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Fallen Doric Column", 
     "Obstruction/Static@depth": 2.0, 
-    "Obstruction/Static@width": 2.0
+    "Obstruction/Static@width": 2.0, 
+    "Vision/Range": 4.0
   }, 
   "other/fence_long": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 13.0, 
     "Footprint/Square@width": 0.8, 
     "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Long Wooden Fence", 
     "Obstruction/Static@depth": 13.0, 
-    "Obstruction/Static@width": 0.8
+    "Obstruction/Static@width": 0.8, 
+    "Vision/Range": 4.0
   }, 
   "other/fence_short": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 6.5, 
     "Footprint/Square@width": 0.8, 
     "Health/Max": 50.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Short Wooden Fence", 
     "Obstruction/Static@depth": 6.5, 
-    "Obstruction/Static@width": 0.8
+    "Obstruction/Static@width": 0.8, 
+    "Vision/Range": 4.0
   }, 
   "other/fence_stone": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 11.0, 
     "Footprint/Square@width": 1.5, 
     "Health/Max": 200.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Stone Fence", 
     "Obstruction/Static@depth": 10.5, 
-    "Obstruction/Static@width": 1.0
+    "Obstruction/Static@width": 1.0, 
+    "Vision/Range": 4.0
   }, 
   "other/generic_field": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Resource", 
+      "Field"
+    ], 
+    "Cost/BuildTime": 100.0, 
+    "Cost/Resources/wood": 50.0, 
     "Footprint/Square@depth": 30.0, 
     "Footprint/Square@width": 30.0, 
     "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Wheat Field", 
     "Obstruction/Static@depth": 22.0, 
-    "Obstruction/Static@width": 22.0
+    "Obstruction/Static@width": 22.0, 
+    "ResourceSupply/Amount": Infinity, 
+    "ResourceSupply/Type": "food.grain", 
+    "Vision/Range": 4.0
   }, 
   "other/hellenic_epic_temple": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Town", 
+      "Temple"
+    ], 
+    "Cost/BuildTime": 500.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/metal": 500.0, 
+    "Cost/Resources/stone": 1000.0, 
     "Footprint/Square@depth": 58.0, 
     "Footprint/Square@width": 28.0, 
+    "GarrisonHolder/List": [
+      "Support", 
+      "Infantry", 
+      "Cavalry"
+    ], 
+    "GarrisonHolder/Max": 30.0, 
     "Health/Max": 5000.0, 
+    "Identity/Civ": "hele", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Naos Parthenos", 
     "Obstruction/Static@depth": 57.0, 
     "Obstruction/Static@width": 27.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_healer_b"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 60.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 80.0
   }, 
   "other/hellenic_propylaea": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic"
+    ], 
+    "Cost/BuildTime": 200.0, 
+    "Cost/PopulationBonus": 10.0, 
+    "Cost/Resources/metal": 200.0, 
+    "Cost/Resources/stone": 200.0, 
     "Footprint/Square@depth": 32.0, 
     "Footprint/Square@width": 28.0, 
     "Health/Max": 2000.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Propylaea", 
     "Obstruction/Static@depth": 30.0, 
-    "Obstruction/Static@width": 26.0
+    "Obstruction/Static@width": 26.0, 
+    "TerritoryInfluence/Radius": 40.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/hellenic_royal_stoa": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic"
+    ], 
+    "Cost/BuildTime": 150.0, 
+    "Cost/PopulationBonus": 10.0, 
+    "Cost/Resources/metal": 150.0, 
+    "Cost/Resources/stone": 100.0, 
     "Footprint/Square@depth": 21.0, 
     "Footprint/Square@width": 29.0, 
     "Health/Max": 1500.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Hellenic Royal Stoa", 
     "Obstruction/Static@depth": 20.0, 
     "Obstruction/Static@width": 28.0, 
     "ProductionQueue/Entities": [
       "units/mace_thureophoros", 
       "units/mace_thorakites", 
       "units/thrace_black_cloak"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 40.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 40.0
   }, 
   "other/hellenic_stoa": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic"
+    ], 
+    "Cost/BuildTime": 110.0, 
+    "Cost/PopulationBonus": 10.0, 
+    "Cost/Resources/metal": 100.0, 
+    "Cost/Resources/stone": 100.0, 
     "Footprint/Square@depth": 12.0, 
     "Footprint/Square@width": 28.0, 
     "Health/Max": 1100.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Hellenic Stoa", 
     "Obstruction/Static@depth": 10.5, 
-    "Obstruction/Static@width": 26.0
+    "Obstruction/Static@width": 26.0, 
+    "TerritoryInfluence/Radius": 36.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 40.0
   }, 
   "other/maur_palace": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "City", 
+      "SpecialBuilding"
+    ], 
+    "Cost/BuildTime": 200.0, 
+    "Cost/PopulationBonus": 10.0, 
+    "Cost/Resources/metal": 200.0, 
+    "Cost/Resources/stone": 200.0, 
     "Footprint/Square@depth": 16.0, 
     "Footprint/Square@width": 40.0, 
+    "GarrisonHolder/List": [
+      "Support", 
+      "Infantry", 
+      "Cavalry"
+    ], 
+    "GarrisonHolder/Max": 5.0, 
     "Health/Max": 2000.0, 
+    "Identity/Civ": "maur", 
+    "Identity/RequiredTechnology": "phase_city", 
+    "Identity/SpecificName": "Harmya", 
     "Obstruction/Static@depth": 12.0, 
     "Obstruction/Static@width": 36.0, 
     "ProductionQueue/Entities": [
@@ -156,271 +413,833 @@ var OTHER = {
       "units/maur_hero_chanakya", 
       "units/maur_hero_maurya", 
       "units/maur_hero_ashoka"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 38.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 40.0
   }, 
   "other/obelisk": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 4.5, 
     "Footprint/Square@width": 4.5, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Egyptian Obelisk", 
     "Obstruction/Static@depth": 4.0, 
-    "Obstruction/Static@width": 4.0
+    "Obstruction/Static@width": 4.0, 
+    "Vision/Range": 12.0
   }, 
   "other/palisades_angle_spike": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 8.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 1.0, 
     "Footprint/Square@width": 3.5, 
     "Health/Max": 500.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Palisade Angle Spike", 
     "Obstruction/Static@depth": 1.0, 
-    "Obstruction/Static@width": 3.5
+    "Obstruction/Static@width": 3.5, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_curve": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 12.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 8.5, 
     "Footprint/Square@width": 3.5, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Palisade Curve", 
     "Obstruction/Static@depth": 8.0, 
-    "Obstruction/Static@width": 3.0
+    "Obstruction/Static@width": 3.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_end": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 8.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 3.0, 
     "Footprint/Square@width": 1.5, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Palisade End", 
     "Obstruction/Static@depth": 3.0, 
-    "Obstruction/Static@width": 1.5
+    "Obstruction/Static@width": 1.5, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_fort": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Town", 
+      "DefenseTower", 
+      "Tower", 
+      "GarrisonTower", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 18.0, 
+    "Cost/Resources/stone": 100.0, 
+    "Cost/Resources/wood": 100.0, 
     "Footprint/Square@depth": 8.5, 
     "Footprint/Square@width": 9.5, 
+    "GarrisonHolder/List": [
+      "Support", 
+      "Infantry"
+    ], 
+    "GarrisonHolder/Max": 5.0, 
     "Health/Max": 2000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Palisade Fort", 
     "Obstruction/Static@depth": 7.5, 
-    "Obstruction/Static@width": 9.0
+    "Obstruction/Static@width": 9.0, 
+    "TerritoryInfluence/Radius": 32.0, 
+    "TerritoryInfluence/Weight": 30000.0, 
+    "Vision/Range": 80.0
   }, 
   "other/palisades_rocks_gate": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "StoneWall", 
+      "Gates", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 15.0, 
+    "Cost/Resources/stone": 60.0, 
+    "Cost/Resources/wood": 50.0, 
     "Footprint/Square@depth": 3.0, 
     "Footprint/Square@width": 16.0, 
-    "Health/Max": 1200.0
+    "Health/Max": 1200.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_village", 
+    "Identity/SpecificName": "Palisade Gate", 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 40.0
   }, 
   "other/palisades_rocks_long": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "LongWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 15.0, 
+    "Cost/Resources/stone": 30.0, 
+    "Cost/Resources/wood": 20.0, 
     "Footprint/Square@depth": 3.0, 
     "Footprint/Square@width": 15.0, 
+    "GarrisonHolder/List": [
+      "Ranged+Infantry"
+    ], 
+    "GarrisonHolder/Max": 5.0, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_village", 
+    "Identity/SpecificName": "Palisade", 
     "Obstruction/Static@depth": 2.0, 
-    "Obstruction/Static@width": 14.0
+    "Obstruction/Static@width": 14.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_medium": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 12.0, 
+    "Cost/Resources/stone": 30.0, 
+    "Cost/Resources/wood": 10.0, 
     "Footprint/Square@depth": 3.0, 
     "Footprint/Square@width": 11.0, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_village", 
+    "Identity/SpecificName": "Palisade", 
     "Obstruction/Static@depth": 2.0, 
-    "Obstruction/Static@width": 10.0
+    "Obstruction/Static@width": 10.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_outpost": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 18.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 6.0, 
     "Footprint/Square@width": 6.0, 
     "Health/Max": 2000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Outpost", 
     "Obstruction/Static@depth": 6.0, 
-    "Obstruction/Static@width": 6.0
+    "Obstruction/Static@width": 6.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_short": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 10.0, 
+    "Cost/Resources/stone": 30.0, 
+    "Cost/Resources/wood": 5.0, 
     "Footprint/Square@depth": 3.0, 
     "Footprint/Square@width": 5.5, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_village", 
+    "Identity/SpecificName": "Palisade", 
     "Obstruction/Static@depth": 2.0, 
-    "Obstruction/Static@width": 4.5
+    "Obstruction/Static@width": 4.5, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_straight": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 12.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 15.0, 
     "Footprint/Square@width": 3.0, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Palisade", 
     "Obstruction/Static@depth": 15.0, 
-    "Obstruction/Static@width": 3.0
+    "Obstruction/Static@width": 3.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_tower": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade", 
+      "Tower"
+    ], 
+    "Cost/BuildTime": 10.0, 
+    "Cost/Resources/stone": 30.0, 
+    "Cost/Resources/wood": 5.0, 
     "Footprint/Square@depth": 5.0, 
     "Footprint/Square@width": 5.0, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_village", 
+    "Identity/SpecificName": "Palisade", 
     "Obstruction/Static@depth": 4.0, 
-    "Obstruction/Static@width": 4.0
+    "Obstruction/Static@width": 4.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_rocks_watchtower": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade", 
+      "Tower"
+    ], 
+    "Cost/BuildTime": 18.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 5.0, 
     "Footprint/Square@width": 5.0, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Watchtower", 
     "Obstruction/Static@depth": 5.0, 
-    "Obstruction/Static@width": 5.0
+    "Obstruction/Static@width": 5.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_small_spikes": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 12.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 11.0, 
     "Footprint/Square@width": 3.0, 
     "Health/Max": 200.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Spikes Small", 
     "Obstruction/Static@depth": 11.0, 
-    "Obstruction/Static@width": 3.0
+    "Obstruction/Static@width": 3.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/palisades_tall_spikes": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Defensive", 
+      "Defensive", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Cost/BuildTime": 12.0, 
+    "Cost/Resources/stone": 30.0, 
     "Footprint/Square@depth": 11.0, 
     "Footprint/Square@width": 3.0, 
     "Health/Max": 500.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_town", 
+    "Identity/SpecificName": "Spikes Tall", 
     "Obstruction/Static@depth": 11.0, 
-    "Obstruction/Static@width": 3.0
+    "Obstruction/Static@width": 3.0, 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 65536.0, 
+    "Vision/Range": 20.0
   }, 
   "other/pers_apartment_block": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 15.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 14.0, 
     "Footprint/Square@width": 25.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 2000.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Apartment Block", 
     "Obstruction/Static@depth": 12.0, 
     "Obstruction/Static@width": 23.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 25.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/pers_house_a": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 14.0, 
     "Footprint/Square@width": 19.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 1000.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "House", 
     "Obstruction/Static@depth": 12.0, 
     "Obstruction/Static@width": 17.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/pers_house_b": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 10.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 14.0, 
     "Footprint/Square@width": 17.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 1200.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Inn", 
     "Obstruction/Static@depth": 12.0, 
     "Obstruction/Static@width": 15.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/pers_inn": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 15.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 17.0, 
     "Footprint/Square@width": 30.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 2500.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Inn", 
     "Obstruction/Static@depth": 15.0, 
     "Obstruction/Static@width": 28.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 26.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/pers_warehouse": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 26.0, 
     "Footprint/Square@width": 26.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 2000.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Warehouse", 
     "Obstruction/Static@depth": 24.0, 
     "Obstruction/Static@width": 24.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 30.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/plane": {
-    "Health/Max": 100.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 1.0, 
+    "Cost/Population": 1.0, 
+    "GarrisonHolder/List": [
+      "Support", 
+      "Infantry"
+    ], 
+    "GarrisonHolder/Max": 1.0, 
+    "Health/Max": 100.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "P-51 Mustang", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 15.0, 
+    "UnitMotion/WalkSpeed": 7.5, 
+    "Vision/Range": 100.0
   }, 
   "other/pyramid_great": {
+    "Classes": [], 
     "Footprint/Square@depth": 62.0, 
     "Footprint/Square@width": 62.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Great Pyramid", 
     "Obstruction/Static@depth": 59.0, 
-    "Obstruction/Static@width": 59.0
+    "Obstruction/Static@width": 59.0, 
+    "ResourceSupply/Amount": 10000.0, 
+    "ResourceSupply/Type": "stone.ruins", 
+    "Vision/Range": 72.0
   }, 
   "other/pyramid_minor": {
+    "Classes": [], 
     "Footprint/Square@depth": 38.0, 
     "Footprint/Square@width": 38.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Minor Pyramid", 
     "Obstruction/Static@depth": 34.0, 
-    "Obstruction/Static@width": 34.0
+    "Obstruction/Static@width": 34.0, 
+    "ResourceSupply/Amount": 5000.0, 
+    "ResourceSupply/Type": "stone.ruins", 
+    "Vision/Range": 40.0
   }, 
   "other/special_treasure_shipwreck": {
+    "Classes": [], 
     "Footprint/Square@depth": 10.0, 
     "Footprint/Square@width": 20.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Shipwreck", 
     "Obstruction/Static@depth": 10.0, 
-    "Obstruction/Static@width": 20.0
+    "Obstruction/Static@width": 20.0, 
+    "ResourceSupply/Amount": 500.0, 
+    "ResourceSupply/Type": "treasure.wood"
   }, 
   "other/special_treasure_shipwreck_debris": {
+    "Classes": [], 
     "Footprint/Square@depth": 2.0, 
     "Footprint/Square@width": 2.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Shipwreck Cargo", 
     "Obstruction/Static@depth": 7.0, 
-    "Obstruction/Static@width": 7.0
+    "Obstruction/Static@width": 7.0, 
+    "ResourceSupply/Amount": 200.0, 
+    "ResourceSupply/Type": "treasure.food"
   }, 
   "other/special_treasure_shipwreck_ram_bow": {
+    "Classes": [], 
     "Footprint/Square@depth": 11.0, 
     "Footprint/Square@width": 21.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Shipwreck", 
     "Obstruction/Static@depth": 11.0, 
-    "Obstruction/Static@width": 21.0
+    "Obstruction/Static@width": 21.0, 
+    "ResourceSupply/Amount": 550.0, 
+    "ResourceSupply/Type": "treasure.wood"
   }, 
   "other/special_treasure_shipwreck_sail_boat": {
+    "Classes": [], 
     "Footprint/Square@depth": 14.0, 
     "Footprint/Square@width": 7.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Shipwreck", 
     "Obstruction/Static@depth": 14.0, 
-    "Obstruction/Static@width": 8.0
+    "Obstruction/Static@width": 8.0, 
+    "ResourceSupply/Amount": 400.0, 
+    "ResourceSupply/Type": "treasure.wood"
   }, 
   "other/special_treasure_shipwreck_sail_boat_cut": {
+    "Classes": [], 
     "Footprint/Square@depth": 17.0, 
     "Footprint/Square@width": 9.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Shipwreck", 
     "Obstruction/Static@depth": 17.0, 
-    "Obstruction/Static@width": 9.0
+    "Obstruction/Static@width": 9.0, 
+    "ResourceSupply/Amount": 450.0, 
+    "ResourceSupply/Type": "treasure.wood"
   }, 
   "other/stall_big": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 11.0, 
     "Footprint/Square@width": 12.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 500.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Big stall", 
     "Obstruction/Static@depth": 9.0, 
     "Obstruction/Static@width": 10.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/stall_med": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 8.0, 
     "Footprint/Square@width": 15.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 500.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Medium stall", 
     "Obstruction/Static@depth": 6.0, 
     "Obstruction/Static@width": 13.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/stall_small_a": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 6.0, 
     "Footprint/Square@width": 6.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 500.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Small stall", 
     "Obstruction/Static@depth": 4.0, 
     "Obstruction/Static@width": 4.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/stall_small_b": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical", 
+      "Civic", 
+      "Village", 
+      "House"
+    ], 
+    "Cost/BuildTime": 30.0, 
+    "Cost/PopulationBonus": 5.0, 
+    "Cost/Resources/wood": 75.0, 
     "Footprint/Square@depth": 6.0, 
     "Footprint/Square@width": 6.0, 
+    "GarrisonHolder/List": [
+      "Support"
+    ], 
+    "GarrisonHolder/Max": 3.0, 
     "Health/Max": 500.0, 
+    "Identity/Civ": "pers", 
+    "Identity/SpecificName": "Small stall b", 
     "Obstruction/Static@depth": 4.0, 
     "Obstruction/Static@width": 4.0, 
     "ProductionQueue/Entities": [
       "units/{civ}_support_female_citizen_house"
-    ]
+    ], 
+    "TerritoryInfluence/Radius": 20.0, 
+    "TerritoryInfluence/Weight": 40000.0, 
+    "Vision/Range": 20.0
   }, 
   "other/table_rectangle": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 5.25, 
     "Footprint/Square@width": 4.0, 
     "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Rectangle Table", 
     "Obstruction/Static@depth": 4.75, 
-    "Obstruction/Static@width": 3.5
+    "Obstruction/Static@width": 3.5, 
+    "Vision/Range": 4.0
   }, 
   "other/table_square": {
+    "Classes": [
+      "Structure", 
+      "ConquestCritical"
+    ], 
+    "Cost/BuildTime": 10.0, 
     "Footprint/Square@depth": 4.5, 
     "Footprint/Square@width": 4.5, 
     "Health/Max": 100.0, 
+    "Identity/Civ": "gaia", 
+    "Identity/SpecificName": "Square Table", 
     "Obstruction/Static@depth": 4.0, 
-    "Obstruction/Static@width": 4.0
+    "Obstruction/Static@width": 4.0, 
+    "Vision/Range": 4.0
   }, 
   "other/temp_hele_isp_sword": {
-    "Health/Max": 110.0
+    "Builder/Entities": [
+      "structures/hele_gymnasion", 
+      "structures/hele_theatron", 
+      "structures/hele_prytaneion"
+    ], 
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Infantry", 
+      "Citizen", 
+      "Soldier", 
+      "CitizenSoldier", 
+      "Worker", 
+      "Organic", 
+      "Melee", 
+      "Spear"
+    ], 
+    "Cost/BuildTime": 12.0, 
+    "Cost/Population": 1.0, 
+    "Cost/Resources/food": 50.0, 
+    "Cost/Resources/wood": 60.0, 
+    "Health/Max": 110.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Hopl\u012b\u0301t\u0113s Hell\u0113nik\u00f3s", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 0.75, 
+    "UnitMotion/Run/Speed": 19.0, 
+    "UnitMotion/WalkSpeed": 7.0, 
+    "Vision/Range": 66.0
   }, 
   "other/temp_hele_super_infantry_p": {
-    "Health/Max": 130.0
+    "Classes": [
+      "Unit", 
+      "ConquestCritical", 
+      "Champion", 
+      "Soldier", 
+      "Organic", 
+      "Infantry", 
+      "Melee", 
+      "Sword"
+    ], 
+    "Cost/BuildTime": 13.0, 
+    "Cost/Population": 1.0, 
+    "Cost/Resources/food": 50.0, 
+    "Cost/Resources/metal": 80.0, 
+    "Health/Max": 130.0, 
+    "Identity/Civ": "hele", 
+    "Identity/RequiredTechnology": "phase_city", 
+    "Identity/SpecificName": "Spartiate with Xiphos", 
+    "Obstruction/Unit@radius": 0.8, 
+    "ResourceGatherer/BaseSpeed": 1.0, 
+    "UnitMotion/Run/Speed": 16.0, 
+    "UnitMotion/WalkSpeed": 8.0, 
+    "Vision/Range": 50.0
   }, 
   "other/unfinished_greek_temple": {
+    "Classes": [], 
     "Footprint/Square@depth": 31.5, 
     "Footprint/Square@width": 19.0, 
+    "Identity/Civ": "hele", 
+    "Identity/SpecificName": "Unfinished Greek Temple", 
     "Obstruction/Static@depth": 30.0, 
-    "Obstruction/Static@width": 17.5
+    "Obstruction/Static@width": 17.5, 
+    "ResourceSupply/Amount": 2000.0, 
+    "ResourceSupply/Type": "stone.ruins", 
+    "Vision/Range": 40.0
   }, 
-  "other/wallset_palisade": {}
+  "other/wallset_palisade": {
+    "Classes": [
+      "Town", 
+      "StoneWall", 
+      "Palisade"
+    ], 
+    "Identity/Civ": "gaia", 
+    "Identity/RequiredTechnology": "phase_village", 
+    "Identity/SpecificName": "Palisade"
+  }
 };

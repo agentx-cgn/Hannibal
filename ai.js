@@ -336,22 +336,33 @@ HANNIBAL = (function(H){
       }      
     },
     setNeighbors: function(neighbors, node) {
-
+      // TODO: game has always borders == walls....
       var 
         x = node.x,
         y = node.y,
         Z = this.size,
         grid = this.grid;
 
-      neighbors[0] = (x - 1 >= 0) ? grid[x-1][y] : null;
-      neighbors[1] = (x + 1 >= 0) ? grid[x+1][y] : null;
-      neighbors[2] = (y - 1 >= 0) ? grid[x][y-1] : null;
-      neighbors[3] = (y + 1 >= 0) ? grid[x][y+1] : null;
+      neighbors[0] = grid[x-1][y];
+      neighbors[1] = grid[x+1][y];
+      neighbors[2] = grid[x][y-1];
+      neighbors[3] = grid[x][y+1];
 
-      neighbors[4] = (y - 1 >= 0 && x - 1 >= 0) ? grid[x-1][y-1] : null;
-      neighbors[5] = (y + 1 <= Z && x - 1 >= 0) ? grid[x+1][y-1] : null;
-      neighbors[6] = (y - 1 >= 0 && x + 1 <= Z) ? grid[x-1][y+1] : null;
-      neighbors[7] = (y + 1 <= Z && x + 1 <= Z) ? grid[x+1][y+1] : null;
+      neighbors[4] = grid[x-1][y-1];
+      neighbors[5] = grid[x+1][y-1];
+      neighbors[6] = grid[x-1][y+1];
+      neighbors[7] = grid[x+1][y+1];
+
+
+      // neighbors[0] = (x - 1 >= 0) ? grid[x-1][y] : null;
+      // neighbors[1] = (x + 1  < Z) ? grid[x+1][y] : null;
+      // neighbors[2] = (y - 1 >= 0) ? grid[x][y-1] : null;
+      // neighbors[3] = (y + 1  < Z) ? grid[x][y+1] : null;
+
+      // neighbors[4] = (y - 1 >= 0 && x - 1 >= 0) ? grid[x-1][y-1] : null;
+      // neighbors[5] = (y + 1  < Z && x - 1 >= 0) ? grid[x+1][y-1] : null;
+      // neighbors[6] = (y - 1 >= 0 && x + 1  < Z) ? grid[x-1][y+1] : null;
+      // neighbors[7] = (y + 1  < Z && x + 1  < Z) ? grid[x+1][y+1] : null;
 
     }
 
@@ -372,8 +383,10 @@ HANNIBAL = (function(H){
     return path.reverse();
   }
 
+  // TODO: avoid array.push/pop
   function BinaryHeap(){
     this.content = [];
+    this.length  = 0;
   }
   
   BinaryHeap.prototype = {
@@ -382,8 +395,11 @@ HANNIBAL = (function(H){
     //   this.sinkDown(node.index);
     // },
     push: function(element) {
-      element.index = this.content.length;       
-      this.content.push(element);                // Add the new element to the end of the array.
+      // element.index = this.content.length;       
+      // this.content.push(element);                // Add the new element to the end of the array.
+      element.index = this.length;       
+      this.content[this.length] = element;                // Add the new element to the end of the array.
+      this.length += 1;
       this.sinkDown(element.index);              // Allow it to sink down.
     },
     pop: function() {
@@ -391,9 +407,13 @@ HANNIBAL = (function(H){
       var 
         content = this.content,
         result  = content[0],                    // Store the first element so we can return it later.
-        end     = content.pop();                 // Get the element at the end of the array.
+        // end     = content.pop();                 // Get the element at the end of the array.
+        end     = content[this.length -1]; //.pop();                 // Get the element at the end of the array.
 
-      if (content.length) {                      // If there are any elements left, put the end element 
+      this.length -= 1;
+
+      // if (content.length) {                      // If there are any elements left, put the end element 
+      if (this.length) {                      // If there are any elements left, put the end element 
         content[0] = end;                        // at the start, and let it bubble up.
         this.bubbleUp(0);
       }
@@ -406,9 +426,13 @@ HANNIBAL = (function(H){
       var 
         i = node.index,                  
         content = this.content,
-        end = content.pop();             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
+        // end = content.pop();             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
+        end = content[this.length -1];             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
 
-      if (i !== content.length - 1) {
+      this.length -= 1;
+
+      // if (i !== content.length - 1) {
+      if (i !== this.length - 1) {
         content[i] = end;
         if (end.f < node.f) {
           this.sinkDown(i);
@@ -449,7 +473,8 @@ HANNIBAL = (function(H){
       var 
         child2N, child1N, swap, child1Score,
         content   = this.content,
-        length    = content.length,
+        // length    = content.length,
+        length    = this.length,
         element   = content[n],
         elemScore = element.f;
 
@@ -538,19 +563,20 @@ HANNIBAL = (function(H){
       options = options || {};
 
       var 
+        i, currentNode, neighbor, gScore, beenVisited,
         openHeap    = new BinaryHeap(),
         heuristic   = options.heuristic || H.AI.AStar.heuristics.manhattan,
         closest     = options.closest || false,
         closestNode = start,
         visited     = [], 
         tweak       = options.algotweak || 3,
-        neighbors   = [null, null, null, null, null, null, null, null],
-        currentNode, neighbor, i, gScore, beenVisited;
+        neighbors   = [null, null, null, null, null, null, null, null];
 
       function neighborCost(node, neighbor){
 
         var length = (node.x !== neighbor.x && node.y !== neighbor.y ? 
-          1.4142135623730951 : 1 
+          // 1.4142135623730951 : 1 
+          1.01 : 1 
         );
 
         return (
@@ -559,6 +585,7 @@ HANNIBAL = (function(H){
           tweak === 3 ? length * neighbor.weight              :
           tweak === 4 ? (length -0.01) * neighbor.weight      :
           tweak === 5 ? (length -0.1)  * neighbor.weight      :
+          tweak === 6 ? (length -0.3)  * neighbor.weight      :
             3
         );
 
@@ -568,7 +595,8 @@ HANNIBAL = (function(H){
 
       openHeap.push(start);
 
-      while(openHeap.content.length) {
+      // while(openHeap.content.length) {
+      while(openHeap.length) {
         
         currentNode = openHeap.pop();            // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
         visited.push(currentNode);               // debug
@@ -589,7 +617,8 @@ HANNIBAL = (function(H){
           // if not a valid node to process, skip to next neighbor.
           // if (neighbor.closed || neighbor.isWall()) {continue;}
 
-          if (!neighbor || neighbor.closed || neighbor.weight === 0) {continue;}
+          // if (!neighbor || neighbor.closed || neighbor.weight === 0) {continue;}
+          if (neighbor.closed || neighbor.weight === 0) {continue;}
 
           // The g score is the shortest distance from start to current node.
           // We need to check if the path we have arrived at this neighbor 
@@ -644,91 +673,6 @@ HANNIBAL = (function(H){
     }
 
   };
-
-  H.Math = {
-
-    /**
-     * http://stackoverflow.com/questions/10962379/how-to-check-intersection-between-2-rotated-rectangles/12414951#12414951
-     * Helper function to determine whether there is an intersection between the two polygons described
-     * by the lists of vertices. Uses the Separating Axis Theorem
-     *
-     * @param a an array of connected points [{x:, y:}, {x:, y:},...] that form a closed polygon
-     * @param b an array of connected points [{x:, y:}, {x:, y:},...] that form a closed polygon
-     * @return true if there is any intersection between the 2 polygons, false otherwise
-     */
-
-    doPolygonsIntersect: function (a, b) {
-
-      var 
-        polygons = [a, b],
-        aLen = a.length, bLen = b.length, pLen, 
-        minA, maxA, projected, i, i1, j, minB, maxB,
-        polygon, i2, p1, p2, normX, normY; 
-
-      for (i = 0; i < polygons.length; i++) {
-
-        // for each polygon, look at each edge of the polygon, 
-        // and determine if it separates the two shapes
-
-        polygon = polygons[i];
-        pLen = polygon.length;
-
-        for (i1 = 0; i1 < pLen; i1++) {
-
-          // grab 2 vertices to create an edge
-
-          i2 = (i1 + 1) % pLen;
-          p1 = polygon[i1];
-          p2 = polygon[i2];
-
-          // find the line perpendicular to this edge
-          normX = p2.y - p1.y;
-          normY = p1.x - p2.x;
-
-          minA = maxA = undefined;
-
-          // for each vertex in the first shape, project it onto the line perpendicular to the edge
-          // and keep track of the min and max of these values
-          
-          for (j = 0; j < aLen; j++) {
-
-            projected = normX * a[j].x + normY * a[j].y;
-
-            minA = (minA === undefined || projected < minA) ? projected : minA;
-            maxA = (maxA === undefined || projected > maxA) ? projected : maxA;
-
-          }
-
-          minB = maxB = undefined;
-
-          // for each vertex in the second shape, project it onto the line perpendicular to the edge
-          // and keep track of the min and max of these values
-
-          for (j = 0; j < bLen; j++) {
-
-            projected = normX * b[j].x + normY * b[j].y;
-
-            minB = (minB === undefined || projected < minB) ? projected : minB;
-            maxB = (maxB === undefined || projected > maxB) ? projected : maxB;
-
-          }
-
-          // if there is no overlap between the projects, the edge we are looking at separates the two
-          // polygons, and we know there is no overlap
-
-          if (maxA < minB || maxB < minA) {
-            return false;
-          }
-
-        }
-      }
-
-      return true;
-
-    }
-
-  };
-
 
 
 return H; }(HANNIBAL));

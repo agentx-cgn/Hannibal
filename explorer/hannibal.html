@@ -92,6 +92,15 @@
     <!-- Trenner -->
     <div class="trenner topmgn"></div>
 
+  <!-- Error -->
+    <div class="error bar">
+      <span id="cError"></span>
+    </div>
+
+    <!-- Trenner -->
+    <div class="trenner"></div>
+
+
   <!-- Interface -->
     <div class="interface bar" >
     
@@ -287,34 +296,65 @@
                       <input type="checkbox" id="chkTerr"  checked="checked"><span class="chklabel">Terrain</span></input>
                       <input type="checkbox" id="chkVill"   checked="checked"><span class="chklabel">Village</span></input><br />
 
-                    <span class="chklabel" style="padding-left: 8px">Cost:</span>
-                      <input type="checkbox" id="chkCost"><span class="chklabel">Terrain</span></input>
-                      <input type="checkbox" id="chkTree"><span class="chklabel">Trees</span></input><br />
+                    <table id="tableRender" style="border-collapse: collapse">
+                      <tr>
+                        <td>
+                          <span class="chklabel" style="padding-left: 8px">Cost:</span>
+                        </td>
+                        <td>
+                          <input type="checkbox" id="chkCost"><span class="chklabel">Terrain</span></input>
+                        </td>
+                        <td>
+                          <input type="checkbox" id="chkTree"><span class="chklabel">Trees</span></input><br />
+                        </td>
+                       </tr>
+                      <tr>
+                        <td>
+                          <span class="chklabel" style="padding-left: 8px">Regions:</span>
+                        </td>
+                        <td>
+                          <input type="checkbox" id="chkRegw"><span class="chklabel">Water</span></input>
+                        </td>
+                        <td>
+                          <input type="checkbox" id="chkRegl"><span class="chklabel">Land</span></input><br />
+                        </td>
+                       </tr>
+                      <tr>
+                        <td>
+                          <span class="chklabel" style="padding-left: 8px">Obstructions:</span>
+                        </td>
+                        <td>
+                          <input type="checkbox" id="chkObLa"><span class="chklabel">Land</span></input>
+                        </td>
+                        <td>
+                          <input type="checkbox" id="chkObSh"><span class="chklabel">Shore</span></input><br />
+                        </td>
+                       </tr>
+                    </table>
 
-                    <span class="chklabel" style="padding-left: 8px">Regions:</span>
-                      <input type="checkbox" id="chkRegw"><span class="chklabel">Water</span></input>
-                      <input type="checkbox" id="chkRegl"><span class="chklabel">Land</span></input><br />
 
-                    <span class="chklabel" style="padding-left: 8px">Obstructions:</span>
-                      <input type="checkbox" id="chkObLa"  checked="checked"><span class="chklabel">Land</span></input>
-                      <input type="checkbox" id="chkObSh"><span class="chklabel">Shore</span></input><br />
 
                   </div>
 
                   <div style="margin-left: 8px">
 
-                    <ul class="tabber">
+                    <ul id="menutabberPathVill" class="tabber">
                       <li class="tabberitem">
-                        <a href="javascript:H.Display.activateTab('tabberPathVill', 'tabPath')">Pathfinder</a>
+                        <a href="javascript:H.Display.activateTab('tabberPathVill', 'tabPath')">P-Finder</a>
                       </li>
                       <li class="tabberitem">
                         <a href="javascript:H.Display.activateTab('tabberPathVill', 'tabVill')">Villages</a>
                       </li>
+                      <li class="tabberitem">
+                        <a href="javascript:H.Display.activateTab('tabberPathVill', 'tabActi')">Actions</a>
+                      </li>
                     </ul>
 
+                    <div class="trenner"></div>
                     <div id="tabberPathVill" >
 
                       <div id="tabPath" class="divTabber">
+
                         <div style="padding-left: 8px">
                           <span class="chklabel">Options:</span><br />
                             <input type="checkbox" id="chkPathDebug" checked="checked"><span class="chklabel">debug</span></input>
@@ -332,15 +372,14 @@
                           <input type="radio" name="chkHeur" id="chkPathEuc"  checked="checked" value="euclidian" ><span class="chklabel">Euclidian</span></input><br />
 
                           <span class="chklabel" style="padding-left: 8px">Tweak:</span>
-                            <select id="slcPathTweak">
-                              <option>1</option>
-                              <option>2</option>
-                              <option>3</option>
-                              <option>4</option>
-                              <option selected>5</option>
-                            </select>
-
-
+                          <select id="slcPathTweak">
+                            <option>1</option>
+                            <option>2</option>
+                            <option selected>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                            <option>6</option>
+                          </select>
                         </div>
 
                       </div>
@@ -349,51 +388,65 @@
 
                         <button id="btnVillTest1" onclick="H.Village.test1();">Test 1</button>     
                         <button id="btnVillTest2" onclick="H.Village.test2();">Test 2</button><br />
-                        <button id="btnVillClear" onclick="H.Village.clear();">Clear</button>     
+                        <button id="btnVillClear" onclick="H.Village.clear();">Clear</button><br />
+                        <span class="chklabel" style="padding-left: 8px">Player:</span>
+                        <select id="slcVillPlayer">
+                          <option selected>1</option>
+                          <option>2</option>
+                          <option>2</option>
+                          <option>4</option>
+                          <option>5</option>
+                          <option>6</option>
+                          <option>7</option>
+                          <option>8</option>
+                        </select>
 
                       </div>
+
+                      <div id="tabActi" class="divTabber">
+
+                        <div style="margin-left: 8px">
+                          <label for="slcClus" style="text-align: left;">Resources</label>
+                            <select id="slcClus">
+                              <option selected>trees</option>
+                              <option>units</option>
+                              <option>fruits</option>
+                              <option>metal</option>
+                              <option>stone</option>
+                              <option>ships</option>
+                              <option>structures</option>
+                            </select>
+                            <select id="slcKMeans">
+                              <option>1</option>
+                              <option>2</option>
+                              <option selected>3</option>
+                              <option>4</option>
+                              <option>8</option>
+                              <option>16</option>
+                              <option>32</option>
+                              <option>64</option>
+                            </select>
+                          <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.blitLayers();">Cluster</button>     
+                        </div>   
+                        <div style="margin-left: 8px;">
+                          <label for="slcPathStress" style="text-align: left;">Pathfinder</label>
+                            <select id="slcPathStress">
+                              <option >1</option>
+                              <option>10</option>
+                              <option selected>50</option>
+                              <option>100</option>
+                              <option>500</option>
+                              <option>1000</option>
+                            </select>
+                          <button id="btnPathStress" onclick="H.Maps.stressPath();">Stress</button>     
+                        </div>  
+
+                      </div>                    
+
                     </div>                    
 
-                    
-
                   </div>
-
-                  <div style="margin-left: 8px">
-                    <label for="slcClus" style="text-align: left;" class="uline">Actions</label>
-                      <select id="slcClus">
-                        <option selected>trees</option>
-                        <option>units</option>
-                        <option>fruits</option>
-                        <option>metal</option>
-                        <option>stone</option>
-                        <option>ships</option>
-                        <option>structures</option>
-                      </select>
-                      <select id="slcKMeans">
-                        <option>1</option>
-                        <option>2</option>
-                        <option selected>3</option>
-                        <option>4</option>
-                        <option>8</option>
-                        <option>16</option>
-                        <option>32</option>
-                        <option>64</option>
-                      </select>
-                    <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.blitLayers();">Cluster</button>     
-                  </div>   
-                  <div style="margin-left: 8px;">
-                    <label for="slcPathStress" style="text-align: left;">Pathfinder</label>
-                      <select id="slcPathStress">
-                        <option >1</option>
-                        <option>10</option>
-                        <option selected>50</option>
-                        <option>100</option>
-                        <option>500</option>
-                        <option>1000</option>
-                      </select>
-                    <button id="btnPathStress" onclick="H.Maps.stressPath();">Stress</button>     
-                  </div>                     
-                  <br />
+                   
                 </div>
               </div>
             <br />
@@ -459,14 +512,6 @@
 
       </div>
 
-    </div>
-
-    <!-- Trenner -->
-    <div class="trenner"></div>
-
-  <!-- Error -->
-    <div class="error bar">
-      <span id="cError"></span>
     </div>
 
     <!-- Trenner -->
@@ -562,6 +607,7 @@
       <script type="text/javascript" src="../htn-tree-operators.js"></script>
       <script type="text/javascript" src="../htn-planner.js"></script>
       <script type="text/javascript" src="../grids.js"></script>
+      <script type="text/javascript" src="../geometry.js"></script>
       <script type="text/javascript" src="../tools.js"></script>
       <script type="text/javascript" src="data/structures-json.export"></script>
       <script type="text/javascript" src="data/gaia-json.export"></script>
