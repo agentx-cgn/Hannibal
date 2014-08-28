@@ -575,8 +575,8 @@ HANNIBAL = (function(H){
       function neighborCost(node, neighbor){
 
         var length = (node.x !== neighbor.x && node.y !== neighbor.y ? 
-          // 1.4142135623730951 : 1 
-          1.01 : 1 
+          1.4142135623730951 : 1 
+          // 1.01 : 1 
         );
 
         return (

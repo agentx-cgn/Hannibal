@@ -71,19 +71,6 @@ HANNIBAL = (function(H){
     }
   }
 
-  function findPosXY(obj) {
-    var curleft = 0, curtop = 0;
-    if (obj.offsetParent) {
-      do {
-        curleft += obj.offsetLeft;
-        curtop  += obj.offsetTop;
-      } while ((obj = obj.offsetParent));
-      // return { x: curleft, y: curtop };
-      return [curleft, curtop];
-    }
-    return undefined;
-  }
-
   function runSequence (sequence, delay, cb){
     var pointer = 0, t0;
     (function tick(){
@@ -218,7 +205,7 @@ HANNIBAL = (function(H){
       if (!map || !H.Grids.regw){return;}
 
       var x, y, mouse = map.mouse, width = map.size -1, 
-          posCanvas = findPosXY(this),
+          posCanvas = H.Display.findPosXY(this),
           dynamic = !!$chkPathDyna.checked,
           doPath  = !!$chkPath.checked;
 
@@ -913,7 +900,9 @@ HANNIBAL = (function(H){
     },
     renderPath: function(){
 
-      var i, p, f = size / (map.size -1), min = 1e6, max = 0, c, score;
+      var 
+        i, p, c, f = size / (map.size -1), min = 1e6, max = 0, score,
+        doColor = false;
 
       ctxPath.clearRect(0, 0, size, size);
 
@@ -921,23 +910,25 @@ HANNIBAL = (function(H){
 
       if ($chkPathDebug.checked){
 
-        i = map.path.length;
-        while ((p = map.path[--i])){
-          min = p[score] < min ? p[score] : min;
-          max = p[score] > max ? p[score] : max;
+        if (doColor) {
+          i = map.path.length;
+          while ((p = map.path[--i])){
+            min = p[score] < min ? p[score] : min;
+            max = p[score] > max ? p[score] : max;
+          }
         }
 
         i = map.nodes.length;
         while ((p = map.nodes[--i])){
-          c = H.scale(p[score], min, max, 220, 20);
-          ctxPath.fillStyle = "rgba(255, " + ~~c + ", 0, 0.8";
+          ctxPath.fillStyle = ( doColor ? 
+            "rgba(255, " + H.scale(p[score], min, max, 220, 20) + ", 0, 0.8" : 
+            "rgba(255, 128, 0, 0.8"
+          );
           ctxPath.fillRect(p.x *f, p.y *f , 0.6 *f, 0.6 *f);
         }
       }
 
       ctxPath.fillStyle = "rgba(255, 255, 255, 1.0";
-
-
 
       i = map.path.length;
       while ((p = map.path[--i])){

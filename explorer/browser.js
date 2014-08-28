@@ -22,6 +22,7 @@ HANNIBAL = (function(H){
         'ECO':    function(){},
         'BLOCKS': function(){},
         'MAPS':   function(){H.setKeys("MAPS"); $("cvsMap").focus();},
+        'SIMU':   function(){H.setKeys("SIMU"); $("cvsSim").focus();},
         'TECH':   function(){self.result("divResult", H.Display.pritJSON(techTemplates)); return null;},
       },
       menus = {
@@ -37,9 +38,8 @@ HANNIBAL = (function(H){
     var map;
 
     switch (context){
-      case "MAPS" :
-        map = H.Maps.keymap();
-      break;
+      case "MAPS" : map = H.Maps.keymap(); break;
+      case "SIMU" : map = H.Simu.keymap(); break;
       default:
     }
 
@@ -107,6 +107,15 @@ HANNIBAL = (function(H){
         H.Display.trim($("txtTREEState"));
         H.Display.trim($("txtECOGoal"));
         H.Display.trim($("txtECOState"));
+
+        // SIMU
+
+        $("cvsSim").onclick = H.Simu.onclick;
+        $("cvsSim").onmousemove = H.Simu.onmousemove;
+
+        H.Display.activateTab("tabberSimu", "tabTerr");
+
+        // MAPS
 
         H.Maps.readMapList(function(html){
           $("slcMaps").innerHTML = html;  

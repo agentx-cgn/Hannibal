@@ -40,7 +40,28 @@ HANNIBAL = (function(H){
       square  = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]],
       square0 = [[-1,-1],[-1,1],[1,-1],[1,1]],
       square2 = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
-                 [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]];
+                 [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]],
+
+      grids = {
+        topo: null,           // if avail
+        pass: null,           // water, land, forbidden, shallow, steep
+        terr: null,           // internal terrain code
+        cost: null,           // pathinder cost arond water and hills
+        regw: null,           // connected regions on water
+        regl: null,           // connected regions on land
+        food: null,
+        wood: null,
+        stone: null,
+        metal: null,
+        terrain: null,       
+        territory: null,
+        passability: null,   // Uint16Array 
+        obstruction: null,   // Trees, Geology
+        landPass: null,
+        navalPass: null,
+        attacks: null,
+        scouting: null,
+      };
 
 
   function dump(name, grid, threshold){
@@ -123,31 +144,12 @@ HANNIBAL = (function(H){
   H.Grids = (function(){
 
     var 
-      self = {
-        topo: null,           // if avail
-        pass: null,           // water, land, forbidden, shallow, steep
-        terr: null,           // internal terrain code
-        cost: null,           // pathinder cost arond water and hills
-        regw: null,           // connected regions on water
-        regl: null,           // connected regions on land
-        food: null,
-        wood: null,
-        stone: null,
-        metal: null,
-        terrain: null,       
-        territory: null,
-        passability: null,   // Uint16Array 
-        obstruction: null,   // Trees, Geology
-        landPass: null,
-        navalPass: null,
-        attacks: null,
-        scouting: null,
-      },
+      self = {},
       isBrowser = false, topoBuffer, passImage;
 
-    H.extend(self, {
+    H.extend(self, grids, {
       center: center,
-      // register: function(name, grid){grids[name] = grid;},
+      register: function(name, grid){grids[name] = grid;},
       initExtern: function(size, buffer, image){
         isBrowser  = true;
         width      = self.width    = size; 
@@ -160,12 +162,18 @@ HANNIBAL = (function(H){
         passImage  = image;
       },
       init: function(){
+
         width     = self.width    = H.SharedScript.passabilityMap.width;
         height    = self.height   = H.SharedScript.passabilityMap.height;
         length    = self.length   = width * height;
         cellsize  = self.cellsize = H.GameState.cellSize;
         center[0] = ~~(width  / 2);
         center[1] = ~~(height / 2);
+
+        self.passability = gridFromMap(H.SharedScript.passabilityMap);
+        self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
+        self.attacks     = new H.Grid(width, height, 8);
+
         self.initMasks();  
         self.initTopo();  
         self.initPass();  

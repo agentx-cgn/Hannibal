@@ -71,6 +71,7 @@
           <li id="menTECH"      onclick="H.Browser.do('*;*;TECH');">TECH</li>
           <li id="menMMAP"      onclick="H.Browser.menu('MMAP');">MMAP</li>
           <li id="menMAPS"      onclick="H.Browser.do('*;*;MAPS;map');">MAPS</li>
+          <li id="menSIMU"      onclick="H.Browser.do('*;*;SIMU;sim');">SIM</li>
           <li id="menLOAD"      onclick="H.Browser.menu('LOAD');" style="float: right;" >rel</li>
           <li id="menTop"       onclick="H.Browser.menu('TOP');"  onmouseover="H.Browser.menu('TOP');" style="float: right;" 
           >top</li>
@@ -260,6 +261,88 @@
       <!-- MMAP-->
         <div class="MMAP panel">
         </div>
+
+      <!-- SIMU -->
+        <div class="SIMU left panel">
+
+          <label for="cvsSim" style="vertical-align: top">Map</label>
+          <div class="" style="position:relative; width: 512px; float:left">
+            <canvas id="cvsSim" width="512" height="512"></canvas>
+          </div>
+
+          <div class="" style="position:relative; width: 220px; overflow:hidden; padding-left: 4px;">
+
+            <textarea id="txtSIM" maxlength="1000" rows="7"></textarea>       
+
+            <div style="margin-left: 8px; margin-top: 4px">
+              <label for="txtSimuTerrain" style="text-align: left;" class="uline">Terrain</label>
+              <span id="txtSimuTerrain">[]</span><br />
+            </div>
+
+            <div>
+              <input type="checkbox" id="chkSimAnim"  checked="checked"><span class="chklabel">Animate</span></input>
+
+
+            </div>
+
+            <div style="margin-left: 8px">
+
+              <ul id="menutabberSimu" class="tabber">
+                <li class="tabberitem">
+                  <a href="javascript:H.Display.activateTab('tabberSimu', 'tabTerr')">Terrain</a>
+                </li>
+                <li class="tabberitem">
+                  <a href="javascript:H.Display.activateTab('tabberSimu', 'tabEnts')">Entities</a>
+                </li>
+                <li class="tabberitem">
+                  <a href="javascript:H.Display.activateTab('tabberSimu', 'tabComb')">Combat</a>
+                </li>
+              </ul>
+
+              <div class="trenner"></div>
+              <div id="tabberSimu" >
+
+                <div id="tabTerr" class="divTabber">
+
+                  <div style="padding-left: 8px">
+                    <span class="chklabel">Options:</span><br />
+                      <input type="checkbox" id="chkPathTree"><span class="chklabel">Tree cost</span></input><br />
+                  </div>
+
+                </div>
+
+                <div id="tabEnts" class="divTabber">
+
+                  <button id="btnSimuEntsTest" onclick="H.Simulation.test1();">Test 1</button>     
+
+                </div>
+
+                <div id="tabComb" class="divTabber">
+
+                  <div style="margin-left: 8px">
+                    <label for="slcClus" style="text-align: left;">Resources</label>
+                      <select id="slcClus">
+                        <option selected>trees</option>
+                        <option>units</option>
+                        <option>fruits</option>
+                        <option>metal</option>
+                        <option>stone</option>
+                        <option>ships</option>
+                        <option>structures</option>
+                      </select>
+                    <button id="btnKMeans" onclick="H.Maps.renderClus(); H.Maps.blitLayers();">Cluster</button>     
+                  </div>   
+
+                </div>                    
+
+              </div>                    
+
+            </div>
+
+          </div>
+
+        </div>
+
 
       <!-- MAPS -->
         <div class="MAPS left panel">
@@ -621,6 +704,8 @@
       <script type="text/javascript" src="browser.js"></script>
       <script type="text/javascript" src="maps.js"></script>
       <script type="text/javascript" src="village.js"></script>
+      <script type="text/javascript" src="simu.js"></script>
+      <script type="text/javascript" src="simulation.js"></script>
       <!-- // <script type="text/javascript" src="c.pretty.js"></script> -->
       
     <!--- Init -->

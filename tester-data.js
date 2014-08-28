@@ -1,1 +1,1 @@
-var TESTERDATA = {"map": "Savanna Ravine"};
+var TESTERDATA = {"map": "Arcadia 02"};

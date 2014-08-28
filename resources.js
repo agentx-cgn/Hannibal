@@ -52,7 +52,7 @@ HANNIBAL = (function(H){
       var ent = H.Entities[this.id];
       if (ent){
         this.position = ent.position();
-        this.found = !this.found ? H.Map.isOwnTerritory(this.position) ? true : false;
+        this.found = this.found ? true : H.Map.isOwnTerritory(this.position) ? true : false;
         this.supply = ent.resourceSupplyAmount();
       } else {
         this.consumed = true;
@@ -88,7 +88,7 @@ HANNIBAL = (function(H){
       };
 
     return {
-      boot: function(){return self = this;},
+      boot: function(){return (self = this);},
       init: function(){
 
         var res, type;

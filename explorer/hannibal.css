@@ -145,6 +145,18 @@ div.container {
 #slcNodes {width: 533px;}
 
 
+
+/* SIMU */ 
+
+#txtSIM {
+  margin-left: 8px;
+  margin-top: -1px;
+  width: 198px; 
+  font-size: 10px;
+}
+
+
+
 /*Mtabber*/
 
 #tabberPathVill{}
@@ -232,7 +244,7 @@ li.tabberitem a {
   margin-left: 16px;
 }
 
-#txtTerrain, #txtPass {
+#txtTerrain, #txtPass, #txtSimuTerrain {
   font-size: 10px;  
   padding-left: 4px;
   white-space: nowrap;

@@ -47,10 +47,23 @@ HANNIBAL = (function(H){
       ele.value = str;
     },
 
+    findPosXY: function (obj) {
+      var curleft = 0, curtop = 0;
+      if (obj.offsetParent) {
+        do {
+          curleft += obj.offsetLeft;
+          curtop  += obj.offsetTop;
+        } while ((obj = obj.offsetParent));
+        return [curleft, curtop];
+      }
+      return undefined;
+    },
 
     activateTab: function(tabCtrl, pageId) {
       var lis = $$("#menu" + tabCtrl + " li");
       var li = 0;
+      var obj = H[tabCtrl.slice(-4)] || null;
+      var token = pageId.slice(-4).toLowerCase();
       tabCtrl = $(tabCtrl);
       pageId  = $(pageId);
       for (var i = 0; i < tabCtrl.childNodes.length; i++) {
@@ -61,6 +74,9 @@ HANNIBAL = (function(H){
           li += 1;
           // console.log("activateTab", tabCtrl, pageId);
         }
+      }
+      if(obj && obj.tabActivate){
+        obj.tabActivate(token);
       }
     },
 
@@ -78,6 +94,17 @@ HANNIBAL = (function(H){
 
       H.Maps.load(map, function(){
         H.Display.boxSelect($("slcMaps"), map);
+      });
+
+    },
+    sim: function(simulation){
+
+      console.log("Display.sim:", simulation);
+
+      simulation = simulation || null;
+
+      H.Simu.load(simulation, function(){
+        // H.Display.boxSelect($("slcMaps"), map);
       });
 
     },
