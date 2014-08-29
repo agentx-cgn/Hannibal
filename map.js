@@ -305,8 +305,9 @@ HANNIBAL = (function(H){
         obstructionMap   = H.Map.createObstructionMap(0, template),
         friendlyTiles    = new H.API.Map(gs.sharedScript),
         alreadyHasHouses = false,
-        radius = 0, 
-        angle  = angle === undefined ? H.Config.angle : angle;
+        radius = 0;
+    
+    angle  = angle === undefined ? H.Config.angle : angle;
 
     deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
     

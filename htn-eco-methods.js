@@ -306,10 +306,10 @@ HANNIBAL = (function(H){
     return state;
   };
 
-  H.HTN.Economy.test = function(goal){
+  H.HTN.Economy.test = function(testgoal){
 
     var state = H.HTN.Economy.getCurState(),
-        goal  = new H.HTN.Helper.State(goal),
+        goal  = new H.HTN.Helper.State(testgoal),
         planner = new H.HTN.Planner({
           domain: H.HTN.Economy,
           verbose: 0

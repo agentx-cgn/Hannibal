@@ -61,8 +61,13 @@ HANNIBAL = (function(H){
 */
 
 
-  // if any of these evaluates to a string, it gets chatted
+  // if any of these evaluate to a string, it gets chatted
   sequences = {
+    'Forest Battle': {
+        '1': [() => "< - START: " + sequence + " - >"],
+        '2': [T.chat("huhu"), "chatted"], 
+      '241': [() => "< - FINIS: " + sequence + " - >"],
+    },
     'aitest08m': {
         '1': [() => "< - START: " + sequence + " - >"],
         '2': [T.chat("huhu"), "chatted"], 

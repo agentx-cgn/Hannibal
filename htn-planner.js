@@ -120,7 +120,7 @@ HANNIBAL = (function(H){
 
         exit = (
           // prefered outcome
-          !tasks.length                        ? [plan, state] :
+          !tasks.length                        ? [plan, state, undefined] :
           this.depth      > this.maxDepth      ? [plan, state, fmt("too deep ( %s )", this.depth)] : 
           this.iterations > this.maxIterations ? [plan, state, fmt("too many iterations ( %s )", this.iterations)] :
             null
@@ -139,7 +139,7 @@ HANNIBAL = (function(H){
 
         } else if (this.operators.hasOwnProperty(name)){
 
-          newstate = task[0](state.clone(), task[1], task[2], task[3]);
+          newstate = task[0](state.clone(), task[1] || undefined, task[2] || undefined, task[3] || undefined);
 
           if (newstate){
             this.log(2, () => "OP: " + pritt(task));
@@ -149,7 +149,7 @@ HANNIBAL = (function(H){
 
         } else if (this.methods.hasOwnProperty(name)){
 
-          subtasks = task[0](state, task[1], task[2], task[3]);
+          subtasks = task[0](state, task[1] || undefined, task[2] || undefined, task[3] || undefined);
 
           if (subtasks){
             this.log(2, () => "MT: " + pritt(task));
@@ -163,9 +163,9 @@ HANNIBAL = (function(H){
 
       return (
         // if task was valid 
-        depth > 1 ? [plan, state] : 
+        depth > 1 ? [plan, state, undefined] : 
         // if valid solution
-        plan  ? [plan, state] : 
+        plan  ? [plan, state, undefined] : 
         // first task not valid
         [plan, state, fmt("no solution for task: [%s, %s], depth: %s", name, tasks[0][1], depth)]
       );

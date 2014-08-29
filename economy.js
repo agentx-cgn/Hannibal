@@ -65,6 +65,14 @@ HANNIBAL = (function(H){
 
   }; 
 
+  function Trainer () {}
+  Trainer.prototype = {
+    constructor: Trainer,
+    init:  function(){},
+    queue: function(){},
+    listener: function(){},
+  };
+
   // Array with slightly different API
   H.Queue = (function(){
     var self, queue = [];

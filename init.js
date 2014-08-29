@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, deb, logObject */
+/*globals HANNIBAL, deb, logObject */
 
 /*--------------- I N I T -----------------------------------------------------
 
@@ -14,11 +14,23 @@
 
 HANNIBAL = (function(H){
 
+  var main;
 
-  H.intialize = function(){
+  function isShared (ent){
+    var klasses = ent.classes().map(String.toLowerCase);
+    return H.Config.data.sharedBuildingClasses.some(function(klass){
+      return (klasses.indexOf(klass) !== -1);
+    });
+  }
 
-    var cics = {}, nodesCics, main,
-        sani = H.saniTemplateName;
+
+  /*
+    Organize Villages by distance to CC
+  */
+
+  function organizeVillage(){
+
+    var cics = {}, nodesCics;
 
     function getMain(){
       var max = 0, cic;
@@ -28,21 +40,8 @@ HANNIBAL = (function(H){
       return ~~cic;
     }
 
-    function isShared (ent){
-      var klasses = ent.classes().map(String.toLowerCase);
-      return H.Config.data.sharedBuildingClasses.some(function(klass){
-        return (klasses.indexOf(klass) !== -1);
-      });
-    }
-
-
-    /*
-      Organize Villages by distance to CC
-    */
-
     // new H.HCQ(H.Bot.culture.store, "civcentre CONTAIN INGAME").execute("metadata", 5, 20, "ingame cc at init");
     // new H.HCQ(H.Bot.culture.store, "INGAME").execute("metadata", 5, 40, "ingame cc at init");
-
 
     nodesCics = H.QRY("civcentre CONTAIN INGAME").forEach(function(node){
       cics[node.id] = 0;
@@ -96,17 +95,19 @@ HANNIBAL = (function(H){
     });
 
 
-    /*
-      Connect plugins/groups to Buildings
-    */
+  }
+
+
+  /*
+    Connect plugins/groups to Buildings
+  */
+
+  function prepareMeta(){
 
     deb();
     deb("  INIT: setting operators for shared buildings and Main CC in metadata");
 
     H.each(H.Entities, function(id, ent){
-
-      var key  = ent._templateName,
-          name = sani(key) + "#" + id;
 
       if (ent.owner() === H.Bot.id){
 
@@ -141,9 +142,14 @@ HANNIBAL = (function(H){
     });
 
 
-    /*
-      Connect plugins/groups to Buildings
-    */
+  }
+
+
+  /*
+    Connect plugins/groups to Buildings
+  */
+
+  function appointOperators(){
 
     deb();
     deb("  INIT: appointing operators for structures");
@@ -156,13 +162,124 @@ HANNIBAL = (function(H){
     });
     deb("     I: --");
 
+  }
 
+  H.prepareTree = function(){
+
+    print ("++++++++++++++++++++++++++ " + H.GameState.playerData.civ + "\n");
+
+    var source = [].concat(H.attribs(H.Player.researchedTechs), H.attribs(H.SharedScript._techModifications[H.Bot.id])),
+        target = [];
+
+    function register (nameTpl) {
+
+      var tpl, typ;
+
+      nameTpl = nameTpl.replace(/\{civ\}/g, H.GameState.playerData.civ);
+
+      if (H.Templates[nameTpl]){
+        tpl = H.Templates[nameTpl];
+        typ = "enti";
+
+      } else if (H.SharedScript._techTemplates[nameTpl]) {
+        tpl = H.SharedScript._techTemplates[nameTpl];
+        typ = "tech";
+
+      } else {
+        print (H.format("no tpl: %s \n", nameTpl));
+
+      }
+
+      if (target.indexOf(nameTpl) === -1){
+
+        print (H.format("   reg: %s %s \n", typ, nameTpl));
+
+        target.push(nameTpl);
+
+        if(nameTpl.slice(-2) === "_b"){
+          register(nameTpl.slice(0, -2) + "_e");
+          register(nameTpl.slice(0, -2) + "_a");
+        }
+
+        // can research tech
+        if (tpl.ProductionQueue && tpl.ProductionQueue.Technologies && tpl.ProductionQueue.Technologies._string){
+          tpl.ProductionQueue.Technologies._string.split(" ").forEach(function(tech){
+            register(tech);
+          });
+        }
+
+        // can train ents
+        if (tpl.ProductionQueue && tpl.ProductionQueue.Entities && tpl.ProductionQueue.Entities._string){
+          tpl.ProductionQueue.Entities._string.split(" ").forEach(function(ent){
+            register(ent);
+          });
+        }
+
+        // can build structs
+        if (tpl.Builder && tpl.Builder.Entities && tpl.Builder.Entities._string){
+          tpl.Builder.Entities._string.split(" ").forEach(function(struc){
+            register(struc);
+          });
+        }
+
+        // needs tech
+        if (tpl.Identity && tpl.Identity.RequiredTechnology){
+          register(tpl.Identity.RequiredTechnology);
+        }
+
+        // is tech
+        if (tpl.supersedes){
+          register(tpl.supersedes);
+        }
+
+        if (tpl.bottom){
+          register(tpl.bottom);
+        }
+
+        if (tpl.top){
+          register(tpl.top);
+        }
+
+
+
+
+
+      } else {
+        // no duplicates
+        // print (H.format("      dup: %s \n", nameTpl));
+
+      }
+
+    }
+
+    H.each(H.Entities, function(id, ent){
+
+      if (ent.owner() === H.Bot.id){
+        source.push(ent._templateName);
+      }
+
+    });
+
+    source.forEach(function(tpln){
+      register(tpln);
+    });
+
+    print ("++++++++++++++++++++++++++ " + target.length + " \n");
+    H.Config.deb = 0;
+
+  };
+
+  H.intialize = function(){
+
+    organizeVillage();
+    prepareMeta();
+    appointOperators();
 
     /*
       Check
     */
 
-    // H.logIngames();
+    // new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
     H.Groups.log();
 
     /*
@@ -174,14 +291,6 @@ HANNIBAL = (function(H){
     return true;
 
   };
-
-  H.logIngames = function(){
-
-    new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
-  
-  };
-
-
 
 
 return H; }(HANNIBAL));

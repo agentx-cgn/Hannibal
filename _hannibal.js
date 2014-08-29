@@ -199,8 +199,6 @@ var HANNIBAL = (function() {
 
     this.logPlayers(ss.playersData);
 
-
-
     // more shortcuts
     H.Templates         = this.settings.templates;
     H.GameState         = gameState;
@@ -209,6 +207,7 @@ var HANNIBAL = (function() {
     H.Player            = sharedScript.playersData[this.id];
     H.Players           = sharedScript.playersData;
     H.MetaData          = sharedScript._entityMetadata[this.id];
+
 
     // deb(uneval(H.SharedScript.passabilityClasses));
     // pathfinderObstruction:1, foundationObstruction:2, 'building-land':4, 'building-shore':8, default:16, ship:32, unrestricted:64
@@ -224,6 +223,8 @@ var HANNIBAL = (function() {
     this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
     this.civilisations  = H.Config.data.civilisation;  // all ['athen', ...]
     
+    H.prepareTree();
+
     // init map, grids and related services
     H.Map.width         = sharedScript.passabilityMap.width;
     H.Map.height        = sharedScript.passabilityMap.height;
@@ -462,7 +463,7 @@ var HANNIBAL = (function() {
       H.Engine.chat("OnUpdate");
       H.Tester.OnUpdate();
     } else {
-      H.Engine.chat("no OnUpdate");
+      // H.Engine.chat("no OnUpdate");
     }
     
     // save events, even if not processing

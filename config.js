@@ -21,7 +21,8 @@ HANNIBAL = (function(H){
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester
-    sequence: "Arcadia 02",
+    // sequence: "Arcadia 02",
+    sequence: "Forest Battle",
 
     // enable psy-ops
     brag:     true,  

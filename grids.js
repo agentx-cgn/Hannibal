@@ -576,15 +576,8 @@ HANNIBAL = (function(H){
       var temp = [], target = new H.Grid(width, width, 8);
       boxBlur_4(this.data, temp, width, height, radius);
       target.data = new Uint8ClampedArray(temp);
-      return target;
+      // return target; // stupid SM
 
-      // source channel, target channel, width, height, radius
-      // function gaussBlur_4 (scl, tcl, w, h, r) {
-      //     var bxs = boxesForGauss(r, 3);
-      //     boxBlur_4 (scl, tcl, w, h, (bxs[0]-1)/2);
-      //     boxBlur_4 (tcl, scl, w, h, (bxs[1]-1)/2);
-      //     boxBlur_4 (scl, tcl, w, h, (bxs[2]-1)/2);
-      // }
       function boxBlur_4 (scl, tcl, w, h, r) {
           for(var i=0; i<scl.length; i++) {
             tcl[i] = scl[i];
@@ -645,49 +638,39 @@ HANNIBAL = (function(H){
           }
 
       }
-      // function boxesForGauss(sigma, n){  // standard deviation, number of boxes
-      //     var wIdeal = Math.sqrt((12*sigma*sigma/n)+1);  // Ideal averaging filter width 
-      //     var wl = Math.floor(wIdeal);  if(!wl%2) wl--;
-      //     var wu = wl+2;
-      //     var mIdeal = (12*sigma*sigma - n*wl*wl - 4*n*wl - 3*n)/(-4*wl - 4);
-      //     var m = Math.round(mIdeal);
-      //     // var sigmaActual = Math.sqrt( (m*wl*wl + (n-m)*wu*wu - n)/12 );
-      //     var sizes = [];  for(var i=0; i<n; i++) {
-      //       sizes.push(i<m?wl:wu);
-      //     }
-      //     return sizes;
-      // }
+
+      return target;
 
     },
-    searchSpiral: function (xs, ys, expression){
+    // searchSpiral: function (xs, ys, expression){
 
-      // http://stackoverflow.com/questions/3330181/algorithm-for-finding-nearest-object-on-2d-grid
+    //   // http://stackoverflow.com/questions/3330181/algorithm-for-finding-nearest-object-on-2d-grid
 
-      var d, x, y,
-          maxDistance = xs < width/2  ? width  - xs : xs,
-          checkIndex  = new Function("grid", "i", "return grid.data[i] " + expression + ";"),
-          checkPoint  = function(x, y){
-            if (x > 0 && y > 0 && x <= width && y <= height){
-              return checkIndex(this, x + y * width);
-            }
-          };
+    //   var d, x, y,
+    //       maxDistance = xs < width/2  ? width  - xs : xs,
+    //       checkIndex  = new Function("grid", "i", "return grid.data[i] " + expression + ";"),
+    //       checkPoint  = function(x, y){
+    //         if (x > 0 && y > 0 && x <= width && y <= height){
+    //           return checkIndex(this, x + y * width);
+    //         } else {return undefined;}
+    //       };
 
-      if (checkPoint(xs, ys)){return [xs, ys];}
+    //   if (checkPoint(xs, ys)){return [xs, ys];}
 
-      for (d = 0; d<maxDistance; d++){
-        for (x = xs-d; x < xs+d+1; x++){
-          // Point to check: (x, ys - d) and (x, ys + d) 
-          if (checkPoint(x, ys - d)){return [x, ys - d];}
-          if (checkPoint(x, ys + d)){return [x, ys - d];}
-        }
-        for (y = ys-d+1; y < ys+d; y++)          {
-          // Point to check = (xs - d, y) and (xs + d, y) 
-          if (checkPoint(x, ys - d)){return [xs - d, y];}
-          if (checkPoint(x, ys + d)){return [xs - d, y];}
-        }
-      }
+    //   for (d = 0; d<maxDistance; d++){
+    //     for (x = xs-d; x < xs+d+1; x++){
+    //       // Point to check: (x, ys - d) and (x, ys + d) 
+    //       if (checkPoint(x, ys - d)){return [x, ys - d];}
+    //       if (checkPoint(x, ys + d)){return [x, ys - d];}
+    //     }
+    //     for (y = ys-d+1; y < ys+d; y++)          {
+    //       // Point to check = (xs - d, y) and (xs + d, y) 
+    //       if (checkPoint(x, ys - d)){return [xs - d, y];}
+    //       if (checkPoint(x, ys + d)){return [xs - d, y];}
+    //     }
+    //   }
 
-    },
+    // },
     findBestTile: function(radius, obstruction){
       
       // Find the best non-obstructed tile

@@ -261,6 +261,7 @@ HANNIBAL = (function(H){
             deb(" ERROR: unknown resource: %s in mearest", generic);
 
         }
+        return undefined;
       },      
       update: function(generic){
 

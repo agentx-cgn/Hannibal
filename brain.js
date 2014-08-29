@@ -46,15 +46,21 @@ HANNIBAL = (function(H){
     metal:       [1, 100,   function(){}],   // percentage of cells with trees in known land
 
     // Diplomacy
+    players:     [2, 8,     function(){}],
     enemies:     [1, 7,     function(){}],
     allies:      [1, 7,     function(){}],
     
     population:  [1, 100,   function(){}],   // percentage of pop to popmax
 
+    // Civilisation
+    timeHouse:   [1, 100,   function(){}],   // time range from low to high to build a house
+    hasMobileDropsites: [0, 1,   function(){}],   // time range from low to high to build a house
+
   };
 
   H.Brain = {
-    init: function(){}
+    init: function(){},
+    dump: function(){},
 
   };
 
