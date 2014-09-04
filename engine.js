@@ -18,6 +18,8 @@ HANNIBAL = (function(H){
     return JSON.stringify(H.toArray(args).map(a => a.toString ? a.toString() : a));
   }
 
+  // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
+
   H.Engine = {
 
     quit:  function(){

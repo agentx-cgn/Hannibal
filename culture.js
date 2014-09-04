@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, deb, logObject */
+/*globals HANNIBAL, H, deb, logObject, uneval */
 
 /*--------------- C I V I L I S A T I O N  ------------------------------------
 
@@ -22,15 +22,18 @@ HANNIBAL = (function(H){
     this.debug = debug || 0;
 
     this.civ  = civ;
-    this.researchedTechnologies = H.attribs(H.Bot.playerData.researchedTechs);
+    // this.researchedTechnologies = H.attribs(H.Bot.playerData.researchedTechs);
 
     this.verbs = H.Data.verbs;
     this.store = new H.Store(civ);
     this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
 
+    // all templates building tech tree
+    this.templates = [ /* [depth, typ, nameTpl], ... */ ];
+
     // store nodes found in templates
     this.classes = [];
-    this.civilisations = []; // all
+    // this.civilisations = []; // all
     this.technologies = [];
     this.resources = [];
     this.resourcetypes = [];
@@ -52,78 +55,243 @@ HANNIBAL = (function(H){
         delete store.nodes[name].template;
         delete store.nodes[name].classes;
       });
-    },
-    loadTemplates: function(){
 
-      var self  = this, node, 
+      deb("     C: loaded [%s], verbs: %s, nodes: %s, edges: %s", this.civ, this.verbs.length, H.count(this.store.nodes), this.store.edges.length);
+
+    },
+    selectTemplates: function(dolog){
+
+      var 
+        templates = [].concat(
+          H.attribs(H.Player.researchedTechs), 
+          H.attribs(H.SharedScript._techModifications[H.Bot.id]),
+          H.attribs(H.Entities).filter(id => H.Entities[id].owner() === H.Bot.id).map(id => H.Entities[id]._templateName)
+        );
+
+      if(dolog){deb("++++++++++++++++++++++++++ " + this.civ);}
+      this.templates = this.expandTemplates(templates);
+      if (dolog){
+        this.templates
+          .sort((a, b) => a[0] > b[0])
+          .forEach(entry => deb("   reg: " + uneval(entry)));
+      }
+      if(dolog){deb("++++++++++++++++++++++++++ " + this.templates.length);}
+
+    },
+    expandTemplates: function(source){
+
+      var akku = [ /* [depth, typ, nameTpl], ... */ ], depth = 0, self = this;
+
+      function register (nameTpl, depth) {
+
+        var tpl, typ;
+
+        nameTpl = nameTpl.replace(/\{civ\}/g, self.civ);
+
+        if (H.Templates[nameTpl]){
+          tpl = H.Templates[nameTpl];
+          typ = "enti";
+
+        } else if (H.SharedScript._techTemplates[nameTpl]) {
+          tpl = H.SharedScript._techTemplates[nameTpl];
+          typ = "tech";
+
+        } else {
+          deb(" ERROR: no tpl: getTemplates: %s", nameTpl);
+
+        }
+
+        if (!akku.some(item => nameTpl === item[2])){
+
+          akku.push([depth, typ, nameTpl]);
+
+          if(nameTpl.slice(-2) === "_b"){
+            register(nameTpl.slice(0, -2) + "_e", ++depth);
+            register(nameTpl.slice(0, -2) + "_a", ++depth);
+          }
+
+          // can research tech
+          if (tpl.ProductionQueue && tpl.ProductionQueue.Technologies && tpl.ProductionQueue.Technologies._string){
+            tpl.ProductionQueue.Technologies._string.split(" ").forEach(function(tech){
+              register(tech, ++depth);
+            });
+          }
+
+          // can train ents
+          if (tpl.ProductionQueue && tpl.ProductionQueue.Entities && tpl.ProductionQueue.Entities._string){
+            tpl.ProductionQueue.Entities._string.split(" ").forEach(function(ent){
+              register(ent, ++depth);
+            });
+          }
+
+          // can build structs
+          if (tpl.Builder && tpl.Builder.Entities && tpl.Builder.Entities._string){
+            tpl.Builder.Entities._string.split(" ").forEach(function(struc){
+              register(struc, ++depth);
+            });
+          }
+
+          // needs tech
+          if (tpl.Identity && tpl.Identity.RequiredTechnology){
+            register(tpl.Identity.RequiredTechnology, ++depth);
+          }
+
+          // is tech
+          if (tpl.supersedes){register(tpl.supersedes, ++depth);}
+          if (tpl.bottom){register(tpl.bottom, ++depth);}
+          if (tpl.top){register(tpl.top, ++depth);}
+
+        } else {
+          // no duplicates
+          // print (H.format("      dup: %s \n", nameTpl));
+
+        }
+
+      }
+
+      source.forEach(function(tpln){
+        register(tpln, depth);
+      });
+
+      return akku;
+
+    },
+    loadNodes: function(){
+
+      var self  = this, node, name, tpln, template, 
           store = this.store, 
           sani  = this.saniTemplateName,
+          counter = 0,
+          counterTechs = 0,
+          counterEntis = 0,
           conf  = {
         'classes':        {deb: false, generic: "Class",         tooltip: "a class"},
         'resources':      {deb: false, generic: "Resource",      tooltip: "something to gather"},
         'resourcetypes':  {deb: false, generic: "ResourceType",  tooltip: "something to drop elsewhere"}
       };
 
-      // now load nodes collected above
+      // load nodes collected in readTemplates
       H.each(conf, function(type, conf){
 
-        var counter = 0, list = H.unique(self[type]).sort();
+        self[type].forEach(function(tpln){
 
-        list.forEach(function(key){
-
-          var name, template = {Identity: {GenericName: conf.generic, Tooltip: conf.tooltip}};
-
-          name = sani(key);
-
-          // if (type === "classes"){deb("class: %s", name);}
+          name = sani(tpln);
+          template = {Identity: {GenericName: conf.generic, Tooltip: conf.tooltip}};
 
           if (type === "classes" && H.Data.ClassInfo[name]){
             template.Tooltip = H.Data.ClassInfo[name];
           }
 
-          node = self.addNode(name, key, template);
-            
+          node = self.addNode(name, tpln, template);
           counter += 1;     
 
           if (conf.deb){deb("     C: Node added: %s for %s", name, type);}
 
         });
 
-        deb("     C: created %s/%s nodes for %s", H.tab(counter, 4), H.tab(list.length, 4),type);
+        deb("     C: created %s nodes for %s", H.tab(self[type].length, 4), type);
 
       });
 
-      this.loadEdges();
-      // this.ensureEdges();
+      // load nodes collected in selectTemplates
+      this.templates.forEach(function(tpla){
 
-      deb("     C: loaded civ: %s, verbs: %s, nodes: %s, edges: %s", this.civ, this.verbs.length, H.count(store.nodes), store.edges.length);
+        tpln = tpla[2];
+        name = sani(tpla[2]);
+
+        if (tpla[1] === "tech"){
+          template = H.Technologies[tpln];
+          counterTechs += 1;
+
+        } else if (tpla[1] === "enti"){
+          template = H.Templates[tpln];
+          counterEntis += 1;
+        }
+
+        node = self.addNode(name, tpln, template);
+
+      });
+
+      // deb("     C: loaded civ: %s, verbs: %s, nodes: %s, edges: %s", this.civ, this.verbs.length, H.count(store.nodes), store.edges.length);
+        deb("     C: created %s nodes for entities", H.tab(counterEntis, 4));
+        deb("     C: created %s nodes for technologies", H.tab(counterTechs, 4));
 
     },
-    ensureEdges: function(){
+    readTemplates: function(){
 
-      var store = this.store, nodeTarget;
+      // search for classes, resources and resourcetypes
 
-      H.each(store.nodes, function(name, nodeSource){
-        if (name.contains("structures.") && name.contains(".house")){
-          nodeTarget = store.nodes["house"];
-          deb("     C: ensuring class %s for %s, have %s nodes", nodeTarget.name, name, store.nodes.length);
-          store.addEdge(nodeSource, "member",  nodeTarget);
-          store.addEdge(nodeTarget, "contain", nodeSource);          
-          deb("     C: ensured class %s for %s", nodeTarget.name, name);
+      var self = this;
+
+      this.templates.forEach(function(tpla){
+
+        var
+          key  = tpla[2],
+          name = H.saniTemplateName(key),
+          tpl  = H.Templates[key] ? H.Templates[key] : null,
+          list;
+
+        if (tpl){
+
+          // self.addNode(name, key, tpl);
+
+          // classes
+          if (tpl.Identity && tpl.Identity.VisibleClasses){
+            list = tpl.Identity.VisibleClasses._string.toLowerCase();
+            list = H.replace(list, "\n", " ");
+            list.split(" ")
+              .filter(klass => !!klass)
+              .filter(klass => klass[0] !== "-")
+              .forEach(klass => self.classes.push(klass));
+          }
+
+          if (tpl.Identity && tpl.Identity.Classes){
+            list = tpl.Identity.Classes._string.toLowerCase();
+            list = H.replace(list, "\n", " ");
+            list.split(" ")
+              .filter(klass => !!klass)
+              .filter(klass => klass[0] !== "-")
+              .forEach(klass => self.classes.push(klass));
+          }
+
+          // more classes
+          if (tpl.GarrisonHolder && tpl.GarrisonHolder.List){
+            tpl.GarrisonHolder.List._string.split(" ").forEach(function(klass){
+              self.classes.push(klass.toLowerCase());
+            });
+          }
+
+          // resources [wood.ruins]
+          if (tpl.ResourceSupply && tpl.ResourceSupply.Type){
+            self.resources.push(tpl.ResourceSupply.Type);
+          }
+          
+          if (tpl.ResourceGatherer && tpl.ResourceGatherer.Rates){
+            H.attribs(tpl.ResourceGatherer.Rates).forEach(function(resource){
+              self.resources.push(resource);
+            });
+          }
+
+          // resources type
+          if (tpl.ResourceDropsite && tpl.ResourceDropsite.Types){
+            tpl.ResourceDropsite.Types.split(" ").forEach(function(type){
+              self.resourcetypes.push(type);
+            });
+          }
+
         }
+
       });
+
+      this.classes = H.unique(this.classes.sort());
+      this.resources = H.unique(this.resources.sort());
+      this.resourcetypes = H.unique(this.resourcetypes.sort());
 
     },
     loadEntities: function(){
 
       var self = this, targetNodes = [], cntNodes = 0, cntEdges = 0,
-          sani = this.saniTemplateName,
-          isShared = function(ent){
-            var klasses = ent.classes().map(String.toLowerCase);
-            return H.Config.data.sharedBuildingClasses.some(function(klass){
-              return (klasses.indexOf(klass) !== -1);
-            });
-          };
+          sani = this.saniTemplateName;
 
       deb();
       deb("     C: loadEntities from game: %s total", H.count(H.Entities));
@@ -134,8 +302,6 @@ HANNIBAL = (function(H){
             name = sani(key) + "#" + id;
 
         if (ent.owner() === H.Bot.id){
-
-           // deb("     C: own: %s, name: %s", ent.owner(), name);
 
           targetNodes.push(self.addNode(name, key, ent._template, +id));
           cntNodes += 1;
@@ -151,10 +317,8 @@ HANNIBAL = (function(H){
         var nodeSourceName = nodeTarget.name.split("#")[0],
             nodeSource = H.Bot.culture.store.nodes[nodeSourceName];
 
-        if (!nodeSource){deb("ERROR : loadEntities nodeSource: %s", nodeSourceName)};
-        if (!nodeTarget){deb("ERROR : loadEntities nodeTarget: %s", nodeTarget.name)};
-
-        // deb("     C: nodeSourceName: %s", nodeSourceName);
+        if (!nodeSource){deb("ERROR : loadEntities nodeSource: %s", nodeSourceName);}
+        if (!nodeTarget){deb("ERROR : loadEntities nodeTarget: %s", nodeTarget.name);}
 
         self.store.addEdge(nodeSource, "ingame",      nodeTarget);
         self.store.addEdge(nodeTarget, "describedby", nodeSource);
@@ -163,141 +327,6 @@ HANNIBAL = (function(H){
       });
 
       deb("     C: created %s edges for game entities", H.tab(cntEdges, 4));      
-
-    },
-    loadTechTemplates: function(){
-
-      // http://trac.wildfiregames.com/wiki/Technology_Templates
-
-      var self = this, counter = 0, cntAll = H.unique(this.technologies).length,
-          templs = H.SharedScript._techTemplates;
-
-      H.unique(this.technologies).sort().forEach(function(key){
-
-        if(templs[key]){
-          self.loadTechTemplate(key);
-          counter += 1;
-
-        } else {
-          deb("ERROR : tech: %s not in templates: %s", key);
-        }
-
-      });
-
-      deb("     C: loaded  %s/%s technolgies & pairs", H.tab(counter, 4), H.tab(cntAll, 4));
-
-    },    
-    loadTechTemplate: function(nameTemplate, depth){
-
-      // loads tech tree recursive 
-
-      var nameSource, nameTarget, nodeSource, nodeTarget,
-          tpls  = H.SharedScript._techTemplates,
-          tpl   = tpls[nameTemplate],
-          store = this.store,
-          sani  = this.saniTemplateName, prit = H.prettify,
-          deb   = (this.debug > 0) ? deb : H.FNULL;
-
-      depth = depth || "";
-
-      deb("     C: %s found tech: %s", depth, nameTemplate);
-
-      nameSource = sani(nameTemplate);
-      nodeSource = store.nodes[nameSource];
-
-      if (!nodeSource){
-        deb("     C:     %s addNode: %s", depth, nameTemplate);
-        this.addNode(nameSource, nameTemplate, tpl);
-      }
-
-      if (tpl.supersedes){
-
-        deb("     C:     %s %s supersedes %s", depth, nameTemplate, prit(tpl.supersedes));
-
-        nameTarget = sani(tpl.supersedes);
-        nodeTarget = store.nodes[nameTarget];
-
-        if (!nodeTarget){
-          this.loadTechTemplate(tpl.supersedes, depth + "  ");
-        }
-        
-        if (nodeSource && nodeTarget) {
-          store.addEdge(nodeSource, 'supersede',    nodeTarget);
-          store.addEdge(nodeTarget, 'supersededby', nodeSource);
-        } else {
-          deb("     C:     %s supersedes techs not found: source: %s, target: %s", depth, nameSource, nameTarget);
-
-        }
-
-      }
-
-      if (tpl.bottom || tpl.top){
-
-        deb("     C:     %s %s pairs top: %s, bottom: %s", depth, nameTemplate, tpl.top, tpl.bottom);
-
-        nameTarget = sani(tpl.top);
-        nodeTarget = store.nodes[nameTarget];
-
-        if (!nodeTarget){
-          this.loadTechTemplate(tpl.top, depth + "  ");
-        }
-
-        nameTarget = sani(tpl.bottom);
-        nodeTarget = store.nodes[nameTarget];
-
-        if (!nodeTarget){
-          this.loadTechTemplate(tpl.bottom, depth + "  ");
-        }
-
-        nodeTarget = store.nodes[sani(tpl.top)];
-
-        if (nodeSource && nodeTarget){
-          store.addEdge(nodeSource, 'pair',     nodeTarget);
-          store.addEdge(nodeTarget, 'pairedby', nodeSource);
-        } else {
-          deb("     C:     %s pair techs not found: source: %s, top: %s", depth, nameSource, nodeTarget.name);
-        }
-
-        nodeTarget = store.nodes[sani(tpl.bottom)];
-
-        if (nodeSource && nodeTarget){
-          store.addEdge(nodeSource, 'pair',     nodeTarget);
-          store.addEdge(nodeTarget, 'pairedby', nodeSource);
-        } else {
-          deb("     C:     %s pair techs not found: source: %s, bottom: %s", depth, nameSource, nodeTarget.name);
-        }
-
-      }
-
-
-
-    },
-    loadTechnologies: function(){
-
-      var store = this.store, self = this,
-          techs = H.Player.researchedTechs,
-          sani  = this.saniTemplateName,
-          counter = 0, nameSource, nameTarget, nodeSource, nodeTarget, names = [];
-
-      H.each(techs, function(key, tech){
-
-        nameTarget = sani(key);
-
-        nameSource = H.format("%s#T", nameTarget);
-        names.push(nameTarget);
-
-        nodeTarget = store.nodes[nameTarget];
-        nodeSource = self.addNode(nameSource, key, tech);
-        
-        store.addEdge(nodeSource, "techdescribedby", nodeTarget);
-        store.addEdge(nodeTarget, "techingame",      nodeSource);
-        
-        counter += 1;
-
-      });
-
-      deb("     C: loaded %s nodes %s edges as tech: [%s]", H.tab(counter, 4), counter*2, names);  
-
 
     },
     loadById: function(id){
@@ -419,147 +448,6 @@ HANNIBAL = (function(H){
       return node;
 
     },    
-    loadDataNodes: function(){
-
-      var self = this, counter = 0,
-          rootNodes = H.Data.RootNodes();
-
-      H.each(rootNodes['*'], function(name, data){
-        if (H.Templates[data.key]){
-          // deb("     C: enhanced root node: %s", data.key);
-          self.addNode(name, data.key, H.Templates[data.key]);
-        } else {
-          self.addNode(name, data.key, data.template);
-        }
-        counter += 1;      
-      });
-
-      deb("     C: loaded %s root nodes from data: *", H.tab(counter, 4));    
-
-      counter = 0;
-
-      if (rootNodes[this.civ]){
-        H.each(rootNodes[this.civ], function(name, data){
-          if (H.Templates[data.key]){
-            // deb("     C: enhanced root node: %s", data.key);
-            self.addNode(name, data.key, H.Templates[data.key]);
-          } else {
-            self.addNode(name, data.key, data.template);
-          }
-          counter += 1;     
-        });
-      }
-
-      deb("     C: loaded %s root nodes from civ:%s", H.tab(counter, 4), this.civ);    
-
-    },
-    readTemplates: function(){
-
-      var self      = this, 
-          msg       = "",
-          cntNodes  = 0,
-          cntThis   = {},
-          cntAll    = H.count(H.Templates);
-
-      // deb("**");
-      // deb("**");
-      // deb(" CIVIC: reading %s templates", cntTpls);
-
-      H.each(H.Templates, function(key, tpl){
-
-        var tokens = [key.split("/")[0]].concat(key.split("/")[1].split("_")),
-            name   = tokens.join("."),
-            civ    = (tpl.Identity && tpl.Identity.Civ) ? tpl.Identity.Civ : "nociv",
-            list;
-
-        civ = civ.toLowerCase();
-        cntThis[civ] = (cntThis[civ] === undefined) ? 1 : ++cntThis[civ];
-
-        if (civ === self.civ){
-
-          self.addNode(name, key, tpl);
-          cntNodes += 1;
-
-          // classes
-          if (tpl.Identity && tpl.Identity.VisibleClasses){
-            list = tpl.Identity.VisibleClasses._string.toLowerCase();
-            list = H.replace(list, "\n", " ")
-            list.split(" ")
-              .filter(klass => !!klass)
-              .filter(klass => klass[0] !== "-")
-              .forEach(klass => self.classes.push(klass));
-          }
-
-          if (tpl.Identity && tpl.Identity.Classes){
-            list = tpl.Identity.Classes._string.toLowerCase();
-            list = H.replace(list, "\n", " ")
-            list.split(" ")
-              .filter(klass => !!klass)
-              .filter(klass => klass[0] !== "-")
-              .forEach(klass => self.classes.push(klass));
-          }
-
-          // research tech
-          if (tpl.ProductionQueue && tpl.ProductionQueue.Technologies && tpl.ProductionQueue.Technologies._string){
-            tpl.ProductionQueue.Technologies._string.split(" ").forEach(function(tech){
-              self.technologies.push(tech);
-            });
-          }
-          if (tpl.Identity && tpl.Identity.RequiredTechnology){
-            self.technologies.push(tpl.Identity.RequiredTechnology);
-          }
-
-          // resources [wood.ruins]
-          if (tpl.ResourceSupply && tpl.ResourceSupply.Type){
-            self.resources.push(tpl.ResourceSupply.Type);
-          }
-          
-          if (tpl.ResourceGatherer && tpl.ResourceGatherer.Rates){
-            H.attribs(tpl.ResourceGatherer.Rates).forEach(function(resource){
-              self.resources.push(resource);
-            });
-          }
-
-          // resources type
-          if (tpl.ResourceDropsite && tpl.ResourceDropsite.Types){
-            tpl.ResourceDropsite.Types.split(" ").forEach(function(type){
-              self.resourcetypes.push(type);
-            });
-          }
-
-          // deb("     C: read %s nodes for %s", cntThis[civ], civ);
-
-        }
-
-      });
-
-      // H.unique(self.resourcetypes).sort().forEach(function(c){
-      //   deb("     C: found resourcetypes: %s", c.toLowerCase());
-      // });    
-      // H.unique(self.resources).sort().forEach(function(c){
-      //   deb("     C: found resources: %s", c.toLowerCase());
-      // });    
-      // H.unique(self.technologies).sort().forEach(function(c){
-      //   deb("     C: found technology: %s", c.toLowerCase());
-      // });    
-      // H.unique(self.classes).sort().forEach(function(c){
-      //   deb("     C: found class: %s", c.toLowerCase());
-      // });
-
-      H.attribs(cntThis).sort().forEach(function(civ){
-        if (self.civ === civ){
-          deb("     C: found   %s/%s nodes for %s", H.tab(cntThis[civ], 4), H.tab(cntAll, 4), civ);
-        } else {
-          msg += H.format("%s(%s), ", civ, cntThis[civ]);
-        }
-      });
-      // deb("     C: ignored: %s", msg);
-      deb("     C: created %s/%s nodes for entities", H.tab(cntNodes, 4), H.tab(cntAll, 4));
-
-
-
-    },
-
     logNode: function(node){
       deb("    %s", node.name);
       deb("      : key  %s", node.key);
@@ -572,9 +460,6 @@ HANNIBAL = (function(H){
       if (node.capacity){deb("      :   capacity: %s", node.capacity);}
       if (node.requires){deb("      :   requires: %s", node.requires);}
     },
-    // getId: function(name){
-    //   return name.split("#")[1] || undefined;
-    // },
     getAttack: function(template){
 
       // var ta = template.attack;
@@ -642,17 +527,6 @@ HANNIBAL = (function(H){
       }
       return type.join("|");
     },
-    // getClasses: function(template){
-    //   var classes = "";
-    //   if (template.Identity !== undefined && template.Identity.Classes){
-    //     if (template.Identity.Classes._string){
-    //       classes = H.replace(template.Identity.Classes._string.toLowerCase(), "\n", " ");
-    //       classes = classes.split(" ").filter(function(s){return !!s;});
-    //       // classes = classes.map(function(s){return s.toLowerCase();});
-    //     }
-    //   }
-    //   return classes.length ? classes : undefined;
-    // }, 
     getInfo: function(t){
       var tip;
       if (t.Identity !== undefined){
@@ -784,7 +658,7 @@ HANNIBAL = (function(H){
           tc = template.cost; // tech
       if (TC !== undefined){
         has = true;
-        costs.population = ~~TC.Population || -~~TC.PopulationBonus || 0
+        costs.population = ~~TC.Population || -~~TC.PopulationBonus || 0;
         // if (TC.Population)       {costs.population =  ~~TC.Population;} 
         // if (TC.PopulationBonus)  {costs.population = -~~TC.PopulationBonus;} 
         if (TC.BuildTime)        {costs.time       =  ~~TC.BuildTime;}
@@ -844,6 +718,15 @@ HANNIBAL = (function(H){
       // Entities member classes
 
       var sani = this.saniTemplateName;
+
+      this.createEdges("supersede", "supersededby", "a tech order",
+        function test(node){
+          return !!node.template.supersedes;
+        }, 
+        function target(node){
+          return [sani(node.template.supersedes)];
+        }, false
+      );
 
       this.createEdges("pair", "pairedby", "pair pairs two techs",
         function test(node){

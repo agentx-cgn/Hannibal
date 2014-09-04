@@ -161,7 +161,7 @@ HANNIBAL = (function(H){
         self = this; 
         if (TESTERDATA !== undefined){
           H.each(TESTERDATA, function(attr, value){
-            deb("TESTER: %s : %s", attr, value)
+            deb("tester: %s : %s", attr, value)
             if (attr.slice(0,2) === "On"){
               self[attr] = new Function(value);
             } else {

@@ -34,16 +34,16 @@ HANNIBAL = (function(H){
     stack: H.map(ress, H.createRingBuffer.bind(null, config.stack)), // last x stock vals
     tick: function(){
 
-      var t0 = Date.now(), curHits = 0, maxHits = 0, 
+      var t0 = Date.now(), curHits = 1, maxHits = 1, 
           stock   = H.Stats.stock, 
           stack   = H.Stats.stack, 
           trend   = H.Stats.trend, 
           ctx     = H.Context;
           
-      ctx.lstUnits.forEach(function(unit){
-        curHits += unit.hitpoints();
-        maxHits += unit.maxHitpoints();
-      });    
+      // ctx.lstUnits.forEach(function(unit){
+      //   curHits += unit.hitpoints();
+      //   maxHits += unit.maxHitpoints();
+      // });    
 
       stock.food   = H.GameState.playerData.resourceCounts.food;
       stock.wood   = H.GameState.playerData.resourceCounts.wood;

@@ -30,12 +30,14 @@ HANNIBAL = (function(H){
     "RangeUpdate",
     "PlayerDefeated"
   ],
-  msgTick  = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s",
-  createEvents  = {},
-  destroyEvents = {};
+  msgTick         = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s",
+  createEvents    = {},
+  destroyEvents   = {},
+  researchedTechs = [];
 
-
-  H.Dispatcher = {};
+  H.Dispatcher = {
+    onAdvance: [],     // on new technologies
+  };
   
 
   function logDispatcher(){
@@ -71,6 +73,7 @@ HANNIBAL = (function(H){
         packs = [];
         createEvents = {};
         destroyEvents = {};
+        this.processTechs();
         return Date.now() - t0;
       },
       logTick: function(events){
@@ -79,6 +82,19 @@ HANNIBAL = (function(H){
         if (sum){
           deb.apply(null, [msgTick].concat(lengths));
         }
+      },
+      processTechs: function() {
+
+        H.each(H.Player.researchedTechs, function(name, tech){
+
+          if (researchedTechs.indexOf(name) === -1){
+            deb(" EVENT: onAdvance %s, %s", name, uneval(tech));
+            self.dispatchEvent("onAdvance", name, tech);
+            researchedTechs.push(name);
+          }
+
+        });
+
       },
       dispatchEvent: function(type, id, event) {
 

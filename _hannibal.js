@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, print, logObject, logError, debug */
+/*globals Engine, API3, deb, print, logObject, logError, TESTERDATA */
 
 /*--------------- H A N N I B A L  --------------------------------------------
 
@@ -20,11 +20,9 @@
 // very first line, enjoy
 var TIMESTART = Date.now();
 print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---\n");
-print("#! xdotool init\n")
+print("#! xdotool init\n");
 
 Engine.IncludeModule("common-api");
-
-// Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
 
 // global === this ???
 // for (var p in this){
@@ -62,22 +60,12 @@ var HANNIBAL = (function() {
   // constructor
   H.Hannibal = function(settings) {
 
-    var rand, map = TESTERDATA ? TESTERDATA.map : "unkown";
-
-    deb();deb();
-    deb("------: constructor.in: map: %s, pid: %s, diff: %s, tpls: %s", map, settings.player, settings.difficulty, H.count(settings.templates));
+    var rand;
 
     API3.BaseAI.call(this, settings);
-    this.turn = 0;
 
-    // test langage features
-    // this.testJS();
-
-    // language improvements
-    // this.extendJS();
-
-    deb();
     H.extend(this, {
+      turn:       0,
       id:         settings.player,                    // used within 0 A.D.
       name:       "ai:ai",                            // ai of type ai
       config:     H.Config.get(settings.difficulty),
@@ -89,65 +77,21 @@ var HANNIBAL = (function() {
 
     // shortcuts
     H.Bot = this;
-    H.HCQ = H.Store.Query;
-    H.QRY = function(hcq, debug){return new H.HCQ(H.Bot.culture.store, hcq, debug);};
     H.random = rand.random.bind(rand);
 
     // check
+    deb();
     H.range(2).forEach(function(){deb("     R: %s", H.random());});
     H.Triggers.add(deb.bind(null, "      : Trigger -1"), -1);
     H.Triggers.add(deb.bind(null, "      : Trigger  1"),  1);
 
-    // now freeze
-    // [HANNIBAL, H, this].map(Object.freeze);
-    // [HANNIBAL, H].map(Object.freeze);
-    // [HANNIBAL].map(Object.freeze);
-
-    /*
-      logObject: this
-        config: OBJECT (log, debug, brag, angle, seed, ...)[11]
-        id: NUMBER (1)
-        name: STRING (ai:ai)
-        player: NUMBER (1)
-        settings: OBJECT (player, difficulty, templates, ...)[3]
-        turn: NUMBER (0)
-      Object.__proto__
-        CustomInit: (function (gameState, sharedScript) {"use strict";var SIM_UP
-        OnUpdate: (function () {"use strict";var t0 = Date.now(), ctx = this.c
-        extendJS: (function (players) {"use strict";Function.prototype.binda =
-        initGame: (function () {"use strict";deb("**");deb("**");deb("------: 
-        logPlayers: (function (players) {"use strict";var self = this, tab = H.t
-    */
-
     deb();
     deb("------: HANNIBAL.constructor.out");
-    deb();
 
   };
 
-  // H.Hannibal.constructor = H.Hannibal;
   H.Hannibal.prototype = new H.API.BaseAI();
-  // H.Hannibal.prototype.Serialize = function() {
-  //   deb("SERIALIZE: called");
-  //   // return H.API.BaseAI.prototype.Serialize.call(this);
-  //   return {test: "testa"};
-  // };
-  // H.Hannibal.prototype.Deserialize = function(data, sharedScript) {
-  //   deb("DESERIALIZE: called");
-  //   this.isDeserialized = false;
-  //   logObject(data, "dataDeserialize");
-  //   logObject(sharedScript, "sharedScriptDeserialize");
-  //   logObject(this, "this");
-
-  //   // return H.API.BaseAI.prototype.Deserialize.apply(this, arguments);
-  // };
   H.Hannibal.prototype.CustomInit = function(gameState, sharedScript) {
-
-    var SIM_UPDATES = 0,
-        self = this, ts, 
-        ss = sharedScript, gs = gameState, 
-        behaviour = H.Config.getBehaviour("ai:ai", this.settings.difficulty),
-        map = TESTERDATA ? TESTERDATA.map : "unkown";
 
     /*
       logObject: this
@@ -179,18 +123,20 @@ var HANNIBAL = (function() {
     */
 
 
+    var SIM_UPDATES = 0,
+        self = this, ts, 
+        ss = sharedScript, gs = gameState, 
+        // behaviour = H.Config.getBehaviour("ai:ai", this.settings.difficulty),
+        map = TESTERDATA ? TESTERDATA.map : "unkown";
+
     deb();deb();
-    deb("------: HANNIBAL.CustomInit: players: %s", H.count(ss.playersData));
+    deb("------: HANNIBAL.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), this.id, this.settings.difficulty);
     deb();
-    deb("     A:              width: %s [  ]", sharedScript.passabilityMap.width);
-    deb("     A:             height: %s [  ]", sharedScript.passabilityMap.height);
-    deb("     A:           circular: %s [  ]", sharedScript.circularMap);
-    deb("     A:           cellsize: %s [  ]", gs.cellSize);
-    deb("     A:       territoryMap: width: %s, height: %s", ss.territoryMap.width, ss.territoryMap.height);
+    deb("     A:    map from tester:  %s", map);
+    deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", sharedScript.passabilityMap.width, sharedScript.passabilityMap.height, sharedScript.circularMap, gs.cellSize);
+    deb("     A:          _entities: %s [  ]", H.count(ss._entities));
     deb("     A:         _templates: %s [  ]", H.count(ss._templates));
     deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
-    deb("     A:          _entities: %s [  ]", H.count(ss._entities));
-    deb("     A:           _players: %s [  ]", H.count(ss.playersData));
     deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[this.id]), H.attribs(ss._techModifications[this.id]));
     deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[this.id].researchQueued));
     deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[this.id].researchStarted));
@@ -200,13 +146,17 @@ var HANNIBAL = (function() {
     this.logPlayers(ss.playersData);
 
     // more shortcuts
+    H.HCQ               = H.Store.Query;
+    H.QRY               = function(hcq, debug){return new H.HCQ(H.Bot.culture.store, hcq, debug);};
     H.Templates         = this.settings.templates;
     H.GameState         = gameState;
     H.Entities          = gameState.entities._entities;
     H.SharedScript      = sharedScript;
     H.Player            = sharedScript.playersData[this.id];
+    H.PlayerData        = gameState.playerData;
     H.Players           = sharedScript.playersData;
     H.MetaData          = sharedScript._entityMetadata[this.id];
+    H.Technologies      = sharedScript._techTemplates
 
 
     // deb(uneval(H.SharedScript.passabilityClasses));
@@ -223,7 +173,8 @@ var HANNIBAL = (function() {
     this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
     this.civilisations  = H.Config.data.civilisation;  // all ['athen', ...]
     
-    H.prepareTree();
+    // launch the stats extension
+    H.Numerus.init();                       
 
     // init map, grids and related services
     H.Map.width         = sharedScript.passabilityMap.width;
@@ -231,7 +182,6 @@ var HANNIBAL = (function() {
     H.Map.circular      = sharedScript.circularMap;
     H.Map.cellsize      = gameState.cellSize;
 
-    H.Numerus.init();                       // launches the stats extension
     H.Grids.init();                         // inits advanced map analysis
     H.Grids.dump(map);                      // dumps all grids with map prefix in file name
     H.Grids.pass.log();
@@ -239,20 +189,13 @@ var HANNIBAL = (function() {
     H.Resources.init();                     // extracts resources from all entities
     H.Scout.init();                         // inits scout extension for scout group
 
-
-    // caches fat and costly values within ticks
-    H.Context = new H.Hannibal.Context(this);       
-    H.Context.tick();                               
-
     H.Groups.init();                        // registers groups
 
     this.culture = new H.Culture(this.civ); // culture knowledgebase as triple store
-    this.culture.loadDataNodes();           // from data to triple store
+    this.culture.selectTemplates();         // build tech tree
     this.culture.readTemplates();           // from templates to culture
-    this.culture.loadTechTemplates();       // from templates to triple store
-    this.culture.loadTemplates();           // from templates to triple store
-    // this.culture.loadEdges();               // from templates to triple store
-    // this.culture.ensureEdges();             // add some extra data
+    this.culture.loadNodes();               // from templates to triple store
+    this.culture.loadEdges();               // from templates to triple store
     this.culture.loadEntities();            // from game to triple store
     this.culture.loadTechnologies();        // from game to triple store
     this.culture.finalize();                // clear up
@@ -264,14 +207,6 @@ var HANNIBAL = (function() {
     });
     H.HTN.Economy.report();
     H.HTN.Economy.test({tech: ['phase.town']});
-
-    // prepare behaviour
-    H.Hannibal.Frames = H.Hannibal.Frames.initialize(this, H.Context);
-    this.behaviour = new H.Behaviour(behaviour);
-    this.frame = this.behaviour.frame;
-    this.lastFrame = this.frame;
-
-    deb("     F: starting in %s", this.frame.name);
 
     this.initialized = H.intialize();
 
@@ -433,7 +368,7 @@ var HANNIBAL = (function() {
 
   };
 
-  H.Hannibal.prototype.OnUpdate = function(sharedScript) {
+  H.Hannibal.prototype.OnUpdate = function(/* sharedScript */) {
 
     // http://trac.wildfiregames.com/wiki/AIEngineAPI
 
@@ -443,11 +378,6 @@ var HANNIBAL = (function() {
       msgTiming = "",
       secs = (H.GameState.timeElapsed/1000).toFixed(1),
       map = TESTERDATA ? TESTERDATA.map : "unkown";
-
-    // logObject(sharedScript, "sharedScript");
-
-    // H.GameState = sharedScript.gameState;
-    // H.SharedScript = sharedScript;
 
     if (!this.isTicking){
       deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
@@ -480,23 +410,17 @@ var HANNIBAL = (function() {
 
       Engine.ProfileStart("Hannibal (player " + this.id +")");
 
-      deb("STATUS: #%sa, %s|%s|%s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
-        this.ticks, this.player, this.civ, this.frame.name, secs, 
+      deb("STATUS: #%sa, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+        this.ticks, this.player, this.civ, secs, 
         H.count(H.Players[this.id].researchedTechs), 
-        H.GameState.playerData.resourceCounts.food,
-        H.GameState.playerData.resourceCounts.wood,
-        H.GameState.playerData.resourceCounts.metal,
-        H.GameState.playerData.resourceCounts.stone
+        H.PlayerData.resourceCounts.food,
+        H.PlayerData.resourceCounts.wood,
+        H.PlayerData.resourceCounts.metal,
+        H.PlayerData.resourceCounts.stone
       );
 
-      this.frame = this.behaviour.process(this); 
-      if (this.lastFrame.name !== this.frame.name) {
-        this.lastFrame = this.frame;
-        H.Context.release();
-      }
 
       this.timing.all = 0;
-      this.timing.ctx = H.Context.tick( secs, this.ticks);
       this.timing.evt = H.Events.tick(  secs, this.ticks);
       this.timing.grd = H.Grids.tick(   secs, this.ticks);
       this.timing.tst = H.Tester.tick(  secs, this.ticks);
@@ -512,26 +436,26 @@ var HANNIBAL = (function() {
         }
         self.timing.all += msecs;
       });
-      deb("______: #%sb, %s, trigs: %s, timing: %s, all: %s ", 
-        this.ticks, this.frame.name, H.Triggers.info(), msgTiming, this.timing.all
+      deb("______: #%sb, trigs: %s, timing: %s, all: %s ", 
+        this.ticks, H.Triggers.info(), msgTiming, this.timing.all
       );
 
       H.Numerus.tick(secs, this.ticks);
 
-      // check for winner
-      if (this.frame.name === "whiteflag") {
-        this.isFinished = true;
-        H.chat("Nothing to control. So I'll just assume I lost the game. :(");
-        H.chat("We'll meet again, boy!");
-        return;
-      }
+      // // check for winner
+      // if (this.frame.name === "whiteflag") {
+      //   this.isFinished = true;
+      //   H.chat("Nothing to control. So I'll just assume I lost the game. :(");
+      //   H.chat("We'll meet again, boy!");
+      //   return;
+      // }
         
-      if (this.frame.name === "victory") {
-        this.isFinished = true;
-        H.chat("I do not have any target. So I'll just assume I won the game.");
-        H.chat("You lost!");
-        return;
-      }
+      // if (this.frame.name === "victory") {
+      //   this.isFinished = true;
+      //   H.chat("I do not have any target. So I'll just assume I won the game.");
+      //   H.chat("You lost!");
+      //   return;
+      // }
 
 
       // deb("      : ECs: %s, %s", 
@@ -554,32 +478,6 @@ var HANNIBAL = (function() {
 
   };
 
-  H.Hannibal.prototype.testJS = function(){
-
-    // var i, s, t;
-
-    // try {s = new Set;}               catch (e) {deb("  TEST: Set not available");}
-    // try {s = new Map;}               catch (e) {deb("  TEST: Map not available");}
-    // try {s = new WeakMap;}           catch (e) {deb("  TEST: WeakMap not available");}
-    // try {s = [for (t of [1, 2]) t];} catch (e) {deb("  TEST: Array comprehension not available");}
-    // shocks jsLint
-    // try {s = () => "test";}          catch (e) {deb("  TEST: Fat Arraw not available");}
-
-  };
-  H.Hannibal.prototype.extendJS = function(){
-
-    // Array.prototype.subtract = function(other){
-    //   // returns everything from this not in other, mind duplicates or choose Sets.
-    //   var i = this.length, out = [];
-    //   while(i--){
-    //     if (other.indexOf(this[i]) === -1){
-    //       out.push(this[i]);
-    //     }
-    //   }
-    //   return out;
-    // };
-
-  };
   H.Hannibal.prototype.logPlayers = function(players){
 
     var tab = H.tab, msg = "", head, props, format, tabs,
@@ -641,40 +539,3 @@ var HANNIBAL = (function() {
 
 return H;}());
 
-
-/*
-
-
-function brag(){
-  if (H.Config.brag){
-    // Engine.PostCommand(HANNIBAL.Hannibal.id, {"type": "chat", "message": H.format.apply(H, H.toArray(arguments))});
-    // ProcessCommand({H.Hannibal.id, "type": "chat", "message": H.format.apply(H, H.toArray(arguments))});
-  }
-}
-
-    // make this config
-    this.descDifficulty = {
-      "0": "sandbox",
-      "1": "easy", 
-      "2": "medium",
-      "3": "hard",
-      "4": "very hard"
-    }[this.settings.difficulty];
-
-    // 0 is sandbox, 1 is easy, 2 is medium, 3 is hard, 4 is very hard.
-    if (this.initialized){
-      switch (this.descDifficulty){
-        case "sandbox":   brag("Ok, let's play sandbox. I'll steal your moulds!"); break;
-        case "easy":      brag("Ok, let's keep it easy, so I can watch a TV show, too."); break;
-        case "medium":    brag("You have an enemy!"); break;
-        case "hard":      brag("You have an enemy!"); break;
-        case "very hard": brag("You have an enemy!"); break;
-      }
-      
-    } else {
-      brag("You cheated! Play alone, looser.");
-    }
-
-
-
-*/
