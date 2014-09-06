@@ -55,6 +55,20 @@ HANNIBAL = (function(H){
       });
     });
 
+    H.QRY("PAIR DISTINCT").forEach(tech => {  
+
+      // get parent 
+      var par1 = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").first();
+
+      if (par1){
+        cacheProducer[tech.name] = [[par1], o.research_tech];
+        // deb("P: found par1: %s, %s", tech.name, par1.name);
+      } else {
+        deb("P: not found par1 for: %s", tech.name);
+      }
+
+    });    
+
   }
 
   function cacheTechnologies(){
@@ -75,7 +89,8 @@ HANNIBAL = (function(H){
         config = {
           techs: "RESEARCH DISTINCT",
           bldgs: "BUILD DISTINCT",
-          units: "TRAIN DISTINCT"
+          units: "TRAIN DISTINCT",
+          pairs: "PAIR DISTINCT",
         },
         planner = new H.HTN.Planner({
           domain: H.HTN.Economy,
@@ -88,7 +103,7 @@ HANNIBAL = (function(H){
         if (H.QRY(node.name + " PAIR").first()){return;}
         var goal  = zero(), start = zero();
         start.data.ents[cc] = 1;
-        if (name === 'techs') {
+        if (name === 'techs' || name === "pairs") {
           goal.data.tech = [node.name];
         } else {
           goal.data.ents[node.name] = 1;
@@ -223,9 +238,11 @@ HANNIBAL = (function(H){
     } else if (tech.requires.any){
       any = tech.requires.any; i = any.length;
       while(i--){
-        req = replace(any[i].tech);
-        if (nodes[req] && state.data.tech.indexOf(req) === -1){
-          tasks.push([m.produce, req, 1]);
+        if (any[i].tech){ // .civ also exists
+          req = replace(any[i].tech);
+          if (nodes[req] && state.data.tech.indexOf(req) === -1){
+            tasks.push([m.produce, req, 1]);
+          }
         }
       }
 
@@ -280,13 +297,13 @@ HANNIBAL = (function(H){
     var ingames = H.QRY("INGAME"),
         state = new H.HTN.Helper.State({
           ress: {
-            food:   H.GameState.playerData.resourceCounts.food,
-            wood:   H.GameState.playerData.resourceCounts.wood,
-            stone:  H.GameState.playerData.resourceCounts.stone,
-            metal:  H.GameState.playerData.resourceCounts.metal,
-            pop:    H.GameState.playerData.popCount,
-            popcap: H.GameState.playerData.popLimit,
-            popmax: H.GameState.playerData.popMax,
+            food:   H.PlayerData.resourceCounts.food,
+            wood:   H.PlayerData.resourceCounts.wood,
+            stone:  H.PlayerData.resourceCounts.stone,
+            metal:  H.PlayerData.resourceCounts.metal,
+            pop:    H.PlayerData.popCount,
+            popcap: H.PlayerData.popLimit,
+            popmax: H.PlayerData.popMax,
           }
         }).sanitize();
 
@@ -306,23 +323,23 @@ HANNIBAL = (function(H){
     return state;
   };
 
-  H.HTN.Economy.test = function(testgoal){
+  H.HTN.Economy.test = function(state){
 
-    var state = H.HTN.Economy.getCurState(),
-        goal  = new H.HTN.Helper.State(testgoal),
+    var start = H.HTN.Economy.getCurState(),
+        goal  = new H.HTN.Helper.State(state),
         planner = new H.HTN.Planner({
           domain: H.HTN.Economy,
           verbose: 0
         });
 
     deb("     H: current state");
-    JSON.stringify(state.data, null, 2).split("\n").forEach(function(line){
+    JSON.stringify(start.data, null, 2).split("\n").forEach(function(line){
       deb("      : %s", line);
     });
 
     deb();
     deb("     H: planning for %s", uneval(goal));
-    planner.plan(state, [[m.start, goal]]);
+    planner.plan(start, [[m.start, goal]]);
     planner.operations.forEach(function(op){
       deb("     H: op: %s", op);
     });
@@ -346,12 +363,13 @@ HANNIBAL = (function(H){
         for (prop of ['food', 'wood', 'metal', 'stone']){
           diff = (data.ress[prop] || 0) - (state.data.ress[prop] || 0 );
           if (diff > 0){
-            if (!state.groups[prop] || !state.groups[prop].length){
-              return [[m.launch, prop, 1], [m.start, goal]];
-            } else {
-              rate = state.groups[prop].length * state.groups[prop][0].rate;
-              return [[o.wait_secs, (diff/rate)], [m.start, goal]];
-            }
+            return [[o.inc_resource, prop, diff], [m.start, goal]];
+            // if (!state.groups[prop] || !state.groups[prop].length){
+            //   return [[m.launch, prop, 1], [m.start, goal]];
+            // } else {
+            //   rate = state.groups[prop].length * state.groups[prop][0].rate;
+            //   return [[o.wait_secs, (diff/rate)], [m.start, goal]];
+            // }
           }
         }
       }
@@ -378,6 +396,9 @@ HANNIBAL = (function(H){
           }
         }
         if (techs.length){
+
+          // deb(" -> %s", uneval(techs));
+
           techs = techs.sort((a,b) => depths[a[0]] - depths[b[0]]);
           return [[m.produce, techs[0], 1], [m.start, goal]];
         }
@@ -479,7 +500,8 @@ HANNIBAL = (function(H){
 
       // that's an error
       if (!product){
-        console.log(fmt("m.produce: unknown product: '%s'", name));
+        // console.log(fmt("m.produce: unknown product: '%s'", name));
+        deb(" ERROR: m.produce: product not in store: '%s'", name);
         planner.log(0, () => fmt("m.produce: unknown product: '%s'", name));        
         return null;
       }

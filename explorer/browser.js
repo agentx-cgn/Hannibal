@@ -345,7 +345,7 @@ HANNIBAL = (function(H){
 
       },
       results: {
-        clear:  function(ele){$(ele).innerHTML = "";},
+        clear:  function(ele){$("tblResult").innerHTML = "";},
         append: function(ele, html){$(ele).insertAdjacentHTML('beforeend', html);},
         insert: function(ele, html){$(ele).innerHTML = html;},
       },

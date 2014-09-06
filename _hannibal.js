@@ -19,28 +19,11 @@
 
 // very first line, enjoy
 var TIMESTART = Date.now();
+
 print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---\n");
 print("#! xdotool init\n");
 
 Engine.IncludeModule("common-api");
-
-// global === this ???
-// for (var p in this){
-//   print(p + ": " + (this[p] + "").split("\n")[0] + "\n");
-// }
-// global: [object global]
-// Engine: [object Object]
-// print: function print() {
-// log: function log() {
-// warn: function warn() {
-// error: function error() {
-// deepcopy: function deepcopy() {
-// GetTechModifiedProperty: function GetTechModifiedProperty(currentTechModifications, entityTemplateData, propertyName, propertyValue) 
-// DoesModificationApply: function DoesModificationApply(modification, classes) 
-// Vector2D: function Vector2D(x, y) 
-// Vector3D: function Vector3D(x, y, z) 
-// Vector2Dprototype: [object Object]
-// Vector3Dprototype: [object Object]
 
 
 var HANNIBAL = (function() {
@@ -93,40 +76,9 @@ var HANNIBAL = (function() {
   H.Hannibal.prototype = new H.API.BaseAI();
   H.Hannibal.prototype.CustomInit = function(gameState, sharedScript) {
 
-    /*
-      logObject: this
-       *accessibility: OBJECT (width, height, length, maxVal, map, ...)[14]
-       *barterPrices: OBJECT (buy, sell, ...)[2]
-        config: OBJECT (log, debug, brag, angle, seed, ...)[11]
-       *entities: OBJECT (_ai, _entities, _filters, _quickIter, _length, ...)[6]
-       *gameState: OBJECT (ai, cellSize, buildingsBuilt, turnCache, sharedScript, ...)[15]
-        id: NUMBER (1)
-        name: STRING (ai:ai)
-       *passabilityClasses: OBJECT (pathfinderObstruction, foundationObstruction, building-land, building-shore, default, ...)[7]
-       *passabilityMap: OBJECT (width, height, data, ...)[3]
-       *player: NUMBER (1)
-       *playerData: OBJECT (name, civ, colour, popCount, popLimit, ...)[27]
-        settings: OBJECT (player, difficulty, templates, ...)[3]
-       *sharedScript: OBJECT (_players, _templates, _derivedTemplates, _techTemplates, _entityMetadata, ...)[26]
-       *techModifications: OBJECT (structures/athen_civil_centre, units/athen_support_female_citizen, units/athen_support_female_citizen_house, structures/athen_blacksmith, ...)[4]
-       *templates: UNDEFINED (undefined)
-       *terrainAnalyzer: OBJECT (cellSize, width, height, length, maxVal, ...)[6]
-       *territoryMap: OBJECT (width, height, data, ...)[3]
-       *timeElapsed: NUMBER (0)
-       *turn: NUMBER (0)
-      Object.__proto__
-        CustomInit: (function (gameState, sharedScript) {"use strict";var SIM_UP
-        OnUpdate: (function () {"use strict";var t0 = Date.now(), ctx = this.c
-        extendJS: (function (players) {"use strict";Function.prototype.binda =
-        initGame: (function () {"use strict";deb("**");deb("**");deb("------: 
-        logPlayers: (function (players) {"use strict";var self = this, tab = H.t
-    */
-
-
     var SIM_UPDATES = 0,
         self = this, ts, 
         ss = sharedScript, gs = gameState, 
-        // behaviour = H.Config.getBehaviour("ai:ai", this.settings.difficulty),
         map = TESTERDATA ? TESTERDATA.map : "unkown";
 
     deb();deb();
@@ -192,13 +144,15 @@ var HANNIBAL = (function() {
     H.Groups.init();                        // registers groups
 
     this.culture = new H.Culture(this.civ); // culture knowledgebase as triple store
-    this.culture.selectTemplates();         // build tech tree
+    this.culture.selectTemplates(true);         // build tech tree
     this.culture.readTemplates();           // from templates to culture
     this.culture.loadNodes();               // from templates to triple store
     this.culture.loadEdges();               // from templates to triple store
     this.culture.loadEntities();            // from game to triple store
     this.culture.loadTechnologies();        // from game to triple store
     this.culture.finalize();                // clear up
+
+    H.initVillage();
 
     // prepare planner cache
     H.Planner = new H.HTN.Planner({
@@ -208,7 +162,10 @@ var HANNIBAL = (function() {
     H.HTN.Economy.report();
     H.HTN.Economy.test({tech: ['phase.town']});
 
-    this.initialized = H.intialize();
+    // Now make a plan to start with
+    H.Brain.init();
+    H.Economy.init();
+
 
 
     /*
@@ -264,7 +221,7 @@ var HANNIBAL = (function() {
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");
     // new H.HCQ(ts, "INGAME").execute("position", 5, 10, "ingames with position");
 
-    new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 80, "ingames with metadata");
+    // new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 80, "ingames with metadata");
 
     // new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
     // new H.HCQ(ts, "stone ACCEPTEDBY INGAME").execute("metadata", 5, 20, "stone drop");
@@ -421,6 +378,7 @@ var HANNIBAL = (function() {
 
 
       this.timing.all = 0;
+      this.timing.brn = H.Brain.tick(   secs, this.ticks);
       this.timing.evt = H.Events.tick(  secs, this.ticks);
       this.timing.grd = H.Grids.tick(   secs, this.ticks);
       this.timing.tst = H.Tester.tick(  secs, this.ticks);

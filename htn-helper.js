@@ -101,7 +101,7 @@ HANNIBAL = (function(H){
         state.groups[p] = [];
         i = this.groups[p].length;
         while(i--){
-          state.groups[p].push(copy(this.groups[p][i]));
+          state.groups[p].push(this.groups[p][i]);
         }
       }
 

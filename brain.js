@@ -33,9 +33,11 @@ HANNIBAL = (function(H){
     // Dimensions
     time:        [1, 7, function(){}],     // elapsed time 
 
-    // Map
+    // Static Map
     mapsize:     [128, 512, function(){}],   // physical map size
     circular:    [128, 512, function(){}],   // physical map size
+
+    // Dynamic Map
     terrain:     [0, 100,   function(){}],   // percentage of water in known land
     mountainous: [0, 100,   function(){}],   // percentage of too steep area in known land
 
@@ -59,8 +61,60 @@ HANNIBAL = (function(H){
   };
 
   H.Brain = {
-    init: function(){},
+    init: function(){
+      deb();deb();
+      deb(" BRAIN: init");
+    },
+    tick: function(secs, ticks){
+      var t0 = Date.now();
+      return Date.now() - t0;
+    },
     dump: function(){},
+    requestPlan: function(phase){
+
+      var 
+        planner, 
+        start = H.HTN.Economy.getCurState(),
+        goal  = new H.HTN.Helper.State({
+          "ress": {
+            "food":  500,
+            "wood":  500,
+            "stone": 200,
+            "metal": 200,
+            "pop":    30,
+          },
+          "ents": {},
+          "tech": [
+            "phase.town",
+            "gather.lumbering.ironaxes"
+          ]
+        }).sanitize();
+
+
+      goal.data.ents[H.QRY("barracks CONTAIN").first().name]   = 2;
+      goal.data.ents[H.QRY("blacksmith CONTAIN").first().name] = 1;
+
+      deb("     B: goal for phase: %s", phase);
+      JSON.stringify(goal.data, null, 2).split("\n").forEach(function(line){
+        deb("      : %s", line);
+      });
+
+      planner = new H.HTN.Planner({
+        domain: H.HTN.Economy,
+        verbose: 0,
+        noInitialize: true
+      });
+
+      planner.plan(start, [[H.HTN.Economy.methods.start, goal]]);
+
+      deb();deb();
+      planner.operations.forEach(function(op){
+        deb("  BRAIN: op: %s", op);
+      });      
+
+      return planner;
+
+    }
 
   };
 

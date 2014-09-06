@@ -290,7 +290,8 @@ HANNIBAL = (function(H){
         config = {
           techs: {qry: "RESEARCH DISTINCT", com: "", counter: 0},
           bldgs: {qry: "BUILD DISTINCT",   com: "", counter: 0},
-          units: {qry: "TRAIN DISTINCT",   com: "", counter: 0}
+          units: {qry: "TRAIN DISTINCT",   com: "", counter: 0},
+          pairs: {qry: "PAIR DISTINCT",   com: "", counter: 0}
         },
         solutions = [], nodes, patState = "", patGoal = "", info;
 
@@ -312,7 +313,7 @@ HANNIBAL = (function(H){
               start = zero().sanitize(),
               cc = H.format("structures.%s.civil.centre", civ);
           start.data.ents[cc] = 1;
-          if (name === 'techs') {
+          if (name === 'techs' || name === "pairs") {
             goal.data.tech = [node.name];
           } else {
             goal.data.ents[node.name] = 1;

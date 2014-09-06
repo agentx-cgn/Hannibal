@@ -55,6 +55,21 @@ HANNIBAL = (function(H){
       });
     });
 
+
+    H.QRY("PAIR DISTINCT").forEach(tech => {  
+
+      // get parent 
+      var par1 = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").first();
+
+      if (par1){
+        cacheProducer[tech.name] = [par1.name, "RESEARCH"];
+        deb("P: found par1: %s, %s", tech.name, par1.name);
+      } else {
+        deb("P: not found par1 for: %s", tech.name);
+      }
+
+    });
+
   }
 
   function cacheTechnologies(){
@@ -74,7 +89,8 @@ HANNIBAL = (function(H){
         config = {
           techs: "RESEARCH DISTINCT",
           bldgs: "BUILD DISTINCT",
-          units: "TRAIN DISTINCT"
+          units: "TRAIN DISTINCT",
+          pairs: "PAIR DISTINCT",
         },
         planner = new H.HTN.Planner({
           domain: H.HTN.Tree,
@@ -87,7 +103,7 @@ HANNIBAL = (function(H){
         if (H.QRY(node.name + " PAIR").first()){return;}
         var goal  = zero(), start = zero();
         start.data.ents[cc] = 1;
-        if (name === 'techs') {
+        if (name === 'techs' || name === "pairs") {
           goal.data.tech = [node.name];
         } else {
           goal.data.ents[node.name] = 1;
@@ -222,9 +238,11 @@ HANNIBAL = (function(H){
     } else if (tech.requires.any){
       any = tech.requires.any; i = any.length;
       while(i--){
-        req = replace(any[i].tech);
-        if (nodes[req] && state.data.tech.indexOf(req) === -1){
-          tasks.push([m.produce, req, 1]);
+        if (any[i].tech){ // .civ also exists
+          req = replace(any[i].tech);
+          if (nodes[req] && state.data.tech.indexOf(req) === -1){
+            tasks.push([m.produce, req, 1]);
+          }
         }
       }
 
@@ -340,7 +358,6 @@ HANNIBAL = (function(H){
         for (prop of ['food', 'wood', 'metal', 'stone']){
           diff = (data.ress[prop] || 0) - (state.data.ress[prop] || 0 );
           if (diff > 0){
-            console.log(prop, diff);
             return [[o.inc_resource, prop, diff], [m.start, goal]];
           }
         }

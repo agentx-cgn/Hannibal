@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, deb, logObject, uneval */
+/*globals HANNIBAL, deb, logObject, uneval */
 
 /*--------------- C I V I L I S A T I O N  ------------------------------------
 
@@ -22,7 +22,6 @@ HANNIBAL = (function(H){
     this.debug = debug || 0;
 
     this.civ  = civ;
-    // this.researchedTechnologies = H.attribs(H.Bot.playerData.researchedTechs);
 
     this.verbs = H.Data.verbs;
     this.store = new H.Store(civ);
@@ -33,7 +32,6 @@ HANNIBAL = (function(H){
 
     // store nodes found in templates
     this.classes = [];
-    // this.civilisations = []; // all
     this.technologies = [];
     this.resources = [];
     this.resourcetypes = [];
@@ -42,12 +40,6 @@ HANNIBAL = (function(H){
 
   H.Culture.prototype = {
     constructor: H.Hannibal.Culture,
-    saniTemplateName: function(nameTemplate){
-      nameTemplate = H.replace(nameTemplate,  "|", ".");
-      nameTemplate = H.replace(nameTemplate,  "_", ".");
-      nameTemplate = H.replace(nameTemplate,  "/", ".");
-      return nameTemplate.toLowerCase();
-    },
     finalize: function(){
       // remove some propos from nodes
       var store = this.store;
@@ -65,17 +57,20 @@ HANNIBAL = (function(H){
         templates = [].concat(
           H.attribs(H.Player.researchedTechs), 
           H.attribs(H.SharedScript._techModifications[H.Bot.id]),
-          H.attribs(H.Entities).filter(id => H.Entities[id].owner() === H.Bot.id).map(id => H.Entities[id]._templateName)
+          H.attribs(H.Entities)
+            .filter(id => H.Entities[id].owner() === H.Bot.id)
+            .map(id => H.Entities[id]._templateName)
         );
 
-      if(dolog){deb("++++++++++++++++++++++++++ " + this.civ);}
       this.templates = this.expandTemplates(templates);
-      if (dolog){
+
+      if(dolog){
+        deb("++++++++++++++++++++++++++ " + this.civ);
         this.templates
           .sort((a, b) => a[0] > b[0])
           .forEach(entry => deb("   reg: " + uneval(entry)));
+        deb("++++++++++++++++++++++++++ " + this.templates.length);
       }
-      if(dolog){deb("++++++++++++++++++++++++++ " + this.templates.length);}
 
     },
     expandTemplates: function(source){
@@ -159,8 +154,7 @@ HANNIBAL = (function(H){
     loadNodes: function(){
 
       var self  = this, node, name, tpln, template, 
-          store = this.store, 
-          sani  = this.saniTemplateName,
+          sani  = H.saniTemplateName,
           counter = 0,
           counterTechs = 0,
           counterEntis = 0,
@@ -212,9 +206,8 @@ HANNIBAL = (function(H){
 
       });
 
-      // deb("     C: loaded civ: %s, verbs: %s, nodes: %s, edges: %s", this.civ, this.verbs.length, H.count(store.nodes), store.edges.length);
-        deb("     C: created %s nodes for entities", H.tab(counterEntis, 4));
-        deb("     C: created %s nodes for technologies", H.tab(counterTechs, 4));
+      deb("     C: created %s nodes for entities", H.tab(counterEntis, 4));
+      deb("     C: created %s nodes for technologies", H.tab(counterTechs, 4));
 
     },
     readTemplates: function(){
@@ -227,13 +220,10 @@ HANNIBAL = (function(H){
 
         var
           key  = tpla[2],
-          name = H.saniTemplateName(key),
           tpl  = H.Templates[key] ? H.Templates[key] : null,
           list;
 
         if (tpl){
-
-          // self.addNode(name, key, tpl);
 
           // classes
           if (tpl.Identity && tpl.Identity.VisibleClasses){
@@ -291,7 +281,7 @@ HANNIBAL = (function(H){
     loadEntities: function(){
 
       var self = this, targetNodes = [], cntNodes = 0, cntEdges = 0,
-          sani = this.saniTemplateName;
+          sani = H.saniTemplateName;
 
       deb();
       deb("     C: loadEntities from game: %s total", H.count(H.Entities));
@@ -327,6 +317,34 @@ HANNIBAL = (function(H){
       });
 
       deb("     C: created %s edges for game entities", H.tab(cntEdges, 4));      
+
+    },
+    loadTechnologies: function(){
+
+      var store = this.store, self = this,
+          techs = H.Player.researchedTechs,
+          sani  = H.saniTemplateName,
+          counter = 0, nameSource, nameTarget, nodeSource, nodeTarget, names = [];
+
+      H.each(techs, function(key, tech){
+
+        nameTarget = sani(key);
+
+        nameSource = H.format("%s#T", nameTarget);
+        names.push(nameTarget);
+
+        nodeTarget = store.nodes[nameTarget];
+        nodeSource = self.addNode(nameSource, key, tech);
+        
+        store.addEdge(nodeSource, "techdescribedby", nodeTarget);
+        store.addEdge(nodeTarget, "techingame",      nodeSource);
+        
+        counter += 1;
+
+      });
+
+      deb("     C: loaded %s nodes %s edges as tech: [%s]", H.tab(counter, 4), counter*2, names);  
+
 
     },
     loadById: function(id){
@@ -500,9 +518,9 @@ HANNIBAL = (function(H){
       var tr = t.requirements;
       if (tr){
         if (tr.tech){
-          return {tech: this.saniTemplateName(tr.tech)};
+          return {tech: H.saniTemplateName(tr.tech)};
         } else if (tr.class) {
-          return {class: this.saniTemplateName(tr.class), number: tr.number};
+          return {class: H.saniTemplateName(tr.class), number: tr.number};
         } else if (tr.any) {
           return {any: tr.any}; //TODO: sani techs
         }
@@ -717,7 +735,7 @@ HANNIBAL = (function(H){
 
       // Entities member classes
 
-      var sani = this.saniTemplateName;
+      var sani = H.saniTemplateName;
 
       this.createEdges("supersede", "supersededby", "a tech order",
         function test(node){

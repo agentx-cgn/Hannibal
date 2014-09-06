@@ -63,6 +63,11 @@ HANNIBAL = (function(H){
 
   // if any of these evaluate to a string, it gets chatted
   sequences = {
+    'brain01': {
+        '1': [() => "< - START: " + sequence + " - >"],
+        '2': [T.chat("huhu"), "chatted"], 
+      '241': [() => "< - FINIS: " + sequence + " - >"],
+    },
     'Forest Battle': {
         '1': [() => "< - START: " + sequence + " - >"],
         '2': [T.chat("huhu"), "chatted"], 
@@ -96,7 +101,7 @@ HANNIBAL = (function(H){
        '10': [T.supplier(           "stone", 4752), "launching 1 stone supplier"], 
        '11': [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
        '12': [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
-       '13': [T.speed(5),                            "more speed"],
+       // '13': [T.speed(5),                            "more speed"],
       '103': [() => H.Groups.log(), "logging groups"],
         // '6': [() => H.Grids.log(),  "logging grids"],
         // '7': [() => H.Grids.dump(), "dumping grids"],

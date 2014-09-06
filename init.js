@@ -165,7 +165,7 @@ HANNIBAL = (function(H){
   }
 
 
-  H.intialize = function(){
+  H.initVillage = function(){
 
     organizeVillage();
     prepareMeta();
@@ -177,14 +177,6 @@ HANNIBAL = (function(H){
 
     // new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
     H.Groups.log();
-
-    /*
-      Done
-    */
-
-    deb();deb();
-    deb("  INIT: done");
-    return true;
 
   };
 

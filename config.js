@@ -21,8 +21,8 @@ HANNIBAL = (function(H){
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester
-    // sequence: "Arcadia 02",
-    sequence: "Forest Battle",
+    sequence: "brain01",
+    // sequence: "Forest Battle",
 
     // enable psy-ops
     brag:     true,  
@@ -46,6 +46,7 @@ HANNIBAL = (function(H){
 
     economy: {
       stack:                20,
+      rateMonitor:          10,
       targets: {
         village:            {food:  1000, wood:  1000, stone:  300, metal:  300, pops: '10%'},
         town:               {food:  5000, wood:  3000, stone: 1000, metal: 2000, pops: '30%'},
