@@ -66,6 +66,22 @@ HANNIBAL = (function(H) {
 
   };
 
+  H.Proxies = {
+
+    Technologies: function(){
+      return new Proxy(H.SharedScript._techTemplates, {
+        get: function(proxy, attr){
+          var dota = H.replace(attr, ".", "_");
+          return (
+            proxy[attr] !== undefined ? proxy[attr] : 
+            proxy[dota] !== undefined ? proxy[dota] : undefined
+          );
+        }
+      });
+    }
+    
+  };
+
 
   H.States = Proxy.create({  // sanitize UnitAI state
     get: function (proxy, id) {

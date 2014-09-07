@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, print, logObject, logError, TESTERDATA */
+/*globals Engine, API3, deb, print, logObject, logError, TESTERDATA, uneval */
 
 /*--------------- H A N N I B A L  --------------------------------------------
 
@@ -108,7 +108,7 @@ var HANNIBAL = (function() {
     H.PlayerData        = gameState.playerData;
     H.Players           = sharedScript.playersData;
     H.MetaData          = sharedScript._entityMetadata[this.id];
-    H.Technologies      = sharedScript._techTemplates
+    H.Technologies      = H.Proxies.Technologies(); sharedScript._techTemplates;
 
 
     // deb(uneval(H.SharedScript.passabilityClasses));
@@ -144,10 +144,10 @@ var HANNIBAL = (function() {
     H.Groups.init();                        // registers groups
 
     this.culture = new H.Culture(this.civ); // culture knowledgebase as triple store
-    this.culture.selectTemplates(true);         // build tech tree
-    this.culture.readTemplates();           // from templates to culture
-    this.culture.loadNodes();               // from templates to triple store
-    this.culture.loadEdges();               // from templates to triple store
+    this.culture.selectTemplates(false);         // build tech tree
+    this.culture.readTemplates();           // extrcact classes, resources, etc from templates
+    this.culture.loadNodes();               // turn templates to nodes
+    this.culture.loadEdges();               // add edges
     this.culture.loadEntities();            // from game to triple store
     this.culture.loadTechnologies();        // from game to triple store
     this.culture.finalize();                // clear up
@@ -200,6 +200,24 @@ var HANNIBAL = (function() {
 
     /*  End Export */
 
+
+    // lof tech modifications
+    if (false){
+      H.each(H.Technologies, function(key, tech){
+        if (tech.modifications){
+          tech.modifications.forEach(function(mod){
+            var modus = (
+              mod.add !== undefined ? "add" :
+              mod.multiply !== undefined ? "multiply" :
+              mod.replace !== undefined ? "replace" :
+                "wtf"
+            );
+            var affects = tech.affects ? tech.affects.join(" ") : mod.affects ? mod.affects : "wtf";
+            deb('%s %s %s %s "%s"', H.saniTemplateName(key), mod.value, modus, mod[modus], affects);
+          });
+        }
+      });
+    }
 
 
     /* run scripted actions named in H.Config.sequence */

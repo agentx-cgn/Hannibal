@@ -266,19 +266,19 @@ HANNIBAL = (function(H){
 
   H.Economy = (function(){
 
-    var self, plan;
+    var self, goals;
 
     return {
       boot: function(){self = this; return self;},
       init: function(){
         deb();deb();
         deb("   ECO: init - requestPlan");
-        plan = H.Brain.requestPlan("phase.village");
+        goals = H.Brain.requestGoals("phase.village");
       },
       tick: function(secs, ticks){
         var t0 = Date.now();
         if (!(ticks % H.Config.economy.rateMonitor)){
-          self.monitorPlan();
+          self.monitorGoals();
         }
         self.processQueue();
         self.logQueue(t0);
@@ -306,7 +306,7 @@ HANNIBAL = (function(H){
           metal: ((cost.metal || 0) > (budget.metal || 0)) ? cost.metal - (budget.metal || 0) : undefined
         };
       },
-      monitorPlan: function(){
+      monitorGoals: function(){
 
       },
       request: function(amount, order, position){

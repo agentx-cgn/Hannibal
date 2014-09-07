@@ -174,7 +174,7 @@ HANNIBAL = (function(H){
 
         $("txtHCQ").oninput = $("txtHCQ").onchange = function(){
 
-          var txt = $("txtHCQ").value.trim();
+          var txt = $("txtHCQ").value; //.trim();
 
           $("btnQuery").disabled = true;
           $("btnAnalyze").disabled = true;
