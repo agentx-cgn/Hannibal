@@ -59,7 +59,7 @@ HANNIBAL = (function(H){
           group.instances.forEach(function(instance){
             var interval = ~~instance.interval; // positive ints only
             if (interval > 0 && instance.listener.onInterval){ 
-              if (!(ticks % interval)){
+              if (ticks % interval === 0){
                 instance.tick(secs, ticks);
               }
             }
@@ -155,7 +155,7 @@ HANNIBAL = (function(H){
           });
         });
       },
-      launch: function(name, ccid, arg1, arg2){
+      launch: function(name, ccid, args){
 
         // Object Factory; called by bot, economy, whatever
 
@@ -240,7 +240,7 @@ HANNIBAL = (function(H){
         deb("   GRP: %s to launch, CC: %s", instance, ccid);
 
         // call and activate
-        instance.listener.onLaunch(ccid, arg1, arg2);
+        instance.listener.onLaunch.apply(null, [ccid].concat(args));
 
         return instance;
 

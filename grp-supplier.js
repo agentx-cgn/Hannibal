@@ -55,28 +55,33 @@ HANNIBAL = (function(H){
 
       listener: {
 
-        onLaunch: function(ccid, resource){
+        onLaunch: function(ccid, resource, size){
 
-          deb("     G: onlaunch %s cc: %s, res: %s", this, ccid, resource);
+          deb("     G: onlaunch %s", uneval(arguments));
 
+          this.size      = size;
           this.resource  = resource;
           this.target    = H.Resources.nearest(this.position, resource);
+
+          if (!this.target){this.dissolve(); return;}
+
+          this.position  = this.target.position;
 
           this.units = (
             resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
             resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
             resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.stone.rock"] :
             resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
-            resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]   :
+            resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
               deb(" ERROR: unknown resource '%s' for supply group", resource)
           );
 
           this.dropsite = (
             resource === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
             resource === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
-            resource === "wood"       ?  ["shared",    "wood ACCEPTEDBY"] :
-            resource === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"] :
-            resource === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"] :
+            resource === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
+            resource === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
+            resource === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
               deb(" ERROR: unknown resource '%s' for supply group", resource)
           );
 
@@ -89,16 +94,6 @@ HANNIBAL = (function(H){
               deb(" ERROR: unknown resource '%s' for supply group", resource)
           );
 
-          this.size = (
-            resource === "metal"      ? 10 :
-            resource === "stone"      ? 10 :
-            resource === "wood"       ?  5 :
-            resource === "food.fruit" ?  3 :
-            resource === "food.meat"  ?  2 :
-              deb(" ERROR: unknown resource '%s' for supply group", resource)
-          );
-
-          this.position = this.target.position;
           this.register("units", "dropsite", "dropsites");
           this.economy.request(1, this.units, this.position);   
 

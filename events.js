@@ -85,14 +85,13 @@ HANNIBAL = (function(H){
       },
       processTechs: function() {
 
-        H.each(H.Player.researchedTechs, function(name, tech){
-
-          if (researchedTechs.indexOf(name) === -1){
+        H.each(H.Player.researchedTechs, function(key, tech){
+          var name = H.saniTemplateName(key);
+          if (researchedTechs.indexOf(key) === -1){
             deb(" EVENT: onAdvance %s, %s", name, uneval(tech));
-            self.dispatchEvent("onAdvance", name, tech);
-            researchedTechs.push(name);
+            self.dispatchEvent("onAdvance", "onAdvance", {name: name, tech: tech});
+            researchedTechs.push(key);
           }
-
         });
 
       },

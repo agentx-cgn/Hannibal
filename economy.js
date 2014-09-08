@@ -31,7 +31,7 @@ HANNIBAL = (function(H){
     alloc: H.deepcopy(ress), // allocated per queue
     forec: H.deepcopy(ress), // ???
     trend: H.deepcopy(ress), // as per stack
-    stack: H.map(ress, H.createRingBuffer.bind(null, config.stack)), // last x stock vals
+    stack: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
     tick: function(){
 
       var t0 = Date.now(), curHits = 1, maxHits = 1, 
@@ -266,23 +266,59 @@ HANNIBAL = (function(H){
 
   H.Economy = (function(){
 
-    var self, goals;
+    var 
+      self, goals, groups,
+      phases = ["phase.village", "phase.town", "phase.city"];
 
-    return {
+    self = {
       boot: function(){self = this; return self;},
       init: function(){
-        deb();deb();
-        deb("   ECO: init - requestPlan");
-        goals = H.Brain.requestGoals("phase.village");
+        H.Events.registerListener("onAdvance", self.listener);
       },
       tick: function(secs, ticks){
         var t0 = Date.now();
-        if (!(ticks % H.Config.economy.rateMonitor)){
+        if (!(ticks % H.Config.economy.intervalMonitorGoals)){
           self.monitorGoals();
         }
         self.processQueue();
         self.logQueue(t0);
         return Date.now() - t0;
+      },
+      listener: function(type, id, event){
+
+        deb("   ECO: Event: %s", uneval(arguments));
+
+        switch(type){
+          case "onAdvance":
+            if (phases.indexOf(event.name) !== -1){
+              self.advancePhase(event.name);
+            }
+          break;
+          default:
+            deb("  WARN: got unknown event in eco: %s", uneval(arguments));
+        }
+
+      },
+      monitorGoals: function(){
+
+      },
+      advancePhase: function(phase){
+
+        deb("   ECO: advancePhase '%s'", phase);
+        goals  = H.Brain.requestGoals(phase);
+        groups = H.Brain.requestGroups(phase);
+        goals.forEach(g =>  deb("     E: goal:  %s", g));
+        groups.forEach(g => deb("     E: group: %s", g));
+
+        groups.forEach(group => {
+          var [quantity, name, ccid, p1, p2] = group;
+          H.range(quantity).forEach(() => {
+            H.Groups.launch(name, ccid, [p1, p2]);
+          });
+        });
+
+        H.Groups.log();
+
       },
       subtract: function(cost, budget){
         budget.food  -= cost.food  > 0 ? cost.food  : 0;
@@ -305,9 +341,6 @@ HANNIBAL = (function(H){
           stone: ((cost.stone || 0) > (budget.stone || 0)) ? cost.stone - (budget.stone || 0) : undefined,
           metal: ((cost.metal || 0) > (budget.metal || 0)) ? cost.metal - (budget.metal || 0) : undefined
         };
-      },
-      monitorGoals: function(){
-
       },
       request: function(amount, order, position){
 
@@ -420,52 +453,24 @@ HANNIBAL = (function(H){
 
           case "train" :
             H.Engine.train([id], template, amount, {order: order.id});
-
-          // case "train" :    Engine.PostCommand(PID, {type: cmd, 
-          //     count:        amount,
-          //     entities:     [id],
-          //     template:     template,
-          //     metadata:     {order: order.id}
-          //   }); 
             msg = H.format("    EX: #%s %s, trainer: %s, amount: %s, tpl: %s", 
                                         order.id, cmd, id, amount, template); 
           break;
 
+          case "research" : 
+            H.Engine.research([id], template);
+            msg = H.format("    EX: %s id: %s, %s", cmd, order.id, id, template); 
+            
+          break;
+
           case "construct" : 
-
             if (order.x === undefined){deb("ERROR: %s without position", cmd); return;}
-
             pos = H.Map.findGoodPosition(template, [order.x, order.z]);
-
             H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id});
-
-          // Engine.PostCommand(PID, { type: cmd,
-          //     entities:     [id],
-          //     template:     template,
-          //     x:            pos.x, 
-          //     z:            pos.z,
-          //     angle:        H.Config.angle,
-          //     autorepair:   false, 
-          //     autocontinue: false,
-          //     queued:       false,
-          //     metadata:     {order: order.id}
-          //   }); 
             msg = H.format("    EX: #%s %s, constructor: %s, x: %s, z: %s, tpl: %s", 
                                        order.id, cmd, id, order.x.toFixed(0), order.z.toFixed(0), template); 
 
           break;
-
-          case "research" : 
-
-          H.Engine.research([id], template);
-
-          // Engine.PostCommand(PID, { type: cmd,
-          //     entity:     id, 
-          //     template:   template 
-          //   }); 
-            msg = H.format("   ECO: X: %s id: %s, %s", cmd, order.id, id, template); 
-          break;
-
 
         }
 
@@ -503,7 +508,11 @@ HANNIBAL = (function(H){
         deb(msg);
 
       }
+
     };
+
+    self.listener.callsign = "economy";
+    return self;
 
   }()).boot();
 

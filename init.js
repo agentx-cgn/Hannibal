@@ -94,6 +94,7 @@ HANNIBAL = (function(H){
       deb("  INIT: CC [%s] has %s entities, main: %s", id, amount, (~~id === main ? "X" : ""));
     });
 
+    H.Centre = main;
 
   }
 
@@ -176,7 +177,7 @@ HANNIBAL = (function(H){
     */
 
     // new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "ingames with metadata");
-    H.Groups.log();
+    // H.Groups.log();
 
   };
 

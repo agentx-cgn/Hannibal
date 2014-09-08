@@ -110,6 +110,8 @@ var HANNIBAL = (function() {
     H.MetaData          = sharedScript._entityMetadata[this.id];
     H.Technologies      = H.Proxies.Technologies(); sharedScript._techTemplates;
 
+    H.Centre            = 0;  // keeps the id of main civic centre
+
 
     // deb(uneval(H.SharedScript.passabilityClasses));
     // pathfinderObstruction:1, foundationObstruction:2, 'building-land':4, 'building-shore':8, default:16, ship:32, unrestricted:64
@@ -165,8 +167,6 @@ var HANNIBAL = (function() {
     // Now make a plan to start with
     H.Brain.init();
     H.Economy.init();
-
-
 
     /*
 
