@@ -63,10 +63,11 @@ HANNIBAL = (function(H){
       listener: {
 
         // game started, something launched this group
-        onLaunch: function(){
+        onLaunch: function(ccid, size){
 
-          this.register("dropsite", "units", "field", "shelter"); // turn res definitions into res objects
-          this.economy.request(1, this.dropsite, this.position);                 // assuming a CC exists
+          this.size = size;
+          this.register("dropsite", "units", "field", "shelter");     // turn res definitions into res objects
+          this.economy.request(1, this.dropsite, this.position);      // assuming a CC exists
 
         },
 
@@ -88,18 +89,22 @@ HANNIBAL = (function(H){
 
           } else if (this.units.match(asset)){
 
-            if (!this.field.isRequested){     // test for field
-              this.economy.request(4, this.units);
+            if (!this.field.isRequested){ 
+              // this.economy.request(4, this.units);
               this.economy.request(1, this.field, this.dropsite);
 
             } else if (this.field.isFoundation){
-              // may silently fail, because field is destroyed
+              // may silently fail, because field was destroyed
               asset.repair(this.field);
 
             } else if (this.field.isStructure){
               asset.gather(this.field);
 
             }
+
+            if (this.units.count < this.size){
+              this.economy.request(1, this.units, this.position);   
+            }            
 
           } else {
             deb("     G: %s unidentified asset: %s, shared: %s", this, asset, asset.shared);

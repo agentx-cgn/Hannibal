@@ -311,8 +311,11 @@ HANNIBAL = (function(H){
     },    
     listener: function(msg, id, evt){
 
-      var tpln, attacker, ent, maxRanges, resource, meta = H.MetaData[id],
-          resources = this.resources, instance = this.instance;
+      var 
+        tpln, attacker, ent, maxRanges, resource, fnListener, 
+        meta = H.MetaData[id],
+        resources = this.resources, 
+        instance = this.instance;
 
       switch (msg){
 
@@ -350,7 +353,9 @@ HANNIBAL = (function(H){
 
             // finalize
             this.resources.push(id);
-            H.Events.registerListener(id, this.listener.bind(this));
+            fnListener = this.listener.bind(this);
+            fnListener.callsign = this.name;
+            H.Events.registerListener(id, fnListener);
             instance.listener.onAssign(resource);
 
           }

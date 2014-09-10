@@ -45,13 +45,14 @@ HANNIBAL = (function(H){
 
       listener: {
 
-        onLaunch: function(ccid){
+        onLaunch: function(ccid, building, size, quantity){
 
           deb("     G: onlaunch %s cc: %s, civ: %s", this, ccid, H.Bot.civ);
 
-          this.buildings = ["exclusive", "house CONTAIN"];
-          this.units = ["exclusive", "house CONTAIN BUILDBY"];
-          this.size = H.Config.civs[H.Bot.civ].builders;
+          this.buildings = ["exclusive", building];
+          this.units = ["exclusive", building + " BUILDBY"];
+          this.size = size; //H.Config.civs[H.Bot.civ].builders;
+          this.quantity = quantity;
 
           var sizeHouse = H.QRY("house CONTAIN").first().costs.population * -1;
           this.maxBuildings = ~~(H.Player.popMax / sizeHouse) +1;
@@ -67,15 +68,36 @@ HANNIBAL = (function(H){
           if (this.units.match(asset)){
 
             if (this.units.count === 1){
-              this.economy.request(this.size -1, this.units, this.position);   
               this.economy.request(1, this.buildings, this.position);   
+
+            } else {
+              asset.repair(this.foundation);
+
+            }
+
+            if (this.units.count < this.size){
+              this.economy.request(1, this.units, this.position);   
             }
 
           } else if (this.buildings.match(asset)){
 
             this.position = asset;
-            if (asset.isFoundation){this.units.repair(asset);}
-            if (asset.isStructure){this.economy.request(1, this.buildings, this.position);}
+
+            if (asset.isFoundation){
+              this.foundation = asset;
+              this.units.repair(asset);
+            
+            } else if (asset.isStructure){
+              if (this.buildings.count < this.quantity){
+                if (asset.isStructure){
+                  this.economy.request(1, this.buildings, this.position);
+                }
+
+              } else {
+                this.dissolve();
+              }
+
+            }
 
           }
 
@@ -102,16 +124,16 @@ HANNIBAL = (function(H){
         onBroadcast: function(){},
         onInterval:  function(){
 
-          deb("     G: %s onInterval, blds: [%s/%s], states: %s", this, this.buildings.count, this.maxBuildings, H.prettify(this.units.states()));
+          // deb("     G: %s onInterval, blds: [%s/%s], states: %s", this, this.buildings.count, this.maxBuildings, H.prettify(this.units.states()));
 
-          if (!this.units.count){return;}
+          // if (!this.units.count){return;}
 
-          if (this.units.doing("idle").count === this.units.count){
-            if (this.buildings.count >= this.maxBuildings){
-              this.dissolve();
-              deb("      G: %s finished building ", this, this.buildings);
-            }
-          }
+          // if (this.units.doing("idle").count === this.units.count){
+          //   if (this.buildings.count >= this.maxBuildings){
+          //     this.dissolve();
+          //     deb("      G: %s finished building ", this, this.buildings);
+          //   }
+          // }
 
 
         }

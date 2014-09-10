@@ -169,7 +169,7 @@ HANNIBAL = (function(H){
         var t0, t1, dis = 1e7, idres, distance, kmeans, tree, trees = [], cid,
             pos = Array.isArray(item) ? item : item.location();
 
-        deb("   RES: looking for nearest '%s' at %s", generic, pos);
+        // deb("   RES: looking for nearest '%s' at %s", generic, pos);
 
         switch (generic){
           case "stone":
@@ -185,7 +185,7 @@ HANNIBAL = (function(H){
                 res.consumed = true;
               }
             });
-            deb("   RES: found %s", uneval(resources[generic][idres]));
+            deb("   RES: found %s / %s at %s", uneval(resources[generic][idres]), generic, pos);
             return resources[generic][idres] || undefined;
           break;
 
@@ -200,7 +200,7 @@ HANNIBAL = (function(H){
                 res.consumed = true;
               }
             });
-            deb("   RES: found %s", uneval(resources["food"][idres]));
+            deb("   RES: found %s / %s at %s", uneval(resources["food"][idres]), generic, pos);
             return resources["food"][idres] || undefined;
           break;
 
@@ -215,7 +215,7 @@ HANNIBAL = (function(H){
                 res.consumed = true;
               }
             });
-            deb("   RES: found %s", uneval(resources["food"][idres]));
+            deb("   RES: found %s / %s at %s", uneval(resources["food"][idres]), generic, pos);
             return resources["food"][idres] || undefined;
           break;
 
@@ -258,9 +258,12 @@ HANNIBAL = (function(H){
           break;
 
           default: 
-            deb(" ERROR: unknown resource: %s in mearest", generic);
+            deb(" ERROR: unknown resource: %s in nearest", generic);
 
         }
+
+        deb("   RES: found nothing of %s at %s", generic, pos);
+
         return undefined;
       },      
       update: function(generic){

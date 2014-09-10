@@ -20,7 +20,7 @@
 // very first line, enjoy
 var TIMESTART = Date.now();
 
-print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---\n");
+print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### --- " + new Date() + "\n");
 print("#! xdotool init\n");
 
 Engine.IncludeModule("common-api");
@@ -108,9 +108,9 @@ var HANNIBAL = (function() {
     H.PlayerData        = gameState.playerData;
     H.Players           = sharedScript.playersData;
     H.MetaData          = sharedScript._entityMetadata[this.id];
-    H.Technologies      = H.Proxies.Technologies(); sharedScript._techTemplates;
+    H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
 
-    H.Centre            = 0;  // keeps the id of main civic centre
+    H.Centre            = {id: 0};  // keeps the id of main civic centre
 
 
     // deb(uneval(H.SharedScript.passabilityClasses));

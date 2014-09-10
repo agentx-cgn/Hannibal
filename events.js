@@ -113,6 +113,8 @@ HANNIBAL = (function(H){
 
       registerListener: function(id, listener) {
 
+        var callsign = listener.callsign || listener.toString().split("\n").join("").slice(0, 60);
+
         if (H.Dispatcher[id] === undefined){
           H.Dispatcher[id] = [listener];
           
@@ -120,11 +122,11 @@ HANNIBAL = (function(H){
           if (H.Dispatcher[id].indexOf(listener) === -1){
             H.Dispatcher[id].push(listener);
           } else {
-            deb("  DISP: #%s already have listener: %s | have: %s", id, listener.callsign, H.attribs(H.Dispatcher));
+            deb("  DISP: #%s already have listener: %s | have: %s", id, callsign, H.attribs(H.Dispatcher));
             return;            
           }
         }
-        deb("  DISP: #%s registered listener for %s | have: %s", id, listener.callsign, H.attribs(H.Dispatcher));
+        deb("  DISP: #%s registered listener for %s | have: %s", id, callsign, H.attribs(H.Dispatcher));
         // logDispatcher();
 
       },
@@ -324,7 +326,8 @@ HANNIBAL = (function(H){
               event.entities.forEach(function(id){
                 if (event.metadata && event.metadata.order){
                   H.Bot.culture.loadById(id);
-                  H.Objects(event.metadata.order).ready(1, type, id);
+                  H.Economy.listener("onOrderReady", id, event);
+                  // H.Objects(event.metadata.order).ready(1, type, id);
                 } else {
                   deb("WARN : trained %s without order", id)
                 }
@@ -353,7 +356,8 @@ HANNIBAL = (function(H){
 
                 }
                 H.Bot.culture.loadById(event.id);
-                order.ready(1, type, event.id);
+                H.Economy.listener("onOrderReady", event.id, event);
+                // order.ready(1, type, event.id);
               } else {
                 deb("ERROR : AIMetadata no metadata.order or unkown id: %s", event.id);
               }

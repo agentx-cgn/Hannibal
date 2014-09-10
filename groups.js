@@ -168,6 +168,7 @@ HANNIBAL = (function(H){
 
         instance.id   = H.Objects(instance);
         instance.name = group.name + "#" + instance.id;
+        instance.listener.callsign = instance.name;
 
         // keep a reference
         group.instances.push(instance);
@@ -182,9 +183,6 @@ HANNIBAL = (function(H){
                 instance.listener[name] = value[name].bind(instance);
               }
             });
-
-            // deb, set identifier
-            instance.listener.callsign = instance.name;
 
           } else {
             switch (typeof value) {

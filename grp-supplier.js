@@ -63,7 +63,11 @@ HANNIBAL = (function(H){
           this.resource  = resource;
           this.target    = H.Resources.nearest(this.position, resource);
 
-          if (!this.target){this.dissolve(); return;}
+          if (!this.target){
+            deb("   GRP: dissolving %s/", this.name, resource);
+            this.dissolve(); 
+            return;
+          }
 
           this.position  = this.target.position;
 
@@ -110,7 +114,10 @@ HANNIBAL = (function(H){
               if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
                 this.economy.request(1, this.dropsite, this.position); 
               }  
-              this.economy.request(this.size, this.units, this.position);   
+            }
+
+            if (this.units.count < this.size){
+              this.economy.request(1, this.units, this.position);   
             }
 
             if (this.target){

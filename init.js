@@ -94,7 +94,7 @@ HANNIBAL = (function(H){
       deb("  INIT: CC [%s] has %s entities, main: %s", id, amount, (~~id === main ? "X" : ""));
     });
 
-    H.Centre = main;
+    H.Centre.id = main;
 
   }
 

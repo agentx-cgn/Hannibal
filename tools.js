@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, HANNIBAL, deb */
+/*globals HANNIBAL, deb */
 
 /*--------------- T O O L S ---------------------------------------------------
 
@@ -69,12 +69,19 @@ HANNIBAL = (function(H) {
   H.Proxies = {
 
     Technologies: function(){
+      var mapper = {};
+      H.each(H.SharedScript._techTemplates, function(key){
+        mapper[H.saniTemplateName(key)] = key;
+      });
       return new Proxy(H.SharedScript._techTemplates, {
         get: function(proxy, attr){
-          var dota = H.replace(attr, ".", "_");
+          var tpln = mapper[attr] || undefined;
           return (
             proxy[attr] !== undefined ? proxy[attr] : 
-            proxy[dota] !== undefined ? proxy[dota] : undefined
+            proxy[tpln] !== undefined ? proxy[tpln] : 
+            attr === "available"      ? function (techs){
+              return techs.map(t => mapper[t]).every(t => !!H.Player.researchedTechs[t]); } :
+            undefined
           );
         }
       });
@@ -206,7 +213,7 @@ HANNIBAL = (function(H) {
         out("#! append 1 :" + tickLine(1, "head"));
       },
       tick: function(secs, ticks){
-        if (!(~~ticks % resolution)) { 
+        if (~~ticks % resolution === 0) { 
           H.each(ss.playersData, function(id){
             id = ~~id;
             if (id){append(tickLine(id, "row"));}
@@ -353,7 +360,7 @@ H.Slicer = function(arr){
         step = isNaN(parts[2]) ? 1 : ~~parts[2], 
         stepOnly = isNaN(parts[0]) && isNaN(parts[1]),
         reversed = false,
-        i, slicedArr, alteredArray;
+        i, slicedArr, alteredArray, arrLength;
 
       if (arr.length === 0 || expr === ':' || !parts.length || (isNaN(from) && isNaN(to) && isNaN(step))) {
         return arr;

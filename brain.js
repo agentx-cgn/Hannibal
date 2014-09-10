@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals TIM, HANNIBAL, H, deb */
+/*globals HANNIBAL, H, deb */
 
 /*--------------- B R A I N ---------------------------------------------------
 
@@ -77,28 +77,35 @@ HANNIBAL = (function(H){
     },
     runPlanner: function(phase){
 
-      var start, goal;
+      var start, goal, phaseName, phaseCost, houseCost;
 
       if (phase === "phase.village"){
 
-          start = H.HTN.Economy.getCurState(),
+        phaseName = H.QRY("civilcentre CONTAIN RESEARCH").filter(n => n.name.contains("town"))[0].name;
+        phaseCost = H.Technologies[phaseName].cost;
+
+        houseName = H.QRY("house CONTAIN").first().name;
+        houseCost = H.QRY(houseName).first().cost;
+
+          start = H.HTN.Economy.getCurState();
           goal  = new H.HTN.Helper.State({
             "ress": {
-              "food":  500,
-              "wood":  500,
-              "stone": 200,
-              "metal": 200,
-              "pop":    30,
+              "food":  phaseCost.food  + 100,
+              "wood":  phaseCost.metal + 100,
+              "stone": phaseCost.stone + 100,
+              "metal": phaseCost.metal + 100,
+              "pop":    50,
             },
             // "ents": {},
             "tech": [
-              "phase.town",
-              "gather.lumbering.ironaxes"
+              phaseName,
+              "gather.lumbering.ironaxes",
+              // "gather_capacity_wheelbarrow"
             ]
           }).sanitize();
 
         goal.data.ents[class2name("barracks")]   = 2;
-        goal.data.ents[class2name("blacksmith")] = 1;
+        // goal.data.ents[class2name("blacksmith")] = 1;
 
         deb("     B: goal for phase: %s", phase);
         JSON.stringify(goal.data, null, 2).split("\n").forEach(function(line){
@@ -113,10 +120,17 @@ HANNIBAL = (function(H){
 
         planner.plan(start, [[H.HTN.Economy.methods.start, goal]]);
 
-        // deb();deb();
-        // planner.operations.forEach(function(op){
-        //   deb("  BRAIN: op: %s", op);
-        // });      
+        deb();deb();
+
+        JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
+          deb(" BRAIN: %s", line);
+        });
+
+        deb();deb();
+
+        planner.operations.forEach(function(op){
+          deb("  BRAIN: op: %s", op);
+        });      
 
         return planner;
 
@@ -133,30 +147,31 @@ HANNIBAL = (function(H){
 
       return (
         planner.operations
-          .filter(op => op[1] === "build_structures" || op[1] === "research_tech")
+          .filter(op => op[1] === "build_structures" || op[1] === "research_tech" || op[1] === "inc_resource")
           .map(op => [op[1], op[2], op[3] === undefined || 1])
+          .sort((a, b) => a[0] > b[0])
       );
 
     },
     requestGroups: function(phase){
 
-      // [groupname, quantity, [param1, [...] ] ]
+      // [quantity, groupname, ccid, [param1, [...] ] ]
 
       if (phase === "phase.village"){
 
         // TODO: care about Centre
 
         return [
-          [1, "g.scouts",    H.Centre, 1],                              // depends on map size
-          [3, "g.harvester", H.Centre, 5],                              // needed for trade?
-          [1, "g.builder",   H.Centre, class2name("house"),      2],    // depends on building time
-          [1, "g.builder",   H.Centre, class2name("barracks"),   2],    // depends on civ and # enemies
-          [1, "g.builder",   H.Centre, class2name("blacksmith"), 2],    // one is max
-          [1, "g.supplier",  H.Centre, "metal",       1],               // 
-          [1, "g.supplier",  H.Centre, "stone",       1],
-          [1, "g.supplier",  H.Centre, "wood",       10],
-          [1, "g.supplier",  H.Centre, "food.fruit",  2],               // availability
-          [1, "g.supplier",  H.Centre, "food.meat",   2],               // availability
+          [1, "g.scouts",    H.Centre.id,                           1],       // depends on map size
+          [1, "g.harvester", H.Centre.id,                           5],       // needed for trade?
+          [1, "g.builder",   H.Centre.id, class2name("house"),      2, 2],    // depends on building time
+          // [1, "g.builder",   H.Centre.id, class2name("barracks"),   2, 1],    // depends on civ and # enemies
+          // [1, "g.builder",   H.Centre.id, class2name("blacksmith"), 2, 1],    // one is max, check required techs
+          [1, "g.supplier",  H.Centre.id, "metal",       1],               // 
+          [1, "g.supplier",  H.Centre.id, "stone",       1],
+          [1, "g.supplier",  H.Centre.id, "wood",                   6],
+          [1, "g.supplier",  H.Centre.id, "food.fruit",             2],       // availability
+          [1, "g.supplier",  H.Centre.id, "food.meat",              2],       // availability
         ];
 
       } else if (phase === "phase.town"){
