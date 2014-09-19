@@ -168,7 +168,10 @@ HANNIBAL = (function(H){
 
         flee:     function(attacker){H.Engine.flee(ids, [attacker.id]);},
         garrison: function(asset){H.Engine.garrison(ids, asset.resources[0]);},
-        gather:   function(asset){H.Engine.gather(ids, asset.resources[0]);},
+        gather:   function(asset){
+          if (asset.resources && asset.resources.length){H.Engine.gather(ids, asset.resources[0]);}
+          else {deb("WARN  : asset %s no resources", asset.name);}
+        },
         repair:   function(asset){H.Engine.repair(ids, asset.resources[0]);},
         collect:  function(targets){
           // deb("   AST: collect: %s", uneval(targets));

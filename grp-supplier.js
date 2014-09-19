@@ -74,7 +74,7 @@ HANNIBAL = (function(H){
           this.units = (
             resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
             resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
-            resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.stone.rock"] :
+            resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
             resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
             resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
               deb(" ERROR: unknown resource '%s' for supply group", resource)

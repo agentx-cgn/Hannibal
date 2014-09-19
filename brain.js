@@ -77,62 +77,42 @@ HANNIBAL = (function(H){
     },
     runPlanner: function(phase){
 
-      var start, goal, phaseName, phaseCost, houseCost;
+      var start, goal, phaseName, phaseCost, houseName, housePopu, ress;
 
       if (phase === "phase.village"){
 
         phaseName = H.QRY("civilcentre CONTAIN RESEARCH").filter(n => n.name.contains("town"))[0].name;
         phaseCost = H.Technologies[phaseName].cost;
+        housePopu = H.QRY(class2name("house")).first().costs.population * -1;
 
-        houseName = H.QRY("house CONTAIN").first().name;
-        houseCost = H.QRY(houseName).first().cost;
+        ress = {
+          "food":  phaseCost.food  + 100,
+          "wood":  phaseCost.metal + 100,
+          "stone": phaseCost.stone + 100,
+          "metal": phaseCost.metal + 100,
+          "pop":   50,
+        };
 
-          start = H.HTN.Economy.getCurState();
-          goal  = new H.HTN.Helper.State({
-            "ress": {
-              "food":  phaseCost.food  + 100,
-              "wood":  phaseCost.metal + 100,
-              "stone": phaseCost.stone + 100,
-              "metal": phaseCost.metal + 100,
-              "pop":    50,
-            },
-            // "ents": {},
-            "tech": [
-              phaseName,
-              "gather.lumbering.ironaxes",
-              // "gather_capacity_wheelbarrow"
-            ]
-          }).sanitize();
+        start = H.HTN.Economy.getCurState();
+        goal  = new H.HTN.Helper.State({
+          "ress": {},
+          "ents": {},
+          "tech": [
+            phaseName,
+            "gather.lumbering.ironaxes",
+            // "gather_capacity_wheelbarrow"
+          ]
+        }).sanitize();
 
+        goal.data.ress = ress;
         goal.data.ents[class2name("barracks")]   = 2;
+        goal.data.ents[class2name("house")]      = Math.ceil(ress.pop / housePopu);
         // goal.data.ents[class2name("blacksmith")] = 1;
 
-        deb("     B: goal for phase: %s", phase);
-        JSON.stringify(goal.data, null, 2).split("\n").forEach(function(line){
-          deb("      : %s", line);
-        });
-
-        planner = new H.HTN.Planner({
-          domain: H.HTN.Economy,
-          verbose: 0,
-          noInitialize: true
-        });
-
-        planner.plan(start, [[H.HTN.Economy.methods.start, goal]]);
-
-        deb();deb();
-
-        JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
-          deb(" BRAIN: %s", line);
-        });
-
-        deb();deb();
-
-        planner.operations.forEach(function(op){
-          deb("  BRAIN: op: %s", op);
-        });      
-
-        return planner;
+        // deb("     B: goal for phase: %s", phase);
+        // JSON.stringify(goal.data, null, 2).split("\n").forEach(function(line){
+        //   deb("      : %s", line);
+        // });
 
 
       } else if (phase === "phase.town"){
@@ -142,7 +122,30 @@ HANNIBAL = (function(H){
 
       }
 
+      planner = new H.HTN.Planner({
+        domain: H.HTN.Economy,
+        verbose: 0,
+        noInitialize: true
+      });
+
+      planner.plan(start, [[H.HTN.Economy.methods.start, goal]]);
+
+      // debug
+      deb();deb();
+      deb(" BRAIN: planning phase: %s", phase)
+      JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
+        deb("     B: %s", line);
+      });
+      deb();
+      planner.operations.forEach(function(op){
+        deb("     B: - %s", op);
+      });      
+
+      return planner;
+
+
     },
+    requestPlanner: function(){ return planner;},
     requestGoals: function(){
 
       return (
@@ -180,6 +183,8 @@ HANNIBAL = (function(H){
       } else if (phase === "phase.city"){
 
       }      
+
+      return [];
 
     },
 

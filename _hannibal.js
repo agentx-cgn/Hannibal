@@ -140,11 +140,6 @@ var HANNIBAL = (function() {
     H.Grids.dump(map);                      // dumps all grids with map prefix in file name
     H.Grids.pass.log();
 
-    H.Resources.init();                     // extracts resources from all entities
-    H.Scout.init();                         // inits scout extension for scout group
-
-    H.Groups.init();                        // registers groups
-
     this.culture = new H.Culture(this.civ); // culture knowledgebase as triple store
     this.culture.selectTemplates(false);         // build tech tree
     this.culture.readTemplates();           // extrcact classes, resources, etc from templates
@@ -154,6 +149,9 @@ var HANNIBAL = (function() {
     this.culture.loadTechnologies();        // from game to triple store
     this.culture.finalize();                // clear up
 
+    H.Resources.init();                     // extracts resources from all entities
+    H.Scout.init();                         // inits scout extension for scout group
+    H.Groups.init();                        // registers groups
     H.initVillage();
 
     // prepare planner cache

@@ -282,6 +282,7 @@ HANNIBAL = function(H){
   };
 
   H.Data.Depths = {
+    "spart": {},
     "athen": {
       "structures.athen.civil.centre":  1,
       "units.athen.support.female.citizen":  8,

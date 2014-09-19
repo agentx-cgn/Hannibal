@@ -54,6 +54,7 @@ HANNIBAL = (function(H){
     selectTemplates: function(dolog){
 
       var 
+        t = H.tab, self = this, 
         templates = [].concat(
           H.attribs(H.Player.researchedTechs), 
           H.attribs(H.SharedScript._techModifications[H.Bot.id]),
@@ -64,20 +65,38 @@ HANNIBAL = (function(H){
 
       this.templates = this.expandTemplates(templates);
 
-      if(dolog){
+      function getPhase(tpln){
+        return self.templates.filter(t => t[2] === tpln)[0][3];
+      }
+
+      this.templates.forEach(function(tpla){
+        if (!tpla[3].contains("phase")){
+          var req = getPhase(tpla[3]);
+          tpla[3] = req;
+          deb(" %s -> %s <- %s", tpla[2], tpla[3], req);
+        }
+      })
+
+
+      if(dolog || true){
         deb("++++++++++++++++++++++++++ " + this.civ);
         this.templates
           .sort((a, b) => a[0] > b[0])
-          .forEach(entry => deb("   reg: " + uneval(entry)));
+          .forEach(e => deb("   reg: %s, %s, %s, %s", 
+            t(e[0], 4), 
+            t(e[1], 6), 
+            t(e[3], 40), 
+            e[2]
+          ));
         deb("++++++++++++++++++++++++++ " + this.templates.length);
       }
 
     },
     expandTemplates: function(source){
 
-      var akku = [ /* [depth, typ, nameTpl], ... */ ], depth = 0, self = this;
+      var akku = [ /* [depth, typ, nameTpl, phase], ... */ ], depth = 0, self = this;
 
-      function register (nameTpl, depth) {
+      function register (nameTpl, depth, phase) {
 
         var tpl, typ;
 
@@ -86,10 +105,16 @@ HANNIBAL = (function(H){
         if (H.Templates[nameTpl]){
           tpl = H.Templates[nameTpl];
           typ = "enti";
+          if (tpl.Identity && tpl.Identity.RequiredTechnology){
+            phase = tpl.Identity.RequiredTechnology;
+          }
 
         } else if (H.SharedScript._techTemplates[nameTpl]) {
           tpl = H.SharedScript._techTemplates[nameTpl];
           typ = "tech";
+          if (tpl.requirements && tpl.requirements.tech){
+            phase = tpl.requirements.tech;
+          }
 
         } else {
           deb(" ERROR: no tpl: getTemplates: %s", nameTpl);
@@ -98,43 +123,43 @@ HANNIBAL = (function(H){
 
         if (!akku.some(item => nameTpl === item[2])){
 
-          akku.push([depth, typ, nameTpl]);
+          akku.push([depth, typ, nameTpl, phase]);
 
           if(nameTpl.slice(-2) === "_b"){
-            register(nameTpl.slice(0, -2) + "_e", ++depth);
-            register(nameTpl.slice(0, -2) + "_a", ++depth);
+            register(nameTpl.slice(0, -2) + "_e", ++depth, phase);
+            register(nameTpl.slice(0, -2) + "_a", ++depth, phase);
           }
 
           // can research tech
           if (tpl.ProductionQueue && tpl.ProductionQueue.Technologies && tpl.ProductionQueue.Technologies._string){
             tpl.ProductionQueue.Technologies._string.split(" ").forEach(function(tech){
-              register(tech, ++depth);
+              register(tech, ++depth, phase);
             });
           }
 
           // can train ents
           if (tpl.ProductionQueue && tpl.ProductionQueue.Entities && tpl.ProductionQueue.Entities._string){
             tpl.ProductionQueue.Entities._string.split(" ").forEach(function(ent){
-              register(ent, ++depth);
+              register(ent, ++depth, phase);
             });
           }
 
           // can build structs
           if (tpl.Builder && tpl.Builder.Entities && tpl.Builder.Entities._string){
             tpl.Builder.Entities._string.split(" ").forEach(function(struc){
-              register(struc, ++depth);
+              register(struc, ++depth, phase);
             });
           }
 
           // needs tech
           if (tpl.Identity && tpl.Identity.RequiredTechnology){
-            register(tpl.Identity.RequiredTechnology, ++depth);
+            register(tpl.Identity.RequiredTechnology, ++depth, phase);
           }
 
           // is tech
-          if (tpl.supersedes){register(tpl.supersedes, ++depth);}
-          if (tpl.bottom){register(tpl.bottom, ++depth);}
-          if (tpl.top){register(tpl.top, ++depth);}
+          if (tpl.supersedes){register(tpl.supersedes, ++depth, phase);}
+          if (tpl.bottom){register(tpl.bottom, ++depth, phase);}
+          if (tpl.top){register(tpl.top, ++depth, phase);}
 
         } else {
           // no duplicates
@@ -145,7 +170,7 @@ HANNIBAL = (function(H){
       }
 
       source.forEach(function(tpln){
-        register(tpln, depth);
+        register(tpln, depth, "phase_village");
       });
 
       return akku;

@@ -157,11 +157,11 @@ HANNIBAL = (function(H){
 
     H.QRY("INGAME").forEach(function(node){
       if (H.Groups.isLaunchable(node.metadata.opname)){
-        deb("     I: --");
+        deb("     I: -- %s", node.name);
         H.Groups.appoint(node.metadata.opname, node.id);
       }
     });
-    deb("     I: --");
+    deb();
 
   }
 

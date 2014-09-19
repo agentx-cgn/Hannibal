@@ -271,12 +271,37 @@ HANNIBAL = (function(H){
   H.Economy = (function(){
 
     var 
-      self, goals, groups,
-      phases = ["phase.village", "phase.town", "phase.city"];
+      self, goals, groups, planner, 
+      phases  = ["phase.village", "phase.town", "phase.city"],
+      ccid = H.Centre ? H.Centre.id : 0,
+
+      ressTargets = {
+        "food":  0,
+        "wood":  0,
+        "stone": 0,
+        "metal": 0,
+        "pop":   0,
+      },
+
+      ressGroups = [
+        [1, "g.scouts",    ccid,                           1],       // depends on map size
+        [1, "g.harvester", ccid,                           5],       // needed for trade?
+        // [1, "g.builder",   ccid, class2name("house"),      2, 2],    // depends on building time
+        // [1, "g.builder",   ccid, class2name("barracks"),   2, 1],    // depends on civ and # enemies
+        // [1, "g.builder",   ccid, class2name("blacksmith"), 2, 1],    // one is max, check required techs
+        [1, "g.supplier",  ccid, "metal",                  1],               // 
+        [1, "g.supplier",  ccid, "stone",                  1],
+        [1, "g.supplier",  ccid, "wood",                  10],
+        [1, "g.supplier",  ccid, "food.fruit",             4],       // availability
+        [1, "g.supplier",  ccid, "food.meat",              2],       // availability
+      ];
+
+
 
     self = {
       boot: function(){self = this; return self;},
       init: function(){
+        deb();deb();deb("   ECO: init");
         H.Events.registerListener("onAdvance", self.listener);
       },
       tick: function(secs, ticks){
@@ -321,6 +346,17 @@ HANNIBAL = (function(H){
       advancePhase: function(phase){
 
         deb("   ECO: advancePhase '%s'", phase);
+        planner  = H.Brain.requestPlanner(phase);
+
+        deb("     E: planner.result.data: %s", uneval(planner.result.data));
+
+        ressTargets.food  = planner.result.data.cost.food  || 0 + planner.result.data.ress.food;
+        ressTargets.wood  = planner.result.data.cost.wood  || 0 + planner.result.data.ress.wood;
+        ressTargets.metal = planner.result.data.cost.metal || 0 + planner.result.data.ress.metal;
+        ressTargets.stone = planner.result.data.cost.stone || 0 + planner.result.data.ress.stone;
+
+        deb("     E: ressTargets: %s", uneval(ressTargets));
+
         goals  = H.Brain.requestGoals(phase);
         groups = H.Brain.requestGroups(phase);
         goals.forEach(g =>  deb("     E: goal:  %s", g));

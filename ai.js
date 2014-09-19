@@ -153,7 +153,7 @@ HANNIBAL = (function(H){
          */
 
         this.converged = (
-          point.centroid !== centroid || typeof point.centroid !== 'number' ? 
+          typeof point.centroid !== 'number' || point.centroid !== centroid  ? 
           false : this.converged
         );
 

@@ -101,7 +101,7 @@ HANNIBAL = (function(H){
     H.each(config, function(name, query){
       H.QRY(query).forEach(function(node){
         if (H.QRY(node.name + " PAIR").first()){return;}
-        var goal  = zero(), start = zero();
+        var goal = zero(), start = zero();
         start.data.ents[cc] = 1;
         if (name === 'techs' || name === "pairs") {
           goal.data.tech = [node.name];
@@ -383,7 +383,7 @@ HANNIBAL = (function(H){
           }
         }
         if (ents.length){
-          ents = ents.sort((a,b) => depths[a[0]] - depths[b[0]]);
+          ents = ents.sort((a,b) => depths[a[0]] || 0 - depths[b[0]] || 0);
           return [[m.produce, ents[0][0], ents[0][1]], [m.start, goal]];
         }
       }
@@ -399,7 +399,7 @@ HANNIBAL = (function(H){
 
           // deb(" -> %s", uneval(techs));
 
-          techs = techs.sort((a,b) => depths[a[0]] - depths[b[0]]);
+          techs = techs.sort((a,b) => depths[a[0]] || 0 - depths[b[0]] || 0);
           return [[m.produce, techs[0], 1], [m.start, goal]];
         }
       }
