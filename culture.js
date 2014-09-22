@@ -14,21 +14,21 @@
 
 HANNIBAL = (function(H){
 
-  H.Culture = function(civ, debug){
+  H.Culture = function(tree, debug){
 
     deb();deb();
-    deb("  CULT: parsing %s templates for [%s]", H.count(H.Templates), civ);
+    deb("  CULT: build culture/store for id: %s, %s", tree.id, tree.civ);
 
     this.debug = debug || 0;
 
-    this.civ  = civ;
+    this.tree = tree;
+    this.tree.culture = this;
+
+    this.civ  = tree.civ;
 
     this.verbs = H.Data.verbs;
-    this.store = new H.Store(civ);
+    this.store = new H.Store(tree.civ);
     this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
-
-    // all templates building tech tree
-    this.templates = [ /* [depth, typ, nameTpl], ... */ ];
 
     // store nodes found in templates
     this.classes = [];
@@ -51,138 +51,14 @@ HANNIBAL = (function(H){
       deb("     C: loaded [%s], verbs: %s, nodes: %s, edges: %s", this.civ, this.verbs.length, H.count(this.store.nodes), this.store.edges.length);
 
     },
-    selectTemplates: function(dolog){
-
-      var 
-        t = H.tab, self = this, 
-        templates = [].concat(
-          H.attribs(H.Player.researchedTechs), 
-          H.attribs(H.SharedScript._techModifications[H.Bot.id]),
-          H.attribs(H.Entities)
-            .filter(id => H.Entities[id].owner() === H.Bot.id)
-            .map(id => H.Entities[id]._templateName)
-        );
-
-      this.templates = this.expandTemplates(templates);
-
-      function getPhase(tpln){
-        return self.templates.filter(t => t[2] === tpln)[0][3];
-      }
-
-      this.templates.forEach(function(tpla){
-        if (!tpla[3].contains("phase")){
-          var req = getPhase(tpla[3]);
-          tpla[3] = req;
-          deb(" %s -> %s <- %s", tpla[2], tpla[3], req);
-        }
-      })
-
-
-      if(dolog || true){
-        deb("++++++++++++++++++++++++++ " + this.civ);
-        this.templates
-          .sort((a, b) => a[0] > b[0])
-          .forEach(e => deb("   reg: %s, %s, %s, %s", 
-            t(e[0], 4), 
-            t(e[1], 6), 
-            t(e[3], 40), 
-            e[2]
-          ));
-        deb("++++++++++++++++++++++++++ " + this.templates.length);
-      }
-
-    },
-    expandTemplates: function(source){
-
-      var akku = [ /* [depth, typ, nameTpl, phase], ... */ ], depth = 0, self = this;
-
-      function register (nameTpl, depth, phase) {
-
-        var tpl, typ;
-
-        nameTpl = nameTpl.replace(/\{civ\}/g, self.civ);
-
-        if (H.Templates[nameTpl]){
-          tpl = H.Templates[nameTpl];
-          typ = "enti";
-          if (tpl.Identity && tpl.Identity.RequiredTechnology){
-            phase = tpl.Identity.RequiredTechnology;
-          }
-
-        } else if (H.SharedScript._techTemplates[nameTpl]) {
-          tpl = H.SharedScript._techTemplates[nameTpl];
-          typ = "tech";
-          if (tpl.requirements && tpl.requirements.tech){
-            phase = tpl.requirements.tech;
-          }
-
-        } else {
-          deb(" ERROR: no tpl: getTemplates: %s", nameTpl);
-
-        }
-
-        if (!akku.some(item => nameTpl === item[2])){
-
-          akku.push([depth, typ, nameTpl, phase]);
-
-          if(nameTpl.slice(-2) === "_b"){
-            register(nameTpl.slice(0, -2) + "_e", ++depth, phase);
-            register(nameTpl.slice(0, -2) + "_a", ++depth, phase);
-          }
-
-          // can research tech
-          if (tpl.ProductionQueue && tpl.ProductionQueue.Technologies && tpl.ProductionQueue.Technologies._string){
-            tpl.ProductionQueue.Technologies._string.split(" ").forEach(function(tech){
-              register(tech, ++depth, phase);
-            });
-          }
-
-          // can train ents
-          if (tpl.ProductionQueue && tpl.ProductionQueue.Entities && tpl.ProductionQueue.Entities._string){
-            tpl.ProductionQueue.Entities._string.split(" ").forEach(function(ent){
-              register(ent, ++depth, phase);
-            });
-          }
-
-          // can build structs
-          if (tpl.Builder && tpl.Builder.Entities && tpl.Builder.Entities._string){
-            tpl.Builder.Entities._string.split(" ").forEach(function(struc){
-              register(struc, ++depth, phase);
-            });
-          }
-
-          // needs tech
-          if (tpl.Identity && tpl.Identity.RequiredTechnology){
-            register(tpl.Identity.RequiredTechnology, ++depth, phase);
-          }
-
-          // is tech
-          if (tpl.supersedes){register(tpl.supersedes, ++depth, phase);}
-          if (tpl.bottom){register(tpl.bottom, ++depth, phase);}
-          if (tpl.top){register(tpl.top, ++depth, phase);}
-
-        } else {
-          // no duplicates
-          // print (H.format("      dup: %s \n", nameTpl));
-
-        }
-
-      }
-
-      source.forEach(function(tpln){
-        register(tpln, depth, "phase_village");
-      });
-
-      return akku;
-
-    },
     loadNodes: function(){
 
       var self  = this, node, name, tpln, template, 
           sani  = H.saniTemplateName,
           counter = 0,
           counterTechs = 0,
-          counterEntis = 0,
+          counterUnits = 0,
+          counterStucs = 0,
           conf  = {
         'classes':        {deb: false, generic: "Class",         tooltip: "a class"},
         'resources':      {deb: false, generic: "Resource",      tooltip: "something to gather"},
@@ -213,87 +89,80 @@ HANNIBAL = (function(H){
       });
 
       // load nodes collected in selectTemplates
-      this.templates.forEach(function(tpla){
+      H.each(this.tree.templates, function (name, template){
 
-        tpln = tpla[2];
-        name = sani(tpla[2]);
-
-        if (tpla[1] === "tech"){
-          template = H.Technologies[tpln];
+        if (template.type === "tech"){
           counterTechs += 1;
 
-        } else if (tpla[1] === "enti"){
-          template = H.Templates[tpln];
-          counterEntis += 1;
+        } else if (template.type === "stuc"){
+          counterStucs += 1;
+
+        } else if (template.type === "unit"){
+          counterUnits += 1;
+
         }
 
-        node = self.addNode(name, tpln, template);
+        node = self.addNode(template.name, template.key, template.template);
 
       });
 
-      deb("     C: created %s nodes for entities", H.tab(counterEntis, 4));
+      deb("     C: created %s nodes for units", H.tab(counterUnits, 4));
+      deb("     C: created %s nodes for structures", H.tab(counterStucs, 4));
       deb("     C: created %s nodes for technologies", H.tab(counterTechs, 4));
 
     },
-    readTemplates: function(){
+    searchTemplates: function(){
 
       // search for classes, resources and resourcetypes
 
-      var self = this;
+      var list, self = this;
 
-      this.templates.forEach(function(tpla){
+      H.each(this.tree.templates, function(name, template){
 
-        var
-          key  = tpla[2],
-          tpl  = H.Templates[key] ? H.Templates[key] : null,
-          list;
+        var tpl = template.template;
 
-        if (tpl){
+        // classes
+        if (tpl.Identity && tpl.Identity.VisibleClasses){
+          list = tpl.Identity.VisibleClasses._string.toLowerCase();
+          list = H.replace(list, "\n", " ");
+          list.split(" ")
+            .filter(klass => !!klass)
+            .filter(klass => klass[0] !== "-")
+            .forEach(klass => self.classes.push(klass));
+        }
 
-          // classes
-          if (tpl.Identity && tpl.Identity.VisibleClasses){
-            list = tpl.Identity.VisibleClasses._string.toLowerCase();
-            list = H.replace(list, "\n", " ");
-            list.split(" ")
-              .filter(klass => !!klass)
-              .filter(klass => klass[0] !== "-")
-              .forEach(klass => self.classes.push(klass));
-          }
+        if (tpl.Identity && tpl.Identity.Classes){
+          list = tpl.Identity.Classes._string.toLowerCase();
+          list = H.replace(list, "\n", " ");
+          list.split(" ")
+            .filter(klass => !!klass)
+            .filter(klass => klass[0] !== "-")
+            .forEach(klass => self.classes.push(klass));
+        }
 
-          if (tpl.Identity && tpl.Identity.Classes){
-            list = tpl.Identity.Classes._string.toLowerCase();
-            list = H.replace(list, "\n", " ");
-            list.split(" ")
-              .filter(klass => !!klass)
-              .filter(klass => klass[0] !== "-")
-              .forEach(klass => self.classes.push(klass));
-          }
+        // more classes
+        if (tpl.GarrisonHolder && tpl.GarrisonHolder.List){
+          tpl.GarrisonHolder.List._string.split(" ").forEach(function(klass){
+            self.classes.push(klass.toLowerCase());
+          });
+        }
 
-          // more classes
-          if (tpl.GarrisonHolder && tpl.GarrisonHolder.List){
-            tpl.GarrisonHolder.List._string.split(" ").forEach(function(klass){
-              self.classes.push(klass.toLowerCase());
-            });
-          }
+        // resources [wood.ruins]
+        if (tpl.ResourceSupply && tpl.ResourceSupply.Type){
+          self.resources.push(tpl.ResourceSupply.Type);
+        }
+        
+        if (tpl.ResourceGatherer && tpl.ResourceGatherer.Rates){
+          H.attribs(tpl.ResourceGatherer.Rates).forEach(function(resource){
+            self.resources.push(resource);
+          });
+        }
 
-          // resources [wood.ruins]
-          if (tpl.ResourceSupply && tpl.ResourceSupply.Type){
-            self.resources.push(tpl.ResourceSupply.Type);
-          }
-          
-          if (tpl.ResourceGatherer && tpl.ResourceGatherer.Rates){
-            H.attribs(tpl.ResourceGatherer.Rates).forEach(function(resource){
-              self.resources.push(resource);
-            });
-          }
-
-          // resources type
-          if (tpl.ResourceDropsite && tpl.ResourceDropsite.Types){
-            tpl.ResourceDropsite.Types.split(" ").forEach(function(type){
-              self.resourcetypes.push(type);
-            });
-          }
-
+        // resources type
+        if (tpl.ResourceDropsite && tpl.ResourceDropsite.Types){
+          tpl.ResourceDropsite.Types.split(" ").forEach(function(type){
+            self.resourcetypes.push(type);
+          });
         }
 
       });
