@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb */
+/*globals HANNIBAL, deb, uneval */
 
 /*--------------- E C O N O M Y -----------------------------------------------
 
@@ -14,16 +14,18 @@
 
 HANNIBAL = (function(H){
 
-  /* lots of domain knowledge here.
-
-
-  */
-
   // relies on c before e
   var config = H.Config.economy,
-      ress = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0},
+      ress        = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0},
       allocations = {food: 0, wood: 0, stone: 0, metal: 0, population: 0};
 
+  function pritc(cost){ // pretty cost
+    var out = [];
+    Object.keys(cost).forEach(r => {
+      if(cost[r]){out.push(r + ":" + cost[r]);}
+    });
+    return out.join(",");
+  }
 
   H.Stats = {
 
@@ -37,8 +39,7 @@ HANNIBAL = (function(H){
       var t0 = Date.now(), curHits = 1, maxHits = 1, 
           stock   = H.Stats.stock, 
           stack   = H.Stats.stack, 
-          trend   = H.Stats.trend, 
-          ctx     = H.Context;
+          trend   = H.Stats.trend;
           
       // ctx.lstUnits.forEach(function(unit){
       //   curHits += unit.hitpoints();
@@ -192,11 +193,11 @@ HANNIBAL = (function(H){
         hcq = this.order.hcq + " INGAME WITH metadata.opname = 'none'";
 
       // looking for a shared structure
-      } else if (this.order.type === "construct" && this.order.shared) {
+      } else if (this.order.type === "build" && this.order.shared) {
         hcq = this.order.hcq + " INGAME WITH metadata.opmode = 'shared'";
 
       // looking for abandoned structure not assigned to a group
-      } else if (this.order.type === "construct" && !this.order.shared) {
+      } else if (this.order.type === "build" && !this.order.shared) {
         hcq = this.order.hcq + " INGAME WITH metadata.opname = 'none'";
 
       } else {
@@ -223,10 +224,9 @@ HANNIBAL = (function(H){
       // picks an in game producer for each node, currently the first found
       // trainingQueueTime === trainingQueueLength for train, research O_O
 
-      var hcq, prods,
-          verb = {
+      var hcq, prods, verb = {
             "train":      "TRAINEDBY",
-            "construct":  "BUILDBY",
+            "build":      "BUILDBY",
             "research":   "RESEARCHEDBY",
             "claim":      "???"
           }[this.order.type];
@@ -245,22 +245,27 @@ HANNIBAL = (function(H){
     },
     checkRequirements: function(){
 
-      var self = this, hcq, names, nodes, good = 0, bad = 0;
+      var self = this, hcq, good = 0, bad = 0,
+          tree = H.Bot.tree.nodes, req;
 
       // testing each node for tech requirements
       this.nodes.forEach(function(node){
-        hcq  = H.format("%s REQUIRE", node.name);
-        nodes = H.QRY(hcq).execute();
-        if(nodes.length){
-          names = nodes.map(function(req){return req.name;});
-          node.qualifies = H.Technologies.available(names);
-          good += node.qualifies ? 1 : 0;
-          bad  += node.qualifies ? 0 : 1;
-        }
+        req = tree[node.name].requires;
+        node.qualifies = req ? H.Technologies.available([req]) : true;
+        good += node.qualifies ? 1 : 0;
+        bad  += node.qualifies ? 0 : 1;
+        // hcq  = H.format("%s REQUIRE", node.name);
+        // nodes = H.QRY(hcq).execute();
+        // if(nodes.length){
+        //   names = nodes.map(function(req){return req.name;});
+        //   node.qualifies = H.Technologies.available(names);
+        //   good += node.qualifies ? 1 : 0;
+        //   bad  += node.qualifies ? 0 : 1;
+        // }
       });    
 
       if (good + bad){
-        deb("    OC: #%s requirements %s/%s FOR %s", self.order.id, good, bad, hcq);
+        deb("    OC: #%s requirements %s/%s FOR %s", self.order.id, good, bad, this.order.hcq);
       }
 
     }
@@ -306,7 +311,7 @@ HANNIBAL = (function(H){
       },
       tick: function(secs, ticks){
         var t0 = Date.now();
-        if (!(ticks % H.Config.economy.intervalMonitorGoals)){
+        if ((ticks % H.Config.economy.intervalMonitorGoals) === 0){
           self.monitorGoals();
         }
         self.processQueue();
@@ -408,7 +413,7 @@ HANNIBAL = (function(H){
         }
         H.Queue.append(new H.Order(order));
 
-        deb("   ERQ: #%s, amount: %s, loc: %s, from: %s, hcq: %s", order.id, amount, loc, sourcename, order.hcq);
+        deb("   ERQ: #%s, %s amount: %s, loc: %s, from: %s, hcq: %s", order.id, order.type, amount, loc, sourcename, order.hcq);
 
       },
       processQueue: function(){
@@ -418,17 +423,9 @@ HANNIBAL = (function(H){
           budget  = H.deepcopy(H.Stats.stock),
           allGood = false, 
           removed = [],
-          expensive = [],
-          executed = [],
-          constructs = 0, // only one construction per round
-          pritc = function(cost){
-            var out = [];
-            Object.keys(cost)
-              .forEach(r => {
-                if(cost[r]){out.push(r + ":" + cost[r]);}
-              });
-            return out.join(",");
-          };
+          expensive  = [],
+          executed   = [],
+          constructs = 0; // only one construction per round
 
         if (!H.Queue.length){return;}
 
@@ -458,7 +455,7 @@ HANNIBAL = (function(H){
                   executed.push(id + ":" + amount);
                 break;
 
-                case "construct":
+                case "build":
                   if (constructs < 1){
                     // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.order.x + "|" + order.order.z, node.key);
                     H.Economy.execute("construct", amount, node.producer, node.key, order.order);

@@ -14,38 +14,26 @@
 
 HANNIBAL = (function(H){
 
-  var mapper = {
-        "TRAINEDBY":    "train",
-        "BUILDBY":      "construct",
-        "RESEARCHEDBY": "research"
-      };
-
   function getAssetType(definition){
 
-    var found = false, hcq, type, nodes;
+    var found = false, hcq, type, producers;
 
     if (typeof definition[1] === "object"){
 
       return "claim";
 
     } else if (typeof definition[1] === "string") {
-      nodes = H.QRY(definition[1], 0).execute("", 0, 0, "getAssetType"); // enforce no debug info
-      nodes.forEach(function(node){
-        "TRAINEDBY, BUILDBY, RESEARCHEDBY".split(", ").forEach(function(verb){
-          if (!found){
-            hcq = H.format("%s %s", node.name, verb);
-            if (H.QRY(hcq).execute().length){
-              type = mapper[verb];
-              found = true;
-            }
-          }
-        });
-      });    
-      if (found){
-        return type;
-      } else {
-        return deb("ERROR : getAssetType: strange resource: %s", definition);
-      }
+
+      H.QRY(definition[1]).forEach(function(node){  // mind units.athen.infantry.archer.a
+        if(!found && H.Bot.tree.nodes[node.name].producers.length){ 
+          producers = H.Bot.tree.nodes[node.name].producers;
+          found = true;
+        }
+      });
+
+      deb("   AST: getAssetType: %s for %s", producers[1]);
+
+      return producers[1];
 
     } else {
       return deb("ERROR : getAssetType: strange resource: %s", definition);
@@ -335,14 +323,14 @@ HANNIBAL = (function(H){
             tpln = H.Entities[id]._templateName;
 
             // take over ownership
-            if ((this.type === "train" || this.type === "construct")){
+            if ((this.type === "train" || this.type === "build")){
               meta.opid   = instance.id;
               meta.opname = instance.name;
             } else {
               deb("ERROR : %s was assigned with type: %s", this.type, this);
             }
 
-            if (this.type === "construct"){
+            if (this.type === "build"){
               if (tpln.indexOf("foundation") !== -1){
                 this.isFoundation = true; //?? too greedy
                 resource.isFoundation = true;

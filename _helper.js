@@ -58,6 +58,7 @@ H.extend(H, {
   // clamp:      function (val, min, max){return Math.max(Math.min(val, max), min);}, 
   clamp:      function (val, min, max){return val < min ? min : val > max ? max : val;}, 
   isInteger:  function (n){return Math.floor(n) === n;},
+  pareto:     function (alpha) {return 1.0 / Math.pow((1 - Math.random()), 1.0 / alpha);},
 
   // strings
   replace:    function (s,f,r){return s.replace(new RegExp(H.escapeRex(f), 'g'), r);},
@@ -87,6 +88,14 @@ H.extend(H, {
   transform:  function (o, fn){
     var r={}; H.each(o,function(k,v){var [ra,rv]=fn(k,v);r[ra]=rv;});return r;
   },
+  test:       function (o,s){
+    var p = 0, as = s.split("."), l = as.length -1;
+    while (( (o = o[as[p]]) !== undefined)) {
+      if(p === l){return o;};
+      p +=1;
+    }
+    return undefined;
+  },
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},
@@ -100,9 +109,9 @@ H.extend(H, {
   flatten:    function (a){return Array.prototype.concat.apply([], a);},
   pushUnique: function (a,e){if(a.indexOf(e)===-1){a.push(e);};return a;},
   equal:      function (a,b){return JSON.stringify(a) === JSON.stringify(b);},
-  mean:       function(a){return a.reduce(function(s,x){return (s+x)},0)/a.length;},
-  median:     function(a){var al=a.length;m=~~(a.sort().length/2);return !al?null:al%2?a[m]:(a[m-1]+a[m])/2;},
-  mode:       function(a){
+  mean:       function (a){return a.reduce(function(s,x){return (s+x)},0)/a.length;},
+  median:     function (a){var al=a.length;m=~~(a.sort().length/2);return !al?null:al%2?a[m]:(a[m-1]+a[m])/2;},
+  mode:       function (a){
     var i, n, cnt = {}, mode = [], max = 0;
     for (i in a) {
       n = a[i];

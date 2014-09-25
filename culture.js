@@ -89,7 +89,7 @@ HANNIBAL = (function(H){
       });
 
       // load nodes collected in selectTemplates
-      H.each(this.tree.templates, function (name, template){
+      H.each(this.tree.nodes, function (name, template){
 
         if (template.type === "tech"){
           counterTechs += 1;
@@ -117,7 +117,7 @@ HANNIBAL = (function(H){
 
       var list, self = this;
 
-      H.each(this.tree.templates, function(name, template){
+      H.each(this.tree.nodes, function(name, template){
 
         var tpl = template.template;
 

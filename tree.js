@@ -16,9 +16,8 @@ HANNIBAL = (function(H){
 
   var phases = {
       '1' : {idx: 1, abbr: "vill", generic: "phase_village", alternates: ["vill", "phase_village"]},
-      '2' : {idx: 2, abbr: "town", generic: "phase_town",    alternates: ["town", "phase_town", "phase_town_generic", "phase_town_athen"]},
-      '3' : {idx: 3, abbr: "city", generic: "phase_city",    alternates: ["city", "phase_city", "phase_city_generic", "phase_city_britons", "city_phase_gauls", "phase_city_pair_celts", "phase_city_athen"]},
-      // list: [],
+      '2' : {idx: 2, abbr: "town", generic: "phase_town",    alternates: ["town", "phase_town"]},
+      '3' : {idx: 3, abbr: "city", generic: "phase_city",    alternates: ["city", "phase_city"]},
       find: function(phase){
         for (var i=1; i<=3; i++) {
           if (H.contains(phases[i].alternates, phase)){
@@ -26,18 +25,37 @@ HANNIBAL = (function(H){
           }
         } /* deb("WARN  : unknown phase: %s", phase); */ return undefined;
       },
-      prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];}
+      prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];},
+      update: function(){
+        var test;
+        function extract(str){
+          if (str && str.contains("phase")){
+            if (str.contains("village")){phases['1'].alternates.push(str);}
+            if (str.contains("town")){phases['2'].alternates.push(str);}
+            if (str.contains("city")){phases['3'].alternates.push(str);}
+          }
+        }
+        function check(key, tpl){
+          if ((test = H.test(tpl, "Identity.RequiredTechnology"))){extract(test);}
+          if ((test = H.test(tpl, "requirements.tech"))){extract(test);}
+          if ((test = H.test(tpl, "requirements.any"))){test.forEach(t => extract(t.tech));}
+        }
+        H.each(H.Templates, check); 
+        H.each(H.SharedScript._techTemplates, check); 
+        phases['1'].alternates = H.unique(phases['1'].alternates);
+        phases['2'].alternates = H.unique(phases['2'].alternates);
+        phases['3'].alternates = H.unique(phases['3'].alternates);
+      }
     };
-
-  // [1, 2, 3].forEach(p => phases[p].alternates.forEach(a => phases.list.push(a)));
 
 
   H.TechTree = function (idplayer) {
+    phases.update(); // needs better place
     this.id = idplayer;
-    this.civ = H.SharedScript.playersData[idplayer].civ;
-    this.templates = {};
+    this.civ = H.Players[idplayer].civ;
+    this.nodes = {};
     this.sources = [].concat(
-      H.attribs(H.SharedScript.playersData[idplayer].researchedTechs), 
+      H.attribs(H.Players[idplayer].researchedTechs), 
       H.attribs(H.SharedScript._techModifications[idplayer]),
       H.attribs(H.Entities)
         .filter(id => H.Entities[id].owner() === idplayer)
@@ -47,20 +65,24 @@ HANNIBAL = (function(H){
     deb();deb();
     deb("  TREE: expanding %s sources for id: %s with civ: %s", H.count(this.sources), this.id, this.civ);
     this.expand();
-    deb("     T: found %s templates", H.count(this.templates));
+    deb("     T: found %s nodes", H.count(this.nodes));
     this.enhance();
-    this.names = H.attribs(this.templates);
-    this.keys = H.attribs(this.templates).map(t => this.templates[t].key);
-    // this.log();
+    this.names = H.attribs(this.nodes);
+    this.keys  = H.attribs(this.nodes).map(t => this.nodes[t].key);
+    deb("     T: phases: 1 %s", uneval(phases['1'].alternates));
+    deb("     T: phases: 2 %s", uneval(phases['2'].alternates));
+    deb("     T: phases: 3 %s", uneval(phases['3'].alternates));
   };
 
   H.TechTree.prototype = {
     constructor: H.TechTree,
-    log: function (){
+    log: function (filters){
 
-      var 
-        tpls = H.attribs(this.templates),
-        tt = this.templates;
+      var t, tt = this.nodes, tpls = H.attribs(this.nodes);
+
+      filters = filters || ["tech", "unit", "stuc"];
+
+      deb(); deb("  TREE: logging %s/%s", this.id, this.civ);
 
       tpls.sort(function(a, b){
         if (tt[a].phase !== tt[b].phase){
@@ -70,9 +92,67 @@ HANNIBAL = (function(H){
         }
       });
 
-      tpls.forEach(function(t){
-        deb("     T: %s %s %s %s", tt[t].phase, tt[t].type, tt[t].depth, tt[t].name);
+      tpls.forEach(function(tpln){
+        t = tt[tpln];
+        if (H.contains(filters, t.type)) {
+          deb("     T: %s %s %s %s", H.tab(t.depth, 4), t.type, t.phase, t.name);
+          deb("     T:        %s", t.key);
+          deb("     T:        reqs: %s", t.requires);
+          if (t.producers.length){
+            deb("     T:        %s", t.producers[1]);
+            t.producers[0].forEach(p => {
+              deb("     T:          %s", p.name);
+            });
+          }
+        }
       });
+      deb("  TREE: Done ...");
+
+    },
+    finalize: function(){
+
+      var par1, tech, producers, tpls = this.nodes;
+
+      var operMapper = {
+        'BUILDBY':       'build_structures',
+        'TRAINEDBY':     'train_units',
+        'RESEARCHEDBY':  'research_tech'
+      };
+
+      var verbMapper = {
+        "BUILD":    "BUILDBY",
+        "TRAIN":    "TRAINEDBY",
+        "RESEARCH": "RESEARCHEDBY"
+      };
+
+      H.QRY("ENABLE DISTINCT").forEach(node => {
+        tech = H.QRY(node.name + " REQUIRE").first().name;
+        tpls[node.name].requires = tech;
+        // deb("     T: %s <= %s", node.name, tech);
+      });
+
+      "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
+        H.QRY(verb + " DISTINCT").forEach(ent => {
+          producers = H.QRY(ent.name + " " + verbMapper[verb]).execute();
+          tpls[ent.name].producers = [producers, verb.toLowerCase(), H.HTN.Economy.operators[operMapper[verbMapper[verb]]]];
+          // deb("     T: ents %s <= %s", ent.name, [producers.map(n => n.name), verb.toLowerCase()]);
+        });
+      });
+
+      H.QRY("PAIR DISTINCT").forEach(tech => {  
+
+        // get parent 
+        par1 = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").first();
+
+        if (par1){
+          // deb("     T: tech: %s <= %s", tech.name, [par1.name, "research_tech"]);
+          tpls[tech.name].producers = [[par1], "research", H.HTN.Economy.operators.research_tech];
+          // deb("P: found par1: %s, %s", tech.name, par1.name);
+        } else {
+          deb("P: not found par1 for: %s", tech.name);
+        }
+
+      });    
 
     },
     getType: function(tpln){
@@ -86,16 +166,16 @@ HANNIBAL = (function(H){
     },
     getPhase: function(tpln, space){
 
-      var phase = "phase_village", tpl = H.Templates[tpln] || H.SharedScript._techTemplates[tpln];
+      var test, phase = "phase_village", tpl = H.Templates[tpln] || H.SharedScript._techTemplates[tpln];
 
       space = space || "";
 
-      if (tpl.Identity && tpl.Identity.RequiredTechnology){
-        phase = tpl.Identity.RequiredTechnology;
-      } else if (tpl.requirements && tpl.requirements.any){
-        phase = tpl.requirements.any[0].tech;
-      } else if (tpl.requirements && tpl.requirements.tech){
-        phase = tpl.requirements.tech;
+      if ((test = H.test(tpl, "Identity.RequiredTechnology"))){
+        phase = test;
+      } else if ((test = H.test(tpl, "requirements.any"))){
+        phase = test[0].tech;
+      } else if ((test = H.test(tpl, "requirements.tech"))){
+        phase = test;
       } else if (phases.find(tpln)){
         phase = phases.prev(tpln).generic;
       } else if (tpl.top) {
@@ -114,7 +194,7 @@ HANNIBAL = (function(H){
     },
     enhance: function (){
 
-      H.each(this.templates, function(name, template){
+      H.each(this.nodes, function(name, template){
 
         var 
           type  = this.getType(template.key),
@@ -141,16 +221,17 @@ HANNIBAL = (function(H){
         tpl  = H.Templates[key] || H.SharedScript._techTemplates[key];
         name = H.saniTemplateName(key);
 
-        if (!this.templates[name]){
+        if (!this.nodes[name]){
 
-          this.templates[name] = {
-            name:      name,
-            key:       key,
-            template:  tpl,
+          this.nodes[name] = {
+            name:      name,    // sanitized API template name
+            key:       key,     // API template name
+            template:  tpl,     // API template
             depth:     src[0],
-            type:      "",
-            phase:     "",
-            producers: []
+            type:      "",      // tech, unit, stuc
+            phase:     "",      // vill, town, city
+            producers: [],      // [nodes], "verb", planner.operation
+            requires:  "",      // sanitized tech template name
           };
 
           // deb("     T: %s, %s, %s ----- %s", typeof tpl, !!tpl, name, key);

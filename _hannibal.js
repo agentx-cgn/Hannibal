@@ -43,30 +43,16 @@ var HANNIBAL = (function() {
   // constructor
   H.Hannibal = function(settings) {
 
-    var rand;
-
     API3.BaseAI.call(this, settings);
+
+    H.Bot = this;
 
     H.extend(this, {
       turn:       0,
       id:         settings.player,                    // used within 0 A.D.
-      name:       "ai:ai",                            // ai of type ai
       config:     H.Config.get(settings.difficulty),
       settings:   settings
     });
-
-    // seed randomizer
-    rand = new H.Random(this.config.seed);
-
-    // shortcuts
-    H.Bot = this;
-    H.random = rand.random.bind(rand);
-
-    // check
-    deb();
-    H.range(2).forEach(function(){deb("     R: %s", H.random());});
-    H.Triggers.add(deb.bind(null, "      : Trigger -1"), -1);
-    H.Triggers.add(deb.bind(null, "      : Trigger  1"),  1);
 
     deb();
     deb("------: HANNIBAL.constructor.out");
@@ -77,15 +63,15 @@ var HANNIBAL = (function() {
   H.Hannibal.prototype.CustomInit = function(gameState, sharedScript) {
 
     var SIM_UPDATES = 0,
-        self = this, ts, 
-        ss = sharedScript, gs = gameState, 
+        self = this, 
+        ts, ss = sharedScript, gs = gameState, 
         map = TESTERDATA ? TESTERDATA.map : "unkown";
 
     deb();deb();
     deb("------: HANNIBAL.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), this.id, this.settings.difficulty);
     deb();
     deb("     A:    map from tester:  %s", map);
-    deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", sharedScript.passabilityMap.width, sharedScript.passabilityMap.height, sharedScript.circularMap, gs.cellSize);
+    deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
     deb("     A:          _entities: %s [  ]", H.count(ss._entities));
     deb("     A:         _templates: %s [  ]", H.count(ss._templates));
     deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
@@ -98,20 +84,18 @@ var HANNIBAL = (function() {
     this.logPlayers(ss.playersData);
 
     // more shortcuts
-    H.HCQ               = H.Store.Query;
-    H.QRY               = function(hcq, debug){return new H.HCQ(H.Bot.culture.store, hcq, debug);};
+    H.QRY               = function(hcq, debug){return new H.Store.Query(H.Bot.culture.store, hcq, debug);};
     H.Templates         = this.settings.templates;
     H.GameState         = gameState;
-    H.Entities          = gameState.entities._entities;
     H.SharedScript      = sharedScript;
-    H.Player            = sharedScript.playersData[this.id];
-    H.PlayerData        = gameState.playerData;
-    H.Players           = sharedScript.playersData;
-    H.MetaData          = sharedScript._entityMetadata[this.id];
+    H.Entities          = H.GameState.entities._entities;
+    H.Player            = H.SharedScript.playersData[this.id];
+    H.PlayerData        = H.GameState.playerData;
+    H.Players           = H.SharedScript.playersData;
+    H.MetaData          = H.SharedScript._entityMetadata[this.id];
     H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
 
     H.Centre            = {id: 0};  // keeps the id of main civic centre
-
 
     // deb(uneval(H.SharedScript.passabilityClasses));
     // pathfinderObstruction:1, foundationObstruction:2, 'building-land':4, 'building-shore':8, default:16, ship:32, unrestricted:64
@@ -122,42 +106,43 @@ var HANNIBAL = (function() {
     this.isFinished     = false;            // there is still no winner
     this.timing         = {all: 0};         // used to identify perf. sinks in OnUpdate
 
-    // determine own, game's and all civilisations
-    this.civ            = sharedScript.playersData[this.id].civ; 
+    // determine own, game's
+    this.civ            = H.Players[this.id].civ; 
     this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
-    this.civilisations  = H.Config.data.civilisation;  // all ['athen', ...]
+    // this.civilisations  = H.Config.data.civilisation;  // all ['athen', ...]
     
     // launch the stats extension
     H.Numerus.init();                       
 
     // init map, grids and related services
-    H.Map.width         = sharedScript.passabilityMap.width;
-    H.Map.height        = sharedScript.passabilityMap.height;
-    H.Map.circular      = sharedScript.circularMap;
-    H.Map.cellsize      = gameState.cellSize;
+    H.Map.width         = H.SharedScript.passabilityMap.width;
+    H.Map.height        = H.SharedScript.passabilityMap.height;
+    H.Map.circular      = H.SharedScript.circularMap;
+    H.Map.cellsize      = H.GameState.cellSize;
 
     H.Grids.init();                         // inits advanced map analysis
     H.Grids.dump(map);                      // dumps all grids with map prefix in file name
     H.Grids.pass.log();
 
-    this.tree = new H.TechTree(this.id);
-
+    this.tree    = new H.TechTree(this.id);  // analyse templates of bot's civ
     this.culture = new H.Culture(this.tree); // culture knowledgebase as triple store
-    // this.culture.selectTemplates(false);         // build tech tree
-    this.culture.searchTemplates();         // extrcact classes, resources, etc from templates
-    this.culture.loadNodes();               // turn templates to nodes
-    this.culture.loadEdges();               // add edges
-    this.culture.loadEntities();            // from game to triple store
-    this.culture.loadTechnologies();        // from game to triple store
-    this.culture.finalize();                // clear up
+    this.culture.searchTemplates();          // extrcact classes, resources, etc from templates
+    this.culture.loadNodes();                // turn templates to nodes
+    this.culture.loadEdges();                // add edges
+    this.culture.loadEntities();             // from game to triple store
+    this.culture.loadTechnologies();         // from game to triple store
+    this.culture.finalize();                 // clear up
+    this.tree.finalize();                    // caches required techs, producers for entities
+    // this.tree.log();
 
-    H.Resources.init();                     // extracts resources from all entities
-    H.Scout.init();                         // inits scout extension for scout group
-    H.Groups.init();                        // registers groups
+    H.Resources.init();                      // extracts resources from all entities
+    H.Scout.init();                          // inits scout extension for scout group
+    H.Groups.init();                         // registers groups
     H.initVillage();
 
     // prepare planner cache
     H.Planner = new H.HTN.Planner({
+      tree: this.tree,
       domain: H.HTN.Economy,
       verbose: 1
     });
