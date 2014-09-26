@@ -189,19 +189,19 @@ HANNIBAL = (function(H){
       var hcq, nodes, self = this;
 
       // looking for unit not assigned to a group
-      if (this.order.type === "train"){
+      if (this.order.verb === "train"){
         hcq = this.order.hcq + " INGAME WITH metadata.opname = 'none'";
 
       // looking for a shared structure
-      } else if (this.order.type === "build" && this.order.shared) {
+      } else if (this.order.verb === "build" && this.order.shared) {
         hcq = this.order.hcq + " INGAME WITH metadata.opmode = 'shared'";
 
       // looking for abandoned structure not assigned to a group
-      } else if (this.order.type === "build" && !this.order.shared) {
+      } else if (this.order.verb === "build" && !this.order.shared) {
         hcq = this.order.hcq + " INGAME WITH metadata.opname = 'none'";
 
       } else {
-        deb("Error: assignExisting run into unhandled case: %s, shared: %s", this.order.type, this.order.shared);
+        deb("Error: assignExisting run into unhandled case: %s, shared: %s", this.order.verb, this.order.shared);
         return;
 
       }
@@ -229,14 +229,14 @@ HANNIBAL = (function(H){
             "build":      "BUILDBY",
             "research":   "RESEARCHEDBY",
             "claim":      "???"
-          }[this.order.type];
+          }[this.order.verb];
 
       this.nodes.forEach(function(node){
         hcq   = H.format("%s %s INGAME", node.name, verb);
         prods = H.QRY(hcq).execute();
         if (prods.length) {
           node.producer = prods[0].id;
-          // deb("    OC: #%s found ingame producer: %s (#%s) FOR %s WITH ACTION: %s", self.order.id, prods[0].name, prods[0].id, node.name, self.order.type);
+          // deb("    OC: #%s found ingame producer: %s (#%s) FOR %s WITH ACTION: %s", self.order.id, prods[0].name, prods[0].id, node.name, self.order.verb);
         } else {
           node.qualifies = false;
         }
@@ -413,7 +413,7 @@ HANNIBAL = (function(H){
         }
         H.Queue.append(new H.Order(order));
 
-        deb("   ERQ: #%s, %s amount: %s, loc: %s, from: %s, hcq: %s", order.id, order.type, amount, loc, sourcename, order.hcq);
+        deb("  EREQ: #%s, %s amount: %s, loc: %s, from: %s, hcq: %s", order.id, order.verb, amount, loc, sourcename, order.hcq);
 
       },
       processQueue: function(){
@@ -425,7 +425,7 @@ HANNIBAL = (function(H){
           removed = [],
           expensive  = [],
           executed   = [],
-          constructs = 0; // only one construction per round
+          builds     = 0; // only one construction per tick
 
         if (!H.Queue.length){return;}
 
@@ -445,7 +445,7 @@ HANNIBAL = (function(H){
 
             if (allGood || self.fits(node.costs, budget)){
 
-              switch(order.order.type){
+              switch(order.order.verb){
 
                 case "train":
                   // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
@@ -456,12 +456,12 @@ HANNIBAL = (function(H){
                 break;
 
                 case "build":
-                  if (constructs < 1){
+                  if (builds < 1){
                     // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.order.x + "|" + order.order.z, node.key);
-                    H.Economy.execute("construct", amount, node.producer, node.key, order.order);
+                    H.Economy.execute("build", amount, node.producer, node.key, order.order);
                     H.Economy.subtract(node.costs, budget);
                     order.executed += amount;
-                    constructs += 1;
+                    builds += 1;
                   } else {
                     deb("    PQ: #%s postponed", id);
                   }
@@ -471,7 +471,7 @@ HANNIBAL = (function(H){
                 // break;
 
                 default:
-                  deb("ERROR : processQueue: #%s unknown node.action: %s", id, node.action);
+                  deb("ERROR : processQueue: #%s unknown order.verb: %s", id, order.order.verb);
 
               }
 
@@ -502,31 +502,31 @@ HANNIBAL = (function(H){
 
 
       },
-      execute: function(cmd, amount, id, template, order){
+      execute: function(verb, amount, id, template, order){
 
         var msg, pos;
 
-        // deb("    OEX: #%s, cmd: %s, amount: %s, order: %s, tpl: %s", id, cmd, amount, H.prettify(order), template);
+        // deb("    OEX: #%s, verb: %s, amount: %s, order: %s, tpl: %s", id, verb, amount, H.prettify(order), template);
 
-        switch(cmd){
+        switch(verb){
 
           case "train" :
             H.Engine.train([id], template, amount, {order: order.id});
-            msg = H.format("   OEX: #%s %s, trainer: %s, amount: %s, tpl: %s", order.id, cmd, id, amount, template); 
+            msg = H.format("   OEX: #%s %s, trainer: %s, amount: %s, tpl: %s", order.id, verb, id, amount, template); 
           break;
 
           case "research" : 
             H.Engine.research([id], template);
-            msg = H.format("   OEX: %s id: %s, %s", cmd, order.id, id, template); 
+            msg = H.format("   OEX: %s id: %s, %s", verb, order.id, id, template); 
             
           break;
 
-          case "construct" : 
-            if (order.x === undefined){deb("ERROR: %s without position", cmd); return;}
+          case "build" : 
+            if (order.x === undefined){deb("ERROR: %s without position", verb); return;}
             pos = H.Map.findGoodPosition(template, [order.x, order.z]);
             H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id});
             msg = H.format("   OEX: #%s %s, constructor: %s, x: %s, z: %s, tpl: %s", 
-                                       order.id, cmd, id, order.x.toFixed(0), order.z.toFixed(0), template); 
+                                       order.id, verb, id, order.x.toFixed(0), order.z.toFixed(0), template); 
 
           break;
 

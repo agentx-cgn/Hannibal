@@ -93,7 +93,7 @@ HANNIBAL = (function(H){
                 undefined
             );
 
-        // Eco requests are postponed one tick
+        // Eco requests are postponed one tick // ECO IS last TICK !!!!!!!!!!!!!!!
         asset.isRequested = true;
         H.Triggers.add(H.Economy.request.bind(H.Economy, amount, asset.toOrder(), loc), -1);
 

@@ -189,24 +189,27 @@ HANNIBAL = (function(H){
         // defined by this.interval
         onInterval: function(){
 
-          deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
+          if (this.units.count){
 
-          if (this.field.isFoundation){
-            this.units.doing("!repair").repair(this.field);
+            deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
 
-          } else if (this.field.health < 80){
-            this.units.doing("!repair").repair(this.field);
+            if (this.field.isFoundation){
+              this.units.doing("!repair").repair(this.field);
 
-          } else {
-            this.units.doing("gather").gather(this.field);
+            } else if (this.field.health < 80){
+              this.units.doing("!repair").repair(this.field);
+
+            } else {
+              this.units.doing("gather").gather(this.field);
+
+            }
 
           }
 
-          // deb("     G: %s onInterval, assets: %s", this, this.assets.map(function(a){return a + "";}));
+        }
 
-        },
-        // defined by this.interval
-      }
+
+      } // end listener
 
     }
 

@@ -14,9 +14,9 @@
 
 HANNIBAL = (function(H){
 
-  function getAssetType(definition){
+  function getAssetVerb(definition){
 
-    var found = false, hcq, type, producers;
+    var found = false, treenode, storenode, verb;
 
     if (typeof definition[1] === "object"){
 
@@ -25,18 +25,20 @@ HANNIBAL = (function(H){
     } else if (typeof definition[1] === "string") {
 
       H.QRY(definition[1]).forEach(function(node){  // mind units.athen.infantry.archer.a
-        if(!found && H.Bot.tree.nodes[node.name].producers.length){ 
-          producers = H.Bot.tree.nodes[node.name].producers;
+        treenode = H.Bot.tree.nodes[node.name];
+        if(!found && treenode.verb){ 
+          verb = treenode.verb;
+          storenode = node;
           found = true;
         }
       });
 
-      deb("   AST: getAssetType: %s for %s", producers[1]);
+      // deb("   AST: getAssetVerb: chose %s for %s [%s]", verb, storenode.name, verb.length);
 
-      return producers[1];
+      return verb;
 
     } else {
-      return deb("ERROR : getAssetType: strange resource: %s", definition);
+      return deb("ERROR : getAssetVerb: strange resource: %s", definition);
 
     }
   }
@@ -83,7 +85,7 @@ HANNIBAL = (function(H){
       dynamic:     dynamic,
       hcq:         expandHCQ(definition[1], instance),
       claim:       definition[1],
-      type:        !dynamic ? getAssetType(definition) : "dynamic",  // dynamics are not ordered
+      verb:        !dynamic ? getAssetVerb(definition) : "dynamic",  // dynamics are not ordered
       users:       []
     });    
 
@@ -100,20 +102,20 @@ HANNIBAL = (function(H){
     this.instance  = instance;
     this.property  = property;
 
-    Object.defineProperties(this, {
-      health: {enumerable: true, get: function(){
-        return H.health(this.resources);
-      }},
-      count:  {enumerable: true, get: function(){
-        return this.resources.length;
-      }},
-      first:  {enumerable: true, get: function(){
-        return this.toSelection(this.resources.slice(0, 1));
-      }},
-      center: {enumerable: true, get: function(){
-        return H.Map.getCenter(this.resources);
-      }}
-    });  
+    // Object.defineProperties(this, {
+    //   health: {enumerable: true, get: function(){
+    //     return H.health(this.resources);
+    //   }},
+    //   count:  {enumerable: true, get: function(){
+    //     return this.resources.length;
+    //   }},
+    //   first:  {enumerable: true, get: function(){
+    //     return this.toSelection(this.resources.slice(0, 1));
+    //   }},
+    //   center: {enumerable: true, get: function(){
+    //     return H.Map.getCenter(this.resources);
+    //   }}
+    // });  
 
     // logObject(this, "asset.this");
 
@@ -124,12 +126,16 @@ HANNIBAL = (function(H){
 
   H.Asset.prototype = {
     constructor: H.Asset,
+    get health () {return H.health(this.resources);},
+    get count  () {return this.resources.length;},
+    get first  () {return this.toSelection(this.resources.slice(0, 1));},
+    get center () {return H.Map.getCenter(this.resources);},
     tick:     function(secs, tick){ /**/ },
     toString: function(){return H.format("[asset %s]", this.name);},
     toLog:    function(){return "    AST: " + this + " " + JSON.stringify(this, null, "      : ");},
     toOrder:  function(){
       return {
-        type:   this.type, 
+        verb:   this.verb, 
         hcq:    this.hcq, 
         source: this.id, 
         shared: this.shared
@@ -157,8 +163,9 @@ HANNIBAL = (function(H){
         flee:     function(attacker){H.Engine.flee(ids, [attacker.id]);},
         garrison: function(asset){H.Engine.garrison(ids, asset.resources[0]);},
         gather:   function(asset){
-          if (asset.resources && asset.resources.length){H.Engine.gather(ids, asset.resources[0]);}
-          else {deb("WARN  : asset %s no resources", asset.name);}
+          H.Engine.gather(ids, asset.resources[0]);
+          // if (asset.resources && asset.resources.length){H.Engine.gather(ids, asset.resources[0]);}
+          // else {deb("WARN  : asset %s no resources", asset.name);}
         },
         repair:   function(asset){H.Engine.repair(ids, asset.resources[0]);},
         collect:  function(targets){
@@ -323,14 +330,14 @@ HANNIBAL = (function(H){
             tpln = H.Entities[id]._templateName;
 
             // take over ownership
-            if ((this.type === "train" || this.type === "build")){
+            if ((this.verb === "train" || this.verb === "build")){
               meta.opid   = instance.id;
               meta.opname = instance.name;
             } else {
-              deb("ERROR : %s was assigned with type: %s", this.type, this);
+              deb("ERROR : %s was assigned with verb: %s", this.verb, this);
             }
 
-            if (this.type === "build"){
+            if (this.verb === "build"){
               if (tpln.indexOf("foundation") !== -1){
                 this.isFoundation = true; //?? too greedy
                 resource.isFoundation = true;

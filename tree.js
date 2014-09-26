@@ -41,7 +41,7 @@ HANNIBAL = (function(H){
           if ((test = H.test(tpl, "requirements.any"))){test.forEach(t => extract(t.tech));}
         }
         H.each(H.Templates, check); 
-        H.each(H.SharedScript._techTemplates, check); 
+        H.each(H.TechTemplates, check); 
         phases['1'].alternates = H.unique(phases['1'].alternates);
         phases['2'].alternates = H.unique(phases['2'].alternates);
         phases['3'].alternates = H.unique(phases['3'].alternates);
@@ -97,10 +97,10 @@ HANNIBAL = (function(H){
         if (H.contains(filters, t.type)) {
           deb("     T: %s %s %s %s", H.tab(t.depth, 4), t.type, t.phase, t.name);
           deb("     T:        %s", t.key);
-          deb("     T:        reqs: %s", t.requires);
+          deb("     T:        reqs: %s", t.requires || "none");
+          deb("     T:        verb: %s", t.verb || "none");
           if (t.producers.length){
-            deb("     T:        %s", t.producers[1]);
-            t.producers[0].forEach(p => {
+            t.producers.forEach(p => {
               deb("     T:          %s", p.name);
             });
           }
@@ -111,7 +111,7 @@ HANNIBAL = (function(H){
     },
     finalize: function(){
 
-      var par1, tech, producers, tpls = this.nodes;
+      var par1, tech, producers, nodes = this.nodes;
 
       var operMapper = {
         'BUILDBY':       'build_structures',
@@ -127,46 +127,49 @@ HANNIBAL = (function(H){
 
       H.QRY("ENABLE DISTINCT").forEach(node => {
         tech = H.QRY(node.name + " REQUIRE").first().name;
-        tpls[node.name].requires = tech;
+        nodes[node.name].requires = tech;
         // deb("     T: %s <= %s", node.name, tech);
       });
 
       "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
         H.QRY(verb + " DISTINCT").forEach(ent => {
           producers = H.QRY(ent.name + " " + verbMapper[verb]).execute();
-          tpls[ent.name].producers = [producers, verb.toLowerCase(), H.HTN.Economy.operators[operMapper[verbMapper[verb]]]];
+          // nodes[ent.name].producers = [producers, verb.toLowerCase(), H.HTN.Economy.operators[operMapper[verbMapper[verb]]]];
+          nodes[ent.name].producers = producers;
+          nodes[ent.name].verb = verb.toLowerCase();
+          nodes[ent.name].operation = H.HTN.Economy.operators[operMapper[verbMapper[verb]]];
           // deb("     T: ents %s <= %s", ent.name, [producers.map(n => n.name), verb.toLowerCase()]);
         });
       });
 
-      H.QRY("PAIR DISTINCT").forEach(tech => {  
+      // H.QRY("PAIR DISTINCT").forEach(tech => {  
 
-        // get parent 
-        par1 = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").first();
+      //   // get parent 
+      //   par1 = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").first();
 
-        if (par1){
-          // deb("     T: tech: %s <= %s", tech.name, [par1.name, "research_tech"]);
-          tpls[tech.name].producers = [[par1], "research", H.HTN.Economy.operators.research_tech];
-          // deb("P: found par1: %s, %s", tech.name, par1.name);
-        } else {
-          deb("P: not found par1 for: %s", tech.name);
-        }
+      //   if (par1){
+      //     // deb("     T: tech: %s <= %s", tech.name, [par1.name, "research_tech"]);
+      //     nodes[tech.name].producers = [[par1], "research", H.HTN.Economy.operators.research_tech];
+      //     // deb("P: found par1: %s, %s", tech.name, par1.name);
+      //   } else {
+      //     deb("P: not found par1 for: %s", tech.name);
+      //   }
 
-      });    
+      // });    
 
     },
     getType: function(tpln){
+      if (H.TechTemplates[tpln]){return "tech";}
       if (tpln.contains("units/")){return "unit";}
       if (tpln.contains("structures/")){return "stuc";}
       if (tpln.contains("other/")){return "othr";}
       if (tpln.contains("gaia/")){return "gaia";}
       if (tpln.contains("pair_")){return "pair";}
-      if (H.SharedScript._techTemplates[tpln]){return "tech";}
       return "XXXX";
     },
     getPhase: function(tpln, space){
 
-      var test, phase = "phase_village", tpl = H.Templates[tpln] || H.SharedScript._techTemplates[tpln];
+      var test, phase = "phase_village", tpl = H.Templates[tpln] || H.TechTemplates[tpln];
 
       space = space || "";
 
@@ -218,7 +221,7 @@ HANNIBAL = (function(H){
         src  = this.sources.shift();
         tpln = src[1];
         key  = tpln.replace(/\{civ\}/g, this.civ);
-        tpl  = H.Templates[key] || H.SharedScript._techTemplates[key];
+        tpl  = H.Templates[key] || H.TechTemplates[key];
         name = H.saniTemplateName(key);
 
         if (!this.nodes[name]){
@@ -230,8 +233,10 @@ HANNIBAL = (function(H){
             depth:     src[0],
             type:      "",      // tech, unit, stuc
             phase:     "",      // vill, town, city
-            producers: [],      // [nodes], "verb", planner.operation
             requires:  "",      // sanitized tech template name
+            producers: [],      // [nodes], "verb", 
+            verb:      "",      // train, build, research
+            operation: null,    // planner.operation
           };
 
           // deb("     T: %s, %s, %s ----- %s", typeof tpl, !!tpl, name, key);

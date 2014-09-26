@@ -85,9 +85,10 @@ var HANNIBAL = (function() {
 
     // more shortcuts
     H.QRY               = function(hcq, debug){return new H.Store.Query(H.Bot.culture.store, hcq, debug);};
-    H.Templates         = this.settings.templates;
     H.GameState         = gameState;
     H.SharedScript      = sharedScript;
+    H.Templates         = this.settings.templates;
+    H.TechTemplates     = H.SharedScript._techTemplates;
     H.Entities          = H.GameState.entities._entities;
     H.Player            = H.SharedScript.playersData[this.id];
     H.PlayerData        = H.GameState.playerData;
@@ -95,6 +96,7 @@ var HANNIBAL = (function() {
     H.MetaData          = H.SharedScript._entityMetadata[this.id];
     H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
 
+    // Village
     H.Centre            = {id: 0};  // keeps the id of main civic centre
 
     // deb(uneval(H.SharedScript.passabilityClasses));
