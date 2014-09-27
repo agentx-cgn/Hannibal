@@ -137,7 +137,7 @@ HANNIBAL = (function(H){
           // nodes[ent.name].producers = [producers, verb.toLowerCase(), H.HTN.Economy.operators[operMapper[verbMapper[verb]]]];
           nodes[ent.name].producers = producers;
           nodes[ent.name].verb = verb.toLowerCase();
-          nodes[ent.name].operation = H.HTN.Economy.operators[operMapper[verbMapper[verb]]];
+          nodes[ent.name].operator = H.HTN.Economy.operators[operMapper[verbMapper[verb]]];
           // deb("     T: ents %s <= %s", ent.name, [producers.map(n => n.name), verb.toLowerCase()]);
         });
       });
@@ -236,7 +236,7 @@ HANNIBAL = (function(H){
             requires:  "",      // sanitized tech template name
             producers: [],      // [nodes], "verb", 
             verb:      "",      // train, build, research
-            operation: null,    // planner.operation
+            operator:  null,    // planner.operation
           };
 
           // deb("     T: %s, %s, %s ----- %s", typeof tpl, !!tpl, name, key);

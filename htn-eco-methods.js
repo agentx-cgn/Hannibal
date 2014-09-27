@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb */
+/*globals HANNIBAL, deb, uneval */
 
 /*--------------- DOMAIN: E C O N O M Y  --------------------------------------
 
@@ -17,7 +17,7 @@ HANNIBAL = (function(H){
   H.HTN = H.HTN || {};                       
   H.HTN.Economy = H.HTN.Economy || {};
 
-  var m, o, planner, nodes, prit, sani, fmt,
+  var m, o, planner, tree, nodes, prit, sani, fmt,
       mapper = {
         'BUILDBY':       'build_structures',
         'TRAINEDBY':     'train_units',
@@ -92,7 +92,7 @@ HANNIBAL = (function(H){
           units: "TRAIN DISTINCT",
           pairs: "PAIR DISTINCT",
         },
-        planner = new H.HTN.Planner({
+        plannerX = new H.HTN.Planner({
           domain: H.HTN.Economy,
           verbose: 0,
           noInitialize: true
@@ -112,6 +112,10 @@ HANNIBAL = (function(H){
         H.Data.Depths[node.name] = planner.depth;
       });
     });
+
+    JSON.stringify(H.Data.Depths, null, 2).split("\n").forEach(function(line){
+      deb(" Depth: %s", line);
+    });    
 
   }
 
@@ -255,7 +259,7 @@ HANNIBAL = (function(H){
   }
 
 
-  H.HTN.Economy.initialize = function(oPlanner){
+  H.HTN.Economy.initialize = function(oPlanner, oTree){
 
     var t0 = Date.now();
     
@@ -266,9 +270,22 @@ HANNIBAL = (function(H){
     sani    = H.saniTemplateName;
     nodes   = H.HTN.Economy.nodes = H.store ? H.store.nodes : H.Bot.culture.store.nodes;
     planner = oPlanner;
+    tree    = oTree;
 
-    cacheTechnologies();
-    cacheProducers();
+    // cacheTechnologies();
+    tree.names.forEach(n => {
+      if (tree.nodes[n].requires){
+        cacheTechnology[n] = tree.nodes[n].requires;    
+      }
+    });
+
+    // cacheProducers();
+    tree.names.forEach(n => {
+      if (tree.nodes[n].producers.length){
+        cacheProducer[n] = [tree.nodes[n].producers, tree.nodes[n].operator];
+      }
+    });
+
     cacheBuildings.house = H.QRY("house CONTAIN").first().name;
     cacheBuildings.defensetower = H.QRY("defensetower CONTAIN").first().name;
     cacheBuildings.village = H.QRY("village CONTAIN")
@@ -277,12 +294,14 @@ HANNIBAL = (function(H){
     cacheBuildings.town = H.QRY("town CONTAIN")
       .map(node => node.name)
       .filter(filterBuildings);
-     cacheDepths();
-    deb();deb();
-    deb("   HTN: initialized economy %s msecs", Date.now() - t0);
+
+    cacheDepths();
+    
+    deb();deb();deb("   HTN: H.HTN.Economy.initialize %s msecs", Date.now() - t0);
   };
 
-  H.HTN.Economy.report = function(){
+  H.HTN.Economy.report = function(header){
+    deb("     H: HTN.Economy.report: %s", header || "???");
     deb("     H: cached technologies %s", H.count(cacheTechnology));
     deb("     H: cached producers    %s", H.count(cacheProducer));
     deb("     H: cached depths       %s", H.count(H.Data.Depths));
@@ -327,7 +346,7 @@ HANNIBAL = (function(H){
 
     var start = H.HTN.Economy.getCurState(),
         goal  = new H.HTN.Helper.State(state),
-        planner = new H.HTN.Planner({
+        plannerX = new H.HTN.Planner({
           domain: H.HTN.Economy,
           verbose: 0
         });

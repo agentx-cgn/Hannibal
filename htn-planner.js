@@ -28,28 +28,30 @@ HANNIBAL = (function(H){
 
   H.HTN.Planner = function Planner(config) {
 
-    var defs = {
-          logstack:        [],   // collect messages 
-          verbose:          0,   // defines a threshhold
-          msecs:            0,   // duration of seekPlan
-          depth:            0,   // current search depth
-          iterations:       0,   // a counter
-          maxDepth:       200,   // seeking stops here
-          maxIterations:  300,   // seeing stops here
-          domain:        null,   // defines the domain within an app
-          noInitialize:  false,  // suppress domain initialization
-          methods:       null,   // object holding the methods
-          operators:     null,   // object holding the operators
-          tasks:         null,   // the tasks given on first call
-          state:         null,   // the state given on first call
-          operations:    null    // the final task list
-        };
+    var defaults = {
+      name:     "unknown",   // log indentifier    
+      logstack:        [],   // collect messages 
+      verbose:          0,   // defines a log threshhold
+      msecs:            0,   // duration of seekPlan
+      depth:            0,   // current search depth
+      iterations:       0,   // a counter
+      maxDepth:       200,   // seeking stops here
+      maxIterations:  300,   // seeing stops here
+      tree:          null,   // 
+      domain:        null,   // defines the domain within an app
+      noInitialize: false,   // suppress domain initialization
+      methods:       null,   // object holding the methods
+      operators:     null,   // object holding the operators
+      tasks:         null,   // the tasks given on first call
+      state:         null,   // the state given on first call
+      operations:    null    // the final task list
+    };
 
-    H.extend(this, defs, config || {});
+    H.extend(this, defaults, config || {});
 
-    if (this.domain.initialize && !this.noInitialize){this.domain.initialize(this);}
-    this.methods   = this.domain.methods;
-    this.operators = this.domain.operators;
+    // if (this.domain.initialize && !this.noInitialize){this.domain.initialize(this);}
+    // this.methods   = this.domain.methods;
+    // this.operators = this.domain.operators;
 
   };
 

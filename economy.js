@@ -374,7 +374,7 @@ HANNIBAL = (function(H){
           });
         });
 
-        H.Groups.log();
+        // H.Groups.log();
 
       },
       subtract: function(cost, budget){

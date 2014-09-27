@@ -67,9 +67,15 @@ HANNIBAL = (function(H){
   H.Brain = {
     dump: function(){},
     init: function(){
-      deb();deb();
-      deb(" BRAIN: init");
-      planner = this.runPlanner("phase.village");
+      deb();deb();deb(" BRAIN: init");
+      planner = new H.HTN.Planner({
+        name:         "brain.planner",
+        domain:       H.HTN.Economy,
+        operators:    H.HTN.Economy.operators,
+        methods:      H.HTN.Economy.methods,
+        noInitialize: true
+      });
+      this.runPlanner("phase.village");
     },
     tick: function(secs, ticks){
       var t0 = Date.now();
@@ -77,7 +83,7 @@ HANNIBAL = (function(H){
     },
     runPlanner: function(phase){
 
-      var start, goal, phaseName, phaseCost, houseName, housePopu, ress;
+      var state, goal, phaseName, phaseCost, houseName, housePopu, ress;
 
       if (phase === "phase.village"){
 
@@ -93,7 +99,7 @@ HANNIBAL = (function(H){
           "pop":   50,
         };
 
-        start = H.HTN.Economy.getCurState();
+        state = H.HTN.Economy.getCurState();
         goal  = new H.HTN.Helper.State({
           "ress": {},
           "ents": {},
@@ -122,26 +128,19 @@ HANNIBAL = (function(H){
 
       }
 
-      planner = new H.HTN.Planner({
-        domain: H.HTN.Economy,
-        verbose: 0,
-        noInitialize: true
-      });
 
-      planner.plan(start, [[H.HTN.Economy.methods.start, goal]]);
+
+      planner.plan(state, [[H.HTN.Economy.methods.start, goal]]);
 
       // debug
-      deb();deb();
-      deb(" BRAIN: planning phase: %s", phase)
+      deb();deb();deb(" BRAIN: result of planning phase: %s", phase)
       JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
-      deb();
+      deb();deb("     B: operations:");
       planner.operations.forEach(function(op){
         deb("     B: - %s", op);
       });      
-
-      return planner;
 
 
     },
@@ -149,7 +148,7 @@ HANNIBAL = (function(H){
     requestGoals: function(){
 
       return (
-        planner.operations
+        H.Planner.operations
           .filter(op => op[1] === "build_structures" || op[1] === "research_tech" || op[1] === "inc_resource")
           .map(op => [op[1], op[2], op[3] === undefined || 1])
           .sort((a, b) => a[0] > b[0])

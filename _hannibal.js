@@ -144,11 +144,14 @@ var HANNIBAL = (function() {
 
     // prepare planner cache
     H.Planner = new H.HTN.Planner({
-      tree: this.tree,
-      domain: H.HTN.Economy,
-      verbose: 1
+      name:      "eco.planner",
+      domain:    H.HTN.Economy,
+      operators: H.HTN.Economy.operators,
+      methods:   H.HTN.Economy.methods,
+      verbose:   1
     });
-    H.HTN.Economy.report();
+    H.HTN.Economy.initialize(H.Planner, this.tree);
+    H.HTN.Economy.report("startup test");
     H.HTN.Economy.test({tech: ['phase.town']});
 
     // Now make a plan to start with
