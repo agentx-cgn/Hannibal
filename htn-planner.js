@@ -38,8 +38,8 @@ HANNIBAL = (function(H){
       maxDepth:       200,   // seeking stops here
       maxIterations:  300,   // seeing stops here
       tree:          null,   // 
-      domain:        null,   // defines the domain within an app
-      noInitialize: false,   // suppress domain initialization
+      // domain:        null,   // defines the domain within an app
+      // noInitialize: false,   // suppress domain initialization
       methods:       null,   // object holding the methods
       operators:     null,   // object holding the operators
       tasks:         null,   // the tasks given on first call
@@ -70,6 +70,8 @@ HANNIBAL = (function(H){
     plan: function plan (state, tasks){
 
       var t0, t1;
+
+      this.error = undefined;
 
       this.state = state;
       this.tasks = tasks;

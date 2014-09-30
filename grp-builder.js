@@ -54,9 +54,6 @@ HANNIBAL = (function(H){
           this.size = size; //H.Config.civs[H.Bot.civ].builders;
           this.quantity = quantity;
 
-          var sizeHouse = H.QRY("house CONTAIN").first().costs.population * -1;
-          this.maxBuildings = ~~(H.Player.popMax / sizeHouse) +1;
-
           this.register("units", "buildings");
           this.economy.request(1, this.units, this.position);   
 
@@ -69,10 +66,6 @@ HANNIBAL = (function(H){
 
             if (this.units.count === 1){
               this.economy.request(1, this.buildings, this.position);   
-
-            } else {
-              asset.repair(this.foundation);
-
             }
 
             if (this.units.count < this.size){
@@ -89,9 +82,7 @@ HANNIBAL = (function(H){
             
             } else if (asset.isStructure){
               if (this.buildings.count < this.quantity){
-                if (asset.isStructure){
-                  this.economy.request(1, this.buildings, this.position);
-                }
+                this.economy.request(1, this.buildings, this.position);
 
               } else {
                 this.dissolve();

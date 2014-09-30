@@ -95,7 +95,7 @@ HANNIBAL = (function(H){
 
       // log history > 3,000 per civ, athens~2500, CRs not enforced.
 
-      var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-json.export";
+      var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
 
       function logg(){
         print ( arguments.length === 0 ? 

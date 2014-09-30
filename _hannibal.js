@@ -116,16 +116,6 @@ var HANNIBAL = (function() {
     // launch the stats extension
     H.Numerus.init();                       
 
-    // init map, grids and related services
-    H.Map.width         = H.SharedScript.passabilityMap.width;
-    H.Map.height        = H.SharedScript.passabilityMap.height;
-    H.Map.circular      = H.SharedScript.circularMap;
-    H.Map.cellsize      = H.GameState.cellSize;
-
-    H.Grids.init();                         // inits advanced map analysis
-    H.Grids.dump(map);                      // dumps all grids with map prefix in file name
-    H.Grids.pass.log();
-
     this.tree    = new H.TechTree(this.id);  // analyse templates of bot's civ
     this.culture = new H.Culture(this.tree); // culture knowledgebase as triple store
     this.culture.searchTemplates();          // extrcact classes, resources, etc from templates
@@ -137,6 +127,18 @@ var HANNIBAL = (function() {
     this.tree.finalize();                    // caches required techs, producers for entities
     // this.tree.log();
 
+    // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
+
+    // init map, grids and related services
+    H.Map.width         = H.SharedScript.passabilityMap.width;
+    H.Map.height        = H.SharedScript.passabilityMap.height;
+    H.Map.circular      = H.SharedScript.circularMap;
+    H.Map.cellsize      = H.GameState.cellSize;
+
+    H.Grids.init();                         // inits advanced map analysis
+    // H.Grids.dump(map);                      // dumps all grids with map prefix in file name
+    // H.Grids.pass.log();
+
     H.Resources.init();                      // extracts resources from all entities
     H.Scout.init();                          // inits scout extension for scout group
     H.Groups.init();                         // registers groups
@@ -145,7 +147,7 @@ var HANNIBAL = (function() {
     // prepare planner cache
     H.Planner = new H.HTN.Planner({
       name:      "eco.planner",
-      domain:    H.HTN.Economy,
+      // domain:    H.HTN.Economy,
       operators: H.HTN.Economy.operators,
       methods:   H.HTN.Economy.methods,
       verbose:   1
@@ -181,7 +183,8 @@ var HANNIBAL = (function() {
 
     if (false){
       // activate to log templates
-      this.culture.store.export(Object.keys(H.Data.Civilisations).filter(c => H.Data.Civilisations[c].active)); 
+      // this.culture.store.export(Object.keys(H.Data.Civilisations).filter(c => H.Data.Civilisations[c].active)); 
+      this.culture.store.export(["athen"]); 
       // this.culture.store.exportAsLog(["athen"]);
       // this.culture.store.export(["athen", "mace", "hele"]); // 10.000 lines
       // this.culture.store.export(["athen"]); 
@@ -224,6 +227,8 @@ var HANNIBAL = (function() {
     // testing Triple Store
     ts = this.culture.store;
     ts.debug = 5;
+
+    H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
 
     // new H.HCQ(ts, "INGAME WITH metadata.opname = 'none'").execute("metadata", 5, 10, "all ingame entities");
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");

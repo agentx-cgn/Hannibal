@@ -15,9 +15,9 @@
 HANNIBAL = (function(H){
 
   var phases = {
-      '1' : {idx: 1, abbr: "vill", generic: "phase_village", alternates: ["vill", "phase_village"]},
-      '2' : {idx: 2, abbr: "town", generic: "phase_town",    alternates: ["town", "phase_town"]},
-      '3' : {idx: 3, abbr: "city", generic: "phase_city",    alternates: ["city", "phase_city"]},
+      "1" : {idx: 1, abbr: "vill", generic: "phase_village", alternates: ["vill", "phase_village"]},
+      "2" : {idx: 2, abbr: "town", generic: "phase_town",    alternates: ["town", "phase_town"]},
+      "3" : {idx: 3, abbr: "city", generic: "phase_city",    alternates: ["city", "phase_city"]},
       find: function(phase){
         for (var i=1; i<=3; i++) {
           if (H.contains(phases[i].alternates, phase)){
@@ -30,9 +30,9 @@ HANNIBAL = (function(H){
         var test;
         function extract(str){
           if (str && str.contains("phase")){
-            if (str.contains("village")){phases['1'].alternates.push(str);}
-            if (str.contains("town")){phases['2'].alternates.push(str);}
-            if (str.contains("city")){phases['3'].alternates.push(str);}
+            if (str.contains("village")){phases["1"].alternates.push(str);}
+            if (str.contains("town")){phases["2"].alternates.push(str);}
+            if (str.contains("city")){phases["3"].alternates.push(str);}
           }
         }
         function check(key, tpl){
@@ -42,9 +42,9 @@ HANNIBAL = (function(H){
         }
         H.each(H.Templates, check); 
         H.each(H.TechTemplates, check); 
-        phases['1'].alternates = H.unique(phases['1'].alternates);
-        phases['2'].alternates = H.unique(phases['2'].alternates);
-        phases['3'].alternates = H.unique(phases['3'].alternates);
+        phases["1"].alternates = H.unique(phases["1"].alternates);
+        phases["2"].alternates = H.unique(phases["2"].alternates);
+        phases["3"].alternates = H.unique(phases["3"].alternates);
       }
     };
 
@@ -69,9 +69,9 @@ HANNIBAL = (function(H){
     this.enhance();
     this.names = H.attribs(this.nodes);
     this.keys  = H.attribs(this.nodes).map(t => this.nodes[t].key);
-    deb("     T: phases: 1 %s", uneval(phases['1'].alternates));
-    deb("     T: phases: 2 %s", uneval(phases['2'].alternates));
-    deb("     T: phases: 3 %s", uneval(phases['3'].alternates));
+    deb("     T: phases: 1 %s", uneval(phases["1"].alternates));
+    deb("     T: phases: 2 %s", uneval(phases["2"].alternates));
+    deb("     T: phases: 3 %s", uneval(phases["3"].alternates));
   };
 
   H.TechTree.prototype = {
@@ -95,7 +95,7 @@ HANNIBAL = (function(H){
       tpls.forEach(function(tpln){
         t = tt[tpln];
         if (H.contains(filters, t.type)) {
-          deb("     T: %s %s %s %s", H.tab(t.depth, 4), t.type, t.phase, t.name);
+          deb("     T: %s / %s %s %s %s", H.tab(t.depth, 4), H.tab(t.operations, 4), t.type, t.phase, t.name);
           deb("     T:        %s", t.key);
           deb("     T:        reqs: %s", t.requires || "none");
           deb("     T:        verb: %s", t.verb || "none");
@@ -103,6 +103,8 @@ HANNIBAL = (function(H){
             t.producers.forEach(p => {
               deb("     T:          %s", p.name);
             });
+          } else {
+            deb("     T:        NO PRODUCER");
           }
         }
       });
@@ -111,12 +113,12 @@ HANNIBAL = (function(H){
     },
     finalize: function(){
 
-      var par1, tech, producers, nodes = this.nodes;
+      var tech, name, producers, nodes = this.nodes, t0 = Date.now();
 
       var operMapper = {
-        'BUILDBY':       'build_structures',
-        'TRAINEDBY':     'train_units',
-        'RESEARCHEDBY':  'research_tech'
+        "BUILDBY":       "build_structures",
+        "TRAINEDBY":     "train_units",
+        "RESEARCHEDBY":  "research_tech"
       };
 
       var verbMapper = {
@@ -128,34 +130,54 @@ HANNIBAL = (function(H){
       H.QRY("ENABLE DISTINCT").forEach(node => {
         tech = H.QRY(node.name + " REQUIRE").first().name;
         nodes[node.name].requires = tech;
-        // deb("     T: %s <= %s", node.name, tech);
       });
 
       "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
         H.QRY(verb + " DISTINCT").forEach(ent => {
           producers = H.QRY(ent.name + " " + verbMapper[verb]).execute();
-          // nodes[ent.name].producers = [producers, verb.toLowerCase(), H.HTN.Economy.operators[operMapper[verbMapper[verb]]]];
-          nodes[ent.name].producers = producers;
+          producers.forEach(p => nodes[ent.name].producers.push(p));
           nodes[ent.name].verb = verb.toLowerCase();
           nodes[ent.name].operator = H.HTN.Economy.operators[operMapper[verbMapper[verb]]];
-          // deb("     T: ents %s <= %s", ent.name, [producers.map(n => n.name), verb.toLowerCase()]);
         });
+      });  
+
+      H.QRY("PAIR DISTINCT").forEach(tech => {  
+
+        if (!nodes[tech.name]){return deb("ERROR  : unknown paired tech: %s in tree.finalize", tech.name);}
+
+        producers = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY");
+        producers.forEach(p => nodes[tech.name].producers.push(p));
+        nodes[tech.name].verb = "research";
+        nodes[tech.name].operator = H.HTN.Economy.operators.research_tech;
+
+      });          
+
+      H.QRY("SUPERSEDE DISTINCT").forEach(tech => {  
+
+        if (!nodes[tech.name]){return deb("ERROR  : unknown superseded tech: %s in tree.finalize", tech.name);}
+
+        producers = H.QRY(tech.name + " SUPERSEDEDBY RESEARCHEDBY");
+        producers.forEach(p => nodes[tech.name].producers.push(p));
+        nodes[tech.name].verb = "research";
+        nodes[tech.name].operator = H.HTN.Economy.operators.research_tech;
+
+      });          
+
+      H.range(1, 4).forEach(n => {
+        phases[n].alternates.forEach(a => {
+          name = H.saniTemplateName(a);
+          if (nodes[name] && !nodes[name].verb){
+            nodes[name].verb = "research";
+            deb("     T: setting verb for %s", name);
+          }
+        })
       });
 
-      // H.QRY("PAIR DISTINCT").forEach(tech => {  
+      H.each(nodes, function(name, node){
+        node.producers = H.unique(node.producers);
+      });
 
-      //   // get parent 
-      //   par1 = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").first();
-
-      //   if (par1){
-      //     // deb("     T: tech: %s <= %s", tech.name, [par1.name, "research_tech"]);
-      //     nodes[tech.name].producers = [[par1], "research", H.HTN.Economy.operators.research_tech];
-      //     // deb("P: found par1: %s, %s", tech.name, par1.name);
-      //   } else {
-      //     deb("P: not found par1 for: %s", tech.name);
-      //   }
-
-      // });    
+      deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
 
     },
     getType: function(tpln){
@@ -227,16 +249,17 @@ HANNIBAL = (function(H){
         if (!this.nodes[name]){
 
           this.nodes[name] = {
-            name:      name,    // sanitized API template name
-            key:       key,     // API template name
-            template:  tpl,     // API template
-            depth:     src[0],
-            type:      "",      // tech, unit, stuc
-            phase:     "",      // vill, town, city
-            requires:  "",      // sanitized tech template name
-            producers: [],      // [nodes], "verb", 
-            verb:      "",      // train, build, research
-            operator:  null,    // planner.operation
+            name:        name,    // sanitized API template name
+            key:         key,     // API template name
+            template:    tpl,     // API template
+            depth:       src[0],
+            operations:  0,       // planning depth
+            type:        "",      // tech, unit, stuc
+            phase:       "",      // vill, town, city
+            requires:    "",      // sanitized tech template name
+            producers:   [],      // [nodes], "verb", 
+            verb:        "",      // train, build, research
+            operator:    null,    // planner.operation
           };
 
           // deb("     T: %s, %s, %s ----- %s", typeof tpl, !!tpl, name, key);
