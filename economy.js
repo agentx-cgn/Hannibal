@@ -46,11 +46,11 @@ HANNIBAL = (function(H){
       //   maxHits += unit.maxHitpoints();
       // });    
 
-      stock.food   = H.GameState.playerData.resourceCounts.food;
-      stock.wood   = H.GameState.playerData.resourceCounts.wood;
-      stock.stone  = H.GameState.playerData.resourceCounts.stone;
-      stock.metal  = H.GameState.playerData.resourceCounts.metal;
-      stock.pops   = H.GameState.playerData.popCount;
+      stock.food   = H.PlayerData.resourceCounts.food;
+      stock.wood   = H.PlayerData.resourceCounts.wood;
+      stock.stone  = H.PlayerData.resourceCounts.stone;
+      stock.metal  = H.PlayerData.resourceCounts.metal;
+      stock.pops   = H.PlayerData.popCount;
       stock.area   = H.Player.statistics.percentMapExplored;
       stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
 
@@ -88,7 +88,6 @@ HANNIBAL = (function(H){
       remove:   function(item){H.remove(queue, item);},
       forEach: queue.forEach.bind(queue),
       filter:  queue.filter.bind(queue),
-      // filterX:   function(fn){return queue.filter(fn);}
       search:   function(fn){
         var i, len = queue.length;
         for (i=0;i<len;i++){
@@ -105,27 +104,11 @@ HANNIBAL = (function(H){
   // local process wrapper around an order
   H.Order = function(order){
 
-    var self = this;
     this.order = order;
     this.remaining = order.amount;
     this.executed  = 0;             // send to engine
 
     //TODO: make units move to order.position
-
-    // this.order.ready = function(amount, type, id){
-
-    //   self.remaining -= amount;
-
-    //   // deb("   ORD: #%s ready.in: amount/rem/tot: %s/%s/%s, hcq: %s", order.id, amount, self.remaining, self.order.amount, self.order.hcq);
-
-    //   if (self.order.shared){
-    //     H.Objects(order.source).listener("Ready", id);  
-    //   } else {
-    //     H.Objects(order.source).listener("Ready", id);  
-    //   }
-      
-
-    // };
 
   };
 
@@ -133,7 +116,7 @@ HANNIBAL = (function(H){
     constructor: H.Order,
     evaluate: function(allocs){
 
-      var self  = this, order = this.order;
+      var self = this, order = this.order;
 
       this.execute = false; // ready to send
 
@@ -208,13 +191,13 @@ HANNIBAL = (function(H){
 
       nodes = H.QRY(hcq).execute(); // "metadata", 5, 10, "assignExisting");
 
-      if (!nodes.length) {
-        // deb("    OC: #%s found none existing for %s", this.order.id, hcq);
-      }
+      // if (!nodes.length) {
+      //   // deb("    OC: #%s found none existing for %s", this.order.id, hcq);
+      // }
+
       nodes.slice(0, this.remaining).forEach(function(node){
         deb("    OC: #%s found existing: %s FOR %s", this.order.id, node.name, hcq);
         this.executed += 1; 
-        // this.order.ready(1, "Assign", node.id);
         H.Economy.listener("onOrderReady", node.id, {metadata: {order: this.order.id}});
       }, this);
 
@@ -271,6 +254,51 @@ HANNIBAL = (function(H){
     }
 
   };
+
+// Group assets place orders with hcq as filter, location and amount
+// order.id is taken from H.Objects
+// order.remaining is set to order.amount
+// order.processing is set to 0
+// order is appended to queue
+// queued orders are evaluated every n ticks and 
+//   if tech is researched 
+//     order is removed
+//   if order.remaining == 0 
+//     order is removed
+//   if order.remaining + order.processing = order.amount 
+//     order is ignored
+//   order.executable is set to false
+//   if n existing units or structures are available
+//     they are passed to groups
+//     order.remaining -= n
+//   if a producer exists and all requirements are met
+//     order.producer is selected
+//     order.executable = true
+
+// executable orders are processed every n ticks 
+// first over full amount then on single 
+//   order.unprocessed = order.remaining - order.processing
+//   if budget > order.unprocessed.cost
+//   if budget > order.single.cost
+//     if unit and producer.queue < 3
+//       order is passed to producer
+//       producer.queue += 1
+//       order.processing += order.unprocessed/single
+//       producer sends order to engine
+//     if structure
+//       producer sends order to engine
+//       order.processing += order.unprocessed/single
+
+// created foundations, trained units and researched techs appear later in events
+// TrainingFinished // AIMetadata
+//   H.Bot.culture.loadById(id);
+//   H.Economy.listener("onOrderReady", id, event);
+//     event.metadata.order has order.id
+//     order.processing -= 1
+//     order.remaining -= 1
+// new researchedTechs
+//   Events.dispatchEvent("onAdvance", "onAdvance", {name: name, tech: tech});
+
 
 
   H.Economy = (function(){
@@ -353,7 +381,7 @@ HANNIBAL = (function(H){
         deb("   ECO: advancePhase '%s'", phase);
         planner  = H.Brain.requestPlanner(phase);
 
-        deb("     E: planner.result.data: %s", uneval(planner.result.data));
+        // deb("     E: planner.result.data: %s", uneval(planner.result.data));
 
         ressTargets.food  = planner.result.data.cost.food  || 0 + planner.result.data.ress.food;
         ressTargets.wood  = planner.result.data.cost.wood  || 0 + planner.result.data.ress.wood;

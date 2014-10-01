@@ -76,6 +76,7 @@ HANNIBAL = (function(H){
 
   H.TechTree.prototype = {
     constructor: H.TechTree,
+    phases: phases,
     log: function (filters){
 
       var t, tt = this.nodes, tpls = H.attribs(this.nodes);
@@ -84,18 +85,13 @@ HANNIBAL = (function(H){
 
       deb(); deb("  TREE: logging %s/%s", this.id, this.civ);
 
-      tpls.sort(function(a, b){
-        if (tt[a].phase !== tt[b].phase){
-          return phases.find(tt[a].phase).idx > phases.find(tt[b].phase).idx;
-        } else {
-          return tt[a].depth > tt[b].depth;
-        }
-      });
+      tpls.sort((a, b) => tt[a].order > tt[b].order);
 
       tpls.forEach(function(tpln){
         t = tt[tpln];
         if (H.contains(filters, t.type)) {
-          deb("     T: %s / %s %s %s %s", H.tab(t.depth, 4), H.tab(t.operations, 4), t.type, t.phase, t.name);
+          deb("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
+          deb("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
           deb("     T:        %s", t.key);
           deb("     T:        reqs: %s", t.requires || "none");
           deb("     T:        verb: %s", t.verb || "none");
@@ -168,7 +164,7 @@ HANNIBAL = (function(H){
           name = H.saniTemplateName(a);
           if (nodes[name] && !nodes[name].verb){
             nodes[name].verb = "research";
-            deb("     T: setting verb for %s", name);
+            // deb("     T: setting verb for %s", name);
           }
         })
       });
@@ -177,7 +173,7 @@ HANNIBAL = (function(H){
         node.producers = H.unique(node.producers);
       });
 
-      deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
+      deb();deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
 
     },
     getType: function(tpln){
@@ -254,6 +250,7 @@ HANNIBAL = (function(H){
             template:    tpl,     // API template
             depth:       src[0],
             operations:  0,       // planning depth
+            order:       0,       // execution order
             type:        "",      // tech, unit, stuc
             phase:       "",      // vill, town, city
             requires:    "",      // sanitized tech template name

@@ -83,7 +83,7 @@ HANNIBAL = (function(H){
     },
     runPlanner: function(phase){
 
-      var state, goal, phaseName, phaseCost, houseName, housePopu, ress;
+      var state, goal, phaseName, phaseCost, houseName, housePopu, ress, logops;
 
       if (phase === "phase.village"){
 
@@ -110,7 +110,7 @@ HANNIBAL = (function(H){
           ]
         }).sanitize();
 
-        goal.data.ress = ress;
+        // goal.data.ress = ress;
         goal.data.ents[class2name("barracks")]   = 2;
         goal.data.ents[class2name("house")]      = Math.ceil(ress.pop / housePopu);
         // goal.data.ents[class2name("blacksmith")] = 1;
@@ -132,6 +132,14 @@ HANNIBAL = (function(H){
 
       planner.plan(state, [[H.HTN.Economy.methods.start, goal]]);
 
+      logops = {
+        "start": null,
+        "build_structures": null,
+        "research_tech": null,
+        "train_units": null,
+        "finish": null,
+      };
+
       // debug
       deb();deb();deb(" BRAIN: result of planning phase: %s", phase)
       JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
@@ -139,8 +147,11 @@ HANNIBAL = (function(H){
       });
       deb();deb("     B: operations:");
       planner.operations.forEach(function(op){
-        deb("     B: - %s", op);
+        if (op[1] in logops){
+          deb("     B: - %s", op.filter(o => !!o).join(", "));
+        }
       });      
+      deb("     B: cost: ", uneval(planner.result.data.cost));
 
 
     },
@@ -148,7 +159,7 @@ HANNIBAL = (function(H){
     requestGoals: function(){
 
       return (
-        H.Planner.operations
+        planner.operations
           .filter(op => op[1] === "build_structures" || op[1] === "research_tech" || op[1] === "inc_resource")
           .map(op => [op[1], op[2], op[3] === undefined || 1])
           .sort((a, b) => a[0] > b[0])

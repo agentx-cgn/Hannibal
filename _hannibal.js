@@ -125,7 +125,6 @@ var HANNIBAL = (function() {
     this.culture.loadTechnologies();         // from game to triple store
     this.culture.finalize();                 // clear up
     this.tree.finalize();                    // caches required techs, producers for entities
-    // this.tree.log();
 
     // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
 
@@ -147,14 +146,14 @@ var HANNIBAL = (function() {
     // prepare planner cache
     H.Planner = new H.HTN.Planner({
       name:      "eco.planner",
-      // domain:    H.HTN.Economy,
       operators: H.HTN.Economy.operators,
       methods:   H.HTN.Economy.methods,
       verbose:   1
     });
     H.HTN.Economy.initialize(H.Planner, this.tree);
-    H.HTN.Economy.report("startup test");
-    H.HTN.Economy.test({tech: ['phase.town']});
+    // this.tree.log();
+    // H.HTN.Economy.report("startup test");
+    // H.HTN.Economy.test({tech: ['phase.town']});
 
     // Now make a plan to start with
     H.Brain.init();
@@ -228,7 +227,7 @@ var HANNIBAL = (function() {
     ts = this.culture.store;
     ts.debug = 5;
 
-    H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
+    // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
 
     // new H.HCQ(ts, "INGAME WITH metadata.opname = 'none'").execute("metadata", 5, 10, "all ingame entities");
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");

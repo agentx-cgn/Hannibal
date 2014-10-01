@@ -23,8 +23,7 @@ HANNIBAL = (function(H){
     return {
       boot: function(){self=this; return self;},
       log:  function(){
-        deb();deb();
-        deb("GROUPS: -----------");
+        deb();deb();deb("GROUPS: -----------");
         H.each(groups, function(name, group){
           deb(" GROUP: %s instances: %s", name, group.instances.length);
           group.instances.forEach(function(instance){
@@ -45,8 +44,13 @@ HANNIBAL = (function(H){
           if (definition.active) {
             switch(name.split(".")[0]){
               case "g": 
-                H.Groups.register(name, definition);
-                deb("   GRP: %s", name);
+                // H.Groups.register(name, definition);
+                groups[name] = {
+                  name: name,
+                  definition: definition,
+                  instances: []
+                };
+                deb("      : %s", name);
               break;
             }
           }
@@ -67,17 +71,17 @@ HANNIBAL = (function(H){
         });
         return Date.now() - t0;
       },
-      register: function(name, definition){
+      // register: function(name, definition){
 
-        // initializes a definition, makes it launchable
+      //   // initializes a definition, makes it launchable
         
-        groups[name] = {
-          name: name,
-          definition: definition,
-          instances: []
-        };
+      //   groups[name] = {
+      //     name: name,
+      //     definition: definition,
+      //     instances: []
+      //   };
 
-      },
+      // },
       isLaunchable: function(groupname){
         return !!groups[groupname];
       },

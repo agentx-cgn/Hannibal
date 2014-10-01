@@ -18,11 +18,6 @@ HANNIBAL = (function(H){
   H.HTN.Economy = H.HTN.Economy || {};
 
   var m, o, planner, tree, nodes, prit, sani, fmt,
-      // mapper = {
-      //   "BUILDBY":       "build_structures",
-      //   "TRAINEDBY":     "train_units",
-      //   "RESEARCHEDBY":  "research_tech"
-      // },
       cacheProducer   = {},
       cacheTechnology = {},
       cacheBuildings  = {},
@@ -39,48 +34,10 @@ HANNIBAL = (function(H){
         return fmt("[%s: %s%s]", t1, t2, t3);
       };
 
-  // function cacheProducers(){
-
-  //   var verbMapper = {
-  //     "TRAIN": "TRAINEDBY",
-  //     "BUILD": "BUILDBY",
-  //     "RESEARCH": "RESEARCHEDBY"
-  //   };
-
-  //   "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
-  //     H.QRY(verb + " DISTINCT").forEach(ent => {
-  //       var producers = H.QRY(ent.name + " " + verbMapper[verb]).execute();
-  //       cacheProducer[ent.name] = [producers, o[mapper[verbMapper[verb]]]];
-  //     });
-  //   });
-
-  //   H.QRY("PAIR DISTINCT").forEach(tech => {  
-
-  //     // get parent 
-  //     var par1 = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").first();
-
-  //     if (par1){
-  //       cacheProducer[tech.name] = [[par1], o.research_tech];
-  //       // deb("P: found par1: %s, %s", tech.name, par1.name);
-  //     } else {
-  //       deb("P: not found par1 for: %s", tech.name);
-  //     }
-
-  //   });    
-
-  // }
-
-  // function cacheTechnologies(){
-  //   // caches for each ent required tech
-  //   // units.athen.ship.merchant => phase.town
-  //   H.QRY("ENABLE DISTINCT").forEach(node => {
-  //     var tech = H.QRY(node.name + " REQUIRE").first().name;
-  //     cacheTechnology[node.name] = tech;
-  //   });
-
-  // }
 
   function cacheDepths(){
+
+    // runs planner over all nodes and writes planning depth to H.Data.Depths[civ][name]
 
     var zero = function () {return new H.HTN.Helper.State({ress: {}, ents: {}, tech: []}).sanitize();},
         cc   = H.format("structures.%s.civil.centre", tree.civ);
@@ -98,7 +55,7 @@ HANNIBAL = (function(H){
       } else if (node.verb === "train" || node.verb === "build"){
         goal.data.ents[node.name] = goal.data.ents[node.name] === undefined ? 1 : 2;
       } else {
-        deb("      :  NV %s", name); 
+        // deb("      :  NV %s", name); 
         return;
       }
 
@@ -109,70 +66,33 @@ HANNIBAL = (function(H){
           deb("      :  %s",  o.m.slice(0,100));
         });
       } else {
-        deb("      :  OK %s, %s", node.name, planner.operations.length);
+        // deb("      :  OK %s, %s", node.name, planner.operations.length);
         // planner.operations.forEach(function(op){
         //   deb("     P: - %s", op);
         // });      
       }
-      H.Data.Depths[tree.civ][name] = planner.depth;
+      tree.nodes[name].operations = planner.depth;
 
     });
 
-  }
-  function cacheDepthsX(){
+    H.each(tree.nodes, function(name, node){
 
-    var zero = function () {return new H.HTN.Helper.State({ress: {}, ents: {}, tech: []}).sanitize();},
-        counter = 0,
-        civ  = tree.civ,
-        cc   = H.format("structures.%s.civil.centre", civ),
-        config = {
-          techs: "RESEARCH DISTINCT",
-          bldgs: "BUILD DISTINCT",
-          units: "TRAIN DISTINCT",
-          pairs: "PAIR DISTINCT",
-          super: "SUPERSEDE DISTINCT",
-        };
+      var order, phase;
 
-    // deb(H.attribs(H.Data));
-    // if (!H.Data){deb("ERROR : no Data");}
-    // if (!H.Data.Depths){deb("ERROR : no Depth");}
-    if (!H.Data.Depths[civ]){H.Data.Depths[civ] = {};}
+      if ((phase = tree.phases.find(node.key))){
+        node.order = (phase.idx) * 1000;
+      } else {
+        node.order = tree.phases.find(node.phase).idx * 1000 + node.operations +1;
+      }
 
+      H.Data.Depths[tree.civ][name] = node.order;
 
-    deb("cacheDepths: ---------------");
-
-    H.each(config, function(name, query){
-      H.QRY(query).forEach(function(node){
-
-        if (H.QRY(node.name + " PAIR").first()){return;}
-        var goal = zero(), start = zero();
-        start.data.ents[cc] = 1;
-        if (name === "techs" || name === "pairs") {
-          goal.data.tech = [node.name];
-        } else {
-          goal.data.ents[node.name] = 1;
-        }
-        counter += 1;
-        planner.plan(start, [[m.start, goal]]);
-        if (!planner.operations.length){
-          deb("planned: NOK %s, %s", node.name, planner.operations.length);
-          planner.logstack.forEach(function(o){
-            deb("      :  %s",  o.m.slice(0,100));
-          });
-        } else {
-          deb("planned:  OK %s, %s", node.name, planner.operations.length);
-          // planner.operations.forEach(function(op){
-          //   deb("     P: - %s", op);
-          // });      
-        }
-        H.Data.Depths[civ][node.name] = planner.depth;
-      });
     });
-    deb("cacheDepths: --------------- %s nodes", counter);
 
-    // JSON.stringify(H.Data.Depths[civ], null, 2).split("\n").forEach(function(line){
-    //   deb(" Depth: %s", line);
-    // });    
+    // debug
+    // var tpls = H.attribs(tree.nodes);
+    // tpls.sort((a, b) => tree.nodes[a].order > tree.nodes[b].order);
+    // tpls.forEach(t => deb(" order: %s %s", tree.nodes[t].order, tree.nodes[t].name));
 
   }
 
@@ -402,11 +322,7 @@ HANNIBAL = (function(H){
   H.HTN.Economy.test = function(state){
 
     var start = H.HTN.Economy.getCurState(),
-        goal  = new H.HTN.Helper.State(state),
-        plannerX = new H.HTN.Planner({
-          domain: H.HTN.Economy,
-          verbose: 0
-        });
+        goal  = new H.HTN.Helper.State(state);
 
     deb("     H: current state");
     JSON.stringify(start.data, null, 2).split("\n").forEach(function(line){
@@ -414,14 +330,13 @@ HANNIBAL = (function(H){
     });
 
     deb();
-    deb("     H: planning for %s", uneval(goal));
+    deb("     H: planning for %s with %s", uneval(goal), planner.name);
     planner.plan(start, [[m.start, goal]]);
     planner.operations.forEach(function(op){
       deb("     H: op: %s", op);
     });
 
     deb("     H: cost: ", uneval(planner.result.data.cost));
-    // deb("     H: cost: ", uneval(planner.result.cost));
 
   };
 
@@ -473,9 +388,11 @@ HANNIBAL = (function(H){
         }
         if (techs.length){
 
-          // deb(" -> %s", uneval(techs));
+          // techs = techs.sort((a, b) => depths[a[0]] || 0 - depths[b[0]] || 0);
+          techs = techs.sort((a, b) => depths[a] - depths[b]);
 
-          techs = techs.sort((a,b) => depths[a[0]] || 0 - depths[b[0]] || 0);
+          if (techs.length > 1){deb(" -> %s", uneval(techs));}
+
           return [[m.produce, techs[0], 1], [m.start, goal]];
         }
       }
