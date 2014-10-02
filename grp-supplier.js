@@ -57,7 +57,7 @@ HANNIBAL = (function(H){
 
         onLaunch: function(ccid, resource, size){
 
-          deb("     G: onlaunch %s", uneval(arguments));
+          // deb("     G: onlaunch %s", uneval(arguments));
 
           this.size      = size;
           this.resource  = resource;
@@ -104,11 +104,11 @@ HANNIBAL = (function(H){
         },
         onAssign: function(asset){
 
-          deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.resource, asset, asset.property, asset.first);
+          // deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.resource, asset, asset.property, asset.first);
          
           if (this.units.match(asset)){
 
-            deb("     G: %s onAssign position: %s", this, H.prettify(this.position));
+            // deb("     G: %s onAssign position: %s", this, H.prettify(this.position));
 
             if (this.units.count === 1){
               if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
@@ -155,7 +155,7 @@ HANNIBAL = (function(H){
         onBroadcast: function(){},
         onInterval:  function(){
 
-          deb("     G: %s onInterval, res: %s, states: %s", this, this.resource, H.prettify(this.units.states()));
+          // deb("     G: %s onInterval, res: %s, states: %s", this, this.resource, H.prettify(this.units.states()));
 
           if (!this.units.count){return;}
 

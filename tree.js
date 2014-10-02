@@ -79,7 +79,7 @@ HANNIBAL = (function(H){
     phases: phases,
     log: function (filters){
 
-      var t, tt = this.nodes, tpls = H.attribs(this.nodes);
+      var t, tt = this.nodes, tpls = H.attribs(this.nodes), len;
 
       filters = filters || ["tech", "unit", "stuc"];
 
@@ -102,6 +102,31 @@ HANNIBAL = (function(H){
           } else {
             deb("     T:        NO PRODUCER");
           }
+          len = t.products.train.length + t.products.build.length + t.products.research.length;
+          if (len){
+            deb("     T:        products: ");
+            if (t.products.train.length){
+              deb("     T:          %s", "train");
+              t.products.train.forEach(p => {
+                deb("     T:            %s", p.name);
+              });
+            }
+            if (t.products.build.length){
+              deb("     T:          %s", "build");
+              t.products.build.forEach(p => {
+                deb("     T:            %s", p.name);
+              });
+            }
+            if (t.products.research.length){
+              deb("     T:          %s", "research");
+              t.products.research.forEach(p => {
+                deb("     T:            %s", p.name);
+              });
+            }
+
+          } else {
+            deb("     T:        NO PRODUCTS");
+          }
         }
       });
       deb("  TREE: Done ...");
@@ -109,7 +134,7 @@ HANNIBAL = (function(H){
     },
     finalize: function(){
 
-      var tech, name, producers, nodes = this.nodes, t0 = Date.now();
+      var tech, name, producers, products, nodes = this.nodes, t0 = Date.now();
 
       var operMapper = {
         "BUILDBY":       "build_structures",
@@ -127,6 +152,8 @@ HANNIBAL = (function(H){
         tech = H.QRY(node.name + " REQUIRE").first().name;
         nodes[node.name].requires = tech;
       });
+
+      // uplink info
 
       "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
         H.QRY(verb + " DISTINCT").forEach(ent => {
@@ -154,6 +181,17 @@ HANNIBAL = (function(H){
         nodes[tech.name].operator = H.HTN.Economy.operators.research_tech;
 
       });          
+
+      // downlink info
+
+      H.each(nodes, function(name, node){
+        "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
+          products = H.QRY(name + " " + verb);
+          products.forEach(p => nodes[name].products[verb.toLowerCase()].push(p));
+        });
+      });
+
+      // setting research as verb for all phases
 
       H.range(1, 4).forEach(n => {
         phases[n].alternates.forEach(a => {
@@ -251,8 +289,13 @@ HANNIBAL = (function(H){
             type:        "",      // tech, unit, stuc
             phase:       "",      // vill, town, city
             requires:    "",      // sanitized tech template name
+            verb:        "",      // train, build, research // uplink
             producers:   [],      // [nodes]
-            verb:        "",      // train, build, research
+            products:    {        // downlink
+              "train":    [],     // [nodes]
+              "build":    [], 
+              "research": []
+            }, 
             operator:    null,    // planner.operator
           };
 

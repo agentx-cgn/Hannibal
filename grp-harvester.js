@@ -76,7 +76,7 @@ HANNIBAL = (function(H){
 
           // logObject(asset, "onAssign: " + this.name);
 
-          deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
+          // deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
           if (this.dropsite.match(asset)){
             this.position = asset;

@@ -151,7 +151,7 @@ var HANNIBAL = (function() {
       verbose:   1
     });
     H.HTN.Economy.initialize(H.Planner, this.tree);
-    // this.tree.log();
+    this.tree.log();
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
 
@@ -343,6 +343,7 @@ var HANNIBAL = (function() {
 
     var 
       t0 = Date.now(),
+      critical = "",
       self = this, 
       msgTiming = "",
       secs = (H.GameState.timeElapsed/1000).toFixed(1),
@@ -406,8 +407,9 @@ var HANNIBAL = (function() {
         }
         self.timing.all += msecs;
       });
-      deb("______: #%sb, trigs: %s, timing: %s, all: %s ", 
-        this.ticks, H.Triggers.info(), msgTiming, this.timing.all
+      critical = self.timing.all >= 100 ? "!!!!!!!!" : "";
+      deb("______: #%sb, trigs: %s, timing: %s, all: %s %s", 
+        this.ticks, H.Triggers.info(), msgTiming, this.timing.all, critical
       );
 
       H.Numerus.tick(secs, this.ticks);

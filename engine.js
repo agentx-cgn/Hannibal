@@ -52,7 +52,7 @@ HANNIBAL = (function(H){
 
     stance: function(who, what){
 
-      deb("   ENG: stance: %s", uneval(arguments));
+      // deb("   ENG: stance: %s", uneval(arguments));
 
       if (who.length && H.contains(H.Data.stances, what)){
 
@@ -200,7 +200,7 @@ HANNIBAL = (function(H){
 
     gather: function(who, what){
 
-      deb("   ENG: gather: %s", uneval(arguments));
+      // deb("   ENG: gather: %s", uneval(arguments));
 
       if (who.length && H.isInteger(what)){
 
@@ -216,7 +216,7 @@ HANNIBAL = (function(H){
 
     repair: function(who, what){
 
-      deb("   ENG: repair: %s", uneval(arguments));
+      // deb("   ENG: repair: %s", uneval(arguments));
 
       if (who.length && H.isInteger(what)){
 
@@ -274,10 +274,10 @@ HANNIBAL = (function(H){
 
       deb("   ENG: research: %s", uneval(arguments));
 
-      if (who.length && H.Templates[what]){
+      if (H.isInteger(who) && H.TechTemplates[what]){
 
         Engine.PostCommand(H.Bot.id, { type: "research",
-          entity:   who[0], 
+          entity:   who, 
           template: what 
         }); 
 

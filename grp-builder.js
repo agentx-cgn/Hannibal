@@ -47,7 +47,7 @@ HANNIBAL = (function(H){
 
         onLaunch: function(ccid, building, size, quantity){
 
-          deb("     G: onlaunch %s cc: %s, civ: %s", this, ccid, H.Bot.civ);
+          // deb("     G: onlaunch %s cc: %s, civ: %s", this, ccid, H.Bot.civ);
 
           this.buildings = ["exclusive", building];
           this.units = ["exclusive", building + " BUILDBY"];
@@ -60,7 +60,7 @@ HANNIBAL = (function(H){
         },
         onAssign: function(asset){
 
-          deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.buildings, asset, asset.property, asset.first);
+          // deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.buildings, asset, asset.property, asset.first);
          
           if (this.units.match(asset)){
 

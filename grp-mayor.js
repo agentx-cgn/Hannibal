@@ -51,7 +51,7 @@ HANNIBAL = (function(H){
           this.register("builders");
         },
         onConnect: function(listener){
-          deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
+          // deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
           this.structure.users.push(listener);
         },
         onDisConnect: function(listener){

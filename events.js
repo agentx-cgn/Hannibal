@@ -126,7 +126,7 @@ HANNIBAL = (function(H){
             return;            
           }
         }
-        deb("  DISP: #%s registered listener for %s | have: %s", id, callsign, H.attribs(H.Dispatcher));
+        // deb("  DISP: #%s registered listener for %s | have: %s", id, callsign, H.attribs(H.Dispatcher));
         // logDispatcher();
 
       },

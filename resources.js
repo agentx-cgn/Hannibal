@@ -166,8 +166,10 @@ HANNIBAL = (function(H){
 
         // specs [{generic: 'stone', specific: 'rock'}, {generic: 'stone', specific: 'ruins'}],
 
-        var t0, t1, dis = 1e7, idres, distance, kmeans, tree, trees = [], cid,
-            pos = Array.isArray(item) ? item : item.location();
+        var 
+          t0, t1, dis = 1e7, idres, 
+          resource, distance, kmeans, trees = [], cid,
+          pos = Array.isArray(item) ? item : item.location();
 
         // deb("   RES: looking for nearest '%s' at %s", generic, pos);
 
@@ -185,12 +187,11 @@ HANNIBAL = (function(H){
                 res.consumed = true;
               }
             });
-            deb("   RES: found %s / %s at %s", uneval(resources[generic][idres]), generic, pos);
-            return resources[generic][idres] || undefined;
+            resource = idres ? resources[generic][idres] : undefined;
           break;
 
           case "food.fruit":
-            H.each(resources["food"], function(id, res){
+            H.each(resources.food, function(id, res){
               if (H.Entities[id]){
                 if (res.found && !res.consumed && res.specific === "fruit"){
                   distance = H.Map.distance(pos, res.position);
@@ -200,12 +201,11 @@ HANNIBAL = (function(H){
                 res.consumed = true;
               }
             });
-            deb("   RES: found %s / %s at %s", uneval(resources["food"][idres]), generic, pos);
-            return resources["food"][idres] || undefined;
+            resource = idres ? resources[generic][idres] : undefined;
           break;
 
           case "food.meat":
-            H.each(resources["food"], function(id, res){
+            H.each(resources.food, function(id, res){
               if (H.Entities[id]){
                 if (res.found && !res.consumed && res.isPrey){
                   distance = H.Map.distance(pos, res.position);
@@ -215,8 +215,7 @@ HANNIBAL = (function(H){
                 res.consumed = true;
               }
             });
-            deb("   RES: found %s / %s at %s", uneval(resources["food"][idres]), generic, pos);
-            return resources["food"][idres] || undefined;
+            resource = idres ? resources[generic][idres] : undefined;
           break;
 
           case "wood":
@@ -247,24 +246,22 @@ HANNIBAL = (function(H){
             })[0];
             // nearest tree from that cluster
             deb("   RES: kmeans: chose cluster %s with %s trees", cid, kmeans.centroids[0].items);
-            tree = trees.sort(function(a, b){
+            trees.sort(function(a, b){
               var da = (a.x - cid.x) * (a.x - cid.x) + (a.z - cid.z) * (a.z - cid.z),
                   db = (b.x - cid.x) * (b.x - cid.x) + (b.z - cid.z) * (b.z - cid.z);
               return da - db;
-            })[0];
-            deb("   RES: kmeans: chose tree: %s, %s", tree.id, uneval(tree));
-
-            return resources.wood[tree.id];
+            });
+            resource = trees.length ? resources[generic][trees[0].id] : undefined;
           break;
 
           default: 
-            deb(" ERROR: unknown resource: %s in nearest", generic);
+            deb("ERROR : unknown resource: %s in nearest", generic);
 
         }
 
-        deb("   RES: found nothing of %s at %s", generic, pos);
+        deb("   RES: %s / %s at %s", generic, uneval(resource), pos);
+        return resource;
 
-        return undefined;
       },      
       update: function(generic){
 

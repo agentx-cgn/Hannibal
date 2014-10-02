@@ -92,7 +92,7 @@ HANNIBAL = (function(H){
     asset.initActions(resources);
     asset.listener.callsign = asset.name;
 
-    deb("   AST: created: %s, res: %s", asset, uneval(asset.resources));
+    // deb("   AST: created: %s, res: %s", asset, uneval(asset.resources));
     
     return asset;
   };
@@ -347,7 +347,7 @@ HANNIBAL = (function(H){
               }
             }
 
-            deb("   AST: #%s, id: %s, meta: %s, shared: %s, tpl: %s", id, msg, H.prettify(meta), this.shared, tpln);
+            // deb("   AST: #%s, id: %s, meta: %s, shared: %s, tpl: %s", id, msg, H.prettify(meta), this.shared, tpln);
 
             // finalize
             this.resources.push(id);

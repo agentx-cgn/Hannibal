@@ -239,7 +239,7 @@ HANNIBAL = (function(H){
 
         });
 
-        deb("   GRP: %s to launch, CC: %s", instance, ccid);
+        deb("   GRP: %s launch, cc: %s, args: %s", instance, ccid, uneval(args));
 
         // call and activate
         instance.listener.onLaunch.apply(null, [ccid].concat(args));

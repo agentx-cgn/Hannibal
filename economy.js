@@ -66,6 +66,37 @@ HANNIBAL = (function(H){
 
   }; 
 
+  H.Producers = (function(){
+
+    var self, tree, producers = [];
+
+    return {
+      boot: function(){self = this; return self;},
+      init: function(oTree){tree = oTree.nodes;},
+      register: function(){},
+      destroy: function(){},
+      listener: function(){},
+      find: function(verb, node, ccid){
+
+        var producer;
+
+        switch (verb){
+          case "train":
+          break;
+          case "build":
+          break;
+          case "research":
+          break;
+          default:
+        }
+
+        return producer;
+      },
+
+    };
+
+  }().boot());
+
   function Trainer () {}
   Trainer.prototype = {
     constructor: Trainer,
@@ -73,33 +104,6 @@ HANNIBAL = (function(H){
     queue: function(){},
     listener: function(){},
   };
-
-  // Array with slightly different API
-  H.Queue = (function(){
-    var self, queue = [];
-    return {
-      boot:     function(){
-        self = this;
-        Object.defineProperty(self, "length", {get: function(){return queue.length;}});        
-        return self;
-      },
-      append:   function(item){queue.push(item); return self;},
-      prepend:  function(item){queue.unshift(item); return self;},
-      remove:   function(item){H.remove(queue, item);},
-      forEach: queue.forEach.bind(queue),
-      filter:  queue.filter.bind(queue),
-      search:   function(fn){
-        var i, len = queue.length;
-        for (i=0;i<len;i++){
-          if (fn(queue[i])){
-            return queue[i];
-          }
-        }
-        return undefined;
-      },
-    };
-
-  }().boot());
 
   // local process wrapper around an order
   H.Order = function(order){
@@ -169,7 +173,7 @@ HANNIBAL = (function(H){
     },
     assignExisting: function(){
 
-      var hcq, nodes, self = this;
+      var hcq, nodes;
 
       // looking for unit not assigned to a group
       if (this.order.verb === "train"){
@@ -228,7 +232,7 @@ HANNIBAL = (function(H){
     },
     checkRequirements: function(){
 
-      var self = this, hcq, good = 0, bad = 0,
+      var self = this, good = 0, bad = 0,
           tree = H.Bot.tree.nodes, req;
 
       // testing each node for tech requirements
@@ -237,14 +241,6 @@ HANNIBAL = (function(H){
         node.qualifies = req ? H.Technologies.available([req]) : true;
         good += node.qualifies ? 1 : 0;
         bad  += node.qualifies ? 0 : 1;
-        // hcq  = H.format("%s REQUIRE", node.name);
-        // nodes = H.QRY(hcq).execute();
-        // if(nodes.length){
-        //   names = nodes.map(function(req){return req.name;});
-        //   node.qualifies = H.Technologies.available(names);
-        //   good += node.qualifies ? 1 : 0;
-        //   bad  += node.qualifies ? 0 : 1;
-        // }
       });    
 
       if (good + bad){
@@ -255,51 +251,162 @@ HANNIBAL = (function(H){
 
   };
 
-// Group assets place orders with hcq as filter, location and amount
-// order.id is taken from H.Objects
-// order.remaining is set to order.amount
-// order.processing is set to 0
-// order is appended to queue
-// queued orders are evaluated every n ticks and 
-//   if tech is researched 
-//     order is removed
-//   if order.remaining == 0 
-//     order is removed
-//   if order.remaining + order.processing = order.amount 
-//     order is ignored
-//   order.executable is set to false
-//   if n existing units or structures are available
-//     they are passed to groups
-//     order.remaining -= n
-//   if a producer exists and all requirements are met
-//     order.producer is selected
-//     order.executable = true
+  H.OrderQueue = (function(){
+    var self, t0, tP, queue = [], log = {rem: [], exe: [], ign: []};
+    return {
+      get length () {return queue.length;},
+      boot:    function(){self = this; return self;},
+      append:  function(item){queue.push(item); return self;},
+      prepend: function(item){queue.unshift(item); return self;},
+      remove:  function(item){H.remove(queue, item);},
+      forEach: queue.forEach.bind(queue),
+      filter:  queue.filter.bind(queue),
+      search:  function(fn){
+        var i, len = queue.length;
+        for (i=0;i<len;i++){
+          if (fn(queue[i])){
+            return queue[i];
+          }
+        }
+        return undefined;
+      },
+      log: function(t0){
 
-// executable orders are processed every n ticks 
-// first over full amount then on single 
-//   order.unprocessed = order.remaining - order.processing
-//   if budget > order.unprocessed.cost
-//   if budget > order.single.cost
-//     if unit and producer.queue < 3
-//       order is passed to producer
-//       producer.queue += 1
-//       order.processing += order.unprocessed/single
-//       producer sends order to engine
-//     if structure
-//       producer sends order to engine
-//       order.processing += order.unprocessed/single
+        // isGo    = H.OrderQueue.filter(function(r){return r.go;}).length,
+        // isEval  = H.OrderQueue.filter(function(r){return r.evaluated;}).length;
 
-// created foundations, trained units and researched techs appear later in events
-// TrainingFinished // AIMetadata
-//   H.Bot.culture.loadById(id);
-//   H.Economy.listener("onOrderReady", id, event);
-//     event.metadata.order has order.id
-//     order.processing -= 1
-//     order.remaining -= 1
-// new researchedTechs
-//   Events.dispatchEvent("onAdvance", "onAdvance", {name: name, tech: tech});
+        deb("   ECO: queue: %s, %s msecs, rem: %s, ign: %s, exe: %s", queue.length, tP, log.rem, log.ign, log.exe);
+
+      },      
+      process: function(){
+
+        var 
+          amount, node, id,
+          allocs     = H.deepcopy(allocations),
+          budget     = H.deepcopy(H.Stats.stock),
+          allGood    = false, 
+          builds     = 0; // only one construction per tick
+          
+        t0 = Date.now();
+        log.rem.length = 0; log.ign.length = 0; log.exe.length = 0;
+
+        if (!queue.length){return;}
+
+        queue
+          .forEach(function(order){order.evaluate(allocs);});
+
+        allGood = H.Economy.fits(allocs, budget);
+        deb("    OQ: allGood: %s, allocs: %s, queue: %s", allGood, uneval(allocs), queue.length);
+
+        queue
+          .filter(function(order){return order.execute && order.executed < order.order.amount;})
+          .forEach(function(order){
+
+            id = order.order.id;
+            node = order.nodes[0];
+            amount = allGood ? order.order.amount - order.executed : 1;
+
+            if (allGood || self.fits(node.costs, budget)){
+
+              switch(order.order.verb){
+
+                case "train":
+                  // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
+                  H.Economy.do("train", amount, node.producer, node.key, order.order);
+                  H.Economy.subtract(node.costs, budget);
+                  order.executed += amount;
+                  log.exe.push(id + ":" + amount);
+                break;
+
+                case "build":
+                  if (builds === 0){
+                    // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.order.x + "|" + order.order.z, node.key);
+                    H.Economy.do("build", amount, node.producer, node.key, order.order);
+                    H.Economy.subtract(node.costs, budget);
+                    order.executed += amount;
+                    builds += 1;
+                  } else {
+                    deb("    OQ: #%s build postponed", id);
+                  }
+                break;
+
+                case "research":
+                  H.Economy.do("research", 1, node.producer, node.key, order.order);
+                  order.executed += amount;
+                  log.exe.push(id + ":" + amount);
+                break;
+
+                default:
+                  deb("ERROR : orderQueue: #%s unknown order.verb: %s", id, order.order.verb);
+
+              }
+
+            } else {
+              log.ign.push(id);
+
+            }
 
 
+        });
+
+        queue
+          .filter(function(order){return order.executed >= order.order.amount;})
+          .forEach(function(order){
+            log.rem.push(order.order.id);
+            self.remove(order);
+        });
+
+        tP = Date.now() - t0;
+
+      }
+
+    };
+
+  }().boot());
+
+  // Group assets place orders with hcq as filter, location and amount
+    // order.id is taken from H.Objects
+    // order.remaining is set to order.amount
+    // order.processing is set to 0
+    // order is appended to queue
+    // queued orders are evaluated every n ticks and 
+    //   if tech is researched 
+    //     order is removed
+    //   if order.remaining == 0 
+    //     order is removed
+    //   if order.remaining + order.processing = order.amount 
+    //     order is ignored
+    //   order.executable is set to false
+    //   if n existing units or structures are available
+    //     they are passed to groups
+    //     order.remaining -= n
+    //   if a producer exists and all requirements are met
+    //     order.producer is selected
+    //     order.executable = true
+
+    // executable orders are processed every n ticks 
+    // first over full amount then on single 
+    //   order.unprocessed = order.remaining - order.processing
+    //   if budget > order.unprocessed.cost
+    //   if budget > order.single.cost
+    //     if unit and producer.queue < 3
+    //       order is passed to producer
+    //       producer.queue += 1
+    //       order.processing += order.unprocessed/single
+    //       producer sends order to engine
+    //     if structure
+    //       producer sends order to engine
+    //       order.processing += order.unprocessed/single
+
+    // created foundations, trained units and researched techs appear later in events
+    // TrainingFinished // AIMetadata
+    //   H.Bot.culture.loadById(id);
+    //   H.Economy.listener("onOrderReady", id, event);
+    //     event.metadata.order has order.id
+    //     order.processing -= 1
+    //     order.remaining -= 1
+    // new researchedTechs
+    //   Events.dispatchEvent("onAdvance", "onAdvance", {name: name, tech: tech});
 
   H.Economy = (function(){
 
@@ -329,8 +436,6 @@ HANNIBAL = (function(H){
         [1, "g.supplier",  ccid, "food.meat",              2],       // availability
       ];
 
-
-
     self = {
       boot: function(){self = this; return self;},
       init: function(){
@@ -342,19 +447,18 @@ HANNIBAL = (function(H){
         if ((ticks % H.Config.economy.intervalMonitorGoals) === 0){
           self.monitorGoals();
         }
-        self.processQueue();
-        self.logQueue(t0);
+        H.OrderQueue.process();
+        H.OrderQueue.log();
         return Date.now() - t0;
       },
       listener: function(type, id, event){
 
         var order;
 
-        deb("   ECO: Event: %s", uneval(arguments));
-
         switch(type){
 
           case "onAdvance":
+            deb("   ECO: onAdvance: %s", uneval(arguments));
             if (phases.indexOf(event.name) !== -1){
               self.advancePhase(event.name);
             }
@@ -364,6 +468,7 @@ HANNIBAL = (function(H){
 
             order = H.Objects(event.metadata.order);
             order.remaining -= 1;
+            deb("   ECO: #%s onOrderReady: id: %s, %s", order.id, id, H.Entities[id]._templateName);
             H.Objects(order.source).listener("Ready", id);  
 
           break;
@@ -430,7 +535,7 @@ HANNIBAL = (function(H){
       request: function(amount, order, position){
 
         var sourcename = H.Objects(order.source).name,  // this is a resource instance
-            loc = (position === undefined) ? "undefined" : H.prettify(position);
+            loc = (position === undefined) ? "undefined" : position.map(p => p.toFixed(1));
 
         order.stamp  = H.Bot.turn;
         order.id     = H.Objects(order);
@@ -439,137 +544,43 @@ HANNIBAL = (function(H){
           order.x = position[0];
           order.z = position[1];
         }
-        H.Queue.append(new H.Order(order));
+        H.OrderQueue.append(new H.Order(order));
 
         deb("  EREQ: #%s, %s amount: %s, loc: %s, from: %s, hcq: %s", order.id, order.verb, amount, loc, sourcename, order.hcq);
 
       },
-      processQueue: function(){
 
-        var 
-          allocs  = H.deepcopy(allocations),
-          budget  = H.deepcopy(H.Stats.stock),
-          allGood = false, 
-          removed = [],
-          expensive  = [],
-          executed   = [],
-          builds     = 0; // only one construction per tick
-
-        if (!H.Queue.length){return;}
-
-        H.Queue
-          .forEach(function(order){order.evaluate(allocs);});
-
-        allGood = self.fits(allocs, budget);
-        deb("    PQ: allGood: %s, allocs: %s", allGood, H.prettify(allocs));
-
-        H.Queue
-          .filter(function(order){return order.execute && order.executed < order.order.amount;})
-          .forEach(function(order){
-
-            var amount = allGood ? order.order.amount - order.executed : 1,
-                node = order.nodes[0],
-                id = order.order.id;
-
-            if (allGood || self.fits(node.costs, budget)){
-
-              switch(order.order.verb){
-
-                case "train":
-                  // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
-                  H.Economy.execute("train", amount, node.producer, node.key, order.order);
-                  H.Economy.subtract(node.costs, budget);
-                  order.executed += amount;
-                  executed.push(id + ":" + amount);
-                break;
-
-                case "build":
-                  if (builds < 1){
-                    // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.order.x + "|" + order.order.z, node.key);
-                    H.Economy.execute("build", amount, node.producer, node.key, order.order);
-                    H.Economy.subtract(node.costs, budget);
-                    order.executed += amount;
-                    builds += 1;
-                  } else {
-                    deb("    PQ: #%s postponed", id);
-                  }
-                break;
-
-                // case "research":
-                // break;
-
-                default:
-                  deb("ERROR : processQueue: #%s unknown order.verb: %s", id, order.order.verb);
-
-              }
-
-            } else {
-              expensive.push(id);
-
-            }
-
-
-        });
-
-        H.Queue
-          .filter(function(order){return order.executed >= order.order.amount;})
-          .forEach(function(order){
-            removed.push(order.order.id);
-            H.Queue.remove(order);
-        });
-
-        if (executed.length){
-          deb("    PQ: executed: %s", executed);
-        }
-        if (removed.length){
-          deb("    PQ: removed from queue: %s", removed);
-        }
-        if (expensive.length){
-          deb("    PQ: can't afford. %s", expensive);
-        }
-
-
-      },
-      execute: function(verb, amount, id, template, order){
+      do: function(verb, amount, idProducer, template, order){
 
         var msg, pos;
 
-        // deb("    OEX: #%s, verb: %s, amount: %s, order: %s, tpl: %s", id, verb, amount, H.prettify(order), template);
+        // deb("    EDO: #%s, verb: %s, amount: %s, order: %s, tpl: %s", idProducer, verb, amount, H.prettify(order), template);
 
         switch(verb){
 
           case "train" :
-            H.Engine.train([id], template, amount, {order: order.id});
-            msg = H.format("   OEX: #%s %s, trainer: %s, amount: %s, tpl: %s", order.id, verb, id, amount, template); 
+            H.Engine.train([idProducer], template, amount, {order: order.id});
+            msg = H.format("   EDO: #%s %s, trainer: %s, amount: %s, tpl: %s", order.id, verb, idProducer, amount, template); 
           break;
 
           case "research" : 
-            H.Engine.research([id], template);
-            msg = H.format("   OEX: %s id: %s, %s", verb, order.id, id, template); 
+            H.Engine.research(idProducer, template);
+            msg = H.format("   EDO: #%s %s researcher: %s, %s", order.id, verb, idProducer, template); 
             
           break;
 
           case "build" : 
             if (order.x === undefined){deb("ERROR: %s without position", verb); return;}
             pos = H.Map.findGoodPosition(template, [order.x, order.z]);
-            H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id});
-            msg = H.format("   OEX: #%s %s, constructor: %s, x: %s, z: %s, tpl: %s", 
-                                       order.id, verb, id, order.x.toFixed(0), order.z.toFixed(0), template); 
+            H.Engine.construct([idProducer], template, [pos.x, pos.z, pos.angle], {order: order.id});
+            msg = H.format("   EDO: #%s %s, constructor: %s, x: %s, z: %s, tpl: %s", 
+                                       order.id, verb, idProducer, order.x.toFixed(0), order.z.toFixed(0), template); 
 
           break;
 
         }
 
         deb(msg);
-
-      },
-      logQueue: function(t0){
-
-        var inQueue = H.Queue.length;
-            // isGo    = H.Queue.filter(function(r){return r.go;}).length,
-            // isEval  = H.Queue.filter(function(r){return r.evaluated;}).length;
-
-        deb("   ECO: queue: %s, dur: %s msecs", inQueue, Date.now() - t0);
 
       },
       logTick: function(){

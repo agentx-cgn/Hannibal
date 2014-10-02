@@ -65,7 +65,7 @@ HANNIBAL = (function(H){
         },
         onAssign:    function(asset){
 
-          deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
+          // deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
           if (!this.counter){
             this.scanner = H.Scout.scanner(asset);  // inits search pattern with first unit
@@ -121,9 +121,9 @@ HANNIBAL = (function(H){
         },
         onInterval:  function(secs, ticks){
 
-          deb("     G: %s onInterval,  states: %s, health: %s", 
-            this, H.prettify(this.units.states()), this.units.health
-          );
+          // deb("     G: %s onInterval,  states: %s, health: %s", 
+          //   this, H.prettify(this.units.states()), this.units.health
+          // );
 
           // var t0 = Date.now();
 
