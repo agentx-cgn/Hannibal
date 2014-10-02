@@ -1,7 +1,7 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, deb, logObject, uneval */
 
-/*--------------- T E C H N O L G Y   T R E E  --------------------------------
+/*--------------- T E C H N O L O G Y   T R E E  ------------------------------
 
   Models the dependencies of entities and technologies
   
@@ -139,8 +139,6 @@ HANNIBAL = (function(H){
 
       H.QRY("PAIR DISTINCT").forEach(tech => {  
 
-        if (!nodes[tech.name]){return deb("ERROR  : unknown paired tech: %s in tree.finalize", tech.name);}
-
         producers = H.QRY(tech.name + " PAIREDBY RESEARCHEDBY");
         producers.forEach(p => nodes[tech.name].producers.push(p));
         nodes[tech.name].verb = "research";
@@ -149,8 +147,6 @@ HANNIBAL = (function(H){
       });          
 
       H.QRY("SUPERSEDE DISTINCT").forEach(tech => {  
-
-        if (!nodes[tech.name]){return deb("ERROR  : unknown superseded tech: %s in tree.finalize", tech.name);}
 
         producers = H.QRY(tech.name + " SUPERSEDEDBY RESEARCHEDBY");
         producers.forEach(p => nodes[tech.name].producers.push(p));
@@ -177,19 +173,23 @@ HANNIBAL = (function(H){
 
     },
     getType: function(tpln){
-      if (H.TechTemplates[tpln]){return "tech";}
-      if (tpln.contains("units/")){return "unit";}
-      if (tpln.contains("structures/")){return "stuc";}
-      if (tpln.contains("other/")){return "othr";}
-      if (tpln.contains("gaia/")){return "gaia";}
-      if (tpln.contains("pair_")){return "pair";}
-      return "XXXX";
+
+      return (
+        H.TechTemplates[tpln]         ? "tech" :
+        tpln.contains("units/")       ? "unit" :
+        tpln.contains("structures/")  ? "stuc" :
+        tpln.contains("other/")       ? "othr" :
+        tpln.contains("gaia/")        ? "gaia" :
+        tpln.contains("pair_/")       ? "pair" :
+          "XXXX"
+      );
+
     },
     getPhase: function(tpln, space){
 
       var test, phase = "phase_village", tpl = H.Templates[tpln] || H.TechTemplates[tpln];
 
-      space = space || "";
+      space = space || ""; // deb
 
       if ((test = H.test(tpl, "Identity.RequiredTechnology"))){
         phase = test;
@@ -215,24 +215,21 @@ HANNIBAL = (function(H){
     },
     enhance: function (){
 
-      H.each(this.nodes, function(name, template){
-
-        var 
-          type  = this.getType(template.key),
-          phase = phases.find(this.getPhase(template.key)).abbr;
-
-        template.type  = type;
-        template.phase = phase;
-
-        // deb("%s %s, %s", phase, type, name);
-
+      H.each(this.nodes, function(name, node){
+        node.type  = this.getType(node.key),
+        node.phase = phases.find(this.getPhase(node.key)).abbr;
+        // deb("%s %s, %s", node.phase, node.type, name);
       }.bind(this));
 
     },
     expand: function (){
 
-      var tpln, key, tpl, name, src, depth = 0,
-          push = function(item){this.sources.push([depth, item]);}.bind(this);
+      // picks from sources, analyzes, and appends branches to sources
+      // thus traversing the tree
+
+      var 
+        tpln, key, tpl, name, src, depth = 0,
+        push = function(item){this.sources.push([depth, item]);}.bind(this);
 
       while (this.sources.length){
 
@@ -248,19 +245,20 @@ HANNIBAL = (function(H){
             name:        name,    // sanitized API template name
             key:         key,     // API template name
             template:    tpl,     // API template
-            depth:       src[0],
-            operations:  0,       // planning depth
-            order:       0,       // execution order
+            depth:       src[0],  // local depth
+            operations:  0,       // planning depth, examined in HTN.Economy
+            order:       0,       // execution order, examined in HTN.Economy
             type:        "",      // tech, unit, stuc
             phase:       "",      // vill, town, city
             requires:    "",      // sanitized tech template name
-            producers:   [],      // [nodes], "verb", 
+            producers:   [],      // [nodes]
             verb:        "",      // train, build, research
-            operator:    null,    // planner.operation
+            operator:    null,    // planner.operator
           };
 
           // deb("     T: %s, %s, %s ----- %s", typeof tpl, !!tpl, name, key);
 
+          // unit promotion
           if(key.slice(-2) === "_b"){
             push(key.slice(0, -2) + "_e");
             push(key.slice(0, -2) + "_a");
