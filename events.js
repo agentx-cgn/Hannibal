@@ -244,6 +244,8 @@ HANNIBAL = (function(H){
                 this.copyAllListener(event.newentity, event.entity);
                 H.Bot.culture.removeById(event.entity);
                 H.Bot.culture.loadById(event.newentity);
+                H.Producers.removeById(event.entity);
+                H.Producers.loadById(event.newentity);
                 this.dispatchEvent(type, event.newentity, event);
                 destroyEvents[event.entity] = event;
               } else {
@@ -301,6 +303,7 @@ HANNIBAL = (function(H){
               } else {
                 this.dispatchEvent(type, event.entity, event);
                 this.removeAllListener(event.entity);
+                H.Producers.removeById(event.entity);
                 H.Bot.culture.removeById(event.entity);
 
               }
@@ -326,6 +329,7 @@ HANNIBAL = (function(H){
               event.entities.forEach(function(id){
                 if (event.metadata && event.metadata.order){
                   H.Bot.culture.loadById(id);
+                  H.Producers.loadById(id);
                   H.Economy.listener("onOrderReady", id, event);
                   // H.Objects(event.metadata.order).ready(1, type, id);
                 } else {

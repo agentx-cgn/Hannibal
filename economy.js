@@ -68,42 +68,127 @@ HANNIBAL = (function(H){
 
   H.Producers = (function(){
 
-    var self, tree, producers = [];
+    var self, name, producers = [], tree, maxQueue = 3;
+
+    function isProducer(name){
+      if (tree[name] && tree[name].products.count){
+        return true;
+      } else {
+        deb("   PDC: not a producer: %s", name);
+        return false;
+      }
+    }
 
     return {
       boot: function(){self = this; return self;},
-      init: function(oTree){tree = oTree.nodes;},
-      register: function(){},
-      destroy: function(){},
-      listener: function(){},
-      find: function(verb, node, ccid){
+      init: function(oTree){
 
-        var producer;
+        deb();deb();deb("   PDC: init");
+
+        tree = oTree.nodes;
+
+        H.QRY("INGAME").forEach(node => {
+          name = node.name.split("#")[0];
+          if (isProducer(name)){
+            node.queue = [];
+            producers.push(node);
+          }
+        });
+
+        producers.forEach(p => {
+          deb("     P: %s", p.name);
+          ["train", "build", "research"].forEach(verb => {
+            deb("     P:    %s", verb);
+            H.attribs(tree[p.name.split("#")[0]].products[verb]).forEach(prod => {
+              deb("     P:     %s", prod);
+            });
+          });
+        });
+
+        deb("   PDC: found %s producers", producers.length);
+
+      },
+      find: function(product, ccid){
+
+        var producer = null, verb = tree[product].verb, i = producers.length;
+
+        // has no producer
+        if(!verb){return null;}
 
         switch (verb){
-          case "train":
-          break;
+
           case "build":
+            // can ignore cc and queue
+            while ((producer = producers[--i])){
+              name = producer.name.split("#")[0];
+              if (tree[name].products.build[product]){
+                break;  
+              }        
+            }
           break;
+
           case "research":
+          // can ignore cc
+            while ((producer = producers[--i])){
+              name = producer.name.split("#")[0];
+              if (tree[name].products.research[product]){
+                if (producer.queue.length <= maxQueue){
+                  break;
+                }
+              }        
+            }
           break;
+          
+          case "train":
+            while ((producer = producers[--i])){
+              name = producer.name.split("#")[0];
+              if (tree[name].products.train[product]){
+                if (ccid && H.MetaData[producer.id].ccid === ccid){
+                  if (producer.queue.length <= maxQueue){
+                    break;
+                  }
+                }
+              }        
+            }
+          break;
+          
           default:
+            deb("ERROR : Producer.find unknown verb %s for %s", verb, product);
+        }
+
+        if (producer){
+          deb("   PDC: found %s for %s with cc: %s, verb: %s", producer.name, product, ccid, verb);
+        } else {
+          deb("   PDC: found NONE for %s with cc: %s, verb: %s", product, ccid, verb);
         }
 
         return producer;
+      },
+      loadById: function(id){
+        var node = H.QRY("INGAME WITH id = " + id).first();
+        if(node){
+          node.queue = [];
+          producers.push(node);
+          deb("   PDC: new %s", node.name);
+        } else{
+          deb("ERROR: PDC failed new id: %s", id);
+        }
+      },
+      removeById: function(id){
+        var p, i = producers.length;
+        while ((p = producers[--i])){
+          if (p.id === id){
+            producers.splice(i, 1);
+            deb("   PDC: removed %s", p.name);
+            break;
+          }
+        }
+        deb("ERROR : PDC can't remove id: %s", id);
       },
 
     };
 
   }().boot());
-
-  function Trainer () {}
-  Trainer.prototype = {
-    constructor: Trainer,
-    init:  function(){},
-    queue: function(){},
-    listener: function(){},
-  };
 
   // local process wrapper around an order
   H.Order = function(order){
@@ -211,29 +296,35 @@ HANNIBAL = (function(H){
       // picks an in game producer for each node, currently the first found
       // trainingQueueTime === trainingQueueLength for train, research O_O
 
-      var hcq, prods, verb = {
-            "train":      "TRAINEDBY",
-            "build":      "BUILDBY",
-            "research":   "RESEARCHEDBY",
-            "claim":      "???"
-          }[this.order.verb];
+      var self = this;
 
       this.nodes.forEach(function(node){
-        hcq   = H.format("%s %s INGAME", node.name, verb);
-        prods = H.QRY(hcq).execute();
-        if (prods.length) {
-          node.producer = prods[0].id;
-          // deb("    OC: #%s found ingame producer: %s (#%s) FOR %s WITH ACTION: %s", self.order.id, prods[0].name, prods[0].id, node.name, self.order.verb);
-        } else {
-          node.qualifies = false;
-        }
-      }, this);  
+        node.producer  = H.Producers.find(node.name, self.order.ccid);
+        node.qualifies = !node.producer ? false : node.qualifies;
+      });
+
+      // var hcq, prods, verb = {
+      //       "train":      "TRAINEDBY",
+      //       "build":      "BUILDBY",
+      //       "research":   "RESEARCHEDBY",
+      //       "claim":      "???"
+      //     }[this.order.verb];
+
+      // this.nodes.forEach(function(node){
+      //   hcq   = H.format("%s %s INGAME", node.name, verb);
+      //   prods = H.QRY(hcq).execute();
+      //   if (prods.length) {
+      //     node.producer = prods[0].id;
+      //     // deb("    OC: #%s found ingame producer: %s (#%s) FOR %s WITH ACTION: %s", self.order.id, prods[0].name, prods[0].id, node.name, self.order.verb);
+      //   } else {
+      //     node.qualifies = false;
+      //   }
+      // }, this);  
 
     },
     checkRequirements: function(){
 
-      var self = this, good = 0, bad = 0,
-          tree = H.Bot.tree.nodes, req;
+      var self = this, good = 0, bad = 0, tree = H.Bot.tree.nodes, req;
 
       // testing each node for tech requirements
       this.nodes.forEach(function(node){
@@ -532,13 +623,15 @@ HANNIBAL = (function(H){
           metal: ((cost.metal || 0) > (budget.metal || 0)) ? cost.metal - (budget.metal || 0) : undefined
         };
       },
-      request: function(amount, order, position){
+      request: function(ccid, amount, order, position){
 
-        var sourcename = H.Objects(order.source).name,  // this is a resource instance
-            loc = (position === undefined) ? "undefined" : position.map(p => p.toFixed(1));
+        var  // debug
+          sourcename = H.Objects(order.source).name,  // this is a resource instance
+          loc = (position === undefined) ? "undefined" : position.map(p => p.toFixed(1));
 
         order.stamp  = H.Bot.turn;
         order.id     = H.Objects(order);
+        order.ccid   = ccid;
         order.amount = amount;
         if (position && position.length){
           order.x = position[0];
@@ -546,35 +639,34 @@ HANNIBAL = (function(H){
         }
         H.OrderQueue.append(new H.Order(order));
 
-        deb("  EREQ: #%s, %s amount: %s, loc: %s, from: %s, hcq: %s", order.id, order.verb, amount, loc, sourcename, order.hcq);
+        deb("  EREQ: #%s, %s amount: %s, ccid: %s, loc: %s, from: %s, hcq: %s", order.id, order.verb, amount, ccid, loc, sourcename, order.hcq);
 
       },
 
-      do: function(verb, amount, idProducer, template, order){
+      do: function(verb, amount, producer, template, order){
 
-        var msg, pos;
+        var msg, pos, id = producer.id;
 
-        // deb("    EDO: #%s, verb: %s, amount: %s, order: %s, tpl: %s", idProducer, verb, amount, H.prettify(order), template);
+        // deb("    EDO: #%s, verb: %s, amount: %s, order: %s, tpl: %s", id, verb, amount, H.prettify(order), template);
 
         switch(verb){
 
           case "train" :
-            H.Engine.train([idProducer], template, amount, {order: order.id});
-            msg = H.format("   EDO: #%s %s, trainer: %s, amount: %s, tpl: %s", order.id, verb, idProducer, amount, template); 
+            H.Engine.train([id], template, amount, {order: order.id});
+            msg = H.format("   EDO: #%s %s, trainer: %s, amount: %s, tpl: %s", order.id, verb, id, amount, template); 
           break;
 
           case "research" : 
-            H.Engine.research(idProducer, template);
-            msg = H.format("   EDO: #%s %s researcher: %s, %s", order.id, verb, idProducer, template); 
-            
+            H.Engine.research(id, template);
+            msg = H.format("   EDO: #%s %s researcher: %s, %s", order.id, verb, id, template); 
           break;
 
           case "build" : 
             if (order.x === undefined){deb("ERROR: %s without position", verb); return;}
             pos = H.Map.findGoodPosition(template, [order.x, order.z]);
-            H.Engine.construct([idProducer], template, [pos.x, pos.z, pos.angle], {order: order.id});
+            H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id});
             msg = H.format("   EDO: #%s %s, constructor: %s, x: %s, z: %s, tpl: %s", 
-                                       order.id, verb, idProducer, order.x.toFixed(0), order.z.toFixed(0), template); 
+                                       order.id, verb, id, order.x.toFixed(0), order.z.toFixed(0), template); 
 
           break;
 

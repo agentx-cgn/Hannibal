@@ -53,9 +53,9 @@ HANNIBAL = (function(H){
       if (node.verb === "research") {
         goal.data.tech = [node.name];
       } else if (node.verb === "train" || node.verb === "build"){
-        goal.data.ents[node.name] = goal.data.ents[node.name] === undefined ? 1 : 2;
+        goal.data.ents[node.name] = goal.data.ents[node.name] === undefined ? 1 : 2; // TODO is 1
       } else {
-        // deb("      :  NV %s", name); 
+        // deb("      :  NV %s", name); mostly _e, _a
         return;
       }
 
@@ -102,10 +102,12 @@ HANNIBAL = (function(H){
 
     while (i--){
       producer = producers[i];
-      if (state.data.ents[producer.name]){
+      // if (state.data.ents[producer.name]){
+      if (state.data.ents[producer]){
         return null; // producer already there
       }
-      tasks.push([m.produce, producer.name, 1]);
+      // tasks.push([m.produce, producer.name, 1]);
+      tasks.push([m.produce, producer, 1]);
     }
 
     return tasks.length ? [[{name: "ANY"}, tasks]] : null;
@@ -242,6 +244,7 @@ HANNIBAL = (function(H){
     
     m = H.HTN.Economy.methods;
     o = H.HTN.Economy.operators;
+
     fmt     = H.HTN.Helper.fmt;
     prit    = H.prettify;
     sani    = H.saniTemplateName;
@@ -249,17 +252,12 @@ HANNIBAL = (function(H){
     planner = oPlanner;
     tree    = oTree;
 
-    // cacheTechnologies();
-    tree.names.forEach(n => {
-      if (tree.nodes[n].requires){
-        cacheTechnology[n] = tree.nodes[n].requires;    
+    H.each(tree.nodes, function(name, node){
+      if (node.requires){
+        cacheTechnology[name] = node.requires;    
       }
-    });
-
-    // cacheProducers();
-    tree.names.forEach(n => {
-      if (tree.nodes[n].producers.length){
-        cacheProducer[n] = [tree.nodes[n].producers, tree.nodes[n].operator];
+      if (H.count(node.producers)){
+        cacheProducer[name] = [H.attribs(node.producers), node.operator];
       }
     });
 
@@ -387,12 +385,7 @@ HANNIBAL = (function(H){
           }
         }
         if (techs.length){
-
-          // techs = techs.sort((a, b) => depths[a[0]] || 0 - depths[b[0]] || 0);
           techs = techs.sort((a, b) => depths[a] - depths[b]);
-
-          if (techs.length > 1){deb(" -> %s", uneval(techs));}
-
           return [[m.produce, techs[0], 1], [m.start, goal]];
         }
       }
@@ -493,6 +486,7 @@ HANNIBAL = (function(H){
 
       // that's an error
       if (!product){
+        H.throw("procuct unknown: " + name);
         // console.log(fmt("m.produce: unknown product: '%s'", name));
         deb(" ERROR: m.produce: product not in store: '%s'", name);
         planner.log(0, () => fmt("m.produce: unknown product: '%s'", name));        

@@ -85,21 +85,21 @@ HANNIBAL = (function(H){
       isLaunchable: function(groupname){
         return !!groups[groupname];
       },
-      // claim: function(/* arguments: amount, asset [,loc(asset)] */){},
-      request: function(amount, asset /* , location */ ){
+      claim: function(ccid){},
+      request: function(ccid, amount, asset /* , location */ ){
         
         // sanitize args
         var args = H.toArray(arguments),
             loc  = (
-              args.length === 2 ? undefined : 
-              args[2].location ? args[2].location() :
-              Array.isArray(args[2]) ? args[2] :
+              args.length === 3 ? undefined : 
+              args[3].location ? args[3].location() :
+              Array.isArray(args[3]) ? args[3] :
                 undefined
             );
 
         // Eco requests are postponed one tick // ECO IS last TICK !!!!!!!!!!!!!!!
         asset.isRequested = true;
-        H.Triggers.add(H.Economy.request.bind(H.Economy, amount, asset.toOrder(), loc), -1);
+        H.Triggers.add(H.Economy.request.bind(H.Economy, ccid, amount, asset.toOrder(), loc), -1);
 
         // deb("   GRP: requesting: (%s)", args);    
 
@@ -207,8 +207,8 @@ HANNIBAL = (function(H){
           assets:     [],
           toString:   function(){return H.format("[group %s]", instance.name);},
           economy:    {
-            request: H.Groups.request,
-            claim:   H.Groups.claim
+            request: H.Groups.request.bind(null, ccid),
+            claim:   H.Groups.claim.bind(null, ccid)
           },
           register: function(/* arguments */){
             H.toArray(arguments).forEach(function(prop){

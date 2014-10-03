@@ -35,6 +35,9 @@ var HANNIBAL = (function() {
         .forEach(e => {Object.keys(e)
           .forEach(k => o[k] = e[k]
     );});},
+    throw: function(msg){
+      throw "\n" + msg + "\n" + new Error().stack;      
+    },
     chat: function(msg){
       Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});
     }
@@ -150,12 +153,14 @@ var HANNIBAL = (function() {
       methods:   H.HTN.Economy.methods,
       verbose:   1
     });
+
     H.HTN.Economy.initialize(H.Planner, this.tree);
-    this.tree.log();
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
+    // this.tree.log();
 
     // Now make a plan to start with
+    H.Producers.init(this.tree);
     H.Brain.init();
     H.Economy.init();
 
