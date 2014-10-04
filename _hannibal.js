@@ -94,7 +94,6 @@ var HANNIBAL = (function() {
     H.TechTemplates     = H.SharedScript._techTemplates;
     H.Entities          = H.GameState.entities._entities;
     H.Player            = H.SharedScript.playersData[this.id];
-    H.PlayerData        = H.GameState.playerData;
     H.Players           = H.SharedScript.playersData;
     H.MetaData          = H.SharedScript._entityMetadata[this.id];
     H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
@@ -114,7 +113,6 @@ var HANNIBAL = (function() {
     // determine own, game's
     this.civ            = H.Players[this.id].civ; 
     this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
-    // this.civilisations  = H.Config.data.civilisation;  // all ['athen', ...]
     
     // launch the stats extension
     H.Numerus.init();                       
@@ -128,8 +126,6 @@ var HANNIBAL = (function() {
     this.culture.loadTechnologies();         // from game to triple store
     this.culture.finalize();                 // clear up
     this.tree.finalize();                    // caches required techs, producers for entities
-
-    // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
 
     // init map, grids and related services
     H.Map.width         = H.SharedScript.passabilityMap.width;
@@ -307,6 +303,7 @@ var HANNIBAL = (function() {
 
       // logObject(ss._techTemplates, "ss._techTemplates");
       // logObject(sharedScript, "sharedScript");
+      // logObject(sharedScript.gameState, "sharedScript.gameState");
       // logObject(sharedScript.events, "events");
       // logObject(sharedScript.playersData, "playersData");
       // logObject(sharedScript.playersData[this.id], "playersData(me)");
@@ -342,7 +339,7 @@ var HANNIBAL = (function() {
 
   };
 
-  H.Hannibal.prototype.OnUpdate = function(/* sharedScript */) {
+  H.Hannibal.prototype.OnUpdate = function(sharedScript) {
 
     // http://trac.wildfiregames.com/wiki/AIEngineAPI
 
@@ -353,6 +350,16 @@ var HANNIBAL = (function() {
       msgTiming = "",
       secs = (H.GameState.timeElapsed/1000).toFixed(1),
       map = TESTERDATA ? TESTERDATA.map : "unkown";
+
+    // update shortcuts
+    H.Player            = sharedScript.playersData[this.id];
+    H.SharedScript      = sharedScript;
+    H.TechTemplates     = H.SharedScript._techTemplates;
+    // H.Entities          = H.GameState.entities._entities;
+    H.Player            = H.SharedScript.playersData[this.id];
+    H.Players           = H.SharedScript.playersData;
+    H.MetaData          = H.SharedScript._entityMetadata[this.id];
+    // H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
 
     if (!this.isTicking){
       deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
@@ -388,19 +395,19 @@ var HANNIBAL = (function() {
       deb("STATUS: #%sa, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
         this.ticks, this.player, this.civ, secs, 
         H.count(H.Players[this.id].researchedTechs), 
-        H.PlayerData.resourceCounts.food,
-        H.PlayerData.resourceCounts.wood,
-        H.PlayerData.resourceCounts.metal,
-        H.PlayerData.resourceCounts.stone
+        H.Player.resourceCounts.food,
+        H.Player.resourceCounts.wood,
+        H.Player.resourceCounts.metal,
+        H.Player.resourceCounts.stone
       );
 
 
       this.timing.all = 0;
-      this.timing.brn = H.Brain.tick(   secs, this.ticks);
-      this.timing.evt = H.Events.tick(  secs, this.ticks);
-      this.timing.grd = H.Grids.tick(   secs, this.ticks);
       this.timing.tst = H.Tester.tick(  secs, this.ticks);
       this.timing.trg = H.Triggers.tick(secs, this.ticks);
+      this.timing.evt = H.Events.tick(  secs, this.ticks);
+      this.timing.brn = H.Brain.tick(   secs, this.ticks);
+      this.timing.grd = H.Grids.tick(   secs, this.ticks);
       this.timing.gps = H.Groups.tick(  secs, this.ticks);
       this.timing.sts = H.Stats.tick(   secs, this.ticks);
       this.timing.eco = H.Economy.tick( secs, this.ticks);

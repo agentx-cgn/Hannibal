@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, logObject */
+/*globals HANNIBAL, deb, logObject, uneval */
 
 /*--------------- G R O U P S -------------------------------------------------
 
@@ -90,16 +90,28 @@ HANNIBAL = (function(H){
         
         // sanitize args
         var args = H.toArray(arguments),
-            loc  = (
-              args.length === 3 ? undefined : 
+            location  = (
+              args.length === 3 ? [] : 
               args[3].location ? args[3].location() :
               Array.isArray(args[3]) ? args[3] :
-                undefined
+                []
             );
 
-        // Eco requests are postponed one tick // ECO IS last TICK !!!!!!!!!!!!!!!
+        // Eco requests are postponed one tick to avoid unevaluated orders in queue
         asset.isRequested = true;
-        H.Triggers.add(H.Economy.request.bind(H.Economy, ccid, amount, asset.toOrder(), loc), -1);
+        // H.Triggers.add(H.Economy.request.bind(H.Economy, ccid, amount, asset.toOrder(), location), -1);
+        // H.Economy.request(ccid, amount, asset.toOrder(), location);
+        H.Triggers.add( -1,
+          H.Economy.request.bind(H.Economy, new H.Order({
+            amount:     amount,
+            ccid:       ccid,
+            location:   location,
+            verb:       asset.verb, 
+            hcq:        asset.hcq, 
+            source:     asset.id, 
+            shared:     asset.shared
+          }))
+        );
 
         // deb("   GRP: requesting: (%s)", args);    
 
@@ -136,6 +148,8 @@ HANNIBAL = (function(H){
         // creates downlink via onConnect
         // assigns shared asset to target operator, 
 
+        // deb("   GRP: moveSharedAsset ast: %s, id: %s, op: %s", asset, id, operator);
+
         var group = asset.instance;
 
         group[asset.property] = operator.structure;
@@ -144,7 +158,7 @@ HANNIBAL = (function(H){
 
         // instance.assets.push(instance[prop]);
 
-        deb("   GRP: %s took over %s as shared asset", operator, asset);
+        // deb("   GRP: %s took over %s as shared asset", operator, asset);
 
       },
       dissolve: function(instance){

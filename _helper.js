@@ -20,8 +20,8 @@ HANNIBAL = function(H){
 if (!H.extend){
   H.extend = function (o){
     Array.prototype.slice.call(arguments, 1)
-      .forEach(e => {Object.keys(e).forEach(k => o[k] = e[k])});
-  }  
+      .forEach(e => Object.keys(e).forEach(k => o[k] = e[k]));
+  };
 } 
 
 H.extend(H, {
@@ -91,7 +91,7 @@ H.extend(H, {
   test:       function (o,s){
     var p = 0, as = s.split("."), l = as.length -1;
     while (( (o = o[as[p]]) !== undefined)) {
-      if(p === l){return o;};
+      if(p === l){return o;}
       p +=1;
     }
     return undefined;
@@ -99,18 +99,19 @@ H.extend(H, {
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},
-  contains:   function (a,e){return a.indexOf(e)!==-1;},
-  toFixed:    function (a,n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
-  rotate:     function (a,n){return a.concat(a.splice(0,n));},
+  delete:     function (a, fn){var i=0,o=0;while(a[i]!==undefined){if(fn(a[i])){a.splice(i,1);o++;}else{i++;}}return o;},
+  contains:   function (a, e){return a.indexOf(e)!==-1;},
+  toFixed:    function (a, n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
+  rotate:     function (a, n){return a.concat(a.splice(0,n));},
   // unique:     function (a){var u=[];a.forEach(function(i){if(u.indexOf(i)===-1){u.push(i);}});return u;},
-  sample:     function (a,n){var l=a.length;n=n||1;return H.range(n).map(function(){return a[~~(Math.random() * l)];});},
-  removeAll:  function (a,v){var i,j,l;for(i=0,j=0,l=a.length;i<l;i++) {if(a[i]!==v){a[j++]=a[i];}}a.length=j;},
-  remove:     function (a,e){var i=a.indexOf(e); if (i!==-1){a.splice(i, 1);}},
+  sample:     function (a, n){var l=a.length;n=n||1;return H.range(n).map(function(){return a[~~(Math.random() * l)];});},
+  removeAll:  function (a, v){var i,j,l;for(i=0,j=0,l=a.length;i<l;i++) {if(a[i]!==v){a[j++]=a[i];}}a.length=j;},
+  remove:     function (a, e){var i=a.indexOf(e); if (i!==-1){a.splice(i, 1);}},
   flatten:    function (a){return Array.prototype.concat.apply([], a);},
-  pushUnique: function (a,e){if(a.indexOf(e)===-1){a.push(e);};return a;},
-  equal:      function (a,b){return JSON.stringify(a) === JSON.stringify(b);},
-  mean:       function (a){return a.reduce(function(s,x){return (s+x)},0)/a.length;},
-  median:     function (a){var al=a.length;m=~~(a.sort().length/2);return !al?null:al%2?a[m]:(a[m-1]+a[m])/2;},
+  pushUnique: function (a, e){if(a.indexOf(e)===-1){a.push(e);}return a;},
+  equal:      function (a, b){return JSON.stringify(a) === JSON.stringify(b);},
+  mean:       function (a){return a.reduce(function(s,x){return (s+x);},0)/a.length;},
+  median:     function (a){var al=a.length,m=~~(a.sort().length/2);return !al?null:al%2?a[m]:(a[m-1]+a[m])/2;},
   mode:       function (a){
     var i, n, cnt = {}, mode = [], max = 0;
     for (i in a) {
@@ -153,7 +154,7 @@ H.extend(H, {
   attribs:    function (o){return Object.keys(o);},
   each:       function (o,fn){Object.keys(o).forEach(a => fn(a, o[a]));},
   count:      function (o){return Object.keys(o).length;},
-  values:     function (o){return Object.keys(o).map(function(k){return o[k];})}
+  values:     function (o){return Object.keys(o).map(function(k){return o[k];});}
 
 });
 
@@ -180,7 +181,7 @@ H.interpolate = function (data, points){
       factor  = (data.length - 1) / (points -1),
       i, tmp, point;
 
-  function linear(p1, p2, px) {return p1 + (p2 - p1) * px;};
+  function linear(p1, p2, px) {return p1 + (p2 - p1) * px;}
 
   newData[0] = data[0];
 

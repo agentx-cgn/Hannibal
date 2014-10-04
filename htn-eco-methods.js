@@ -291,13 +291,13 @@ HANNIBAL = (function(H){
     var ingames = H.QRY("INGAME"),
         state = new H.HTN.Helper.State({
           ress: {
-            food:   H.PlayerData.resourceCounts.food,
-            wood:   H.PlayerData.resourceCounts.wood,
-            stone:  H.PlayerData.resourceCounts.stone,
-            metal:  H.PlayerData.resourceCounts.metal,
-            pop:    H.PlayerData.popCount,
-            popcap: H.PlayerData.popLimit,
-            popmax: H.PlayerData.popMax,
+            food:   H.Player.resourceCounts.food,
+            wood:   H.Player.resourceCounts.wood,
+            stone:  H.Player.resourceCounts.stone,
+            metal:  H.Player.resourceCounts.metal,
+            pop:    H.Player.popCount,
+            popcap: H.Player.popLimit,
+            popmax: H.Player.popMax,
           }
         }).sanitize();
 

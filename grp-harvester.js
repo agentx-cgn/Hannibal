@@ -191,7 +191,7 @@ HANNIBAL = (function(H){
 
           if (this.units.count){
 
-            deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
+            // deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
 
             if (this.field.isFoundation){
               this.units.doing("!repair").repair(this.field);

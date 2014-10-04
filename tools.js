@@ -119,7 +119,7 @@ HANNIBAL = (function(H) {
     var i, len, pointer = 0, actions = [], dels = [], t0;
     return {
       info: function(){return actions.length;},
-      add:  function(action, ticks){
+      add:  function(ticks, action){
         // negative indicates a diff, default = zero = next, positive = absolute,
         ticks = ticks || -1;
         action.tick = (ticks < 1) ? pointer + Math.abs(ticks) -1 : ticks;

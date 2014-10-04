@@ -178,8 +178,8 @@ HANNIBAL = (function(H){
           [1, "g.scouts",    H.Centre.id,                           1],       // depends on map size
           [1, "g.harvester", H.Centre.id,                           5],       // needed for trade?
           [1, "g.builder",   H.Centre.id, class2name("house"),      2, 2],    // depends on building time
-          // [1, "g.builder",   H.Centre.id, class2name("barracks"),   2, 1],    // depends on civ and # enemies
-          // [1, "g.builder",   H.Centre.id, class2name("blacksmith"), 2, 1],    // one is max, check required techs
+          [1, "g.builder",   H.Centre.id, class2name("barracks"),   2, 1],    // depends on civ and # enemies
+          [1, "g.builder",   H.Centre.id, class2name("blacksmith"), 2, 1],    // one is max, check required techs
           [1, "g.supplier",  H.Centre.id, "metal",       1],               // 
           [1, "g.supplier",  H.Centre.id, "stone",       1],
           [1, "g.supplier",  H.Centre.id, "wood",                   6],

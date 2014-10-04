@@ -259,12 +259,15 @@ HANNIBAL = (function(H){
       this.store.addEdge(nodeSource, "ingame",      nodeTarget);
       this.store.addEdge(nodeTarget, "describedby", nodeSource);
 
-      deb("  CULT: loadById %s <= %s", nameTarget, nameSource);
+      // deb("  CULT: loadById %s <= %s", nameTarget, nameSource);
 
     },
     removeById: function(id){
       
-      var node  = H.QRY("INGAME WITH id = " + id).first();
+      var 
+        node = H.QRY("INGAME WITH id = " + id).first(), 
+        ent = H.Entities[id],
+        tpln = ent ? ent._templateName : "unknown";
 
       if (node){
         this.store.edges
@@ -273,8 +276,8 @@ HANNIBAL = (function(H){
         delete this.store.nodes[node.name];
 
       } else {
-        deb("WARN  : removeById failed on id: %s", id);
-        new H.HCQ(H.Bot.culture.store, "INGAME SORT < id").execute("metadata", 5, 50, "removeById: ingames with metadata");
+        deb("WARN  : removeById failed on id: %s, tpl: %s", id, tpln);
+        H.QRY("INGAME SORT < id").execute("metadata", 5, 50, "removeById: ingames with metadata");
 
       }
 

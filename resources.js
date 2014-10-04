@@ -259,7 +259,7 @@ HANNIBAL = (function(H){
 
         }
 
-        deb("   RES: %s / %s at %s", generic, uneval(resource), pos);
+        // deb("   RES: %s / %s at %s", generic, uneval(resource), pos); // TODO too long
         return resource;
 
       },      

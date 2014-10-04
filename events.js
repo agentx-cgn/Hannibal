@@ -88,7 +88,7 @@ HANNIBAL = (function(H){
         H.each(H.Player.researchedTechs, function(key, tech){
           var name = H.saniTemplateName(key);
           if (researchedTechs.indexOf(key) === -1){
-            deb(" EVENT: onAdvance %s, %s", name, uneval(tech));
+            // deb(" EVENT: onAdvance %s", name, uneval(tech));
             self.dispatchEvent("onAdvance", "onAdvance", {name: name, tech: tech});
             researchedTechs.push(key);
           }
@@ -137,7 +137,7 @@ HANNIBAL = (function(H){
             H.Events.registerListener(newid, listener);
           });
         }
-        deb("  DISP: copyAllListener from: %s to: %s num: %s", oldid, newid, (H.Dispatcher[oldid] ? H.Dispatcher[oldid].length : 0));
+        // deb("  DISP: copyAllListener from: %s to: %s num: %s", oldid, newid, (H.Dispatcher[oldid] ? H.Dispatcher[oldid].length : 0));
       },
 
       removeAllListener: function(id) {
@@ -209,7 +209,7 @@ HANNIBAL = (function(H){
             break;
           }
 
-          if (own == H.Bot.id){
+          if (own === H.Bot.id){
             // finally
             deb("   EVT: %s, id: %s, own: %s, meta: %s, mats: %s, %s ent: %s", 
                          type, id, own, meta, mats, info, tpl
@@ -315,7 +315,7 @@ HANNIBAL = (function(H){
                 H.Grids.dump("E" + H.Bot.ticks);
               
               } else {
-                deb("ERROR : Events got strange destroy for %s", event.entity);
+                deb("ERROR : Events got strange destroy for %s, mats: %s", event.entity, mats);
               
               }
             } else {  
@@ -331,7 +331,6 @@ HANNIBAL = (function(H){
                   H.Bot.culture.loadById(id);
                   H.Producers.loadById(id);
                   H.Economy.listener("onOrderReady", id, event);
-                  // H.Objects(event.metadata.order).ready(1, type, id);
                 } else {
                   deb("WARN : trained %s without order", id)
                 }
@@ -352,7 +351,7 @@ HANNIBAL = (function(H){
                 if (order.shared){
                   host = H.Groups.launch("g.custodian");
                   host.structure = ["private", "INGAME WITH id = " + event.id];
-                  host.structure = H.CreateResource(host, 'structure');
+                  host.structure = H.createAsset(host, 'structure');
                   ent.setMetadata(H.Bot.id, "opname", host.name);
                   ent.setMetadata(H.Bot.id, "opid", host.id);
                   host.listener.onConnect(client.listener);

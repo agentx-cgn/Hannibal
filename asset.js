@@ -182,10 +182,19 @@ HANNIBAL = (function(H){
         H.MetaData[id].opname = "none";
         delete H.MetaData[id].opid;
       });
-      deb("   ASS: releasing %s", uneval(this.resources));          
+      // deb("   ASS: releasing %s", uneval(this.resources));          
       this.resources = [];
     },
-    match:      function(asset){return this.resources.indexOf(asset.resources[0]) !== -1;},
+    match:      function(asset){
+      if(!this.resources){
+        H.throw("ERROR : asset.match: this no resources " + this.name);
+        return false;
+      } else if (!asset.resources){
+        H.throw("ERROR : asset.match: asset no resources " + asset);
+        return false;
+      }
+      return this.resources.indexOf(asset.resources[0]) !== -1;
+    },
     states:     function(){
       var state = {};
       this.resources.forEach(id => state[id] = H.States[id]);
@@ -276,11 +285,11 @@ HANNIBAL = (function(H){
 
       if (id) {
         loc = H.Map.getCenter([id]);
-        deb("   AST: location id: %s of %s, loc: %s", id, this, loc);
+        // deb("   AST: location id: %s of %s, loc: %s", id, this, loc);
 
       } else if (this.position){
         loc = this.position.location();
-        deb("   AST: location this.position: %s of %s, loc: %s", this.position, this, loc);
+        // deb("   AST: location this.position: %s of %s, loc: %s", this.position, this, loc);
 
       } else if (this.users && this.users.length) { // priotize shared, 
         loc = H.Map.centerOf(this.users.map(function(listener){
@@ -291,13 +300,13 @@ HANNIBAL = (function(H){
             return [];
           }
         }));
-        deb("   AST: location users: %s of %s, loc: %s", H.prettify(this.users), this, loc);
+        // deb("   AST: location users: %s of %s, loc: %s", H.prettify(this.users), this, loc);
 
       } else if (this.resources.length){
         // only undestroyed entities, with valid position
         // loc = H.Map.getCenter(this.resources.filter(id => !!H.Entities[id] && !!H.Entities[id].position() ));
         loc = H.Map.getCenter(this.resources);
-        deb("   AST: location resources: %s of %s, loc: %s", H.prettify(this.resources), this, loc);
+        // deb("   AST: location resources: %s of %s, loc: %s", H.prettify(this.resources), this, loc);
 
       } else {
         deb("  WARN: AST found no location for %s, res: %s", this, uneval(this.resources));
@@ -320,6 +329,8 @@ HANNIBAL = (function(H){
         case "Ready" :
         case "AIMetadata" :
         case "TrainingFinished":
+
+          // deb("   AST: listener %s, msg: %s, id: %s, shared: %s, meta: %s", this, msg, id, this.shared, uneval(meta));
 
           if (this.shared){
             H.Groups.moveSharedAsset(this, id, H.Objects(meta.opid));

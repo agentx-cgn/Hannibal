@@ -65,7 +65,7 @@ HANNIBAL = (function(H){
   sequences = {
     'brain01': {
         '1': [() => "< - START: " + sequence + " - >"],
-        '2': [T.chat("huhu"), "chatted"], 
+        // '2': [T.chat("huhu"), "chatted"], 
        '13': [T.speed(5),                            "more speed"],
       '241': [T.quit(), () => "< - FINIS: " + sequence + " - >"],
     },
