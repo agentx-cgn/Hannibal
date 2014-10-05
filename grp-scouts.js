@@ -57,8 +57,9 @@ HANNIBAL = (function(H){
 
       listener: {
 
-        onLaunch:    function(){
+        onLaunch:    function(ccid, maxUnits){
 
+          this.maxUnits = maxUnits || 1;
           this.register("units");                                // turn res definitions into res objects
           this.economy.request(1, this.units, this.position);    // 1 unit is a good start
 

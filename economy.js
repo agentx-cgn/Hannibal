@@ -15,9 +15,12 @@
 HANNIBAL = (function(H){
 
   // relies on c before e
-  var config = H.Config.economy,
-      ress        = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0},
-      allocations = {food: 0, wood: 0, stone: 0, metal: 0, population: 0};
+  var 
+    config = H.Config.economy,
+    gatherables  = ["food", "wood", "stone", "metal"],
+    availability = H.deepcopy(gatherables),
+    ress         = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0},
+    allocations  = {food: 0, wood: 0, stone: 0, metal: 0, population: 0};
 
   function pritc(cost){ // pretty cost
     var out = [];
@@ -30,37 +33,58 @@ HANNIBAL = (function(H){
   H.Stats = {
 
     stock: H.deepcopy(ress), // currently available via API
+    suply: H.deepcopy(ress), // gathered
     alloc: H.deepcopy(ress), // allocated per queue
     forec: H.deepcopy(ress), // ???
-    trend: H.deepcopy(ress), // as per stack
+    trend: H.deepcopy(ress), // as per suply
     stack: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
-    tick: function(){
+    availability: availability,
+    tick:  function(){
 
-      var t0 = Date.now(), curHits = 1, maxHits = 1, 
-          stock   = H.Stats.stock, 
-          stack   = H.Stats.stack, 
-          trend   = H.Stats.trend;
+      var 
+        t0 = Date.now(), curHits = 1, maxHits = 1, 
+        stock   = H.Stats.stock, 
+        suply   = H.Stats.suply, 
+        stack   = H.Stats.stack, 
+        trend   = H.Stats.trend;
           
       // ctx.lstUnits.forEach(function(unit){
       //   curHits += unit.hitpoints();
       //   maxHits += unit.maxHitpoints();
       // });    
+      
+      // totals
+      suply.food   = H.Player.statistics.resourcesGathered.food;
+      suply.wood   = H.Player.statistics.resourcesGathered.wood;
+      suply.stone  = H.Player.statistics.resourcesGathered.stone;
+      suply.metal  = H.Player.statistics.resourcesGathered.metal;
 
+      // available
       stock.food   = H.Player.resourceCounts.food;
       stock.wood   = H.Player.resourceCounts.wood;
       stock.stone  = H.Player.resourceCounts.stone;
       stock.metal  = H.Player.resourceCounts.metal;
+
+      availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
+
+      // current
       stock.pops   = H.Player.popCount;
       stock.area   = H.Player.statistics.percentMapExplored;
       stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
 
       // buffers
       H.attribs(ress).forEach(function(prop){ 
-        stack[prop].push(stock[prop]);      // buffers
+        stack[prop].push(suply[prop]);      // buffers
         trend[prop] = stack[prop].trend();  // trend
       });
 
       return Date.now() - t0;
+
+    },
+    sortGatherables: function(){
+
+      // return highest first
+
 
     }
 
@@ -76,15 +100,23 @@ HANNIBAL = (function(H){
 
   H.Producers = (function(){
 
-    var self, name, producers = [], tree, maxQueue = 3;
+    var self, name, producers = [], tree, maxQueue = 3; // will get overallocated
 
     function isProducer(name){
       if (tree[name] && tree[name].products.count){
-        return true;
+        return tree[name];
       } else {
         deb("   PDC: not a producer: %s", name);
-        return false;
+        return null;
       }
+    }
+
+    function infoProducer(name){
+      var 
+        train    = H.count(tree[name].products.train),
+        build    = H.count(tree[name].products.build),
+        research = H.count(tree[name].products.research);
+      return H.format("procucer: %s trains: %s, builds: %s, researches: %s", name, train, build, research);
     }
 
     return {
@@ -95,6 +127,7 @@ HANNIBAL = (function(H){
 
         tree = oTree.nodes;
 
+        // TODO ignore units for build
         H.QRY("INGAME").forEach(node => {
           name = node.name.split("#")[0];
           if (isProducer(name)){
@@ -123,10 +156,13 @@ HANNIBAL = (function(H){
         while((p = producers[--i])){
           if(p.queue && p.queue.length){
             if (H.delete(p.queue, task => task[0] === info)){
-              break;
+              deb("   PDC: onready: removed in queue: %s, %s from %s", verb, info, p.name);
+              return;
             }
           }
         }
+
+        deb("   PDC: onready: not found in queue: %s, %s", verb, info);
 
       },
       find: function(product, ccid){
@@ -167,8 +203,8 @@ HANNIBAL = (function(H){
                 if (ccid && H.MetaData[producer.id].ccid === ccid){
                   if (producer.queue.length <= maxQueue){
                     break;
-                  }
-                }
+                  } // else {deb("---> maxQueue: %s, %s", producer.name, producer.queue.length);}
+                } // else {deb("---> ccid: %s, %s", producer.name, H.MetaData[producer.id].ccid);}
               }        
             }
           break;
@@ -186,12 +222,13 @@ HANNIBAL = (function(H){
         return producer;
       },
       loadById: function(id){
-        var node = H.QRY("INGAME WITH id = " + id).first();
+        var name, node = H.QRY("INGAME WITH id = " + id).first();
         if(node){
-          if (isProducer(node.name)){
+          name = node.name.split("#")[0];
+          if (isProducer(name)){
             node.queue = [];
             producers.push(node);
-            deb("   PDC: loadById #%s, %s", id, node.name);
+            deb("   PDC: loadById #%s, %s, have: %s", id, infoProducer(name), producers.length);
           }
         } else{
           deb("ERROR: PDC loadById failed #%s", id);
@@ -232,9 +269,20 @@ HANNIBAL = (function(H){
 
       this.executable = false; // ready to send
 
-      this.nodes = H.QRY(this.hcq).forEach(function(node){
-        // think positive
-        node.qualifies = true;
+      if(this.remaining - this.processing < 1){
+        // nothing to do, 
+        return;
+      }
+
+      this.nodes = H.QRY(this.hcq).map(function(node){
+        return {
+          name:      node.name,
+          key:       node.key,
+          costs:     node.costs,
+          qualifies: true,
+          producer:  null,
+          info:      ""
+        };
       });
 
       // assigns ingames if available and matching
@@ -245,29 +293,40 @@ HANNIBAL = (function(H){
 
       // check whether ingame producer exists
       this.nodes.forEach(function(node){
-        node.producer  = H.Producers.find(node.name, self.ccid);
-        node.qualifies = !node.producer ? false : node.qualifies;
+        var producer = H.Producers.find(node.name, self.ccid);
+        node.producer = producer;
+        node.qualifies = !producer ? false : node.qualifies;
+        node.info += !producer ? "no producer, " : "";
       });
+
+      //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+      //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
 
       // any unmet techs
       this.nodes.forEach(function(node){
         var req = H.Bot.tree.nodes[node.name].requires;
         node.qualifies = req ? H.Technologies.available([req]) : node.qualifies;
+        node.info += req && H.Technologies.available([req]) ? "" : "unmet: " + req + ", ";
       });  
 
       // remove disqualified nodes
+      // this.nodes.forEach(function(node){
+      //   if(!node.qualifies){
+      //     // deb("    OE: XX %s: %s", node.name, node.info);
+      //   }
+      // })
       H.delete(this.nodes, node => !node.qualifies);
 
       if (this.nodes.length){
 
         this.executable = true;
 
-        // simple sort for cheapest TODO: Eco may have other prios
-        this.nodes = this.nodes
-          .sort(function(an, bn){return an.costs.metal - bn.costs.metal;})
-          .sort(function(an, bn){return an.costs.stone - bn.costs.stone;})
-          .sort(function(an, bn){return an.costs.wood  - bn.costs.wood;})
-          .sort(function(an, bn){return an.costs.food  - bn.costs.food;});
+        // sort by availability, SM sorts stable
+        this.nodes
+          .sort((a, b) => a.costs[availability[0]] < b.costs[availability[0]] ? 1 : -1 )
+          .sort((a, b) => a.costs[availability[1]] < b.costs[availability[1]] ? 1 : -1 )
+          .sort((a, b) => a.costs[availability[2]] < b.costs[availability[2]] ? 1 : -1 )
+          .sort((a, b) => a.costs[availability[3]] < b.costs[availability[3]] ? 1 : -1 );
 
         // write costs for first into allocs
         allocs.food  += this.nodes[0].costs.food  * this.remaining;
@@ -309,54 +368,6 @@ HANNIBAL = (function(H){
       }, this);
 
     },
-    checkProducers: function(){
-
-      // picks an in game producer for each node, currently the first found
-      // trainingQueueTime === trainingQueueLength for train, research O_O
-
-      var self = this;
-
-      this.nodes.forEach(function(node){
-        node.producer  = H.Producers.find(node.name, self.order.ccid);
-        node.qualifies = !node.producer ? false : node.qualifies;
-      });
-
-      // var hcq, prods, verb = {
-      //       "train":      "TRAINEDBY",
-      //       "build":      "BUILDBY",
-      //       "research":   "RESEARCHEDBY",
-      //       "claim":      "???"
-      //     }[this.order.verb];
-
-      // this.nodes.forEach(function(node){
-      //   hcq   = H.format("%s %s INGAME", node.name, verb);
-      //   prods = H.QRY(hcq).execute();
-      //   if (prods.length) {
-      //     node.producer = prods[0].id;
-      //     // deb("    OC: #%s found ingame producer: %s (#%s) FOR %s WITH ACTION: %s", self.order.id, prods[0].name, prods[0].id, node.name, self.order.verb);
-      //   } else {
-      //     node.qualifies = false;
-      //   }
-      // }, this);  
-
-    },
-    checkRequirements: function(){
-
-      var self = this, good = 0, bad = 0, tree = H.Bot.tree.nodes, req;
-
-      // testing each node for tech requirements
-      this.nodes.forEach(function(node){
-        req = tree[node.name].requires;
-        node.qualifies = req ? H.Technologies.available([req]) : true;
-        good += node.qualifies ? 1 : 0;
-        bad  += node.qualifies ? 0 : 1;
-      });    
-
-      if (good + bad){
-        deb("    OC: #%s requirements %s/%s FOR %s", self.order.id, good, bad, this.order.hcq);
-      }
-
-    }
 
   };
 
@@ -380,9 +391,6 @@ HANNIBAL = (function(H){
         return undefined;
       },
       log: function(t0){
-
-        // isGo    = H.OrderQueue.filter(function(r){return r.go;}).length,
-        // isEval  = H.OrderQueue.filter(function(r){return r.evaluated;}).length;
 
         deb("    OQ: queue: %s, %s msecs, rem: %s, ign: %s, exe: %s", queue.length, tP, log.rem, log.ign, log.exe);
 
@@ -410,7 +418,7 @@ HANNIBAL = (function(H){
         });
 
         allGood = H.Economy.fits(allocs, budget);
-        deb("    OQ: len: %s, allGood: %s, allocs: %s", queue.length, allGood, uneval(allocs));
+        deb("    OQ: queue: %s, allGood: %s, allocs: %s", queue.length, allGood, uneval(allocs));
 
         msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s";
         queue
@@ -421,14 +429,14 @@ HANNIBAL = (function(H){
         });
 
         queue
-          .filter(function(order){return order.executable && order.remaining - order.processing > 0;})
+          .filter(order => order.executable) // && order.remaining - order.processing > 0;})
           .forEach(function(order){
 
             id = order.id;
             node = order.nodes[0];
             amount = allGood ? order.remaining - order.processing : 1;
 
-            if (allGood || self.fits(node.costs, budget)){
+            if (allGood || H.Economy.fits(node.costs, budget)){
 
               switch(order.verb){
 
@@ -572,8 +580,10 @@ HANNIBAL = (function(H){
         }
         H.OrderQueue.process();
         H.OrderQueue.log();
+        self.logTick();
         return Date.now() - t0;
       },
+
       monitorGoals: function(){
 
       },
@@ -598,7 +608,7 @@ HANNIBAL = (function(H){
 
         groups.forEach(group => {
           var [quantity, name, ccid, p1, p2, p3] = group;
-          H.range(quantity).forEach(() => {
+          H.loop(quantity, () => {
             H.Groups.launch(name, ccid, [p1, p2, p3]);
           });
         });
@@ -628,7 +638,6 @@ HANNIBAL = (function(H){
           metal: ((cost.metal || 0) > (budget.metal || 0)) ? cost.metal - (budget.metal || 0) : undefined
         };
       },
-      // request: function(ccid, amount, order, position){
       request: function(order){
 
         var  // debug
@@ -636,14 +645,6 @@ HANNIBAL = (function(H){
           loc = (order.location === undefined) ? "undefined" : order.location.map(p => p.toFixed(1)),
           msg = "  EREQ: #%s, %s amount: %s, ccid: %s, loc: %s, from: %s, shared: %s, hcq: %s";
 
-        // order.stamp  = H.Bot.turn;
-        // order.id     = H.Objects(order);
-        // order.ccid   = ccid;
-        // order.amount = amount;
-        // if (position && position.length){
-        //   order.x = position[0];
-        //   order.z = position[1];
-        // }
         H.OrderQueue.append(order);
 
         deb(msg, order.id, order.verb, order.amount, order.ccid, loc, sourcename, order.shared, order.hcq.slice(0, 30));
@@ -712,8 +713,9 @@ HANNIBAL = (function(H){
             order.processing -= 1;
             deb("   ECO: #%s onOrderReady rem: %s, pro: %s, id: %s, %s", order.id, order.remaining, order.processing, id, H.Entities[id]._templateName);
             H.Objects(order.source).listener("Ready", id);  
-            if (order.verb === "train"){
-              H.Producers.onReady("train", event.metadata.task);
+            if (order.verb === "train" && event.metadata.task){ 
+              // task = undefined for existing, builds are ignored => no queue
+              H.Producers.onReady("train", event.metadata.task); 
             }
 
           break;
@@ -733,13 +735,13 @@ HANNIBAL = (function(H){
             t = H.tab;
 
         msg = H.format("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
-          t(stock.food,   6), f(trend.food.toFixed(3)),
-          t(stock.wood,   6), f(trend.wood.toFixed(3)),
-          t(stock.metal,  6), f(trend.metal.toFixed(3)),
-          t(stock.stone,  6), f(trend.stone.toFixed(3)),
-          t(stock.pops,   4), f(trend.pops.toFixed(3)),
-          t(stock.area,   4), f(trend.area.toFixed(3)),
-          t(stock.health, 4), f(trend.health.toFixed(3))
+          t(stock.food,   6), f(trend.food.toFixed(1)),
+          t(stock.wood,   6), f(trend.wood.toFixed(1)),
+          t(stock.metal,  6), f(trend.metal.toFixed(1)),
+          t(stock.stone,  6), f(trend.stone.toFixed(1)),
+          t(stock.pops,   4), f(trend.pops.toFixed(1)),
+          t(stock.area,   4), f(trend.area.toFixed(1)),
+          t(stock.health, 4), f(trend.health.toFixed(1))
         );
 
         deb(msg);

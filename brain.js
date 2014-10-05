@@ -168,6 +168,8 @@ HANNIBAL = (function(H){
     },
     requestGroups: function(phase){
 
+      // farmstead bartermarket blacksmith corral dock outpost storehouse temple
+
       // [quantity, groupname, ccid, [param1, [...] ] ]
 
       if (phase === "phase.village"){
@@ -175,14 +177,16 @@ HANNIBAL = (function(H){
         // TODO: care about Centre
 
         return [
-          [1, "g.scouts",    H.Centre.id,                           1],       // depends on map size
-          [1, "g.harvester", H.Centre.id,                           5],       // needed for trade?
-          [1, "g.builder",   H.Centre.id, class2name("house"),      2, 2],    // depends on building time
-          [1, "g.builder",   H.Centre.id, class2name("barracks"),   2, 1],    // depends on civ and # enemies
+          [1, "g.scouts",    H.Centre.id,                           5],       // depends on map size
+          [5, "g.harvester", H.Centre.id,                           5],       // needed for trade?
+          [1, "g.builder",   H.Centre.id, class2name("house"),      2, 6],    // onLaunch: function(ccid, building, size, quantity){
+          [1, "g.builder",   H.Centre.id, class2name("farmstead"),  2, 2],    // depends on building time
+          [1, "g.builder",   H.Centre.id, class2name("storehouse"), 2, 2],    // depends on building time
+          [1, "g.builder",   H.Centre.id, class2name("barracks"),   5, 2],    // depends on civ and # enemies
           [1, "g.builder",   H.Centre.id, class2name("blacksmith"), 2, 1],    // one is max, check required techs
-          [1, "g.supplier",  H.Centre.id, "metal",       1],               // 
-          [1, "g.supplier",  H.Centre.id, "stone",       1],
-          [1, "g.supplier",  H.Centre.id, "wood",                   6],
+          [1, "g.supplier",  H.Centre.id, "metal",                  1],               // 
+          [1, "g.supplier",  H.Centre.id, "stone",                  1],
+          [5, "g.supplier",  H.Centre.id, "wood",                   5],
           [1, "g.supplier",  H.Centre.id, "food.fruit",             2],       // availability
           [1, "g.supplier",  H.Centre.id, "food.meat",              2],       // availability
         ];

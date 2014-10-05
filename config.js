@@ -45,7 +45,7 @@ HANNIBAL = (function(H){
     },
 
     economy: {
-      lengthStatsBuffer:    20,
+      lengthStatsBuffer:    40, // approx 1 minute
       intervalMonitorGoals: 10,
     },
 

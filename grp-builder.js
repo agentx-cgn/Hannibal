@@ -72,6 +72,11 @@ HANNIBAL = (function(H){
               this.economy.request(1, this.units, this.position);   
             }
 
+            if (this.foundation){
+              // deb("---------> : %s", this.foundation.health);
+              asset.repair(this.foundation);
+            }
+
           } else if (this.buildings.match(asset)){
 
             this.position = asset;

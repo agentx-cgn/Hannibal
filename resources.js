@@ -229,28 +229,31 @@ HANNIBAL = (function(H){
               }
             });
             deb("   RES: kmeans: %s trees", trees.length);
-            kmeans = new H.AI.KMeans();
-            kmeans.k = 3; // map size !!!!
-            kmeans.maxIterations = 50;
-            kmeans.setPoints(trees);
-            kmeans.initCentroids();
-            t0 = Date.now();
-            kmeans.cluster();
-            t1 = Date.now();
-            // nearest cluster
-            deb("   RES: kmeans:  %s trees, %s cluster, %s msecs", trees.length, kmeans.centroids.length, t1-t0);
-            cid = kmeans.centroids.sort(function(a, b){
-              var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
-                  db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
-              return da - db;
-            })[0];
-            // nearest tree from that cluster
-            deb("   RES: kmeans: chose cluster %s with %s trees", cid, kmeans.centroids[0].items);
-            trees.sort(function(a, b){
-              var da = (a.x - cid.x) * (a.x - cid.x) + (a.z - cid.z) * (a.z - cid.z),
-                  db = (b.x - cid.x) * (b.x - cid.x) + (b.z - cid.z) * (b.z - cid.z);
-              return da - db;
-            });
+            if (trees.length){
+              kmeans = new H.AI.KMeans();
+              kmeans.k = 3; // map size !!!!
+              kmeans.maxIterations = 50;
+              kmeans.setPoints(trees);
+              kmeans.initCentroids();
+              t0 = Date.now();
+              kmeans.cluster();
+              t1 = Date.now();
+              // nearest cluster
+              deb("   RES: kmeans: %s trees, %s cluster, %s msecs", trees.length, kmeans.centroids.length, t1-t0);
+              // TODO: filter out centroids without trees
+              cid = kmeans.centroids.sort(function(a, b){
+                var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
+                    db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
+                return da - db;
+              })[0];
+              // nearest tree from that cluster
+              deb("   RES: kmeans: chose cluster %s with %s trees", cid, kmeans.centroids[0].items);
+              trees.sort(function(a, b){
+                var da = (a.x - cid.x) * (a.x - cid.x) + (a.z - cid.z) * (a.z - cid.z),
+                    db = (b.x - cid.x) * (b.x - cid.x) + (b.z - cid.z) * (b.z - cid.z);
+                return da - db;
+              });
+            }
             resource = trees.length ? resources[generic][trees[0].id] : undefined;
           break;
 

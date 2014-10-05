@@ -97,10 +97,9 @@ HANNIBAL = (function(H){
                 []
             );
 
-        // Eco requests are postponed one tick to avoid unevaluated orders in queue
         asset.isRequested = true;
-        // H.Triggers.add(H.Economy.request.bind(H.Economy, ccid, amount, asset.toOrder(), location), -1);
-        // H.Economy.request(ccid, amount, asset.toOrder(), location);
+
+        // Eco requests are postponed one tick to avoid unevaluated orders in queue
         H.Triggers.add( -1,
           H.Economy.request.bind(H.Economy, new H.Order({
             amount:     amount,

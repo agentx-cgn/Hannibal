@@ -153,7 +153,7 @@ var HANNIBAL = (function() {
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
-    // this.tree.log();
+    // this.tree.export();
 
     // Now make a plan to start with
     H.Producers.init(this.tree);

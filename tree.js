@@ -77,15 +77,23 @@ HANNIBAL = (function(H){
   H.TechTree.prototype = {
     constructor: H.TechTree,
     phases: phases,
-    log: function (filters){
+    export: function () {
 
       var 
         t, procs, prods,
-        tt = this.nodes, tpls = H.attribs(this.nodes);
+        tt = this.nodes, tpls = H.attribs(this.nodes),
+        filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
 
-      filters = filters || ["tech", "unit", "stuc"];
+      function logg(){
+        print ( arguments.length === 0 ? 
+          "#! append 0 ://\n" : 
+          "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+        );
+      }   
 
-      deb(); deb("  TREE: logging %s/%s", this.id, this.civ);
+      deb("  TREE: Export start ...");
+      print(H.format("#! open 0 %s\n", H.format(filePattern, this.civ)));
+      logg("// EXPORTED tree '%s' at %s", this.civ, new Date());
 
       tpls.sort((a, b) => tt[a].order - tt[b].order);
 
@@ -93,45 +101,34 @@ HANNIBAL = (function(H){
 
         t = tt[tpln];
 
-        if (H.contains(filters, t.type)) {
+        logg("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
+        logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
+        logg("     T:        %s", t.key);
+        logg("     T:        reqs: %s", t.requires || "none");
+        logg("     T:        verb: %s", t.verb || "none");
 
-          deb("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
-          deb("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
-          deb("     T:        %s", t.key);
-          deb("     T:        reqs: %s", t.requires || "none");
-          deb("     T:        verb: %s", t.verb || "none");
-
-          prods = H.attribs(t.producers);
-          if (prods.length){
-            prods.forEach(p => {
-              deb("     T:          %s", p);
-            });
-          } else {
-            deb("     T:        NO PRODUCER");
-          }
-
-          if (H.count(t.products.train) + H.count(t.products.build) + H.count(t.products.research)){
-
-            deb("     T:        products: ");
-
-            ["train", "build", "research"].forEach(verb => {
-
-              procs = H.attribs(t.products[verb]);
-              if (procs.length){
-                deb("     T:          %s", verb);
-                procs.forEach(p => {
-                  deb("     T:            %s", p);
-                });
-              }
-
-            });
-
-          } else {
-            deb("     T:        NO PRODUCTS");
-          }
+        prods = H.attribs(t.producers);
+        if (prods.length){
+          prods.forEach(p => logg("     T:          %s", p));
+        } else {
+          logg("     T:        NO PRODUCER");
         }
+
+        logg("     T:        products: %s", t.products.count);
+        if (t.products.count){
+          ["train", "build", "research"].forEach(verb => {
+            procs = H.attribs(t.products[verb]);
+            if (procs.length){
+              logg("     T:          %s", verb);
+              procs.forEach(p => logg("     T:            %s", p));
+            }
+          });
+        }
+
       });
-      deb("  TREE: Done ...");
+
+      print("#! close 0\n");
+      deb("  TREE: Export Done ...");
 
     },
     finalize: function(){

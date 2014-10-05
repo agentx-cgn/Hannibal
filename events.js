@@ -261,8 +261,21 @@ HANNIBAL = (function(H){
           case "ConstructionFinished": // own: ???, meta: {}, mats: {entity, newentity},  ent: ???
             if (H.Entities[event.newentity].owner() === PID){
               if (event.newentity !== event.entity){
+
                 this.copyAllListener(event.newentity, event.entity);
                 this.dispatchEvent(type, event.newentity, event);
+                
+                // HACK: Village should set ccid and opname
+                // deb("-->EVT: %s", uneval(H.MetaData[event.newentity]));
+
+                order = H.Objects(H.MetaData[event.newentity].order);
+                if (order.ccid){
+                  H.MetaData[event.newentity].ccid = order.ccid;
+                  deb("   EVT: set ccid: %s of %s %s", order.ccid, event.newentity, H.Entities[event.newentity]._templateName);
+                }
+                
+                H.Producers.loadById(event.newentity);
+
               } else {
                 deb("INFO  : EVENTS: ConstructionFinished with double id: %s ignored", event.entity);
               }

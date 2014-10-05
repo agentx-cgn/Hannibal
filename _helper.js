@@ -11,6 +11,7 @@
 
 */
 
+// a > b ? 1 : -1 biggest first, http://blog.rodneyrehm.de/archives/14-Sorting-Were-Doing-It-Wrong.html
 // The Object.keys() method returns an array of a given object's own enumerable properties
 // The Object.getOwnPropertyNames() method returns an array of all properties (enumerable or not) found directly upon a given object.
 // http://rosettacode.org/wiki/Category:JavaScript
@@ -28,6 +29,7 @@ H.extend(H, {
 
   // looping
   // for:        function(n,fn){var i=n,a=[];while(n--){a.push(fn(i-n+1));}return a;},
+  loop:       function (n, fn){for (var i=1; i<n+1; i++){fn(i);}},
   range:      function (st, ed, sp){
     var i,r=[],al=arguments.length;
     if(al===0){return r;}
