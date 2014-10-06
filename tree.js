@@ -4,7 +4,7 @@
 /*--------------- T E C H N O L O G Y   T R E E  ------------------------------
 
   Models the dependencies of entities and technologies
-  
+  is source for culture/store + acts as a fast cache for producers, planner
 
   tested with 0 A.D. Alpha 15 Osiris
   V: 0.1, agentx, CGN, Feb, 2014
@@ -50,10 +50,15 @@ HANNIBAL = (function(H){
 
 
   H.TechTree = function (idplayer) {
+
+    deb();deb();
+
     phases.update(); // needs better place
+
     this.id = idplayer;
     this.civ = H.Players[idplayer].civ;
     this.nodes = {};
+
     this.sources = [].concat(
       H.attribs(H.Players[idplayer].researchedTechs), 
       H.attribs(H.SharedScript._techModifications[idplayer]),
@@ -62,16 +67,18 @@ HANNIBAL = (function(H){
         .map(id => H.Entities[id]._templateName)
     );    
     this.sources = H.unique(this.sources).map(src => [0, src]);
-    deb();deb();
+
     deb("  TREE: expanding %s sources for id: %s with civ: %s", H.count(this.sources), this.id, this.civ);
-    this.expand();
-    deb("     T: found %s nodes", H.count(this.nodes));
-    this.enhance();
+    
+    this.build();
     this.names = H.attribs(this.nodes);
     this.keys  = H.attribs(this.nodes).map(t => this.nodes[t].key);
+
+    deb("     T: found %s nodes", this.names.length);
     deb("     T: phases: 1 %s", uneval(phases["1"].alternates));
     deb("     T: phases: 2 %s", uneval(phases["2"].alternates));
     deb("     T: phases: 3 %s", uneval(phases["3"].alternates));
+
   };
 
   H.TechTree.prototype = {
@@ -133,19 +140,20 @@ HANNIBAL = (function(H){
     },
     finalize: function(){
 
-      var tech, name, nodes = this.nodes, t0 = Date.now();
+      // called after culture was loaded
 
-      var operMapper = {
-        "BUILDBY":       "build_structures",
-        "TRAINEDBY":     "train_units",
-        "RESEARCHEDBY":  "research_tech"
-      };
-
-      var verbMapper = {
-        "BUILD":    "BUILDBY",
-        "TRAIN":    "TRAINEDBY",
-        "RESEARCH": "RESEARCHEDBY"
-      };
+      var 
+        tech, name, nodes = this.nodes, t0 = Date.now(),
+        operMapper = {
+          "BUILDBY":       "build_structures",
+          "TRAINEDBY":     "train_units",
+          "RESEARCHEDBY":  "research_tech"
+        },
+        verbMapper = {
+          "BUILD":    "BUILDBY",
+          "TRAIN":    "TRAINEDBY",
+          "RESEARCH": "RESEARCHEDBY"
+        };
 
       H.QRY("ENABLE DISTINCT").forEach(node => {
         tech = H.QRY(node.name + " REQUIRE").first().name;
@@ -191,6 +199,21 @@ HANNIBAL = (function(H){
         });
       });
 
+      H.QRY("RESEARCHEDBY DISTINCT").forEach(researcher => {  
+        H.QRY(researcher.name + " RESEARCH PAIR").forEach(p => {
+          nodes[researcher.name].products.research[p.name] = p;
+          nodes[researcher.name].products.count = H.count(nodes[researcher.name].products.research);
+        });
+      });          
+
+      H.QRY("RESEARCHEDBY DISTINCT").forEach(researcher => {  
+        H.QRY(researcher.name + " RESEARCH SUPERSED").forEach(p => {
+          nodes[researcher.name].products.research[p.name] = p;
+          nodes[researcher.name].products.count = H.count(nodes[researcher.name].products.research);
+        });
+      });          
+
+
       // setting research as verb for all phases
 
       H.range(1, 4).forEach(n => {
@@ -198,14 +221,9 @@ HANNIBAL = (function(H){
           name = H.saniTemplateName(a);
           if (nodes[name] && !nodes[name].verb){
             nodes[name].verb = "research";
-            // deb("     T: setting verb for %s", name);
           }
         });
       });
-
-      // H.each(nodes, function(name, node){
-      //   node.producers = H.unique(node.producers);
-      // });
 
       deb();deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
 
@@ -251,16 +269,7 @@ HANNIBAL = (function(H){
 
 
     },
-    enhance: function (){
-
-      H.each(this.nodes, function(name, node){
-        node.type  = this.getType(node.key);
-        node.phase = phases.find(this.getPhase(node.key)).abbr;
-        // deb("%s %s, %s", node.phase, node.type, name);
-      }.bind(this));
-
-    },
-    expand: function (){
+    build: function (){
 
       // picks from sources, analyzes, and appends branches to sources
       // thus traversing the tree
@@ -300,8 +309,6 @@ HANNIBAL = (function(H){
             operator:      null,    // planner.operator
           };
 
-          // deb("     T: %s, %s, %s ----- %s", typeof tpl, !!tpl, name, key);
-
           // unit promotion
           if(key.slice(-2) === "_b"){
             push(key.slice(0, -2) + "_e");
@@ -309,33 +316,21 @@ HANNIBAL = (function(H){
           }
 
           // can research tech
-          // if (tpl.ProductionQueue && tpl.ProductionQueue.Technologies && tpl.ProductionQueue.Technologies._string){
-          //   tpl.ProductionQueue.Technologies._string.split(" ").forEach(push);
-          // }
           if ((test = H.test(tpl, "ProductionQueue.Technologies._string"))){
             test.split(" ").forEach(push);
           }
 
           // can train ents
-          // if (tpl.ProductionQueue && tpl.ProductionQueue.Entities && tpl.ProductionQueue.Entities._string){
-          //   tpl.ProductionQueue.Entities._string.split(" ").forEach(push);
-          // }
           if ((test = H.test(tpl, "ProductionQueue.Entities._string"))){
             test.split(" ").forEach(push);
           }
 
           // can build structs
-          // if (tpl.Builder && tpl.Builder.Entities && tpl.Builder.Entities._string){
-          //   tpl.Builder.Entities._string.split(" ").forEach(push);
-          // }
           if ((test = H.test(tpl, "Builder.Entities._string"))){
             test.split(" ").forEach(push);
           }
 
           // needs tech
-          // if (tpl.Identity && tpl.Identity.RequiredTechnology){
-          //   push(tpl.Identity.RequiredTechnology);
-          // }
           if ((test = H.test(tpl, "Identity.RequiredTechnology"))){
             push(test);
           }
@@ -351,10 +346,13 @@ HANNIBAL = (function(H){
 
       }
 
+      H.each(this.nodes, function(name, node){
+        node.type  = this.getType(node.key);
+        node.phase = phases.find(this.getPhase(node.key)).abbr;
+      }.bind(this));
+
     }
 
   };
 
-
 return H; }(HANNIBAL));
-

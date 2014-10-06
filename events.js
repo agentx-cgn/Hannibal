@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, HANNIBAL, H, deb, Filters, getAttribType, logObject, logObjectShort, logError, debug */
+/*globals Engine, HANNIBAL, H, deb, logObject, uneval */
 
 /*--------------- E V E N T S -------------------------------------------------
 
@@ -39,6 +39,19 @@ HANNIBAL = (function(H){
     onAdvance: [],     // on new technologies
   };
   
+  H.Junctions = {
+    "*": {},
+    "0": {"*": []},
+    "1": {"*": []},
+    "2": {"*": []},
+    "3": {"*": []},
+    "4": {"*": []},
+    "5": {"*": []},
+    "6": {"*": []},
+    "7": {"*": []},
+    "8": {"*": []},
+  };
+  
 
   function logDispatcher(){
     deb("  "); deb("      : Dispatcher");
@@ -56,10 +69,24 @@ HANNIBAL = (function(H){
     var self, t0, packs = [];
 
     return {
-      init:    function(){self = this;return self;},
+      boot:    function(){self = this; return self;},
       collect: function(newEvents){packs.push(newEvents);},
+      logTick: function(events){
+        var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
+            sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
+        if (sum){
+          deb.apply(null, [msgTick].concat(lengths));
+        }
+      },
       tick:    function(){
+
+        // dispatches new techs and finally fifo processes 
+        // collected event packs and then single events with order defined above
+
         t0 = Date.now();
+
+        self.processTechs();
+
         packs.forEach(function(events){
           self.logTick(events);
           orderedEvents.forEach(function(type){
@@ -70,18 +97,72 @@ HANNIBAL = (function(H){
             }
           });
         });
+
         packs = [];
         createEvents = {};
         destroyEvents = {};
-        this.processTechs();
+
         return Date.now() - t0;
+
       },
-      logTick: function(events){
-        var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
-            sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
-        if (sum){
-          deb.apply(null, [msgTick].concat(lengths));
+      readArgs: function (type /* [player, ] listener */) {
+
+        var player, listener, callsign, args = H.toArray(arguments);
+
+        if (args.length === 1 && typeof args[0] === "function"){
+          type     = "*";
+          player   = "*";
+          listener = args[0];
+
+        } else if (args.length === 2 && typeof args[1] === "function"){
+          player   = H.Bot.id;
+          listener = args[1];
+
+        } else if (args.length === 3 && typeof args[2] === "function"){
+          player   = args[1];
+          listener = args[2];
+
+        } else {
+          deb("ERROR: Events.on is strange: %s", uneval(args));
+          return [];
+
         }
+
+        if (!listener.callsign){
+          deb("ERROR : got listener no callsign: %s", listener.toString().split("\n").join("").slice(0, 60));
+          return [];
+        } else {
+          callsign = listener.callsign;
+        }
+
+        return [type, player, listener, callsign];
+
+      },
+      off: function (/* type [player, ] listener */) {
+
+        var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+
+        H.delete(H.Junctions["*"]["*"],     l => l === listener);
+        H.delete(H.Junctions[player]["*"],  l => l === listener);
+        H.delete(H.Junctions[player][type], l => l === listener);
+
+      },
+      on: function (/* type [player, ] listener */) {
+
+        var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+
+        H.Junctions["*"]["*"].push(listener);
+        H.Junctions[player]["*"].push(listener);
+
+        if (H.Junctions[player][type] === undefined){
+          H.Junctions[player][type] = [listener];
+          
+        } else {
+          if (H.Junctions[player][type].indexOf(listener) === -1){
+            H.Junctions[player][type].push(listener);
+          }
+        }
+
       },
       processTechs: function() {
 
@@ -113,6 +194,9 @@ HANNIBAL = (function(H){
 
       registerListener: function(id, listener) {
 
+        // builds arrays of listeners for ids
+        // ids can be strings of numbers, the latter are OAD entities ids.
+
         var callsign = listener.callsign || listener.toString().split("\n").join("").slice(0, 60);
 
         if (H.Dispatcher[id] === undefined){
@@ -131,6 +215,11 @@ HANNIBAL = (function(H){
 
       },
       
+      moveAllListener: function(newid, oldid) {
+        self.copyAllListener(newid, oldid);
+        self.removeAllListener(oldid);
+      },
+
       copyAllListener: function(newid, oldid) {
         if (H.Dispatcher[oldid]){
           H.Dispatcher[oldid].forEach(function(listener){
@@ -164,15 +253,18 @@ HANNIBAL = (function(H){
 
         // logEvents(events);
 
-        var LOGOTHER = true, LOGTHIS = true, PID = H.Bot.id, 
-            info = "", ent, tpl, own, id, order, host, client, 
-            mats = H.format("{%s}", H.attribs(event).join(", ")),
-            meta = !!event.metadata ? H.prettify(event.metadata) : "{}";
+        var 
+          LOGOTHER = true, LOGTHIS = true, PID = H.Bot.id, 
+          handler, msg, 
+          info, ent, tpl, own, id, order, host, client, logline, 
+          mats = H.format("{%s}", H.attribs(event).join(", ")),
+          meta = !!event.metadata ? H.prettify(event.metadata) : "{}";
 
-        // logging
         if (LOGTHIS && (own === PID || LOGOTHER)){
 
-          id = ( 
+          // logging
+
+          id   = ( 
             event.newentity || 
             event.entity || 
             event.id || 
@@ -182,66 +274,123 @@ HANNIBAL = (function(H){
           );
 
           ent  = H.Entities[id] || event.entityObj || undefined;
-          tpl  = ent ? ent.toString() : "???";
+          tpl  = ent ? ent._templateName : "???";
           own  = (
             event.owner || (
             (ent && ent.owner) ? ent.owner() : 
             (event.entityObj)  ? event.entityObj.owner() : "???")
           );
+          info = (
+            type === "EntityRenamed"     ? H.format("new: %s, old: %s, new: %s, old: %s", event.newentity, event.entity, H.Entities[event.newentity], H.Entities[event.entity] || "???") :
+            type === "Attacked"          ? H.format("event: %s", H.prettify(event)) : 
+            type === "TrainingFinished"  ? H.format("ents: %s,", id) : 
+            type === "Garrison"          ? H.format("holder: %s,", event.holder) :
+            type === "UnGarrison"        ? H.format("holder: %s, entity: %s", event.holder, event.entity) :
+              ""
+          );
 
-          switch (type){
-            case "EntityRenamed":
-              info = H.format("new: %s, old: %s, new: %s, old: %s", 
-                event.newentity, event.entity, H.Entities[event.newentity], H.Entities[event.entity] || "???"
-              );
-            break;
-            case "Attacked":
-              info = H.format("event: %s", H.prettify(event));
-            break;
-            case "TrainingFinished":
-              info = H.format("ents: %s,", id);
-            break;
-            case "Garrison":
-              info = H.format("holder: %s,", event.holder);
-            break;
-            case "UnGarrison":
-              info = H.format("holder: %s, entity: %s", event.holder, event.entity);
-            break;
-          }
-
-          if (own === H.Bot.id){
+          if (own === PID){
             // finally
-            deb("   EVT: %s, id: %s, own: %s, meta: %s, mats: %s, %s ent: %s", 
-                         type, id, own, meta, mats, info, tpl
-            );
+            logline = "   EVT: %s, id: %s, own: %s, meta: %s, mats: %s, %s ent: %s";
+            deb(logline, type, id, own, meta, mats, info, tpl);
           }
 
         }
 
+        // define internal msg format
+
+        msg = {
+          type:   type,
+          player: null,
+          id:     0,
+          id2:    0,
+          data:   {},
+          event:  event
+        };
+
+        function dispatchMessage (e) {
+
+        }
+
+        // Transform 0AD events into Hannibal messages
+        handler = {
+          Create: function(e){}, 
+          EntityRenamed: function(e){
+
+            // listener: assets, culture, producers
+
+            msg.player = H.Entities[e.newentity].owner();
+            msg.id     = e.newentity;
+            msg.id2    = e.entity;
+
+            self.moveAllListener(msg.id, msg.id2);
+            self.dispatchMessage(msg);
+
+            destroyEvents[event.entity] = event; //????
+
+          },
+          TrainingFinished: function(e){
+
+            // listener: assets, villages, producers
+
+            msg.player = H.Entities[e.newentity].owner();
+            msg.id     = e.newentity;
+            msg.id2    = e.entity;
+
+            self.moveAllListener(msg.id, msg.id2);
+            self.dispatchMessage(msg);
+
+            destroyEvents[event.entity] = event; //????
+
+          },
+          ConstructionFinished: function(e){},
+          AIMetadata: function(e){},
+          Destroy: function(e){},
+          Attacked: function(e){
+
+            // listener: assets, grids, mili?
+
+            msg.player = H.Entities[e.target].owner();
+            msg.id     = e.target;
+            msg.id2    = e.attacker;
+            msg.data   = {damage: e.damage, type: e.type};
+
+            self.dispatchMessage(msg);
+
+          },
+          OwnershipChanged: function(e){},
+          Garrison: function(e){},
+          UnGarrison: function(e){},
+          RangeUpdate: function(e){},
+          PlayerDefeated: function(e){},
+        };
+
+        //handler[type]();
+
 
         switch (type){
 
-          // don't care
-          case "UnGarrison": 
-          break;
+          // don't care, yet
+            case "UnGarrison": 
+            break;
 
-          case "Create":  // .entity (num)
-            // createEvents[event.entity] = event;
-          break;
+            case "Create":  // .entity (num)
+              // createEvents[event.entity] = event;
+            break;
 
-          case "RangeUpdate":  // 
-            deb(" EVENT: RangeUpdate %s", uneval(event));
-          break;
+            case "RangeUpdate":  // 
+              deb(" EVENT: RangeUpdate %s", uneval(event));
+            break;
 
-          case "PlayerDefeated":  // EVENT: PlayerDefeated ({playerId:1})
-            deb(" EVENT: PlayerDefeated %s", uneval(event));
-          break;
-
+            case "PlayerDefeated":  // EVENT: PlayerDefeated ({playerId:1})
+              deb(" EVENT: PlayerDefeated %s", uneval(event));
+            break;
 
           case "EntityRenamed":
             if (H.Entities[event.newentity].owner() === PID){
               if (event.newentity !== event.entity){
-                this.copyAllListener(event.newentity, event.entity);
+                // this.copyAllListener(event.newentity, event.entity);
+                this.moveAllListener(event.newentity, event.entity);
                 H.Bot.culture.removeById(event.entity);
                 H.Bot.culture.loadById(event.newentity);
                 H.Producers.removeById(event.entity);
@@ -255,14 +404,14 @@ HANNIBAL = (function(H){
               // we get some or all of these, maybe if ???
               // deb("INFO  : got foreign EntityRenamed: %s", H.prettify(event));
             }
-          break;
-
+            break;
 
           case "ConstructionFinished": // own: ???, meta: {}, mats: {entity, newentity},  ent: ???
             if (H.Entities[event.newentity].owner() === PID){
               if (event.newentity !== event.entity){
 
-                this.copyAllListener(event.newentity, event.entity);
+                // this.copyAllListener(event.newentity, event.entity);
+                this.moveAllListener(event.newentity, event.entity);
                 this.dispatchEvent(type, event.newentity, event);
                 
                 // HACK: Village should set ccid and opname
@@ -282,7 +431,7 @@ HANNIBAL = (function(H){
             } else {
               // deb("INFO  : got foreign ConstructionFinished: %s", H.prettify(event));
             }
-          break;
+            break;
 
           case "Attacked": // might be already destroyed
             if (H.Entities[event.target] && H.Entities[event.target].owner() === PID){
@@ -294,7 +443,7 @@ HANNIBAL = (function(H){
               // we get some or all of these, maybe if attacker = owned
               // deb("INFO  : got foreign Attacked: %s", H.prettify(event));
             }
-          break;
+            break;
 
           case "Garrison": 
             if (H.Entities[event.entity].owner() === PID){
@@ -345,7 +494,7 @@ HANNIBAL = (function(H){
                   H.Producers.loadById(id);
                   H.Economy.listener("onOrderReady", id, event);
                 } else {
-                  deb("WARN : trained %s without order", id)
+                  deb("WARN : trained %s without order", id);
                 }
               });
             } else {
@@ -364,7 +513,7 @@ HANNIBAL = (function(H){
                 if (order.shared){
                   host = H.Groups.launch("g.custodian");
                   host.structure = ["private", "INGAME WITH id = " + event.id];
-                  host.structure = H.createAsset(host, 'structure');
+                  host.structure = H.createAsset(host, "structure");
                   ent.setMetadata(H.Bot.id, "opname", host.name);
                   ent.setMetadata(H.Bot.id, "opid", host.id);
                   host.listener.onConnect(client.listener);
@@ -395,7 +544,7 @@ HANNIBAL = (function(H){
 
     };
 
-  }()).init();
+  }()).boot();
 
 return H; }(HANNIBAL));
 

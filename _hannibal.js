@@ -153,7 +153,7 @@ var HANNIBAL = (function() {
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
-    // this.tree.export();
+    this.tree.export();
 
     // Now make a plan to start with
     H.Producers.init(this.tree);
@@ -230,6 +230,8 @@ var HANNIBAL = (function() {
 
     // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
 
+    H.QRY("gather.lumbering.ironaxes").execute("metadata", 5, 10, "check");
+
     // new H.HCQ(ts, "INGAME WITH metadata.opname = 'none'").execute("metadata", 5, 10, "all ingame entities");
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");
     // new H.HCQ(ts, "INGAME").execute("position", 5, 10, "ingames with position");
@@ -275,6 +277,17 @@ var HANNIBAL = (function() {
 
     // playfield
     try {
+
+      // deb("------: Techs");
+      // H.each(H.TechTemplates, function(name, tech){
+      //   if (tech.modifications){
+      //     var aff = tech.affects ? uneval(tech.affects) : "";
+      //     var req = tech.requirements ? uneval(tech.requirements) : "";
+      //     var mod = tech.modifications ? uneval(tech.modifications) : "";
+      //     deb("%s;%s;%s;%s;%s", name, tech.genericName||"", req, aff, mod);
+      //   }
+      // });
+      // deb("------: Techs end");
 
       // H.range(2).forEach(function(){deb("**");});
 
