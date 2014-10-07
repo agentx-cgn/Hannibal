@@ -225,6 +225,9 @@ HANNIBAL = (function(H){
       return error ? undefined : out;
 
     },
+    count: function(format, debug, debmax, comment){
+      return this.execute(format, debug, debmax, comment).length;
+    },
     first: function(format, debug, debmax, comment){
       var nodes = this.execute(format, debug, debmax, comment);
       // return nodes.length ? nodes[0] : undefined;

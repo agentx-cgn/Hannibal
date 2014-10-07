@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, deb */
+/*globals HANNIBAL, H, deb, uneval */
 
 /*--------------- B R A I N ---------------------------------------------------
 
@@ -70,6 +70,7 @@ HANNIBAL = (function(H){
     init: function(){
       deb();deb();deb(" BRAIN: init");
       this.id = H.Objects(this);
+      // H.Events.registerListener("onAdvance", this.listener);
       planner = new H.HTN.Planner({
         name:         "brain.planner",
         domain:       H.HTN.Economy,
@@ -77,10 +78,41 @@ HANNIBAL = (function(H){
         methods:      H.HTN.Economy.methods,
         noInitialize: true
       });
-      this.runPlanner("phase.village");
     },
+    activate: function(){
+
+      var self = this;
+
+      H.Events.on("Advance", H.Bot.id, function (msg){
+        deb(" BRAIN: onAdvance: %s", msg.data.technology);
+      });
+
+      H.Events.on("Attack", H.Bot.id, function (msg){
+        deb(" BRAIN: Attack: damage: %s, type: %s", msg.data.damage, msg.data.type);
+      });
+
+    },
+    // listener: function(type, id, event){
+
+    //   switch(type){
+
+    //     case "onAdvance":      
+    //       deb(" BRAIN: onAdvance: %s", event.name);
+    //     break;
+
+    //     default:
+    //       deb(" BRAIN: listener: %s", uneval(arguments));
+
+    //   }
+
+    // },
     tick: function(secs, ticks){
       var t0 = Date.now();
+      if (ticks === 1){
+        // assuming village...
+        this.runPlanner("phase.village");
+        H.Economy.updatePlan("phase.village");
+      }
       return Date.now() - t0;
     },
     runPlanner: function(phase){
@@ -143,7 +175,11 @@ HANNIBAL = (function(H){
       };
 
       // debug
-      deb();deb();deb(" BRAIN: result of planning phase: %s", phase)
+      deb(" BRAIN: current state: %s", phase);
+      JSON.stringify(state.data, null, 2).split("\n").forEach(function(line){
+        deb("     B: %s", line);
+      });
+      deb();deb(" BRAIN: targeting phase: %s", phase);
       JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
@@ -154,20 +190,21 @@ HANNIBAL = (function(H){
         }
       });      
       deb("     B: cost: ", uneval(planner.result.data.cost));
+      deb();
 
 
     },
     requestPlanner: function(){ return planner;},
-    requestGoals: function(){
+    // requestGoals: function(){
 
-      return (
-        planner.operations
-          .filter(op => op[1] === "build_structures" || op[1] === "research_tech" || op[1] === "inc_resource")
-          .map(op => [op[1], op[2], op[3] === undefined || 1])
-          .sort((a, b) => a[0] > b[0])
-      );
+    //   return (
+    //     planner.operations
+    //       .filter(op => op[1] === "build_structures" || op[1] === "research_tech" || op[1] === "inc_resource")
+    //       .map(op => [op[1], op[2], op[3] === undefined || 1])
+    //       .sort((a, b) => a[0] > b[0])
+    //   );
 
-    },
+    // },
     requestGroups: function(phase){
 
       // farmstead bartermarket blacksmith corral dock outpost storehouse temple
@@ -179,18 +216,18 @@ HANNIBAL = (function(H){
         // TODO: care about Centre
 
         return [
-          // [1, "g.scouts",    H.Centre.id,                           5],       // depends on map size
-          // [5, "g.harvester", H.Centre.id,                           5],       // needed for trade?
-          // [1, "g.builder",   H.Centre.id, class2name("house"),      2, 6],    // onLaunch: function(ccid, building, size, quantity){
-          // [1, "g.builder",   H.Centre.id, class2name("farmstead"),  2, 2],    // depends on building time
+          [1, "g.scouts",    H.Centre.id,                           5],       // depends on map size
+          [2, "g.harvester", H.Centre.id,                           5],       // needed for trade?
+          [1, "g.builder",   H.Centre.id, class2name("house"),      2, 6],    // onLaunch: function(ccid, building, size, quantity){
+          [1, "g.builder",   H.Centre.id, class2name("farmstead"),  2, 2],    // depends on building time
           [1, "g.builder",   H.Centre.id, class2name("storehouse"), 2, 2],    // depends on building time
-          // [1, "g.builder",   H.Centre.id, class2name("barracks"),   5, 2],    // depends on civ and # enemies
+          [1, "g.builder",   H.Centre.id, class2name("barracks"),   5, 2],    // depends on civ and # enemies
           // [1, "g.builder",   H.Centre.id, class2name("blacksmith"), 2, 1],    // one is max, check required techs
-          // [1, "g.supplier",  H.Centre.id, "metal",                  1],               // 
-          // [1, "g.supplier",  H.Centre.id, "stone",                  1],
-          // [5, "g.supplier",  H.Centre.id, "wood",                   5],
-          // [1, "g.supplier",  H.Centre.id, "food.fruit",             2],       // availability
-          // [1, "g.supplier",  H.Centre.id, "food.meat",              2],       // availability
+          [1, "g.supplier",  H.Centre.id, "metal",                  1],               // 
+          [1, "g.supplier",  H.Centre.id, "stone",                  1],
+          [5, "g.supplier",  H.Centre.id, "wood",                   5],
+          [1, "g.supplier",  H.Centre.id, "food.fruit",             2],       // availability
+          [1, "g.supplier",  H.Centre.id, "food.meat",              2],       // availability
         ];
 
       } else if (phase === "phase.town"){

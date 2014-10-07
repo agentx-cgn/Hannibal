@@ -120,9 +120,7 @@ HANNIBAL = (function(H){
 
           if (this.field.match(asset)){
             this.position = this.units;
-            
-            // postpone one tick, because field was just destroyed this tick (terrain conflict)
-            this.postpone(1, this.economy.request, 1, this.field, this.position);
+            this.economy.request(1, this.field, this.position);
 
           } else if (this.units.match(asset)){
             this.economy.request(1, this.units, this.position);

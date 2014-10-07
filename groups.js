@@ -38,6 +38,21 @@ HANNIBAL = (function(H){
         });
         deb("     G: -----------");
       },
+      tick : function(secs, ticks){
+        // delegates down to all instances of all groups
+        t0 = Date.now();
+        H.each(groups, function(name, group){
+          group.instances.forEach(function(instance){
+            var interval = ~~instance.interval; // positive ints only
+            if (interval > 0 && instance.listener.onInterval){ 
+              if (ticks % interval === 0){
+                instance.tick(secs, ticks);
+              }
+            }
+          });
+        });
+        return Date.now() - t0;
+      },
       init: function(){
         deb();deb();deb("GROUPS: register...");
         H.each(H.Plugins, function(name, definition){
@@ -56,32 +71,40 @@ HANNIBAL = (function(H){
           }
         });
       },
-      tick : function(secs, ticks){
-        // delegates down to all instances of all groups
-        t0 = Date.now();
-        H.each(groups, function(name, group){
-          group.instances.forEach(function(instance){
-            var interval = ~~instance.interval; // positive ints only
-            if (interval > 0 && instance.listener.onInterval){ 
-              if (ticks % interval === 0){
-                instance.tick(secs, ticks);
-              }
-            }
-          });
+      activate: function(){
+
+        H.Events.on("AIMetadata", function (msg){
+
+          // there is a new structure
+
+          // deb("GROUPS: on AIMetadata");
+
+          var host, client, order = H.Objects(msg.data.order);
+
+          if (order && order.shared){
+
+            host = H.Groups.launch("g.custodian");
+            host.structure = ["private", "INGAME WITH id = " + msg.id];
+            host.structure = H.createAsset(host, "structure");
+
+            // ent = H.Entities[msg.id];
+            // ent.setMetadata(H.Bot.id, "opname", host.name);
+            // ent.setMetadata(H.Bot.id, "opid", host.id);
+
+            H.extend(H.MetaData[msg.id], {
+              opname: host.name,
+              opid:   host.id,
+            });
+
+            client = H.Objects(order.source).instance;
+            host.listener.onConnect(client.listener);
+
+          }
+
         });
-        return Date.now() - t0;
+
+
       },
-      // register: function(name, definition){
-
-      //   // initializes a definition, makes it launchable
-        
-      //   groups[name] = {
-      //     name: name,
-      //     definition: definition,
-      //     instances: []
-      //   };
-
-      // },
       isLaunchable: function(groupname){
         return !!groups[groupname];
       },
@@ -134,7 +157,7 @@ HANNIBAL = (function(H){
         // instance.structure.resources.push(id);
         instance.assets.push(instance.structure);
         
-        H.Events.registerListener(id, instance.structure.listener.bind(instance.structure));
+        // H.Events.registerListener(id, instance.structure.listener.bind(instance.structure));
 
         deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", groupname, H.Entities[id], id, nodename, cc);
 

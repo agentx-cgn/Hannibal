@@ -38,6 +38,31 @@ HANNIBAL = (function(H){
 
   H.Culture.prototype = {
     constructor: H.Hannibal.Culture,
+    activate: function(){
+
+      var self = this;
+
+      H.Events.on("EntityRenamed", this.tree.id, function (msg){
+        self.removeById(msg.id);
+        self.loadById(msg.id2);
+      });
+
+      H.Events.on("AIMetadata", this.tree.id, function (msg){
+        self.loadById(msg.id);
+      });
+
+      H.Events.on("Destroy", this.tree.id, function (msg){
+        if (!msg.data.foundation){
+          self.removeById(msg.id);
+        }
+      });
+
+      H.Events.on("Advance", this.tree.id, function (msg){
+        // self.loadByName(msg.data.technology);
+      });
+
+
+    },
     finalize: function(){
 
       // remove some attributes from nodes

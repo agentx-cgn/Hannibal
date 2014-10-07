@@ -163,7 +163,7 @@ HANNIBAL = (function(H){
     var t0, triggers;
     
     return {
-      init:     function(){
+      boot:     function(){
         self = this; 
         if (TESTERDATA !== undefined){
           H.each(TESTERDATA, function(attr, value){
@@ -182,8 +182,9 @@ HANNIBAL = (function(H){
         deb("TESTER: activated sequence: %s", sequence);
       },
       log:      function(){
-        var cnt = H.count(sequences[sequence]),
-            lst = H.attribs(sequences[sequence]).join(",");
+        var 
+          cnt = H.count(sequences[sequence]),
+          lst = H.attribs(sequences[sequence]).join(",");
         deb("      :");
         deb("      :");
         deb("      : TESTER running sequence: %s with %s ticks [%s]", sequence, cnt, lst);
@@ -204,7 +205,7 @@ HANNIBAL = (function(H){
           if (tick === 0){self.log();}  
           if (sequences[sequence][+tick]){
             triggers = sequences[sequence][+tick];
-            deb("     T: firing: %s, tick: %s, msg: %s", sequence, tick, triggers.filter(t=>typeof t === "string")[0] || "");
+            // deb("     T: firing: %s, tick: %s, msg: %s", sequence, tick, triggers.filter(t=>typeof t === "string")[0] || "");
             triggers.forEach(function(item){
               self.evaluate(item);
             });
@@ -215,7 +216,6 @@ HANNIBAL = (function(H){
       }
     };
 
-  }().init());
-
+  }().boot());
 
 return H; }(HANNIBAL));

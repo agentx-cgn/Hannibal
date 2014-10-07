@@ -60,7 +60,7 @@ HANNIBAL = (function(H){
         },
         onAssign: function(asset){
 
-          // deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.buildings, asset, asset.property, asset.first);
+          deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.buildings, asset, asset.property, asset.first);
          
           if (this.units.match(asset)){
 

@@ -309,7 +309,7 @@ HANNIBAL = (function(H){
     
     angle  = angle === undefined ? H.Config.angle : angle;
 
-    deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
+    // deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
     
     //obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
 
@@ -441,7 +441,7 @@ HANNIBAL = (function(H){
       secondBest = [x,z];
     }
 
-    deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
+    // deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
 
     return {
       "x" : x,

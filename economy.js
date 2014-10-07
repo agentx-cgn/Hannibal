@@ -200,8 +200,8 @@ HANNIBAL = (function(H){
               if (tree[name].products.research[product]){
                 if (producer.queue.length <= maxQueue){
                   break;
-                } else {deb("---> maxQueue: %s, %s", producer.name, producer.queue.length);}
-              } else {deb("---> tree: %s, %s", name, product);}       
+                } // else {deb("---> maxQueue: %s, %s", producer.name, producer.queue.length);}
+              } // else {deb("---> tree: %s, %s", name, product);}       
             }
           break;
           
@@ -237,17 +237,17 @@ HANNIBAL = (function(H){
           if (isProducer(name)){
             node.queue = [];
             producers.push(node);
-            deb("   PDC: loadById #%s, %s, have: %s", id, infoProducer(name), producers.length);
+            // deb("   PDC: loadById #%s, %s, have: %s", id, infoProducer(name), producers.length);
           }
         } else{
-          deb("ERROR: PDC loadById failed #%s", id);
+          deb("ERROR : PDC loadById failed #%s not in store", id);
         }
       },
       removeById: function(id){
         if (H.delete(producers, p => p.id === id)){ // could get slow...
-          deb("   PDC: removed #%s, %s", id, p.name);
+          deb("   PDC: removed #%s, %s", id, H.Entities[id] ? H.Entities[id]._templateName : "no entity");
         } else {
-          deb("INFO : PDC didn't remove #%s", id);
+          // deb("INFO  : PDC didn't remove #%s, %s", id, H.Entities[id] ? H.Entities[id]._templateName : "no entity");
         }
       },
 
@@ -319,7 +319,7 @@ HANNIBAL = (function(H){
       });  
 
       this.nodes.forEach(node => {
-        deb("    OE: %s %s", node.name, node.info);
+        // deb("    OE: %s %s", node.name, node.info);
       });
 
       // remove disqualified nodes
@@ -379,8 +379,17 @@ HANNIBAL = (function(H){
         H.QRY(hcq).execute()
           .slice(0, self.remaining - self.processing)
           .forEach(function(node){
-            self.processing += 1; 
-            H.Economy.listener("onOrderReady", node.id, {metadata: {order: self.id}});
+
+             H.Events.fire("OrderReady", {
+              player: H.Bot.id,
+              id:     node.id,
+              data:   {order: self.id, source: self.source}
+            });
+
+            self.remaining -= 1; 
+
+            // self.processing += 1; 
+            // H.Economy.listener("onOrderReady", node.id, {metadata: {order: self.id}});
         });
 
       }
@@ -591,7 +600,7 @@ HANNIBAL = (function(H){
       boot: function(){self = this; return self;},
       init: function(){
         deb();deb();deb("   ECO: init");
-        H.Events.registerListener("onAdvance", self.listener);
+        // H.Events.registerListener("onAdvance", self.listener);
       },
       tick: function(secs, ticks){
         var t0 = Date.now();
@@ -603,13 +612,70 @@ HANNIBAL = (function(H){
         self.logTick();
         return Date.now() - t0;
       },
+      activate: function(){
 
+        var order, self = this;
+
+        H.Events.on("EntityRenamed", function (msg){
+          H.Producers.removeById(msg.id);
+          H.Producers.loadById(msg.id2);
+        });
+
+        H.Events.on("ConstructionFinished", function (msg){
+          H.Producers.loadById(msg.id);
+        });
+
+        H.Events.on("TrainingFinished", function (msg){
+
+          H.Producers.loadById(msg.id);
+          H.Producers.onReady("train", msg.data.task); 
+
+          order = H.Objects(msg.data.order);
+          order.remaining  -= 1;
+          order.processing -= 1;
+          
+          // H.Objects(order.source).listener("Ready", id);  
+           H.Events.fire("OrderReady", {
+            player: H.Bot.id,
+            id:     msg.id,
+            data:   {order: msg.data.order, source: order.source}
+          });
+
+        });
+
+        H.Events.on("AIMetadata", function (msg){
+
+          // deb("   ECO: on AIMetadata");
+
+          order = H.Objects(msg.data.order);
+          order.remaining  -= 1;
+          order.processing -= 1;
+          
+          // H.Objects(order.source).listener("Ready", id);  
+          H.Events.fire("OrderReady", {
+            player: H.Bot.id,
+            id:     msg.id,
+            data:   {order: msg.data.order, source: order.source}
+          });
+
+        });
+
+        H.Events.on("Advance", function (msg){
+          H.Producers.removeById(msg.id);
+        });
+
+        H.Events.on("Destroy", function (msg){
+          H.Producers.removeById(msg.id);
+        });
+
+
+      },
       monitorGoals: function(){
 
       },
-      advancePhase: function(phase){
+      updatePlan: function(phase){
 
-        deb("   ECO: advancePhase '%s'", phase);
+        deb("   ECO: updatePlan phase: %s", phase);
         planner  = H.Brain.requestPlanner(phase);
 
         // deb("     E: planner.result.data: %s", uneval(planner.result.data));
@@ -619,7 +685,9 @@ HANNIBAL = (function(H){
         ressTargets.metal = planner.result.data.cost.metal || 0 + planner.result.data.ress.metal;
         ressTargets.stone = planner.result.data.cost.stone || 0 + planner.result.data.ress.stone;
 
-        deb("     E: ressTargets: %s", uneval(ressTargets));
+        deb("     E: ress: %s", uneval(ressTargets));
+
+        goals = self.updateGoals(planner.operations);
 
         groups = H.Brain.requestGroups(phase);
         groups.forEach(g => deb("     E: group: %s", g));
@@ -631,23 +699,61 @@ HANNIBAL = (function(H){
           });
         });
 
-        goals  = H.Brain.requestGoals(phase);
-        goals.forEach(goal => {
-          deb("     E: goal:  %s", goal);
-          if (goal[0] === "research_tech"){
-            H.Economy.request(new H.Order({
-              amount:     1,
-              // ccid:       ccid,
-              // location:   location,
-              verb:       "research", 
-              hcq:        goal[1], 
-              source:     H.Brain.id, 
-              shared:     false
-            }));
+        // H.Groups.log();
+
+        deb("   ECO: updatePlan -------");deb();
+
+      },
+      updateGoals: function(operations){
+
+        // filter out already achieved goals and meta info
+
+        var goals = operations.filter(oper => {
+
+          if (oper[1] === "research_tech" && oper[2].contains("phase")){
+            return false;
           }
+
+          if (oper[1] === "research_tech" && H.Technologies.available([oper[2]])){
+            return false;
+          }
+
+          if (oper[1] === "start" || oper[1] === "finish" || oper[1] === "wait_secs"){
+            return false;
+          }
+
+          return true;
+
         });
 
-        // H.Groups.log();
+        // update amounts
+
+        goals.forEach(goal => {
+
+          if (goal[1] === "build_structures" || goal[1] === "train_units"){
+            goal[3] -=  H.QRY(goal[2] + " INGAME").count();
+          }
+
+        });
+
+        goals.forEach(goal => {
+
+          deb("     E: goal:  %s", goal.slice(1));
+          
+          if (goal[0] === "research_tech"){
+            H.Triggers.add( -1, 
+              H.Economy.request.bind(H.Economy, new H.Order({
+                amount:     1,
+                verb:       "research", 
+                hcq:        goal[1], 
+                source:     H.Brain.id, 
+                shared:     false
+              }))
+            );
+          }
+
+
+        });
 
       },
       subtract: function(cost, budget){
@@ -741,7 +847,6 @@ HANNIBAL = (function(H){
             if (H.OrderQueue.delete(order => order.hcq === event.name)){
               deb("   ECO: onAdvance: removed order with tech: %s", event.name);
             }
-            // TODO: order
           break;
 
           case "onOrderReady" :

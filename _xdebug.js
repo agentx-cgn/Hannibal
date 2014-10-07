@@ -31,25 +31,36 @@ function logg(){
 }
 
 function deb(){
-  var H = HANNIBAL,
-      args = arguments, al = args.length,
-      msg = (
-        (al === 0) ? "**" :
-        (al === 1) ? args[0] :
-          H.format.apply(H, args)
-        ) + "\n",
-      level = H.Config.deb,
-      head = msg.substr(0, 7).toUpperCase();
+  var 
+    H = HANNIBAL,
+    args = arguments, al = args.length,
+    msg = (
+      (al === 0) ? "**" :
+      (al === 1) ? args[0] :
+        H.format.apply(H, args)
+      ) + "\n",
+    head = msg.substr(0, 7).toUpperCase(),
+    deblevel = H.Config.deb || 0,
+    msglevel = (
+      head === "ERROR :" ? 1 :
+      head === "WARN  :" ? 2 :
+      head === "INFO  :" ? 3 :
+        4
+    );
 
-  if (head === "ERROR :" && level > 0){
-    print(msg);
-  } else if (head === "WARN  :" && level > 1){
-    print(msg);
-  } else if (level > 2){
-    print(msg);
-  } else {
-    // do nothing
-  }
+  if (msglevel >= deblevel){print(msg);}
+
+  // if (head === "ERROR :" && level > 0){
+  //   print(msg);
+  // } else if (head === "WARN  :" && level > 1){
+  //   print(msg);
+  // } else if (head === "INFO  :" && level > 1){
+  //   print(msg);
+  // } else if (level > 2){
+  //   print(msg);
+  // } else {
+  //   // do nothing
+  // }
 }
 
 

@@ -51,10 +51,10 @@ var HANNIBAL = (function() {
     H.Bot = this;
 
     H.extend(this, {
-      turn:       0,
+      turn:       0,                                  // increments on AI ticks, not bot ticks
+      settings:   settings,                           // from user dialog
       id:         settings.player,                    // used within 0 A.D.
-      config:     H.Config.get(settings.difficulty),
-      settings:   settings
+      config:     H.Config.get(settings.difficulty),  // 
     });
 
     deb();
@@ -153,7 +153,7 @@ var HANNIBAL = (function() {
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
-    this.tree.export();
+    // this.tree.export();
 
     // Now make a plan to start with
     H.Producers.init(this.tree);
@@ -230,7 +230,7 @@ var HANNIBAL = (function() {
 
     // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
 
-    H.QRY("gather.lumbering.ironaxes").execute("metadata", 5, 10, "check");
+    // H.QRY("gather.lumbering.ironaxes").execute("metadata", 5, 10, "check");
 
     // new H.HCQ(ts, "INGAME WITH metadata.opname = 'none'").execute("metadata", 5, 10, "all ingame entities");
     // new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");
@@ -414,17 +414,35 @@ var HANNIBAL = (function() {
         H.Player.resourceCounts.stone
       );
 
+      if (this.ticks === 0){
 
-      this.timing.all = 0;
-      this.timing.tst = H.Tester.tick(  secs, this.ticks);
-      this.timing.trg = H.Triggers.tick(secs, this.ticks);
-      this.timing.evt = H.Events.tick(  secs, this.ticks);
-      this.timing.brn = H.Brain.tick(   secs, this.ticks);
-      this.timing.grd = H.Grids.tick(   secs, this.ticks);
-      this.timing.gps = H.Groups.tick(  secs, this.ticks);
-      this.timing.sts = H.Stats.tick(   secs, this.ticks);
-      this.timing.eco = H.Economy.tick( secs, this.ticks);
-      
+        // subscribe to messages
+        this.culture.activate();
+        H.Brain.activate();
+        H.Groups.activate();
+        H.Villages.activate();
+        H.Economy.activate();
+
+        // allow processing autoresearch first
+        this.timing.all = 0;
+        this.timing.tst = H.Tester.tick(  secs, this.ticks);
+        this.timing.trg = H.Triggers.tick(secs, this.ticks);
+        this.timing.evt = H.Events.tick(  secs, this.ticks);
+
+      } else {
+
+        this.timing.all = 0;
+        this.timing.tst = H.Tester.tick(  secs, this.ticks);
+        this.timing.trg = H.Triggers.tick(secs, this.ticks);
+        this.timing.evt = H.Events.tick(  secs, this.ticks);
+        this.timing.brn = H.Brain.tick(   secs, this.ticks);
+        this.timing.grd = H.Grids.tick(   secs, this.ticks);
+        this.timing.gps = H.Groups.tick(  secs, this.ticks);
+        this.timing.sts = H.Stats.tick(   secs, this.ticks);
+        this.timing.eco = H.Economy.tick( secs, this.ticks);
+
+      }
+
       // prepare deb line
       H.each(this.timing, function(name, msecs){
         if (name !== "all"){

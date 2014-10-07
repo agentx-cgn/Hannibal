@@ -86,11 +86,14 @@ HANNIBAL = (function(H){
       hcq:         expandHCQ(definition[1], instance),
       claim:       definition[1],
       verb:        !dynamic ? getAssetVerb(definition) : "dynamic",  // dynamics are not ordered
-      users:       []
+      users:       [],
+      handler:     asset.listenerNT.bind(asset)
     });    
 
     asset.initActions(resources);
-    asset.listener.callsign = asset.name;
+    // asset.listener.callsign = asset.name;
+
+    asset.activate();
 
     // deb("   AST: created: %s, res: %s", asset, uneval(asset.resources));
     
@@ -141,6 +144,126 @@ HANNIBAL = (function(H){
         shared: this.shared
       };
     },
+    activate: function(){
+
+      H.Events.on("OrderReady", this.handler);
+      H.Events.on("AIMetadata", this.handler);
+      H.Events.on("TrainingFinished", this.handler);
+      H.Events.on("EntityRenamed", this.handler);
+      H.Events.on("ConstructionFinished", this.handler);
+      H.Events.on("Attacked", this.handler);
+      H.Events.on("Destroy", this.handler);
+
+    },
+    listenerNT: function(msg){
+
+      var resource, tpln, ent, maxRanges, attacker, id = msg.id;
+
+      // deb("   AST: - listenerNT: %s, res: %s, %s", this.name, this.resources, uneval(msg));
+
+      if (msg.name === "OrderReady"){
+
+        if (msg.data.source === this.id){
+
+          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+
+          resource = this.toSelection([id]);
+          tpln = H.Entities[id]._templateName;
+
+          // take over ownership
+          if ((this.verb === "train" || this.verb === "build")){
+            H.MetaData[id].opid   = this.instance.id;
+            H.MetaData[id].opname = this.instance.name;
+          } else {
+            deb("ERROR : %s was assigned with verb: %s", this.verb, this);
+          }
+
+          if (this.verb === "build"){
+            if (tpln.indexOf("foundation") !== -1){
+              this.isFoundation = true; //?? too greedy
+              resource.isFoundation = true;
+            } else {
+              this.isStructure = true;  //??
+              resource.isStructure = true;
+            }
+          }
+
+          // deb("   AST: #%s, id: %s, meta: %s, shared: %s, tpl: %s", id, msg, H.prettify(meta), this.shared, tpln);
+
+          // finalize
+          this.resources.push(id);
+          // fnListener = this.listener.bind(this);
+          // fnListener.callsign = this.name;
+          // H.Events.registerListener(id, fnListener);
+          this.instance.listener.onAssign(resource);          
+
+        } // else { deb("   AST: no match: %s -> %s | %s", msg.data.source, this.id, this.name);}
+
+
+      } else if (H.contains(this.resources, id)){
+
+        if (msg.name === "Destroy") {
+
+          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+
+          // no need to tell group about foundations
+          if (!msg.data.foundation){
+            resource = this.toSelection([id]);
+            this.instance.listener.onDestroy(resource);
+          }
+
+          // remove after so match works in instance
+          H.remove(this.resources, id);
+
+
+        } else if (msg.name === "Attacked") {
+
+          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+
+          ent = H.Entities[msg.id2];
+          resource = this.toSelection([id]);
+          if (ent){
+            maxRanges = ent.attackTypes().map(type => ent.attackRange(type).max);
+            attacker = {
+              id: msg.id2,
+              position: ent.position(),
+              range: Math.max.apply(Math, maxRanges)
+            };
+            this.instance.listener.onAttack(resource, attacker, msg.data.type, msg.data.damage);
+          }          
+
+
+        } else if (msg.name === "EntityRenamed") {
+
+          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+
+          H.remove(this.resources, id);
+          this.resources.push(msg.id2);
+
+          // deb("   AST: EntityRenamed %s %s", id,      H.Entities[id] ?      H.Entities[id]._templateName : "unknown");
+          // deb("   AST: EntityRenamed %s %s", msg.id2, H.Entities[msg.id2] ? H.Entities[msg.id2]._templateName : "unknown");
+
+
+        } else if (msg.name === "ConstructionFinished") {
+
+          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+
+          // H.remove(this.resources, msg.id2);
+          this.isFoundation = false;
+          this.isStructure = true;
+          // this.resources.push(msg.id2);
+          resource = this.toSelection([msg.id]);
+          resource.isFoundation = false;
+          resource.isStructure = true;
+          this.instance.listener.onAssign(resource);
+
+        }
+
+
+
+      }
+
+    },
     toSelection: function(resources){
       var asset = new H.Asset(this.instance, this.property);
       asset.initActions(resources);
@@ -178,6 +301,13 @@ HANNIBAL = (function(H){
       });
     },
     release:    function(){
+      H.Events.off("OrderReady", this.handler);
+      H.Events.off("AIMetadata", this.handler);
+      H.Events.off("TrainingFinished", this.handler);
+      H.Events.off("EntityRenamed", this.handler);
+      H.Events.off("ConstructionFinished", this.handler);
+      H.Events.off("Attacked", this.handler);
+      H.Events.off("Destroy", this.handler);
       this.resources.forEach(function(id){
         H.MetaData[id].opname = "none";
         delete H.MetaData[id].opid;
@@ -316,125 +446,125 @@ HANNIBAL = (function(H){
       return loc;
 
     },    
-    listener: function(msg, id, evt){
+    // listener: function(msg, id, evt){
 
-      var 
-        tpln, attacker, ent, maxRanges, resource, fnListener, 
-        meta = H.MetaData[id],
-        resources = this.resources, 
-        instance = this.instance;
+    //   var 
+    //     tpln, attacker, ent, maxRanges, resource, fnListener, 
+    //     meta = H.MetaData[id],
+    //     resources = this.resources, 
+    //     instance = this.instance;
 
-      switch (msg){
+    //   switch (msg){
 
-        case "Ready" :
-        case "AIMetadata" :
-        case "TrainingFinished":
+    //     case "Ready" :
+    //     case "AIMetadata" :
+    //     case "TrainingFinished":
 
-          // deb("   AST: listener %s, msg: %s, id: %s, shared: %s, meta: %s", this, msg, id, this.shared, uneval(meta));
+    //       // deb("   AST: listener %s, msg: %s, id: %s, shared: %s, meta: %s", this, msg, id, this.shared, uneval(meta));
 
-          if (this.shared){
-            H.Groups.moveSharedAsset(this, id, H.Objects(meta.opid));
+    //       if (this.shared){
+    //         H.Groups.moveSharedAsset(this, id, H.Objects(meta.opid));
 
-          } else {
+    //       } else {
 
-            resource = this.toSelection([id]);
-            tpln = H.Entities[id]._templateName;
+    //         resource = this.toSelection([id]);
+    //         tpln = H.Entities[id]._templateName;
 
-            // take over ownership
-            if ((this.verb === "train" || this.verb === "build")){
-              meta.opid   = instance.id;
-              meta.opname = instance.name;
-            } else {
-              deb("ERROR : %s was assigned with verb: %s", this.verb, this);
-            }
+    //         // take over ownership
+    //         if ((this.verb === "train" || this.verb === "build")){
+    //           meta.opid   = instance.id;
+    //           meta.opname = instance.name;
+    //         } else {
+    //           deb("ERROR : %s was assigned with verb: %s", this.verb, this);
+    //         }
 
-            if (this.verb === "build"){
-              if (tpln.indexOf("foundation") !== -1){
-                this.isFoundation = true; //?? too greedy
-                resource.isFoundation = true;
-              } else {
-                this.isStructure = true;  //??
-                resource.isStructure = true;
-              }
-            }
+    //         if (this.verb === "build"){
+    //           if (tpln.indexOf("foundation") !== -1){
+    //             this.isFoundation = true; //?? too greedy
+    //             resource.isFoundation = true;
+    //           } else {
+    //             this.isStructure = true;  //??
+    //             resource.isStructure = true;
+    //           }
+    //         }
 
-            // deb("   AST: #%s, id: %s, meta: %s, shared: %s, tpl: %s", id, msg, H.prettify(meta), this.shared, tpln);
+    //         // deb("   AST: #%s, id: %s, meta: %s, shared: %s, tpl: %s", id, msg, H.prettify(meta), this.shared, tpln);
 
-            // finalize
-            this.resources.push(id);
-            fnListener = this.listener.bind(this);
-            fnListener.callsign = this.name;
-            H.Events.registerListener(id, fnListener);
-            instance.listener.onAssign(resource);
+    //         // finalize
+    //         this.resources.push(id);
+    //         fnListener = this.listener.bind(this);
+    //         fnListener.callsign = this.name;
+    //         H.Events.registerListener(id, fnListener);
+    //         instance.listener.onAssign(resource);
 
-          }
+    //       }
 
-        break;
+    //     break;
         
-        case "Garrison":
-          deb("   AST: msg: %s, id: %s, evt: %s", msg, id, H.prettify(evt));
+    //     case "Garrison":
+    //       deb("   AST: msg: %s, id: %s, evt: %s", msg, id, H.prettify(evt));
 
-        break;
+    //     break;
 
-        case "ConstructionFinished":
+    //     case "ConstructionFinished":
 
-          H.remove(this.resources, id);
-          this.resources.push(evt.newentity);
-          resource = this.toSelection([evt.newentity]);
-          this.isFoundation = false;
-          this.isStructure = true;
-          resource.isFoundation = false;
-          resource.isStructure = true;
-          instance.listener.onAssign(resource);
-          deb("   AST: msg: %s, id: %s, evt: %s, resources: %s", msg, id, H.prettify(evt), resources);
+    //       H.remove(this.resources, id);
+    //       this.resources.push(evt.newentity);
+    //       resource = this.toSelection([evt.newentity]);
+    //       this.isFoundation = false;
+    //       this.isStructure = true;
+    //       resource.isFoundation = false;
+    //       resource.isStructure = true;
+    //       instance.listener.onAssign(resource);
+    //       deb("   AST: msg: %s, id: %s, evt: %s, resources: %s", msg, id, H.prettify(evt), resources);
 
-        break;
+    //     break;
         
-        case "EntityRenamed":
+    //     case "EntityRenamed":
 
-          H.remove(this.resources, evt.entity);
-          this.resources.push(evt.newentity);
-          deb("   AST: msg: %s, id: %s, evt: %s, resources: %s", msg, id, H.prettify(evt), resources);
+    //       H.remove(this.resources, evt.entity);
+    //       this.resources.push(evt.newentity);
+    //       deb("   AST: msg: %s, id: %s, evt: %s, resources: %s", msg, id, H.prettify(evt), resources);
 
-        break;
+    //     break;
         
-        case "Destroy":
+    //     case "Destroy":
 
-          deb("   AST: in %s id: %s, name: %s, have: %s", msg, id, this.name, this.resources);
+    //       deb("   AST: in %s id: %s, name: %s, have: %s", msg, id, this.name, this.resources);
 
-          // no need to tell group about foundations
-          if (!evt.SuccessfulFoundation){
-            resource = this.toSelection([id]);
-            instance.listener.onDestroy(resource);
-          }
+    //       // no need to tell group about foundations
+    //       if (!evt.SuccessfulFoundation){
+    //         resource = this.toSelection([id]);
+    //         instance.listener.onDestroy(resource);
+    //       }
 
-          // remove after so match works in instance
-          H.remove(this.resources, id);
+    //       // remove after so match works in instance
+    //       H.remove(this.resources, id);
 
-          // H.Events takes care of other listerners
+    //       // H.Events takes care of other listerners
 
-        break;
+    //     break;
 
-        case "Attacked":
-          ent = H.Entities[evt.attacker];
-          resource = this.toSelection([id]);
-          if (ent){
-            maxRanges = ent.attackTypes().map(type => ent.attackRange(type).max);
-            attacker = {
-              id: evt.attacker,
-              position: ent.position(),
-              range: Math.max.apply(Math, maxRanges)
-            };
-            instance.listener.onAttack(resource, attacker, evt.type, evt.damage);
-          }
-        break;
+    //     case "Attacked":
+    //       ent = H.Entities[evt.attacker];
+    //       resource = this.toSelection([id]);
+    //       if (ent){
+    //         maxRanges = ent.attackTypes().map(type => ent.attackRange(type).max);
+    //         attacker = {
+    //           id: evt.attacker,
+    //           position: ent.position(),
+    //           range: Math.max.apply(Math, maxRanges)
+    //         };
+    //         instance.listener.onAttack(resource, attacker, evt.type, evt.damage);
+    //       }
+    //     break;
 
-        default: 
-          deb("ERROR : unknown msg '%s' in %s", msg, this);
+    //     default: 
+    //       deb("ERROR : unknown msg '%s' in %s", msg, this);
 
-      }
+    //   }
 
-    }
+    // }
 
 
   };
