@@ -80,13 +80,24 @@ HANNIBAL = (function(H) {
             proxy[attr] !== undefined ? proxy[attr] : 
             proxy[tpln] !== undefined ? proxy[tpln] : 
             attr === "available"      ? function (techs){
+              // deb("  HPT: checking %s against %s", techs, H.attribs(H.Player.researchedTechs));
               return techs.map(t => mapper[t]).every(t => !!H.Player.researchedTechs[t]); } :
             undefined
           );
         }
       });
+    },
+    MetaData: function(){
+      // H.MetaData          = H.SharedScript._entityMetadata[this.id];
+      return new Proxy({}, {
+        get: function(proxy, id){
+          var meta = H.SharedScript._entityMetadata[H.Bot.id];
+          if (!meta[id]){meta[id] = {};}
+          // deb("META  : %s %s", id, uneval(meta[id]));
+          return meta[id];
+        }
+      });
     }
-    
   };
 
 

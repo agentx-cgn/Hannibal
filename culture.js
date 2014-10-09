@@ -238,6 +238,8 @@ HANNIBAL = (function(H){
         sani  = H.saniTemplateName,
         counter = 0, nameSource, nameTarget, nodeSource, nodeTarget, names = [];
 
+      // TODO: Can tech be INGAME ???
+
       H.each(techs, function(key, tech){
 
         nameTarget = sani(key);

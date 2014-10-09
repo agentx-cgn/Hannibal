@@ -65,54 +65,64 @@ HANNIBAL = (function(H){
   function class2name (klass) {return H.QRY(klass + " CONTAIN").first().name;}
 
   H.Brain = {
-    dump: function(){},
+    id:   null,
     name: "brain",
+    scouts: [],
+    dump: function(){},
     init: function(){
+
       deb();deb();deb(" BRAIN: init");
+
       this.id = H.Objects(this);
-      // H.Events.registerListener("onAdvance", this.listener);
+
       planner = new H.HTN.Planner({
         name:         "brain.planner",
-        domain:       H.HTN.Economy,
+        // domain:       H.HTN.Economy,
         operators:    H.HTN.Economy.operators,
         methods:      H.HTN.Economy.methods,
-        noInitialize: true
+        // noInitialize: true
       });
+
     },
     activate: function(){
 
-      var self = this;
+      var phase;
 
-      H.Events.on("Advance", H.Bot.id, function (msg){
+      H.Events.on("Advance", function (msg){
+
+        if ((phase = H.Phases.find(msg.data.key))){
+          H.Phases.current = phase.abbr;
+          deb(" BRAIN: onAdvance: set new phase %s", H.Phases.current);
+          return;
+        }
         deb(" BRAIN: onAdvance: %s", msg.data.technology);
+
       });
 
-      H.Events.on("Attack", H.Bot.id, function (msg){
+      H.Events.on("Attack", "*", function (msg){
         deb(" BRAIN: Attack: damage: %s, type: %s", msg.data.damage, msg.data.type);
       });
 
     },
-    // listener: function(type, id, event){
-
-    //   switch(type){
-
-    //     case "onAdvance":      
-    //       deb(" BRAIN: onAdvance: %s", event.name);
-    //     break;
-
-    //     default:
-    //       deb(" BRAIN: listener: %s", uneval(arguments));
-
-    //   }
-
-    // },
     tick: function(secs, ticks){
-      var t0 = Date.now();
+
+      var 
+        t0 = Date.now(),
+        CC = H.Villages.Centre.id;
+
+      
       if (ticks === 1){
         // assuming village...
         this.runPlanner("phase.village");
         H.Economy.updatePlan("phase.village");
       }
+
+      if (ticks === 2){
+        // this.scouts.push(H.Groups.launch("g.scouts", H.Centre.id, 5));
+        this.scouts.push(H.Groups.launch("g.scouts", CC, 5));
+
+      }
+
       return Date.now() - t0;
     },
     runPlanner: function(phase){
@@ -140,19 +150,18 @@ HANNIBAL = (function(H){
           "tech": [
             phaseName,
             "gather.lumbering.ironaxes",
+            // "gather.farming.plows",
             // "gather_capacity_wheelbarrow"
           ]
         }).sanitize();
 
-        // goal.data.ress = ress;
-        goal.data.ents[class2name("barracks")]   = 2;
-        goal.data.ents[class2name("house")]      = Math.ceil(ress.pop / housePopu);
-        // goal.data.ents[class2name("blacksmith")] = 1;
+        // add buildings
+        [
+          ["barracks",  2],
+          ["farmstead", 2],
+          ["house",     Math.ceil(ress.pop / housePopu)],
 
-        // deb("     B: goal for phase: %s", phase);
-        // JSON.stringify(goal.data, null, 2).split("\n").forEach(function(line){
-        //   deb("      : %s", line);
-        // });
+        ].forEach(line => goal.data.ents[class2name(line[0])] = line[1]);
 
 
       } else if (phase === "phase.town"){
@@ -167,11 +176,11 @@ HANNIBAL = (function(H){
       planner.plan(state, [[H.HTN.Economy.methods.start, goal]]);
 
       logops = {
-        "start": null,
+        // "start": null,
         "build_structures": null,
         "research_tech": null,
         "train_units": null,
-        "finish": null,
+        // "finish": null,
       };
 
       // debug
@@ -179,14 +188,14 @@ HANNIBAL = (function(H){
       JSON.stringify(state.data, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
-      deb();deb(" BRAIN: targeting phase: %s", phase);
+      deb();deb(" BRAIN: plan in phase: %s", phase);
       JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
       deb();deb("     B: operations:");
       planner.operations.forEach(function(op){
         if (op[1] in logops){
-          deb("     B: - %s", op.filter(o => !!o).join(", "));
+          deb("     B: - %s", op.filter(o => o === undefined).join(", "));
         }
       });      
       deb("     B: cost: ", uneval(planner.result.data.cost));
@@ -211,23 +220,25 @@ HANNIBAL = (function(H){
 
       // [quantity, groupname, ccid, [param1, [...] ] ]
 
+      var CC = H.Villages.Centre.id;
+
+
       if (phase === "phase.village"){
 
         // TODO: care about Centre
 
         return [
-          [1, "g.scouts",    H.Centre.id,                           5],       // depends on map size
-          [2, "g.harvester", H.Centre.id,                           5],       // needed for trade?
-          [1, "g.builder",   H.Centre.id, class2name("house"),      2, 6],    // onLaunch: function(ccid, building, size, quantity){
-          [1, "g.builder",   H.Centre.id, class2name("farmstead"),  2, 2],    // depends on building time
-          [1, "g.builder",   H.Centre.id, class2name("storehouse"), 2, 2],    // depends on building time
-          [1, "g.builder",   H.Centre.id, class2name("barracks"),   5, 2],    // depends on civ and # enemies
-          // [1, "g.builder",   H.Centre.id, class2name("blacksmith"), 2, 1],    // one is max, check required techs
-          [1, "g.supplier",  H.Centre.id, "metal",                  1],               // 
-          [1, "g.supplier",  H.Centre.id, "stone",                  1],
-          [5, "g.supplier",  H.Centre.id, "wood",                   5],
-          [1, "g.supplier",  H.Centre.id, "food.fruit",             2],       // availability
-          [1, "g.supplier",  H.Centre.id, "food.meat",              2],       // availability
+          [2, "g.harvester", CC,                           5],       // needed for trade?
+          // [1, "g.builder",   CC, class2name("house"),      2, 6],    // onLaunch: function(ccid, building, size, quantity){
+          [1, "g.builder",   CC, class2name("farmstead"),  4, 2],    // depends on building time
+          [1, "g.builder",   CC, class2name("storehouse"), 2, 2],    // depends on building time
+          // [1, "g.builder",   CC, class2name("barracks"),   5, 2],    // depends on civ and # enemies
+          // [1, "g.builder",   CC, class2name("blacksmith"), 2, 1],    // one is max, check required techs
+          // [1, "g.supplier",  CC, "metal",                  1],               // 
+          // [1, "g.supplier",  CC, "stone",                  1],
+          // [5, "g.supplier",  CC, "wood",                   5],
+          // [1, "g.supplier",  CC, "food.fruit",             2],       // availability
+          // [1, "g.supplier",  CC, "food.meat",              2],       // availability
         ];
 
       } else if (phase === "phase.town"){

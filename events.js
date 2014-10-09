@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, HANNIBAL, H, deb, logObject, uneval */
+/*globals HANNIBAL, deb, uneval */
 
 /*--------------- E V E N T S -------------------------------------------------
 
@@ -14,152 +14,163 @@
 
 HANNIBAL = (function(H){
 
-  var self;
+  var self,
 
-  //  see AIInterfaces.js
-  var orderedEvents = [
-    "Create", 
-    "EntityRenamed",
-    "TrainingFinished",
-    "ConstructionFinished",
-    "AIMetadata",
-    "Destroy",
-    "Attacked",
-    "OwnershipChanged",
-    "Garrison",
-    "UnGarrison",
-    "RangeUpdate",
-    "PlayerDefeated"
-  ],
-  msgTick         = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s",
-  createEvents    = {},
-  destroyEvents   = {};
+    // collects events packs per turn
+    packs = [],
 
-  var junctions = {
-    "*": {"*": []},
-    "0": {"*": []},
-    "1": {"*": []},
-    "2": {"*": []},
-    "3": {"*": []},
-    "4": {"*": []},
-    "5": {"*": []},
-    "6": {"*": []},
-    "7": {"*": []},
-    "8": {"*": []},
-  };
+    // log line
+    msgTick = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s",
 
-  var researchedTechsNT = {
-    "0": [],
-    "1": [],
-    "2": [],
-    "3": [],
-    "4": [],
-    "5": [],
-    "6": [],
-    "7": [],
-    "8": [],
-  };
+    // helps to ignore events
+    createEvents    = {},
+    destroyEvents   = {},
 
-  var handler = {
-    Create: function(e){}, 
-    OwnershipChanged: function(e){},
-    Garrison: function(e){},
-    UnGarrison: function(e){},
-    RangeUpdate: function(e){},
-    PlayerDefeated: function(e){},
-    EntityRenamed: function(e){
+    //  see AIInterfaces.js
+    orderedEvents = [
+      "Create", 
+      "EntityRenamed",
+      "TrainingFinished",
+      "ConstructionFinished",
+      "AIMetadata",
+      "Destroy",
+      "Attacked",
+      "OwnershipChanged",
+      "Garrison",
+      "UnGarrison",
+      "RangeUpdate",
+      "PlayerDefeated"
+    ],
 
-      // listener: assets, culture, producers
-
-      var msg = self.fire("EntityRenamed", {
-        player: H.Entities[e.newentity].owner(),
-        id:     e.entity,
-        id2:    e.newentity,
-      });
-
-      moveAllListener(msg);
-
-      destroyEvents[e.entity] = e; //????
-
+    // saves the listeners
+    dispatcher = {
+      "*": {"*": []},
+      "0": {"*": []},
+      "1": {"*": []},
+      "2": {"*": []},
+      "3": {"*": []},
+      "4": {"*": []},
+      "5": {"*": []},
+      "6": {"*": []},
+      "7": {"*": []},
+      "8": {"*": []},
     },
-    TrainingFinished: function(e){
 
-      // listener: assets, villages, producers
+    // list of techs per player
+    researchedTechs = {
+      "0": [],
+      "1": [],
+      "2": [],
+      "3": [],
+      "4": [],
+      "5": [],
+      "6": [],
+      "7": [],
+      "8": [],
+    },
 
-      e.entities.forEach(function(id){
+    // converts 0AD events to Hannibal messages
+    handler = {
+      Create: function(e){}, 
+      OwnershipChanged: function(e){},
+      Garrison: function(e){},
+      UnGarrison: function(e){},
+      RangeUpdate: function(e){},
+      PlayerDefeated: function(e){},
+      EntityRenamed: function(e){
 
-        self.fire("TrainingFinished", {
+        // listener: assets, culture, producers
+
+        var msg = self.fire("EntityRenamed", {
+          player: H.Entities[e.newentity].owner(),
+          id:     e.entity,
+          id2:    e.newentity,
+        });
+
+        moveAllListener(msg);
+
+        destroyEvents[e.entity] = e; //????
+
+      },
+      TrainingFinished: function(e){
+
+        // listener: assets, villages, producers
+
+        e.entities.forEach(function(id){
+
+          self.fire("TrainingFinished", {
+            player: e.owner,
+            id:     id,
+            data:   e.metadata,
+          });
+
+        });
+
+      },
+      ConstructionFinished: function(e){
+
+        // listener: assets, culture, groups
+
+        var msg = self.fire("ConstructionFinished", {
+          player: H.Entities[e.newentity].owner(),
+          id:     e.newentity,
+          // id2:    e.newentity,
+        });
+
+        moveAllListener(msg);
+
+      },
+      AIMetadata: function(e){
+
+        // listener: assets, culture, groups
+
+        self.fire("AIMetadata", {
           player: e.owner,
-          id:     id,
+          id:     e.id,
           data:   e.metadata,
         });
 
-      });
+      },
+      Destroy: function(e){
 
-    },
-    ConstructionFinished: function(e){
+        // listener: assets, culture, mili?
 
-      // listener: assets, culture, groups
+        if (!e.entityObj){
+          deb("WARN : EVT got destroy no entityObj, mats: %s", H.attribs(e));
+          return;
+        }
 
-      var msg = self.fire("ConstructionFinished", {
-        player: H.Entities[e.newentity].owner(),
-        id:     e.newentity,
-        // id2:    e.newentity,
-      });
-
-      moveAllListener(msg);
-
-    },
-    AIMetadata: function(e){
-
-      // listener: assets, culture, groups
-
-      self.fire("AIMetadata", {
-        player: e.owner,
-        id:     e.id,
-        data:   e.metadata,
-      });
-
-    },
-    Destroy: function(e){
-
-      // listener: assets, culture, mili?
-
-      if (!e.entityObj){
-        deb("WARN : EVT got destroy no entityObj, mats: %s", H.attribs(e));
-        return;
-      }
-
-      var msg = self.fire("Destroy", {
-        player: e.entityObj.owner(),
-        id:     e.entity,
-        // dont't do this it crashes !!! data:   {entity: e.entityObj, foundation: !!e.SuccessfulFoundation},
-        data:   {foundation: !!e.SuccessfulFoundation},
-      });
-
-      if (junctions[msg.player][msg.id]){
-        // delete(junctions[msg.player][msg.id]);
-      }
-
-    },
-    Attacked: function(e){
-
-      // listener: assets, grids, mili?
-
-      if (H.Entities[e.target]){
-
-        self.fire("Attacked", {
-          player: H.Entities[e.target].owner(),
-          id:     e.target,
-          id2:    e.attacker,
-          data:   {damage: e.damage, type: e.type},
+        var msg = self.fire("Destroy", {
+          player: e.entityObj.owner(),
+          id:     e.entity,
+          // dont't do this it crashes !!! data:   {entity: e.entityObj, foundation: !!e.SuccessfulFoundation},
+          data:   {foundation: !!e.SuccessfulFoundation},
         });
 
-      }
+        if (dispatcher[msg.player][msg.id]){
+          // delete(dispatcher[msg.player][msg.id]);
+        }
 
-    },
-  };
+      },
+      Attacked: function(e){
 
+        // listener: assets, grids, mili?
+
+        if (H.Entities[e.target]){
+
+          self.fire("Attacked", {
+            player: H.Entities[e.target].owner(),
+            id:     e.target,
+            id2:    e.attacker,
+            data:   {damage: e.damage, type: e.type},
+          });
+
+        }
+
+      },
+    };
+
+  // loggable functions
   function logFn(fn){return fn.toString().split("\n").join("").slice(0, 80);}
 
   function logDispatcher(){
@@ -184,10 +195,10 @@ HANNIBAL = (function(H){
   function dispatchMessage (msg) {
 
     var listeners = H.unique([].concat(
-      junctions["*"],
-      junctions[msg.player]["*"],
-      junctions[msg.player][msg.name],
-      junctions[msg.player][msg.id]
+      dispatcher["*"],
+      dispatcher[msg.player]["*"],
+      dispatcher[msg.player][msg.name],
+      dispatcher[msg.player][msg.id]
     )).filter(l => typeof l === "function");
 
     // deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
@@ -198,17 +209,30 @@ HANNIBAL = (function(H){
 
   }
 
+  // puts a single listener into the dispatcher
   function registerListener(player, type, listener){
 
-    if (junctions[player][type] === undefined){
-      junctions[player][type] = [listener];
+    if (dispatcher[player][type] === undefined){
+      dispatcher[player][type] = [listener];
       
-    } else if (!H.contains(junctions[player][type], listener)){
-      junctions[player][type].push(listener);
+    } else if (!H.contains(dispatcher[player][type], listener)){
+      dispatcher[player][type].push(listener);
 
     } else {
       deb("WARN  : duplicate listener: %s %s, %s", player, type, logFn(listener));
 
+    }
+
+  }
+
+  // remove single listener
+  function removeListener (player, type, listener){
+
+    if (dispatcher[player][type]){
+      H.delete(dispatcher[player][type], l => l === listener);
+      if (dispatcher[player][type].length === 0){
+        delete(dispatcher[player][type]);
+      }
     }
 
   }
@@ -219,18 +243,37 @@ HANNIBAL = (function(H){
 
     var id1 = msg.id, id2 = msg.id2;
 
-    if (junctions[msg.player][id2]){
-      junctions[msg.player][id2].forEach(listener => registerListener(msg.player, id1, listener));
-      delete(junctions[msg.player][id2]);
+    if (dispatcher[msg.player][id2]){
+      dispatcher[msg.player][id2].forEach(listener => registerListener(msg.player, id1, listener));
+      delete(dispatcher[msg.player][id2]);
     }
 
   }
 
+  // detects new techs and fires "Advance"
+  function processTechs () {
+
+    H.each(H.Players, function (id, player) {
+      H.each(player.researchedTechs, function (key) {
+        if (!H.contains(researchedTechs[id], key)){
+
+          self.fire("Advance", {
+            player: id,
+            data:   {technology: H.saniTemplateName(key), key: key}
+          });
+
+          researchedTechs[id].push(key);
+
+        }
+      });
+    });
+
+  }
+
+  // public interface
   H.Events = (function(){
 
-    // Singleton
-
-    var t0, packs = [];
+    var t0;
 
     return {
       boot:    function(){self = this; return self;},
@@ -245,19 +288,17 @@ HANNIBAL = (function(H){
       tick:    function(){
 
         // dispatches new techs and finally fifo processes 
-        // collected event packs and then single events with order defined above
+        // collected event packs and then single events in order defined above
 
         t0 = Date.now();
 
-        self.processTechs();
+        processTechs();
 
         packs.forEach(function(events){
           self.logTick(events);
           orderedEvents.forEach(function(type){
             if (events[type]){
               events[type].forEach(function(event){
-                // self.processEvent(type, event);
-                // self.processEventNT(type, event);
                 handler[type](event);
               });
             }
@@ -295,51 +336,35 @@ HANNIBAL = (function(H){
 
         } else {
           deb("ERROR: Events.on is strange: %s", uneval(args));
-          return [];
+          return;
 
         }
 
         return [type, player, listener, "unknown"];
 
       },
-      off: function (/* type [player, ] listener */) {
+      off: function (/* [type, [player, ]] listener */) {
 
         var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
 
-        H.delete(junctions["*"]["*"],     l => l === listener);
-        H.delete(junctions[player]["*"],  l => l === listener);
-        H.delete(junctions[player][type], l => l === listener);
+        H.delete(dispatcher["*"]["*"],     l => l === listener);
+        H.delete(dispatcher[player]["*"],  l => l === listener);
+        H.delete(dispatcher[player][type], l => l === listener);
 
       },
-      on: function (/* type [player, ] listener */) {
+      on: function (/* [type, [player, ]] listener */) {
 
         var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
 
         registerListener(player, type, listener);
 
+        // allows to add/sub type afterwards
+        return {
+          add : function(type){registerListener(player, type, listener);},
+          sub : function(type){removeListener(player, type, listener);}
+        };
+
       },
-      processTechs: function() {
-
-        H.each(H.Players, function (id, player) {
-
-          H.each(player.researchedTechs, function (key) {
-
-            if (!H.contains(researchedTechsNT[id], key)){
-
-              self.fire("Advance", {
-                player: id,
-                data:   {technology: H.saniTemplateName(key)}
-              });
-
-              researchedTechsNT[id].push(key);
-
-            }
-
-          });
-
-        });
-
-      }
 
     };
 

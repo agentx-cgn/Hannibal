@@ -140,17 +140,22 @@ HANNIBAL = (function(H){
       },
       appoint: function(groupname, id){
 
-        // launch and init a group instance to manage a shared ingame structure/building
+        // launches and inits a group instance to manage a shared ingame structure/building
         // called at init ??and during game??, if an order for a shared asset is ready
 
-        var cc = H.MetaData[id].ccid,
-            instance = this.launch(groupname, cc),
-            node  = H.QRY("INGAME WITH id = " + id, 0).first(),
-            nodename  = node.name.split("#")[0];
+        var 
+          cc = H.MetaData[id].ccid,
+          instance = this.launch(groupname, cc),
+          node = H.QRY("INGAME WITH id = " + id, 0).first(),
+          nodename = node.name.split("#")[0];
 
-        H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
-        H.Entities[id].setMetadata(H.Bot.id, "opid",   instance.id);
-        H.Entities[id].setMetadata(H.Bot.id, "opname", instance.name);
+        H.MetaData[id].opmode = "shared";
+        H.MetaData[id].opid   = instance.id;
+        H.MetaData[id].opname = instance.name;
+
+        // H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
+        // H.Entities[id].setMetadata(H.Bot.id, "opid",   instance.id);
+        // H.Entities[id].setMetadata(H.Bot.id, "opname", instance.name);
 
         instance.structure = ["private", nodename];
         instance.structure = H.createAsset(instance, 'structure', [id]);
@@ -275,7 +280,7 @@ HANNIBAL = (function(H){
 
         });
 
-        deb("   GRP: %s launch, cc: %s, args: %s", instance, ccid, uneval(args));
+        deb("   GRP: launch %s cc: %s, args: %s", instance, ccid, uneval(args));
 
         // call and activate
         instance.listener.onLaunch.apply(null, [ccid].concat(args));

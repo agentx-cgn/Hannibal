@@ -14,10 +14,11 @@
 
 HANNIBAL = (function(H){
 
-  var phases = {
+  var phases = H.Phases = {
       "1" : {idx: 1, abbr: "vill", generic: "phase_village", alternates: ["vill", "phase_village"]},
       "2" : {idx: 2, abbr: "town", generic: "phase_town",    alternates: ["town", "phase_town"]},
       "3" : {idx: 3, abbr: "city", generic: "phase_city",    alternates: ["city", "phase_city"]},
+      current: "",
       find: function(phase){
         for (var i=1; i<=3; i++) {
           if (H.contains(phases[i].alternates, phase)){

@@ -228,8 +228,9 @@ HANNIBAL = (function(H){
                 res.consumed = true;
               }
             });
-            deb("   RES: kmeans: %s trees", trees.length);
-            if (trees.length){
+            if (!trees.length){
+              deb("   RES: kmeans: 0 trees");
+            } else {
               kmeans = new H.AI.KMeans();
               kmeans.k = 3; // map size !!!!
               kmeans.maxIterations = 50;

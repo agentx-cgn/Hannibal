@@ -43,7 +43,9 @@ HANNIBAL = (function(H){
     alloc: H.deepcopy(ress), // allocated per queue
     forec: H.deepcopy(ress), // ???
     trend: H.deepcopy(ress), // as per suply
+    flows: H.deepcopy(ress), // as per suply
     stack: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
+    diffs: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
     availability: availability,
     tick:  function(){
 
@@ -52,28 +54,28 @@ HANNIBAL = (function(H){
         stock   = H.Stats.stock, 
         suply   = H.Stats.suply, 
         stack   = H.Stats.stack, 
-        trend   = H.Stats.trend;
+        trend   = H.Stats.trend,
+        diffs   = H.Stats.diffs,
+        flows   = H.Stats.flows,
+        gathered  = H.Player.statistics.resourcesGathered,
+        available = H.Player.resourceCounts;
           
       // ctx.lstUnits.forEach(function(unit){
       //   curHits += unit.hitpoints();
       //   maxHits += unit.maxHitpoints();
       // });    
+
+      // gather diffs
+      H.attribs(ress).forEach(function(prop){ 
+        diffs[prop].push(gathered[prop] - suply[prop]); // prep flows
+        suply[prop]   = gathered[prop];                 // totals
+        stock[prop]   = available[prop];                // available
+      });
       
-      // totals
-      suply.food   = H.Player.statistics.resourcesGathered.food;
-      suply.wood   = H.Player.statistics.resourcesGathered.wood;
-      suply.stone  = H.Player.statistics.resourcesGathered.stone;
-      suply.metal  = H.Player.statistics.resourcesGathered.metal;
-
-      // available
-      stock.food   = H.Player.resourceCounts.food;
-      stock.wood   = H.Player.resourceCounts.wood;
-      stock.stone  = H.Player.resourceCounts.stone;
-      stock.metal  = H.Player.resourceCounts.metal;
-
+      // sort availability by stock
       availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
 
-      // current
+      // other data
       stock.pops   = H.Player.popCount;
       stock.area   = H.Player.statistics.percentMapExplored;
       stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
@@ -82,6 +84,7 @@ HANNIBAL = (function(H){
       H.attribs(ress).forEach(function(prop){ 
         stack[prop].push(suply[prop]);      // buffers
         trend[prop] = stack[prop].trend();  // trend
+        flows[prop] = diffs[prop].avg();    // 
       });
 
       return Date.now() - t0;
@@ -155,22 +158,22 @@ HANNIBAL = (function(H){
         deb("   PDC: found %s producers", producers.length);
 
       },
-      onReady: function(verb, info){
+      unqueue: function(verb, info){
 
         var p, i = producers.length;
 
         while((p = producers[--i])){
           if(p.queue && p.queue.length){
             if (H.delete(p.queue, task => task[0] === info)){
-              deb("   PDC: onready: removed in queue: %s, %s from %s", verb, info, p.name);
+              deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, p.name);
               return;
             } else {
-              deb("   PDC: onReady not found %s, %s, -> %s : %s", verb, info, p.name, p.queue);
+              deb("   PDC: unqueue not found %s, %s, -> %s : %s", verb, info, p.name, p.queue);
             }
           }
         }
 
-        deb("   PDC: onready: not found in queue: %s, %s", verb, info);
+        deb("   PDC: unqueue: not found in queue: %s, %s", verb, info);
 
       },
       find: function(product, ccid){
@@ -194,7 +197,7 @@ HANNIBAL = (function(H){
 
           case "research":
           // can ignore cc
-            deb("   PDC: searching: %s", product);
+            // deb("   PDC: searching: %s", product);
             while ((producer = producers[--i])){
               name = producer.name.split("#")[0];
               if (tree[name].products.research[product]){
@@ -313,9 +316,18 @@ HANNIBAL = (function(H){
 
       // any unmet techs
       this.nodes.forEach(function(node){
-        var req = H.Bot.tree.nodes[node.name].requires;
-        node.qualifies = req ? H.Technologies.available([req]) : node.qualifies;
-        node.info += req && H.Technologies.available([req]) ? "" : "unmet: " + req + ", ";
+
+        var 
+          req = H.Bot.tree.nodes[node.name].requires,
+          phase = H.Bot.tree.nodes[node.name].phase;
+        
+        if (H.Phases.find(phase).idx > H.Phases.find(H.Phases.current).idx){
+          node.qualifies = false; node.info = "needs phase " + phase; return;
+        }
+        if (req && !H.Technologies.available([req])){
+          node.qualifies = false; node.info = "needs req " + req; return;
+        }
+
       });  
 
       this.nodes.forEach(node => {
@@ -370,23 +382,33 @@ HANNIBAL = (function(H){
         );
 
       if (verb === "research"){
-        if (H.Technologies.available([hcq])){
-          self.processing += 1; 
-          H.Economy.listener("onOrderReady", node.id, {metadata: {order: self.id}});
-        }
+        // if (H.Technologies.available([hcq])){
+
+        //   // UNTESTED, not called whie proccesing
+        //   self.remaining  = 0; 
+        //   self.processing = 0; 
+
+        //    H.Events.fire("ResearchFinished", {
+        //     player: H.Bot.id,
+        //     data:   {order: self.id, source: self.source, technology: hcq}
+        //   });
+          
+        //   // self.processing += 1; 
+        //   // H.Economy.listener("onOrderReady", node.id, {metadata: {order: self.id}});
+        // } else {deb("    OE: assignExisting not avail. %s", hcq);}
 
       } else {
         H.QRY(hcq).execute()
           .slice(0, self.remaining - self.processing)
           .forEach(function(node){
 
+            self.remaining -= 1; 
+
              H.Events.fire("OrderReady", {
               player: H.Bot.id,
               id:     node.id,
               data:   {order: self.id, source: self.source}
             });
-
-            self.remaining -= 1; 
 
             // self.processing += 1; 
             // H.Economy.listener("onOrderReady", node.id, {metadata: {order: self.id}});
@@ -448,12 +470,12 @@ HANNIBAL = (function(H){
         allGood = H.Economy.fits(allocs, budget);
         deb("    OQ: queue: %s, allGood: %s, allocs: %s", queue.length, allGood, uneval(allocs));
 
-        msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s (0: %s)";
+        msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
         queue
           .forEach(o => {
             exec = o.executable ? "X" : "-";
             source = H.Objects(o.source).name;
-            nodename = o.nodes.length ? o.nodes[0].name : "no nodes";
+            nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
             deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
         });
 
@@ -573,7 +595,7 @@ HANNIBAL = (function(H){
     var 
       self, goals, groups, planner, 
       phases  = ["phase.village", "phase.town", "phase.city"],
-      ccid = H.Centre ? H.Centre.id : 0,
+      // ccid = H.Centre ? H.Centre.id : 0,
 
       ressTargets = {
         "food":  0,
@@ -581,20 +603,20 @@ HANNIBAL = (function(H){
         "stone": 0,
         "metal": 0,
         "pop":   0,
-      },
+      };
 
-      ressGroups = [
-        [1, "g.scouts",    ccid,                           1],       // depends on map size
-        [1, "g.harvester", ccid,                           5],       // needed for trade?
-        // [1, "g.builder",   ccid, class2name("house"),      2, 2],    // depends on building time
-        // [1, "g.builder",   ccid, class2name("barracks"),   2, 1],    // depends on civ and # enemies
-        // [1, "g.builder",   ccid, class2name("blacksmith"), 2, 1],    // one is max, check required techs
-        [1, "g.supplier",  ccid, "metal",                  1],               // 
-        [1, "g.supplier",  ccid, "stone",                  1],
-        [1, "g.supplier",  ccid, "wood",                  10],
-        [1, "g.supplier",  ccid, "food.fruit",             4],       // availability
-        [1, "g.supplier",  ccid, "food.meat",              2],       // availability
-      ];
+      // ressGroups = [
+      //   [1, "g.scouts",    ccid,                           1],       // depends on map size
+      //   [1, "g.harvester", ccid,                           5],       // needed for trade?
+      //   // [1, "g.builder",   ccid, class2name("house"),      2, 2],    // depends on building time
+      //   // [1, "g.builder",   ccid, class2name("barracks"),   2, 1],    // depends on civ and # enemies
+      //   // [1, "g.builder",   ccid, class2name("blacksmith"), 2, 1],    // one is max, check required techs
+      //   [1, "g.supplier",  ccid, "metal",                  1],               // 
+      //   [1, "g.supplier",  ccid, "stone",                  1],
+      //   [1, "g.supplier",  ccid, "wood",                  10],
+      //   [1, "g.supplier",  ccid, "food.fruit",             4],       // availability
+      //   [1, "g.supplier",  ccid, "food.meat",              2],       // availability
+      // ];
 
     self = {
       boot: function(){self = this; return self;},
@@ -614,11 +636,18 @@ HANNIBAL = (function(H){
       },
       activate: function(){
 
-        var order, self = this;
+        var order;
 
         H.Events.on("EntityRenamed", function (msg){
           H.Producers.removeById(msg.id);
           H.Producers.loadById(msg.id2);
+        });
+
+        H.Events.on("Advance", function (msg){
+          if (H.OrderQueue.delete(order => order.hcq === msg.data.technology)){
+            H.Producers.unqueue("research", msg.data.technology);
+            deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
+          }        
         });
 
         H.Events.on("ConstructionFinished", function (msg){
@@ -628,7 +657,7 @@ HANNIBAL = (function(H){
         H.Events.on("TrainingFinished", function (msg){
 
           H.Producers.loadById(msg.id);
-          H.Producers.onReady("train", msg.data.task); 
+          H.Producers.unqueue("train", msg.data.task); 
 
           order = H.Objects(msg.data.order);
           order.remaining  -= 1;
@@ -687,7 +716,7 @@ HANNIBAL = (function(H){
 
         deb("     E: ress: %s", uneval(ressTargets));
 
-        goals = self.updateGoals(planner.operations);
+        goals = self.updateGoals(planner);
 
         groups = H.Brain.requestGroups(phase);
         groups.forEach(g => deb("     E: group: %s", g));
@@ -704,11 +733,15 @@ HANNIBAL = (function(H){
         deb("   ECO: updatePlan -------");deb();
 
       },
-      updateGoals: function(operations){
+      updateGoals: function(planner){
 
         // filter out already achieved goals and meta info
 
-        var goals = operations.filter(oper => {
+        var 
+          count, 
+          cost  = planner.costs,
+          nextphase,
+          goals = planner.operations.filter(oper => {
 
           if (oper[1] === "research_tech" && oper[2].contains("phase")){
             return false;
@@ -731,26 +764,32 @@ HANNIBAL = (function(H){
         goals.forEach(goal => {
 
           if (goal[1] === "build_structures" || goal[1] === "train_units"){
-            goal[3] -=  H.QRY(goal[2] + " INGAME").count();
+            count = H.QRY(goal[2] + " INGAME").count();
+            deb("     E: have: %s, need: %s | %s", count, goal[3], goal[2]);
+            goal[3] -=  count;
           }
 
         });
 
         goals.forEach(goal => {
 
-          deb("     E: goal:  %s", goal.slice(1));
-          
-          if (goal[0] === "research_tech"){
+          if (goal[1] === "research_tech"){
+            deb("     E: goal: X %s", goal.slice(1));
             H.Triggers.add( -1, 
               H.Economy.request.bind(H.Economy, new H.Order({
                 amount:     1,
                 verb:       "research", 
-                hcq:        goal[1], 
+                hcq:        goal[2], 
                 source:     H.Brain.id, 
                 shared:     false
               }))
             );
+
+          } else {
+            deb("     E: goal: - %s", goal.slice(1));
+          
           }
+
 
 
         });
@@ -796,96 +835,90 @@ HANNIBAL = (function(H){
         var 
           pos, id = producer.id, task, 
           techname = H.saniTemplateName(template),
-          msg  = ( verb === "build" ?
+          msg = ( verb === "build" ?
             "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s" : 
             "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s"
           );
 
         if (verb === "build" && order.x === undefined){deb("ERROR : order #%s %s without position", id, verb); return;}
 
-
         switch(verb){
 
           case "train" :
             task = H.Task.id;
             producer.queue.push([task, order]);
+            deb(msg, order.id, verb, id, amount, template); 
             H.Engine.train([id], template, amount, {order: order.id, task: task});
-            msg = H.format(msg, order.id, verb, id, amount, template); 
           break;
 
           case "research" : 
             producer.queue.push([techname, order]);
+            deb(msg, order.id, verb, id, 1, template); 
             H.Engine.research(id, template);
-            msg = H.format(msg, order.id, verb, id, 1, template); 
           break;
 
           case "build" : 
             // needs no queue
             pos = H.Map.findGoodPosition(template, [order.x, order.z]);
+            deb(msg, order.id, verb, id, 1, template, order.x.toFixed(0), order.z.toFixed(0)); 
             H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id});
-            msg = H.format(msg, order.id, verb, id, 1, template, order.x.toFixed(0), order.z.toFixed(0)); 
-
           break;
 
         }
 
-        deb(msg);
-
       },
-      listener: function(type, id, event){
+      // listener: function(type, id, event){
 
-        var order;
+      //   var order;
 
-        switch(type){
+      //   switch(type){
 
-          case "onAdvance":
-            deb("   ECO: onAdvance: %s", event.name);
-            if (phases.indexOf(event.name) !== -1){
-              self.advancePhase(event.name);
-            }
-            H.Producers.onReady("research", event.name);
-            if (H.OrderQueue.delete(order => order.hcq === event.name)){
-              deb("   ECO: onAdvance: removed order with tech: %s", event.name);
-            }
-          break;
+      //     case "onAdvance":
+      //       deb("   ECO: onAdvance: %s", event.name);
+      //       if (phases.indexOf(event.name) !== -1){
+      //         self.advancePhase(event.name);
+      //       }
+      //       H.Producers.onReady("research", event.name);
+      //       if (H.OrderQueue.delete(order => order.hcq === event.name)){
+      //         deb("   ECO: onAdvance: removed order with tech: %s", event.name);
+      //       }
+      //     break;
 
-          case "onOrderReady" :
+      //     case "onOrderReady" :
 
-            order = H.Objects(event.metadata.order);
-            order.remaining  -= 1;
-            order.processing -= 1;
-            // deb("   ECO: #%s onOrderReady rem: %s, pro: %s, id: %s, %s", order.id, order.remaining, order.processing, id, H.Entities[id]._templateName);
-            H.Objects(order.source).listener("Ready", id);  
-            if (order.verb === "train" && event.metadata.task){ 
-              // task = undefined for existing, builds are ignored => no queue
-              H.Producers.onReady("train", event.metadata.task); 
-            }
+      //       order = H.Objects(event.metadata.order);
+      //       order.remaining  -= 1;
+      //       order.processing -= 1;
+      //       // deb("   ECO: #%s onOrderReady rem: %s, pro: %s, id: %s, %s", order.id, order.remaining, order.processing, id, H.Entities[id]._templateName);
+      //       H.Objects(order.source).listener("Ready", id);  
+      //       if (order.verb === "train" && event.metadata.task){ 
+      //         // task = undefined for existing, builds are ignored => no queue
+      //         H.Producers.onReady("train", event.metadata.task); 
+      //       }
 
-          break;
+      //     break;
 
-          default:
-            deb("  WARN: got unknown event in eco: %s", uneval(arguments));
-        }
+      //     default:
+      //       deb("  WARN: got unknown event in eco: %s", uneval(arguments));
+      //   }
 
-      },
+      // },
       logTick: function(){
 
-        var msg,
-            stock = H.Stats.stock, 
-            // stack = H.Stats.stack, 
-            trend = H.Stats.trend,
-            f = function(n){return n>0?"+"+n:n===0?" 0":n;},
-            t = H.tab;
-
-        msg = H.format("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
-          t(stock.food,   6), f(trend.food.toFixed(1)),
-          t(stock.wood,   6), f(trend.wood.toFixed(1)),
-          t(stock.metal,  6), f(trend.metal.toFixed(1)),
-          t(stock.stone,  6), f(trend.stone.toFixed(1)),
-          t(stock.pops,   4), f(trend.pops.toFixed(1)),
-          t(stock.area,   4), f(trend.area.toFixed(1)),
-          t(stock.health, 4), f(trend.health.toFixed(1))
-        );
+        var 
+          t = H.tab,
+          stock = H.Stats.stock, 
+          flows = H.Stats.flows,
+          f = function(n){return n>0?"+"+n:n===0?" 0":n;},
+          msg = H.format("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
+            t(stock.food,   6), f(flows.food.toFixed(1)),
+            t(stock.wood,   6), f(flows.wood.toFixed(1)),
+            t(stock.metal,  6), f(flows.metal.toFixed(1)),
+            t(stock.stone,  6), f(flows.stone.toFixed(1)),
+            t(stock.pops,   4), f(flows.pops.toFixed(1)),
+            t(stock.area,   4), f(flows.area.toFixed(1)),
+            t(stock.health, 4), f(flows.health.toFixed(1))
+          );
 
         deb(msg);
 
@@ -893,7 +926,7 @@ HANNIBAL = (function(H){
 
     };
 
-    self.listener.callsign = "economy";
+    // self.listener.callsign = "economy";
     return self;
 
   }()).boot();
