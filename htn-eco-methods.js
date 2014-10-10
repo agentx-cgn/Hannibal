@@ -61,18 +61,18 @@ HANNIBAL = (function(H){
         return;
       }
 
-      deb("      : %s", node.name);
-      planner.verbose = 10;
+      // deb("      : %s", node.name);
+      // planner.verbose = 10; /// XXXXXXXXXXXXXXXXXXXX
       planner.plan(start, [[H.HTN.Economy.methods.start, goal]]);
       if (planner.error){
         deb("ERROR : planning failed %s, %s", node.name, planner.operations.length);
         planner.logstack.forEach(function(o){
           deb("      :  %s",  o.m.slice(0,100));
         });
-        deb("      :  operations ---------");
-        planner.operations.forEach(function(oper){
-          deb("      :  %s",  oper);
-        });
+        // deb("      :  operations ---------");
+        // planner.operations.forEach(function(oper){
+        //   deb("      :  %s",  oper);
+        // });
       } else {
         // deb("      :  OK %s, %s", node.name, planner.operations.length);
         // planner.operations.forEach(function(op){

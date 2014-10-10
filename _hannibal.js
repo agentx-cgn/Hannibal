@@ -194,20 +194,26 @@ var HANNIBAL = (function() {
 
     // lof tech modifications
     if (false){
+
+      deb();deb();deb("      : Technologies ---------");
+      var affects, modus, list = [];
       H.each(H.Technologies, function(key, tech){
         if (tech.modifications){
           tech.modifications.forEach(function(mod){
-            var modus = (
-              mod.add !== undefined ? "add" :
+            modus = (
+              mod.add      !== undefined ? "add" :
               mod.multiply !== undefined ? "multiply" :
-              mod.replace !== undefined ? "replace" :
+              mod.replace  !== undefined ? "replace" :
                 "wtf"
             );
-            var affects = tech.affects ? tech.affects.join(" ") : mod.affects ? mod.affects : "wtf";
-            deb('%s %s %s %s "%s"', H.saniTemplateName(key), mod.value, modus, mod[modus], affects);
+            affects = tech.affects ? tech.affects.join(" ") : mod.affects ? mod.affects : "wtf";
+            list.push([H.saniTemplateName(key), mod.value, modus, mod[modus], affects]);
           });
         }
       });
+      debTable("TEX", list, 1);
+      deb("      : end ---------");
+      H.Config.deb = 0;
     }
 
 

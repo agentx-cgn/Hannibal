@@ -17,7 +17,7 @@ HANNIBAL = (function(H){
   H.Config = {
 
     //logging 0=zero, 1=errors, 2=errors+warnings, 3=everything
-    deb:      3,                   // enables messages to dbgView via _xdebug.js.deb()
+    deb:      4,                   // enables messages to dbgView via _xdebug.js.deb()
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester

@@ -36,8 +36,11 @@ HANNIBAL = (function(H){
       interval:       10,             // call onInterval every x ticks
       parent:         "",             // inherit useful features
 
-      capabilities:   "2 food/sec",   // (athen) give the economy a hint what this group provides.
-
+      technologies: [                 // these techs help
+                      "gather.capacity.wheelbarrow",
+                      "celts.special.gather.crop.rotation",
+                      "gather.farming.plows"
+      ],
 
       // this got initialized by launcher
       position:       null,           // coords of the group's position/activities

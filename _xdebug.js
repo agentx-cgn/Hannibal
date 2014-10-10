@@ -39,16 +39,50 @@ function deb(){
       (al === 1) ? args[0] :
         H.format.apply(H, args)
       ) + "\n",
-    head = msg.substr(0, 7).toUpperCase(),
+    prefix = msg.substr(0, 7).toUpperCase(),
     deblevel = H.Config.deb || 0,
     msglevel = (
-      head === "ERROR :" ? 1 :
-      head === "WARN  :" ? 2 :
-      head === "INFO  :" ? 3 :
+      prefix === "ERROR :" ? 1 :
+      prefix === "WARN  :" ? 2 :
+      prefix === "INFO  :" ? 3 :
         4
     );
 
   if (msglevel >= deblevel){print(msg);}
+
+}
+
+var debTable = function (header, table, sort){
+  // has dependencies
+  var 
+    H = HANNIBAL,
+    line, lengths = [],
+    cols = table[0].length,
+    space = H.mulString(" ", 100);
+
+  H.loop(cols, () => lengths.push(0));
+
+  table.forEach(row => {
+    H.loop(cols, col => {
+      var str = String(row[col -1]);
+      if (str.length > lengths[col -1]){lengths[col -1] = str.length;}
+    });
+  });
+
+  deb("------: start %s", header || "table");
+  table
+    .sort((a,b) => a[sort] < b[sort] ? -1 : 1)
+    .forEach((row, i) => {
+      line = H.format("      : %s ", H.tab(i, 4));
+      row.forEach((item, col) => line += (item + space).slice(0, lengths[col] + 1));
+      deb(line);
+    });
+
+  deb("------: %s ", header || "table");
+
+
+};
+
 
   // if (head === "ERROR :" && level > 0){
   //   print(msg);
@@ -61,7 +95,6 @@ function deb(){
   // } else {
   //   // do nothing
   // }
-}
 
 
 function debug(){

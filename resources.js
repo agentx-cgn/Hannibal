@@ -217,26 +217,19 @@ HANNIBAL = (function(H){
 
       },
       consume: function(ids){ //TODO
-        var res;
-        ids.forEach(function(id){
-          generics.forEach(function(generic){
-            res = resources[generic][id];
-            if(res){
-              res.consumed = true;
-              stats[generic].consumed += res.supply;
-              stats[generic].depleted += 1;
-            }
-          });
+        H.Resources.eachAll(function(generic, specific, stats, id, res){
+          if (H.contains(ids, id)){
+            res.consumed = true;
+            stats.consumed += res.supply;
+            stats.depleted += 1;
+          }
         });
       },
       markFound: function(pos, range){ //TODO
-        generics.forEach(function(generic){
-          Object.keys(resources[generic]).forEach(function(id){
-            var res = resources[generic][id];
-            if (H.Map.distance(pos, res.position) < range){
-              res.found = true;
-            }            
-          });
+        H.Resources.eachAll(function(generic, specific, stats, id, res){
+          if (H.Map.distance(pos, res.position) < range){
+            res.found = true;
+          }            
         });
       },
       nearest: function(loc, type){
@@ -266,7 +259,7 @@ HANNIBAL = (function(H){
           case "food.grain": // untested
           case "food.whale": // untested
           case "food.fish": // untested
-            H.eachType(type, function(generic, specific, id, res){
+            H.Resources.eachType(type, function(generic, specific, id, res){
               if (H.Entities[id]){
                 if (res.found && !res.consumed){
                   distance = H.Map.distance(pos, res.position);
@@ -280,7 +273,7 @@ HANNIBAL = (function(H){
           break;
 
           case "food.meat": // has prey check
-            H.each(resources.food, function(id, res){
+            H.Resources.each(resources.food, function(id, res){
               if (H.Entities[id]){
                 if (res.found && !res.consumed && res.isPrey){
                   distance = H.Map.distance(pos, res.position);
@@ -297,7 +290,7 @@ HANNIBAL = (function(H){
           case "wood.ruins":
           case "wood.tree":
             trees = [];
-            H.eachType(type, function(generic, specific, id, res){
+            H.Resources.eachType(type, function(generic, specific, id, res){
               if (H.Entities[id]){
                 if (res.found && !res.consumed){
                   trees.push({x: res.position[0], z: res.position[1], id: id, res: res});
