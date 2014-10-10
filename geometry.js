@@ -92,6 +92,25 @@ HANNIBAL = (function(H){
     }
   };
 
+  H.Geometry.Circle = function (x, y, radius){
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+  };
+  H.Geometry.Circle.prototype = {
+    constructor: H.Geometry.Circle,
+    polygon: function (n) {
+      var out = [], s = (Math.PI * 2)/n;
+      while (n--){
+        out.push({
+          x: x + Math.cos(n * s) * this.radius,
+          y: y + Math.sin(n * s) * this.radius
+        });
+      }
+      return out;
+    },
+  };
+
 
   /*
     creates an array of n vertices all located on a circle with same distance

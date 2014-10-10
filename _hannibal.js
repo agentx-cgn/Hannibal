@@ -98,9 +98,6 @@ var HANNIBAL = (function() {
     H.MetaData          = H.Proxies.MetaData();
     H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
 
-    // Village
-    // H.Centre            = {id: 0};  // keeps the id of main civic centre
-
     // deb(uneval(H.SharedScript.passabilityClasses));
     // pathfinderObstruction:1, foundationObstruction:2, 'building-land':4, 'building-shore':8, default:16, ship:32, unrestricted:64
 
@@ -138,9 +135,9 @@ var HANNIBAL = (function() {
     // H.Grids.pass.log();
 
     H.Resources.init();                      // extracts resources from all entities
+    H.Resources.log();
     H.Scout.init();                          // inits scout extension for scout group
     H.Groups.init();                         // registers groups
-    // H.initVillage();
     H.Villages.init();
 
     // prepare planner cache
@@ -154,9 +151,9 @@ var HANNIBAL = (function() {
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
-    // this.tree.export();
+    this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
 
-    // Now make a plan to start with
+    // Now make an action plan to start with
     H.Producers.init(this.tree);
     H.Brain.init();
     H.Economy.init();
@@ -230,7 +227,7 @@ var HANNIBAL = (function() {
     ts.debug = 5;
 
     // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
-    H.QRY("TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
+    // H.QRY("TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
 
     // H.QRY("gather.lumbering.ironaxes").execute("metadata", 5, 10, "check");
 

@@ -37,10 +37,12 @@ HANNIBAL = (function(H){
 
   function cacheDepths(){
 
-    // runs planner over all nodes and writes planning depth to H.Data.Depths[civ][name]
+    // runs planner over all nodes and writes planning depth 
+    // to H.Data.Depths[civ][name] and tree.nodes
 
-    var zero = function () {return new H.HTN.Helper.State({ress: {}, ents: {}, tech: []}).sanitize();},
-        cc   = H.format("structures.%s.civil.centre", tree.civ);
+    var 
+      zero = function () {return new H.HTN.Helper.State({ress: {}, ents: {}, tech: []}).sanitize();},
+      ccname = H.format("structures.%s.civil.centre", tree.civ);
 
     H.Data.Depths[tree.civ] = {};
 
@@ -48,7 +50,7 @@ HANNIBAL = (function(H){
 
       var goal = zero(), start = zero();
 
-      start.data.ents[cc] = 1;
+      start.data.ents[ccname] = 1;
       
       if (node.verb === "research") {
         goal.data.tech = [node.name];
@@ -59,11 +61,17 @@ HANNIBAL = (function(H){
         return;
       }
 
+      deb("      : %s", node.name);
+      planner.verbose = 10;
       planner.plan(start, [[H.HTN.Economy.methods.start, goal]]);
       if (planner.error){
         deb("ERROR : planning failed %s, %s", node.name, planner.operations.length);
         planner.logstack.forEach(function(o){
           deb("      :  %s",  o.m.slice(0,100));
+        });
+        deb("      :  operations ---------");
+        planner.operations.forEach(function(oper){
+          deb("      :  %s",  oper);
         });
       } else {
         // deb("      :  OK %s, %s", node.name, planner.operations.length);
@@ -241,6 +249,8 @@ HANNIBAL = (function(H){
   H.HTN.Economy.initialize = function(oPlanner, oTree){
 
     var t0 = Date.now();
+
+    deb();deb();deb("   HTN: H.HTN.Economy.initialize ...")
     
     m = H.HTN.Economy.methods;
     o = H.HTN.Economy.operators;
@@ -272,7 +282,7 @@ HANNIBAL = (function(H){
 
     cacheDepths();
     
-    deb();deb();deb("   HTN: H.HTN.Economy.initialized %s msecs", Date.now() - t0);
+    deb("   HTN: H.HTN.Economy %s msecs", Date.now() - t0);
   };
 
   H.HTN.Economy.report = function(header){

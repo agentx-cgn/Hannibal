@@ -53,10 +53,12 @@ HANNIBAL = (function(H){
     players:     [2, 8,     function(){}],
     enemies:     [1, 7,     function(){}],
     allies:      [1, 7,     function(){}],
+    teams:       [2, 4,     function(){}],
     
     population:  [1, 100,   function(){}],   // percentage of pop to popmax
 
     // Civilisation
+    popuHouse:   [1, 10,    function(){}],   // 
     timeHouse:   [1, 100,   function(){}],   // time range from low to high to build a house
     hasMobileDropsites: [0, 1,   function(){}],   // time range from low to high to build a house
 
@@ -73,14 +75,12 @@ HANNIBAL = (function(H){
 
       deb();deb();deb(" BRAIN: init");
 
-      this.id = H.Objects(this);
+      H.Brain.id = H.Objects(this);
 
       planner = new H.HTN.Planner({
         name:         "brain.planner",
-        // domain:       H.HTN.Economy,
         operators:    H.HTN.Economy.operators,
         methods:      H.HTN.Economy.methods,
-        // noInitialize: true
       });
 
     },
@@ -114,7 +114,7 @@ HANNIBAL = (function(H){
       if (ticks === 1){
         // assuming village...
         this.runPlanner("phase.village");
-        H.Economy.updatePlan("phase.village");
+        H.Economy.updateActions("phase.village");
       }
 
       if (ticks === 2){
@@ -157,6 +157,7 @@ HANNIBAL = (function(H){
 
         // add buildings
         [
+
           ["barracks",  2],
           ["farmstead", 2],
           ["house",     Math.ceil(ress.pop / housePopu)],
@@ -188,18 +189,19 @@ HANNIBAL = (function(H){
       JSON.stringify(state.data, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
+
       deb();deb(" BRAIN: plan in phase: %s", phase);
       JSON.stringify(planner.result, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
+
       deb();deb("     B: operations:");
       planner.operations.forEach(function(op){
         if (op[1] in logops){
-          deb("     B: - %s", op.filter(o => o === undefined).join(", "));
+          deb("     B: - %s", op.filter(o => o !== undefined).join(", "));
         }
       });      
       deb("     B: cost: ", uneval(planner.result.data.cost));
-      deb();
 
 
     },

@@ -28,6 +28,7 @@ HANNIBAL = (function(H){
     ress         = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0},
     allocations  = {food: 0, wood: 0, stone: 0, metal: 0, population: 0};
 
+
   function pritc(cost){ // pretty cost
     var out = [];
     Object.keys(cost).forEach(r => {
@@ -38,14 +39,18 @@ HANNIBAL = (function(H){
 
   H.Stats = {
 
-    stock: H.deepcopy(ress), // currently available via API
-    suply: H.deepcopy(ress), // gathered
+    // ress currently available via API
+    stock: H.deepcopy(ress), 
+
+    // totals gathered, difference per tick, flow = avg over diff
+    suply: H.deepcopy(ress), 
+    diffs: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)),
+    flows: H.deepcopy(ress), 
+
     alloc: H.deepcopy(ress), // allocated per queue
     forec: H.deepcopy(ress), // ???
     trend: H.deepcopy(ress), // as per suply
-    flows: H.deepcopy(ress), // as per suply
     stack: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
-    diffs: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
     availability: availability,
     tick:  function(){
 
@@ -98,14 +103,6 @@ HANNIBAL = (function(H){
     }
 
   }; 
-
-  // generates unique numbers
-  H.Task = (function(){
-    var counter = 0;
-    return {
-      get id () {return ++counter;}
-    };
-  }());
 
   H.Producers = (function(){
 
@@ -450,7 +447,7 @@ HANNIBAL = (function(H){
       process: function(){
 
         var 
-          amount, node, nodename, id, msg, source, exec, t = H.tab,
+          amount, node, nodename, msg, source, exec, t = H.tab,
           allocs     = H.deepcopy(allocations),
           budget     = H.deepcopy(H.Stats.stock),
           allGood    = false, 
@@ -461,15 +458,19 @@ HANNIBAL = (function(H){
         // reset logging array
         log.rem.length = 0; log.ign.length = 0; log.exe.length = 0;
 
+        // queue empty -> exit
         if (!queue.length){tP = 0; return;}
 
+        // sort by (source, verbs) and evaluate
         queue
           .sort((a, b) => prioVerbs.indexOf(a.verb) < prioVerbs.indexOf(b.verb) ? -1 : 1)
           .forEach(order => order.evaluate(allocs));
 
+        // get first quote whether all order fit budget
         allGood = H.Economy.fits(allocs, budget);
         deb("    OQ: queue: %s, allGood: %s, allocs: %s", queue.length, allGood, uneval(allocs));
 
+        // log
         msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
         queue
           .forEach(o => {
@@ -479,22 +480,28 @@ HANNIBAL = (function(H){
             deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
         });
 
+        // choose executables and process
         queue
           .filter(order => order.executable)
           .forEach(function(order){
 
-            id = order.id;
+            var id = order.id;
+
+            // first node from evaluation
             node = order.nodes[0];
+
+            // process all or one
             amount = allGood ? order.remaining - order.processing : 1;
 
-            if (allGood || H.Economy.fits(node.costs, budget)){
+            // final global budget check
+            if (allGood || H.Economy.fits(node.costs, budget, amount)){
 
               switch(order.verb){
 
                 case "train":
                   // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
                   H.Economy.do("train", amount, node.producer, node.key, order);
-                  H.Economy.subtract(node.costs, budget);
+                  H.Economy.subtract(node.costs, budget, amount);
                   order.processing += amount;
                   log.exe.push(id + ":" + amount);
                 break;
@@ -503,7 +510,7 @@ HANNIBAL = (function(H){
                   if (builds === 0){
                     // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.x + "|" + order.z, node.key);
                     H.Economy.do("build", amount, node.producer, node.key, order);
-                    H.Economy.subtract(node.costs, budget);
+                    H.Economy.subtract(node.costs, budget, amount);
                     order.processing += amount;
                     builds += 1;
                   } else {
@@ -513,7 +520,7 @@ HANNIBAL = (function(H){
 
                 case "research":
                   H.Economy.do("research", 1, node.producer, node.key, order);
-                  H.Economy.subtract(node.costs, budget);
+                  H.Economy.subtract(node.costs, budget, amount);
                   order.processing += amount;
                   log.exe.push(id + ":" + amount);
                 break;
@@ -594,16 +601,7 @@ HANNIBAL = (function(H){
 
     var 
       self, goals, groups, planner, 
-      phases  = ["phase.village", "phase.town", "phase.city"],
-      // ccid = H.Centre ? H.Centre.id : 0,
-
-      ressTargets = {
-        "food":  0,
-        "wood":  0,
-        "stone": 0,
-        "metal": 0,
-        "pop":   0,
-      };
+      phases  = ["phase.village", "phase.town", "phase.city"];
 
       // ressGroups = [
       //   [1, "g.scouts",    ccid,                           1],       // depends on map size
@@ -621,7 +619,41 @@ HANNIBAL = (function(H){
     self = {
       boot: function(){self = this; return self;},
       init: function(){
+
         deb();deb();deb("   ECO: init");
+
+        var 
+          flowCentre, flowBarrack, flowFortress, 
+          cls = H.class2name,
+          tree = H.Bot.tree.nodes,
+          housePopu = H.QRY(cls("house")).first().costs.population * -1,
+          CC = H.Villages.Centre.id,
+
+          actions = {
+            "phase.village": [
+            //  tck,            act, params
+              [   2, "launch_group", [1, "g.supplier",   CC, "food.fruit",     4]],
+              [   2, "launch_group", [1, "g.supplier",   CC, "food.meat",      1]],
+              [   2, "launch_group", [1, "g.supplier",   CC, "wood",           5]],
+              [   3, "launch_group", [1, "g.builder",    CC, cls("house"),     2,  2]],
+              [  10, "launch_group", [1, "g.harvester",  CC,                   5]],
+              [  20, "launch_group", [1, "g.builder",    CC, cls("barracks"),  5,  1]],
+              [  30, "launch_group", [1, "g.supplier",   CC, "stone",          5]],
+              [  30, "launch_group", [1, "g.supplier",   CC, "metal",          2]],
+            ],
+            "phase.town" :   [],
+            "phase.city" :   [],
+          };
+
+        flowBarrack  = tree[cls("barracks")].flow;
+        flowCentre   = tree[cls("civcentre")].flow;
+        flowFortress = tree[cls("fortress")].flow;
+
+        // deb("   ECO: max flow farmstead : %s ", uneval(H.getFlowFromClass("farmstead")));
+        deb("   ECO: max flow centre  : %s ", uneval(flowCentre));
+        deb("   ECO: max flow barracks: %s ", uneval(flowBarrack));
+        deb("   ECO: max flow fortress: %s ", uneval(flowFortress));
+
         // H.Events.registerListener("onAdvance", self.listener);
       },
       tick: function(secs, ticks){
@@ -644,6 +676,7 @@ HANNIBAL = (function(H){
         });
 
         H.Events.on("Advance", function (msg){
+          // works, but...
           if (H.OrderQueue.delete(order => order.hcq === msg.data.technology)){
             H.Producers.unqueue("research", msg.data.technology);
             deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
@@ -702,10 +735,18 @@ HANNIBAL = (function(H){
       monitorGoals: function(){
 
       },
-      updatePlan: function(phase){
+      updateActions: function(phase){
 
-        deb("   ECO: updatePlan phase: %s", phase);
+        deb();deb();deb("   ECO: updateActions phase: %s", phase);
         planner  = H.Brain.requestPlanner(phase);
+
+        var ressTargets = {
+          "food":  0,
+          "wood":  0,
+          "stone": 0,
+          "metal": 0,
+          "pop":   0,
+        };
 
         // deb("     E: planner.result.data: %s", uneval(planner.result.data));
 
@@ -716,7 +757,7 @@ HANNIBAL = (function(H){
 
         deb("     E: ress: %s", uneval(ressTargets));
 
-        goals = self.updateGoals(planner);
+        goals = self.getActions(planner);
 
         groups = H.Brain.requestGroups(phase);
         groups.forEach(g => deb("     E: group: %s", g));
@@ -730,10 +771,10 @@ HANNIBAL = (function(H){
 
         // H.Groups.log();
 
-        deb("   ECO: updatePlan -------");deb();
+        deb("   ECO: updateActions -------");deb();
 
       },
-      updateGoals: function(planner){
+      getActions: function(planner){
 
         // filter out already achieved goals and meta info
 
@@ -795,26 +836,27 @@ HANNIBAL = (function(H){
         });
 
       },
-      subtract: function(cost, budget){
-        budget.food  -= cost.food  > 0 ? cost.food  : 0;
-        budget.wood  -= cost.wood  > 0 ? cost.wood  : 0;
-        budget.metal -= cost.metal > 0 ? cost.metal : 0;
-        budget.stone -= cost.stone > 0 ? cost.stone : 0;
+      subtract: function(cost, budget, amount=1){
+        budget.food  -= cost.food  > 0 ? (cost.food  * amount) : 0;
+        budget.wood  -= cost.wood  > 0 ? (cost.wood  * amount) : 0;
+        budget.metal -= cost.metal > 0 ? (cost.metal * amount) : 0;
+        budget.stone -= cost.stone > 0 ? (cost.stone * amount) : 0;
       },
-      fits: function(cost, budget){
+      fits: function(cost, budget, amount=1){
         return (
-          (cost.food  || 0) <= (budget.food  || 0) &&
-          (cost.wood  || 0) <= (budget.wood  || 0) &&
-          (cost.stone || 0) <= (budget.stone || 0) &&
-          (cost.metal || 0) <= (budget.metal || 0)
+          ((cost.food  || 0) * amount) <= (budget.food  || 0) &&
+          ((cost.wood  || 0) * amount) <= (budget.wood  || 0) &&
+          ((cost.stone || 0) * amount) <= (budget.stone || 0) &&
+          ((cost.metal || 0) * amount) <= (budget.metal || 0)
         );  
       },
-      diff: function(cost, budget){
+      diff: function(cost, budget, amount=1){
+        var c = cost, b = budget, a = amount; // TODO amount 
         return {
-          food:  ((cost.food  || 0) > (budget.food  || 0)) ? cost.food  - (budget.food  || 0) : undefined,
-          wood:  ((cost.wood  || 0) > (budget.wood  || 0)) ? cost.wood  - (budget.wood  || 0) : undefined,
-          stone: ((cost.stone || 0) > (budget.stone || 0)) ? cost.stone - (budget.stone || 0) : undefined,
-          metal: ((cost.metal || 0) > (budget.metal || 0)) ? cost.metal - (budget.metal || 0) : undefined
+          food:  ((c.food  || 0) > (b.food  || 0)) ? c.food  - (b.food  || 0) : undefined,
+          wood:  ((c.wood  || 0) > (b.wood  || 0)) ? c.wood  - (b.wood  || 0) : undefined,
+          stone: ((c.stone || 0) > (b.stone || 0)) ? c.stone - (b.stone || 0) : undefined,
+          metal: ((c.metal || 0) > (b.metal || 0)) ? c.metal - (b.metal || 0) : undefined
         };
       },
       request: function(order){

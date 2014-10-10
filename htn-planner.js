@@ -14,15 +14,16 @@
 
 HANNIBAL = (function(H){
 
-  var // simple templates
-      fmt = function (){
-        var c=0, a=Array.prototype.slice.call(arguments); a.push("");
-        return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
-      },
-      // JSON w/o quotes
-      pritj = function(o){return JSON.stringify(o).split('"').join("");},
-      // prettyfies a task
-      pritt = function(task){return fmt("[%s: %s]", task[0].name, task.slice(1).join(", "));};
+  var 
+    // simple templates
+    fmt = function (){
+      var c=0, a=Array.prototype.slice.call(arguments); a.push("");
+      return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
+    },
+    // JSON w/o quotes
+    pritj = function(o){return JSON.stringify(o).split('"').join("");},
+    // prettyfies a task
+    pritt = function(task){return fmt("[%s: %s]", task[0].name, task.slice(1).join(", "));};
 
   H.HTN = H.HTN || {};                       
 

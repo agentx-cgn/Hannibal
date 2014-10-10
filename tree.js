@@ -4,7 +4,7 @@
 /*--------------- T E C H N O L O G Y   T R E E  ------------------------------
 
   Models the dependencies of entities and technologies
-  is source for culture/store + acts as a fast cache for producers, planner
+  is source for culture/store + acts as a fast cache for producers, planner, eco
 
   tested with 0 A.D. Alpha 15 Osiris
   V: 0.1, agentx, CGN, Feb, 2014
@@ -113,8 +113,9 @@ HANNIBAL = (function(H){
         logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
         logg("     T:        %s", t.key);
         logg("     T:        reqs: %s", t.requires || "none");
-        logg("     T:        verb: %s", t.verb || "none");
+        logg("     T:        flow: %s", t.flow ? JSON.stringify(t.flow) : "none");
 
+        logg("     T:        verb: %s", t.verb || "none");
         prods = H.attribs(t.producers);
         if (prods.length){
           prods.forEach(p => logg("     T:          %s", p));
@@ -224,6 +225,15 @@ HANNIBAL = (function(H){
             nodes[name].verb = "research";
           }
         });
+      });
+
+      // setting max resource flow for all trainer
+
+      H.each(nodes, function(name, node){
+        node.flow = ( H.count(node.products.train) ?
+          H.getFlowFromTrainer(name) :
+          null
+        );
       });
 
       deb();deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
