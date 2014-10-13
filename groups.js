@@ -83,7 +83,7 @@ HANNIBAL = (function(H){
 
           if (order && order.shared){
 
-            host = H.Groups.launch("g.custodian");
+            host = H.Groups.launch({name: "g.custodian", cc: order.ccid});
             host.structure = ["private", "INGAME WITH id = " + msg.id];
             host.structure = H.createAsset(host, "structure");
 
@@ -108,8 +108,8 @@ HANNIBAL = (function(H){
       isLaunchable: function(groupname){
         return !!groups[groupname];
       },
-      claim: function(ccid){},
-      request: function(ccid, amount, asset /* , location */ ){
+      claim: function(cc){},
+      request: function(cc, amount, asset /* , location */ ){
         
         // sanitize args
         var args = H.toArray(arguments),
@@ -126,7 +126,7 @@ HANNIBAL = (function(H){
         H.Triggers.add( -1,
           H.Economy.request.bind(H.Economy, new H.Order({
             amount:     amount,
-            ccid:       ccid,
+            cc:         cc,
             location:   location,
             verb:       asset.verb, 
             hcq:        asset.hcq, 
@@ -138,14 +138,13 @@ HANNIBAL = (function(H){
         // deb("   GRP: requesting: (%s)", args);    
 
       },
-      appoint: function(groupname, id){
+      appoint: function(id, options){
 
         // launches and inits a group instance to manage a shared ingame structure/building
         // called at init ??and during game??, if an order for a shared asset is ready
 
         var 
-          cc = H.MetaData[id].ccid,
-          instance = this.launch(groupname, cc),
+          instance = this.launch(options),
           node = H.QRY("INGAME WITH id = " + id, 0).first(),
           nodename = node.name.split("#")[0];
 
@@ -153,18 +152,14 @@ HANNIBAL = (function(H){
         H.MetaData[id].opid   = instance.id;
         H.MetaData[id].opname = instance.name;
 
-        // H.Entities[id].setMetadata(H.Bot.id, "opmode", "shared");
-        // H.Entities[id].setMetadata(H.Bot.id, "opid",   instance.id);
-        // H.Entities[id].setMetadata(H.Bot.id, "opname", instance.name);
-
         instance.structure = ["private", nodename];
-        instance.structure = H.createAsset(instance, 'structure', [id]);
+        instance.structure = H.createAsset(instance, "structure", [id]);
         // instance.structure.resources.push(id);
         instance.assets.push(instance.structure);
         
         // H.Events.registerListener(id, instance.structure.listener.bind(instance.structure));
 
-        deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", groupname, H.Entities[id], id, nodename, cc);
+        deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", options.name, H.Entities[id], id, nodename, options.cc);
 
         return instance;
 
@@ -200,14 +195,35 @@ HANNIBAL = (function(H){
           });
         });
       },
-      launch: function(name, ccid, args){
+      // launch: function(name, ccid, args){
+      getGroupTechnologies: function(launchaction){
+
+        // [1, "g.supplier", {cc:44, size:4, resource:"food.fruit"}]
+
+        var def = groups[launchaction[1]].definition;
+
+        return def.technologies || [];
+
+      },
+      getGroupExclusives: function(launchaction){
+
+        // [1, "g.supplier", {cc:44, size:4, resource:"food.fruit"}]
+
+        var def = groups[launchaction[1]].definition;
+
+        return def.exclusives(launchaction[2]) || null;
+
+      },
+      launch: function(options){
 
         // Object Factory; called by bot, economy, whatever
 
-        var instance  = {listener: {}},
-            group     = groups[name],
-            copy      = function (obj){return JSON.parse(JSON.stringify(obj));},
-            whitelist = H.Data.Groups.whitelist;
+        var 
+          instance  = {listener: {}},
+          name      = options.name,
+          group     = groups[name],
+          copy      = function (obj){return JSON.parse(JSON.stringify(obj));},
+          whitelist = H.Data.Groups.whitelist;
 
         if (!group){return deb("ERROR : can't launch unknown group: %s", name);}
 
@@ -248,8 +264,8 @@ HANNIBAL = (function(H){
           assets:     [],
           toString:   function(){return H.format("[group %s]", instance.name);},
           economy:    {
-            request: H.Groups.request.bind(null, ccid),
-            claim:   H.Groups.claim.bind(null, ccid)
+            request: H.Groups.request.bind(null, options.cc),
+            claim:   H.Groups.claim.bind(null, options.cc)
           },
           register: function(/* arguments */){
             H.toArray(arguments).forEach(function(prop){
@@ -266,7 +282,7 @@ HANNIBAL = (function(H){
           position: {
             // set intial position, gets probably overwritten
             location: (function(){
-              var pos = H.Map.getCenter([ccid]);
+              var pos = H.Map.getCenter([options.cc]);
               return function(){return pos;};
             }())
           },
@@ -280,10 +296,11 @@ HANNIBAL = (function(H){
 
         });
 
-        deb("   GRP: launch %s cc: %s, args: %s", instance, ccid, uneval(args));
+        deb("   GRP: launch %s cc: %s, args: %s", instance, options.cc, uneval(options));
 
         // call and activate
-        instance.listener.onLaunch.apply(null, [ccid].concat(args));
+        // instance.listener.onLaunch.apply(null, [ccid].concat(args));
+        instance.listener.onLaunch(options);
 
         return instance;
 

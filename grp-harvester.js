@@ -60,15 +60,24 @@ HANNIBAL = (function(H){
       // groups can claim space for structures or activities
       space:          [1, {width: 30, depth: 30, near: "<dropsite>"}],
 
+      exclusives:    function(options){
+        return {
+          units: [options.size, ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food"]],
+          field: [1, ["exclusive", "food.grain PROVIDEDBY"]]
+        };
+      },
 
       // message queue sniffer
 
       listener: {
 
         // game started, something launched this group
-        onLaunch: function(ccid, size){
+        onLaunch: function(options /*ccid, size*/){
 
-          this.size = size;
+          this.options = options;
+          this.size = options.size;
+          this.units = this.exclusives(options).units[1];
+          this.field = this.exclusives(options).field[1];
           this.register("dropsite", "units", "field", "shelter");     // turn res definitions into res objects
           this.economy.request(1, this.dropsite, this.position);      // assuming a CC exists
 

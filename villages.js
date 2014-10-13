@@ -134,25 +134,25 @@ HANNIBAL = (function(H){
             if (ent.hasClass("Unit")){
               H.MetaData[id].opname = "none";
               // ent.setMetadata(H.Bot.id, "opname", "none");
-              // deb("     I: set opname to 'none' %s", ent);
+              deb("     V: set opname to 'none' %s", ent);
 
             } else if (ent.hasClass("Structure")){
 
               if (ent.id() === H.Villages.Centre.id){
                 H.MetaData[id].opname = "g.mayor";
                 // ent.setMetadata(H.Bot.id, "opname", "g.mayor");
-                // deb("     I: set opname to 'g.mayor' for %s", ent);
+                deb("     V: set opname to 'g.mayor' for %s", ent);
 
               } else if (isShared(ent)){
                 H.MetaData[id].opname = "g.custodian";
                 // ent.setMetadata(H.Bot.id, "opname", "g.custodian");
-                // deb("     I: set opname to 'g.custodian' for %s", ent);
+                deb("     V: set opname to 'g.custodian' for %s", ent);
               
 
               } else {
                 H.MetaData[id].opname = "none";
                 // ent.setMetadata(H.Bot.id, "opname", "none");
-                // deb("     I: set opname to 'none' for %s", ent);
+                deb("     V: set opname to 'none' for %s", ent);
               
               }
 
@@ -169,15 +169,36 @@ HANNIBAL = (function(H){
       },
       appointOperators: function (){
 
+        var opname;
+
         deb("     V: appointing operators for structures");
 
         H.QRY("INGAME").forEach(function(node){
-          if (H.Groups.isLaunchable(node.metadata.opname)){
-            deb("     V: %s %s", node.name, node.metadata.opname);
-            H.Groups.appoint(node.metadata.opname, node.id);
+
+          opname = node.metadata.opname;
+
+          deb("     V: 1 %s %s", node.name, uneval(node.metadata));
+          
+          if (opname === 'none'){
+            deb("     V: 2 %s %s", node.name, opname);
+            // do nothing, is unit
+
+          } else if (opname === "g.custodian"){
+            deb("     V: 2 %s %s", node.name, opname);
+            H.Groups.appoint(node.id, {name: "g.custodian", cc: H.MetaData[node.id].ccid});
+
+          } else if (opname === "g.mayor"){
+            deb("     V: 2 %s %s", node.name, opname);
+            H.Groups.appoint(node.id, {name: "g.mayor", cc: H.MetaData[node.id].ccid});
+            // H.Groups.appoint("g.mayor", node.id, {});
+
+          } else {
+            H.throw("huhu");
+            deb("ERROR : appointOperators: don't know to handle %s as operator for %s", opname, node.name);
+
           }
+
         });
-        deb();
 
       }
 

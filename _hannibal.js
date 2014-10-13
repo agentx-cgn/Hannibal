@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, print, logObject, logError, TESTERDATA, uneval */
+/*globals Engine, API3, deb, debTable, print, logObject, logError, TESTERDATA, uneval */
 
 /*--------------- H A N N I B A L  --------------------------------------------
 
@@ -86,7 +86,7 @@ var HANNIBAL = (function() {
 
     this.logPlayers(ss.playersData);
 
-    // more shortcuts
+    // Shortcuts
     H.QRY               = function(hcq, debug){return new H.Store.Query(H.Bot.culture.store, hcq, debug);};
     H.GameState         = gameState;
     H.SharedScript      = sharedScript;
@@ -95,6 +95,7 @@ var HANNIBAL = (function() {
     H.Entities          = H.GameState.entities._entities;
     H.Player            = H.SharedScript.playersData[this.id];
     H.Players           = H.SharedScript.playersData;
+    H.States            = H.Proxies.States();
     H.MetaData          = H.Proxies.MetaData();
     H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
 
@@ -151,12 +152,22 @@ var HANNIBAL = (function() {
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
-    this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
+    // this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
 
-    // Now make an action plan to start with
+    H.Checker.init();
+    // H.Checker.test();
     H.Producers.init(this.tree);
     H.Brain.init();
     H.Economy.init();
+
+    // Now make an action plan to start with
+    // this needs to go to tick 0, later, because of autotech
+    H.Stats.init();
+    H.Brain.planPhase({
+      phase:  "phase." + H.Player.phase,
+      centre: H.Villages.Centre.id,
+      tick:   0
+    });
 
     /*
 
@@ -192,30 +203,33 @@ var HANNIBAL = (function() {
     /*  End Export */
 
 
-    // lof tech modifications
+    /* list techs and their modifications */
+
     if (false){
 
       deb();deb();deb("      : Technologies ---------");
-      var affects, modus, list = [];
+      var affects, modus, table = [];
       H.each(H.Technologies, function(key, tech){
         if (tech.modifications){
           tech.modifications.forEach(function(mod){
             modus = (
-              mod.add      !== undefined ? "add" :
+              mod.add      !== undefined ? "add"      :
               mod.multiply !== undefined ? "multiply" :
-              mod.replace  !== undefined ? "replace" :
+              mod.replace  !== undefined ? "replace"  :
                 "wtf"
             );
             affects = tech.affects ? tech.affects.join(" ") : mod.affects ? mod.affects : "wtf";
-            list.push([H.saniTemplateName(key), mod.value, modus, mod[modus], affects]);
+            table.push([H.saniTemplateName(key), mod.value, modus, mod[modus], affects]);
           });
         }
       });
-      debTable("TEX", list, 1);
+      debTable("TEX", table, 1);
       deb("      : end ---------");
       H.Config.deb = 0;
+
     }
 
+    /* end techs and their modifications */
 
     /* run scripted actions named in H.Config.sequence */
 
@@ -410,7 +424,7 @@ var HANNIBAL = (function() {
 
       Engine.ProfileStart("Hannibal (player " + this.id +")");
 
-      deb("STATUS: #%sa, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+      deb("STATUS: @%sa, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
         this.ticks, this.player, this.civ, secs, 
         H.count(H.Players[this.id].researchedTechs), 
         H.Player.resourceCounts.food,
@@ -456,7 +470,7 @@ var HANNIBAL = (function() {
         self.timing.all += msecs;
       });
       critical = self.timing.all >= 100 ? "!!!!!!!!" : "";
-      deb("______: #%sb, trigs: %s, timing: %s, all: %s %s", 
+      deb("______: @%sb, trigs: %s, timing: %s, all: %s %s", 
         this.ticks, H.Triggers.info(), msgTiming, this.timing.all, critical
       );
 

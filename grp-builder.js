@@ -43,16 +43,23 @@ HANNIBAL = (function(H){
       needsRepair:   80,              // a health level (per cent)
       needsDefense:  10,              // an attack level
 
+      exclusives:    function(options){
+        return {units : [options.size, ["exclusive", options.building + " BUILDBY"]]};
+      },
+
       listener: {
 
-        onLaunch: function(ccid, building, size, quantity){
+        onLaunch: function(options /*ccid, building, size, quantity*/){
 
           // deb("     G: onlaunch %s cc: %s, civ: %s", this, ccid, H.Bot.civ);
 
-          this.buildings = ["exclusive", building];
-          this.units = ["exclusive", building + " BUILDBY"];
-          this.size = size; //H.Config.civs[H.Bot.civ].builders;
-          this.quantity = quantity;
+          this.options = options;
+
+          this.buildings = ["exclusive", options.building]; // ???????????????
+          this.units = this.exclusives(options).units[1];
+          // this.units = ["exclusive", building + " BUILDBY"];
+          this.size = options.size; //H.Config.civs[H.Bot.civ].builders;
+          this.quantity = options.quantity;
 
           this.register("units", "buildings");
           this.economy.request(1, this.units, this.position);   

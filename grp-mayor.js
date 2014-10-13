@@ -46,9 +46,14 @@ HANNIBAL = (function(H){
       needsDefense:  10,              // an attack level
 
       listener: {
-        onLaunch: function(ccid){
-          this.ccid = ccid;
+        onLaunch: function(options /*ccid*/){
+
+          deb("     G: launch %s %s", this, uneval(options));
+
+          this.options = options;
+          this.ccid = options.ccid;
           this.register("builders");
+
         },
         onConnect: function(listener){
           // deb("     G: %s onConnect, callsign: %s", this, listener.callsign);

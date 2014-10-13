@@ -76,6 +76,7 @@ HANNIBAL = (function(H){
         food:  {
           meat:  {stats: H.deepcopy(stats)},
           grain: {stats: H.deepcopy(stats)},
+          fruit: {stats: H.deepcopy(stats)},
           fish:  {stats: H.deepcopy(stats)},
           whale: {stats: H.deepcopy(stats)},
         },
@@ -84,7 +85,7 @@ HANNIBAL = (function(H){
           ruins: {stats: H.deepcopy(stats)},
         },
         metal: {
-          ore:   {stats: H.deepcopy(stats)}
+          ore:   {stats: H.deepcopy(stats)},
         },
         stone: {
           ruins: {stats: H.deepcopy(stats)},

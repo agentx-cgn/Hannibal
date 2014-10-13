@@ -46,20 +46,24 @@ HANNIBAL = (function(H){
 
       counter:        0,
       losses:         0,
-      units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
-      maxUnits:       5,
+      // units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
 
       scanner:       null,
       target:        null,
 
+      exclusives:    function(options){
+        return {units : [options.size, ["exclusive", "cavalry CONTAIN SORT > speed"]]};
+      },
 
       // message queue sniffer
 
       listener: {
 
-        onLaunch:    function(ccid, maxUnits){
+        onLaunch:    function(options /*ccid, maxUnits*/){
 
-          this.maxUnits = maxUnits || 1;
+          this.options = options;
+          this.size    = options.size;
+          this.units   = this.exclusives(options).units[1];
           this.register("units");                                // turn res definitions into res objects
           this.economy.request(1, this.units, this.position);    // 1 unit is a good start
 
@@ -72,7 +76,7 @@ HANNIBAL = (function(H){
             this.scanner = H.Scout.scanner(asset);  // inits search pattern with first unit
             this.target = this.scanner.next(asset.location());
 
-          } else if (this.units.count > this.maxUnits) {
+          } else if (this.units.count > this.size) {
             asset.release();
 
           } else {
@@ -149,7 +153,7 @@ HANNIBAL = (function(H){
               } else {
                 this.units.release();
                 this.dissolve();
-                H.Scout.dump("scout-final-" + ticks + ".png", 255)
+                H.Scout.dump("scout-final-" + ticks + ".png", 255);
                 deb("      G: %s finished scouting");
                 return;
 
@@ -162,8 +166,8 @@ HANNIBAL = (function(H){
 
           }
 
-          if (!(ticks % 10)){
-            H.Scout.dump("scout-" + ticks + ".png", 255)
+          if ((ticks % 10) === 0){
+            H.Scout.dump("scout-" + ticks + ".png", 255);
           }
 
           // deb("     G: scout interval: %s msecs", Date.now() - t0);

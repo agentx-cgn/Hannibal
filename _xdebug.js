@@ -48,7 +48,7 @@ function deb(){
         4
     );
 
-  if (msglevel >= deblevel){print(msg);}
+  if (msglevel <= deblevel){print(msg);}
 
 }
 

@@ -54,49 +54,63 @@ HANNIBAL = (function(H){
       needsRepair:   80,              // a health level (per cent)
       needsDefense:  10,              // an attack level
 
+      exclusives:    function(options){
+        return {units : [options.size, (
+          options.resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
+          options.resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
+          options.resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
+          options.resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
+          options.resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
+            deb(" ERROR: exclusives: unknown resource '%s' for g.supplier", options.resource)
+        )]};
+      },
+
       listener: {
 
-        onLaunch: function(ccid, resource, size){
+        onLaunch: function(options /*ccid, resource, size*/){
 
           // deb("     G: onlaunch %s", uneval(arguments));
 
-          this.size      = size;
-          this.resource  = resource;
-          this.target    = H.Resources.nearest(this.position, resource);
+          this.options   = options;
+          this.size      = options.size;
+          this.resource  = options.resource;
+          this.target    = H.Resources.nearest(this.position, options.resource);
 
           if (!this.target){
-            deb("   GRP: dissolving %s/", this.name, resource);
+            deb("   GRP: dissolving %s/", this.name, this.resource);
             this.dissolve(); 
             return;
           }
 
           this.position  = this.target.position;
 
-          this.units = (
-            resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
-            resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
-            resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
-            resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
-            resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
-              deb(" ERROR: unknown resource '%s' for supply group", resource)
-          );
+          this.units = this.exclusives(options).units[1];
+
+          // this.units = (
+          //   resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
+          //   resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
+          //   resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
+          //   resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
+          //   resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
+          //     deb(" ERROR: unknown resource '%s' for supply group", resource)
+          // );
 
           this.dropsite = (
-            resource === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
-            resource === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
-            resource === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
-            resource === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
-            resource === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
-              deb(" ERROR: unknown resource '%s' for supply group", resource)
+            options.resource === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
+            options.resource === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
+            options.resource === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
+            options.resource === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
+            options.resource === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
+              deb(" ERROR: unknown resource '%s' for supply group", options.resource)
           );
 
           this.dropsites = (
-            resource === "metal"      ?  ["dynamic",    "metal ACCEPTEDBY INGAME"] :
-            resource === "stone"      ?  ["dynamic",    "stone ACCEPTEDBY INGAME"] :
-            resource === "wood"       ?  ["dynamic",    "wood  ACCEPTEDBY INGAME"] :
-            resource === "food.fruit" ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-            resource === "food.meat"  ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-              deb(" ERROR: unknown resource '%s' for supply group", resource)
+            options.resource === "metal"      ?  ["dynamic",    "metal ACCEPTEDBY INGAME"] :
+            options.resource === "stone"      ?  ["dynamic",    "stone ACCEPTEDBY INGAME"] :
+            options.resource === "wood"       ?  ["dynamic",    "wood  ACCEPTEDBY INGAME"] :
+            options.resource === "food.fruit" ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
+            options.resource === "food.meat"  ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
+              deb(" ERROR: unknown resource '%s' for supply group", options.resource)
           );
 
           this.register("units", "dropsite", "dropsites");
