@@ -255,8 +255,10 @@ HANNIBAL = (function(H){
                 recentTiles = recentTiles.slice(-40);
                 // deb(" SCOUT: next: %s msecs", Date.now() - t0); < 0 msecs
 
-                return !treasures.length ? {point: posNext, terrain: terrain} :
-                  {point: posNext, terrain: terrain, treasures: treasures};
+                return ( !treasures.length ? 
+                  {point: posNext, terrain: terrain} :
+                  {point: posNext, terrain: terrain, treasures: treasures}
+                );
                 
               } else {
                 // deb(" SCOUT: ignored known tile %s", index); 

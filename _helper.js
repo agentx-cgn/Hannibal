@@ -98,6 +98,11 @@ H.extend(H, {
     }
     return undefined;
   },
+  mixin:      function(){
+    var o = {}, mx = Array.prototype.slice.call(arguments, 0);
+    mx.forEach(m => Object.keys(m).forEach(k => o[k] = m[k]));
+    return o;
+  },
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},

@@ -40,11 +40,18 @@ HANNIBAL = (function(H){
     constructor: H.Hannibal.Culture,
     activate: function(){
 
+      // is first listener, removes are postponed one tick
+
       var self = this;
 
+      H.Events.on("TrainingFinished", this.tree.id, function (msg){
+        self.loadById(msg.id);
+      });
+
       H.Events.on("EntityRenamed", this.tree.id, function (msg){
-        self.removeById(msg.id);
         self.loadById(msg.id2);
+        H.Triggers.add(-1, self.removeById.bind(self, msg.id));
+        // self.removeById(msg.id);
       });
 
       H.Events.on("AIMetadata", this.tree.id, function (msg){

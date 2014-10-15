@@ -52,6 +52,32 @@ HANNIBAL = (function(H){
         });
 
       },
+      getPhaseNecessities: function(options){ // phase, centre, tick
+        
+        var 
+          cls = H.class2name,
+          tck = options.tick,
+          cc  = options.centre,
+          housePopu = H.QRY(cls("house")).first().costs.population * -1,
+          groups = {
+
+            "phase.village": [
+
+               //  tck, amount,       group,        params
+               [  3 + tck, [1, "g.mayor",       {cc: cc, size: 0}]],
+               [  3 + tck, [1, "g.custodian",   {cc: cc, size: 0}]],
+
+            ],
+            "phase.town" :   [],
+            "phase.city" :   [],
+          };
+
+        return {
+          groups: groups[options.phase],
+          technologies: [],
+        };
+
+      },      
       organizeVillage: function (){
 
         var cics = {}, nodesCics, main;

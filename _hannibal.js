@@ -36,7 +36,7 @@ var HANNIBAL = (function() {
           .forEach(k => o[k] = e[k]
     );});},
     throw: function(msg){
-      throw "\n" + msg + "\n" + new Error().stack;      
+      throw "\n" + H.format.apply(null, H.toArray(arguments)) + "\n" + new Error().stack;      
     },
     chat: function(msg){
       Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});
@@ -65,10 +65,11 @@ var HANNIBAL = (function() {
   H.Hannibal.prototype = new H.API.BaseAI();
   H.Hannibal.prototype.CustomInit = function(gameState, sharedScript) {
 
-    var SIM_UPDATES = 0,
-        self = this, 
-        ts, ss = sharedScript, gs = gameState, 
-        map = TESTERDATA ? TESTERDATA.map : "unkown";
+    var 
+      SIM_UPDATES = 0,
+      self = this, 
+      ts, ss = sharedScript, gs = gameState, 
+      map = TESTERDATA ? TESTERDATA.map : "unkown";
 
     deb();deb();
     deb("------: HANNIBAL.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), this.id, this.settings.difficulty);
@@ -93,7 +94,7 @@ var HANNIBAL = (function() {
     H.Templates         = this.settings.templates;
     H.TechTemplates     = H.SharedScript._techTemplates;
     H.Entities          = H.GameState.entities._entities;
-    H.Player            = H.SharedScript.playersData[this.id];
+    H.Player            = H.SharedScript.playersData[this.id]; // http://trac.wildfiregames.com/browser/ps/trunk/binaries/data/mods/public/simulation/components/GuiInterface.js
     H.Players           = H.SharedScript.playersData;
     H.States            = H.Proxies.States();
     H.MetaData          = H.Proxies.MetaData();
@@ -154,20 +155,25 @@ var HANNIBAL = (function() {
     // H.HTN.Economy.test({tech: ['phase.town']});
     // this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
 
-    H.Checker.init();
-    // H.Checker.test();
-    H.Producers.init(this.tree);
     H.Brain.init();
     H.Economy.init();
 
     // Now make an action plan to start with
     // this needs to go to tick 0, later, because of autotech
     H.Stats.init();
+
     H.Brain.planPhase({
+      tick:    0,
+      civ:     H.Bot.civ,
+      tree:    H.Bot.tree,
+      state:   H.HTN.Economy.getCurState(),
       phase:  "phase." + H.Player.phase,
-      centre: H.Villages.Centre.id,
-      tick:   0
+      centre:  H.Villages.Centre.id,
+      budget:  H.deepcopy(H.Stats.stock),
+      ingames: H.QRY("INGAME"),
+      source:  this.id
     });
+
 
     /*
 

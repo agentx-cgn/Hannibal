@@ -125,98 +125,60 @@ HANNIBAL = (function(H){
 
       return Date.now() - t0;
     },
-    planPhase: function(options){ // phase, centre, tick
+    planPhase: function(context){ // phase, centre, tick, civ
 
       var 
-        utilizers = ["Economy", "Military", "Brain"],
-        necessities, 
-        budget = H.Stats.stock,
-        entities = {},
-        buildings = {},
-        launches = [],
-        technologies = [],
-        orders = [],
-        exclusives = []
+        t0 = Date.now(),
+        // utilizers = ["Villages", "Economy", "Military", "Brain"],
+        utilizers = ["Economy"],
+        necessities, launches = [], technologies = [], 
+        simulation = H.mixin(context, {
+          launches:     [],
+          technologies: []
+        })
         ;
 
-      deb();deb();deb(" BRAIN: planPhase %s", uneval(options));
+      deb();deb();deb(" BRAIN: planPhase %s");
 
       // collect
       utilizers.forEach(utilizer => {
-        necessities = H[utilizer].getPhaseNecessities(options);
-        deb("     B: got %s group action from %s", necessities.groups.length, utilizer);
+        necessities = H[utilizer].getPhaseNecessities(context);
+        deb("     B: got %s group actions, %s technologies from %s", necessities.groups.length, necessities.technologies.length, utilizer);
         launches = launches.concat(necessities.groups);
-        technologies = H.unique(technologies.concat(necessities.technologies));
+        if (necessities.technologies.length){
+          technologies = H.unique(technologies.concat(necessities.technologies));
+        }
       });
 
+      deb();
       deb("     B: have %s group launches", launches.length);
       deb("     B: have %s technologies",  technologies.length);
       deb();
 
       // [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
 
+      deb("     B: launches ...");
       launches.forEach(ga => {
         deb("     B:  %s", uneval(ga));
       });
 
-      deb("     B: get group techs...");
+      // deb("     B: get group techs...");
       launches.forEach(launch => {
-        H.Groups.getGroupTechnologies(launch[1]).forEach(t => technologies.push(t));
+        H.Groups.getGroupTechnologies(launch[1]).forEach(t => {
+          // deb("getGroupTechnologies: %s", t);
+          technologies.push(t);
+        });
       });
-      technologies = H.unique(technologies);
-      deb("     B: have %s technologies",  technologies.length);
+      simulation.technologies = H.unique(technologies);
+      // deb("     B: have %s technologies: %s",  technologies.length, technologies);
+      deb("     B: have %s technologies",  simulation.technologies.length);
 
       // sort by tick
-      launches.sort((a, b) => a[0] < b[0] ? -1 : 1);
+      simulation.launches = launches.sort((a, b) => a[0] < b[0] ? -1 : 1);
 
-      function getVerb(hcq){
-        return H.Bot.tree.nodes[H.QRY(hcq).first().name].verb;
-      }
+      var state = H.Simulator.simulate(simulation);
 
-      deb("     B: create orders...");
-      launches.forEach(launch => {
-
-        // deb(uneval(launch));
-
-        var exclusives = H.Groups.getGroupExclusives(launch[1]);
-
-        H.each(exclusives, function(name, params){
-
-          var
-            amount  = params[0],
-            hcq  = params[1][1],
-            // xx = deb(hcq),
-            verb  = H.Bot.tree.nodes[H.QRY(hcq).first().name].verb,
-            order = {
-              amount:     amount,
-              verb:       verb, 
-              cc:         launch[1][2].cc,
-              location:   null,
-              hcq:        hcq, 
-            };
-
-          deb("     B: order @%s %s: %s", launch[0], launch[1][1] ,uneval(order));
-
-          orders.push(new H.Order(order));
-
-        });
-
-      });
-
-      var state = H.Simulator.simulate(orders);
-
-
-      // determine total units
-        // get own group launches
-        // get eco group launches
-        // get mil group launches
-        // simulate group launches and adjust budget for evaluation
-        // make plan step 1
-      // determine techs
-        // add all techs from groups with Checker.available
-        // make plan step 2
-      // determine structures 
-        // check versus structures from own, eco, mil
+      deb();deb(" BRAIN: planPhase %s msecs", Date.now() - t0);
 
 
     },
@@ -241,7 +203,8 @@ HANNIBAL = (function(H){
         };
 
        return {
-         groups: groups[options.phase]
+         groups: groups[options.phase],
+         technologies: [],
        };
 
     },    
@@ -351,8 +314,8 @@ HANNIBAL = (function(H){
 
         return [
           [2, "g.harvester", CC, {size: 5}],       // needed for trade?
-          [1, "g.builder",   CC, {size: 2, quantity: 5, building: class2name("farmstead")}],    // depends on building time
-          [1, "g.builder",   CC, {size: 2, quantity: 5, building: class2name("storehouse")}],   // depends on building time
+          [1, "g.builder",   CC, {size: 2, quantity: 2, building: class2name("farmstead")}],    // depends on building time
+          [1, "g.builder",   CC, {size: 2, quantity: 2, building: class2name("storehouse")}],   // depends on building time
 
         ];
 

@@ -11,6 +11,14 @@
 
 */
 
+/*
+
+  TODO: 
+
+    disabled templates: http://trac.wildfiregames.com/changeset/15862
+
+*/
+
 
 HANNIBAL = (function(H){
 
@@ -24,7 +32,8 @@ HANNIBAL = (function(H){
           if (H.contains(phases[i].alternates, phase)){
             return phases[i];
           }
-        } /* deb("WARN  : unknown phase: %s", phase); */ return undefined;
+        } 
+        //H.throw("phases.find: '%s' unknown", phase);
       },
       prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];},
       update: function(){

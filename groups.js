@@ -207,11 +207,11 @@ HANNIBAL = (function(H){
       },
       getGroupExclusives: function(launchaction){
 
-        // [1, "g.supplier", {cc:44, size:4, resource:"food.fruit"}]
+        // [1, "g.supplier", {cc:44, size:4, civ: "athen", resource:"food.fruit"}]
 
         var def = groups[launchaction[1]].definition;
 
-        return def.exclusives(launchaction[2]) || null;
+        return def.exclusives ? def.exclusives(launchaction[2]) : {};
 
       },
       launch: function(options){

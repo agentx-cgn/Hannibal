@@ -293,9 +293,7 @@ HANNIBAL = (function(H){
         repair:   function(asset){H.Engine.repair(ids, asset.resources[0]);},
         collect:  function(targets){
           // deb("   AST: collect: %s", uneval(targets));
-          targets.forEach(function(target){
-            H.Engine.collect(ids, target.resources[0]);
-          });
+          H.Engine.collect(ids, targets.map(t => t.resources[0]));
         }
 
       });

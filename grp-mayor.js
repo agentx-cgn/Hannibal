@@ -36,6 +36,10 @@ HANNIBAL = (function(H){
       interval:       4,              // call onInterval every x ticks
       parent:         "",             // inherit useful features
 
+      technologies: [
+                      "unlock_females_house"
+      ],
+
       position:       null,           // refers to the coords of the group's position/activities
       structure:      [],             // still unkown asset, inits at game start
 

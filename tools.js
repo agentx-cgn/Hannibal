@@ -14,6 +14,8 @@
 
 HANNIBAL = (function(H) {
 
+  H.Tools = H.Tools || {};
+
   // a NOP function
   H.FNULL = function(){};
 
@@ -327,119 +329,353 @@ HANNIBAL = (function(H) {
 
   }());  
 
-  H.Checker = (function(){
 
-    var self, planner;
 
-    return {
-      boot: function () {return (self = this);},
-      init: function(){
-        planner = new H.HTN.Planner({
-          name:         "check.planner",
-          operators:    H.HTN.Economy.operators,
-          methods:      H.HTN.Economy.methods,
-        });
-      }, 
-      test: function(){
+  H.Checker = function (options) { // state
+    H.extend(this, options, {
+      planner: new H.HTN.Planner({
+        name:         "check.planner",
+        operators:    H.HTN.Economy.operators,
+        methods:      H.HTN.Economy.methods,
+      })
+    });
+  }
 
-        [ 
-          H.class2name("civcentre"),
-          H.class2name("farmstead"),
-          "gather.capacity.wheelbarrow",
-          H.class2name("temple"),
-          "phase.city",
-          H.class2name("fortress"),
-          "XXXXX",
-          "",
-        ].forEach( name => {
-          deb(" CHECK: '%s'", name);
-          var result = H.Checker.check(name, true);
-          deb("     C: %s", JSON.stringify(result));
-        });
+  H.Checker.prototype = {
+    constructor: H.Checker,
+    test: function(){
+      var self = this;
+      [ 
+        H.class2name("civcentre"),
+        H.class2name("farmstead"),
+        "gather.capacity.wheelbarrow",
+        H.class2name("temple"),
+        "phase.city",
+        H.class2name("fortress"),
+        "XXXXX",
+        "",
+      ].forEach( name => {
+        deb(" CHECK: '%s'", name);
+        var result = self.check(name, true);
+        deb("     C: %s", JSON.stringify(result));
+      });      
+    },
+    check: function(name, debug=false){
 
-      },
-      check: function(name, debug=false){
+      // TOCHECK: What about units, resources and item = phase
 
-        // TOCHECK: What about units, resources and item = phase
+      // possible results:
+      // illegal, planner has error
+      // notnow, needs subsequent phase 
+      // feasible, in current phase
+      // available, only one operation needed
+      // done, no operations needed
 
-        // possible results:
-        // illegal, planner has error
-        // notnow, needs subsequent phase 
-        // feasible, in current phase
-        // available, only one operation needed
-        // done, no operations needed
-
-        var 
-          t0 = Date.now(),
-          data, goal, operations, 
-          tree = H.Bot.tree.nodes, 
-          state = H.HTN.Economy.getCurState(),
-          result = {needed: [], cost: null},
-          checkops = {
-            // "start": null,
-            "build_structures": true,
-            "research_tech": true,
-            "train_units": true,
-            // "finish": null,
-          };
-        
-        // valid name
-        if (!tree[name] || !tree[name].verb){
-          result.illegal = true; return result;
-        }
-
-        // valid verb
-        if (tree[name].verb === "research"){
-          data = {tech: [name]};
-        } else if (tree[name].verb === "train" || tree[name].verb === "build"){
-          data = {ents: {}}; data.ents[name] = 1;
-        } else {
-          result.illegal = true; return result;
-        }
-
-        // run
-        goal = new H.HTN.Helper.State(data).sanitize();
-        planner.plan(state, [[H.HTN.Economy.methods.start, goal]]);
-        result.time = Date.now() - t0;
-
-        // valid outcome
-        if (planner.error){
-          result.illegal = true; return result;
-        }
-
-        // filter ops
-        operations = planner.operations.filter(op => !!checkops[op[1]]);
-
-        if (debug){
-          deb("     C: operations:");
-          operations.forEach(function(op){
-            deb("     C: - %s", op.filter(o => o !== undefined).join(", "));
-          });  
-        }
-
-        if (operations.length === 0){
-          result.done = true; return result;
-        }
-
-        if (operations.length === 1){
-          result.available = true; return result;
-        }
-
-        if (operations.some(op => op[1] === "research_tech" && op[2].contains("phase"))){
-          result.notnow = true; return result;
-        } else {
-          result.feasible = true; return result;
-        }
-
+      var 
+        t0 = Date.now(),
+        tree = this.tree.nodes,
+        planner = this.planner,
+        state = this.state,
+        data, goal, operations, 
+        // tree = H.Bot.tree.nodes, 
+        // state = H.HTN.Economy.getCurState(),
+        result = {needed: [], cost: null},
+        checkops = {
+          // "start": null,
+          "build_structures": true,
+          "research_tech": true,
+          "train_units": true,
+          // "finish": null,
+        };
+      
+      // valid name
+      if (!tree[name] || !tree[name].verb){
+        if (debug){deb(" CHECK: no verb/node: %s",  name);}
+        result.illegal = true; 
         return result;
-
       }
 
-    };
+      // valid verb
+      if (tree[name].verb === "research"){
+        data = {tech: [name]};
+      } else if (tree[name].verb === "train" || tree[name].verb === "build"){
+        data = {ents: {}}; data.ents[name] = 1;
+      } else {
+        result.illegal = true; return result;
+      }
 
-  }().boot());
+      // run
+      goal = new H.HTN.Helper.State(data).sanitize();
+      planner.plan(state, [[planner.methods.start, goal]]);
+      result.time = Date.now() - t0;
 
-  H.Producers = (function(){
+      // valid outcome
+      if (planner.error){
+        if (debug) {
+          planner.logstack.forEach(l => {
+            deb(" CHECK: log: %s", l.m);
+          });
+        }
+        result.illegal = true; return result;
+      }
+
+      // filter ops
+      operations = planner.operations.filter(op => !!checkops[op[1]]);
+
+      if (debug){
+        deb("     C: operations:");
+        operations.forEach(function(op){
+          deb("     C: - %s", op.filter(o => o !== undefined).join(", "));
+        });  
+      }
+
+      if (operations.length === 0){
+        result.done = true; return result;
+      }
+
+      if (operations.length === 1){
+        result.available = true; return result;
+      }
+
+      if (operations.some(op => op[1] === "research_tech" && op[2].contains("phase"))){
+        result.notnow = true; return result;
+      } else {
+        result.feasible = true; return result;
+      }
+
+      return result;
+
+    }    
+
+
+  };
+
+  // (function(){
+
+  //   var self, planner;
+
+  //   return {
+  //     boot: function () {return (self = this);},
+  //     init: function(){
+  //       planner = new H.HTN.Planner({
+  //         name:         "check.planner",
+  //         operators:    H.HTN.Economy.operators,
+  //         methods:      H.HTN.Economy.methods,
+  //       });
+  //     }, 
+  //     test: function(){
+
+
+
+  //     },
+  //     check: function(name, debug=false){
+
+  //       // TOCHECK: What about units, resources and item = phase
+
+  //       // possible results:
+  //       // illegal, planner has error
+  //       // notnow, needs subsequent phase 
+  //       // feasible, in current phase
+  //       // available, only one operation needed
+  //       // done, no operations needed
+
+  //       var 
+  //         t0 = Date.now(),
+  //         data, goal, operations, 
+  //         tree = H.Bot.tree.nodes, 
+  //         state = H.HTN.Economy.getCurState(),
+  //         result = {needed: [], cost: null},
+  //         checkops = {
+  //           // "start": null,
+  //           "build_structures": true,
+  //           "research_tech": true,
+  //           "train_units": true,
+  //           // "finish": null,
+  //         };
+        
+  //       // valid name
+  //       if (!tree[name] || !tree[name].verb){
+  //         result.illegal = true; return result;
+  //       }
+
+  //       // valid verb
+  //       if (tree[name].verb === "research"){
+  //         data = {tech: [name]};
+  //       } else if (tree[name].verb === "train" || tree[name].verb === "build"){
+  //         data = {ents: {}}; data.ents[name] = 1;
+  //       } else {
+  //         result.illegal = true; return result;
+  //       }
+
+  //       // run
+  //       goal = new H.HTN.Helper.State(data).sanitize();
+  //       planner.plan(state, [[H.HTN.Economy.methods.start, goal]]);
+  //       result.time = Date.now() - t0;
+
+  //       // valid outcome
+  //       if (planner.error){
+  //         result.illegal = true; return result;
+  //       }
+
+  //       // filter ops
+  //       operations = planner.operations.filter(op => !!checkops[op[1]]);
+
+  //       if (debug){
+  //         deb("     C: operations:");
+  //         operations.forEach(function(op){
+  //           deb("     C: - %s", op.filter(o => o !== undefined).join(", "));
+  //         });  
+  //       }
+
+  //       if (operations.length === 0){
+  //         result.done = true; return result;
+  //       }
+
+  //       if (operations.length === 1){
+  //         result.available = true; return result;
+  //       }
+
+  //       if (operations.some(op => op[1] === "research_tech" && op[2].contains("phase"))){
+  //         result.notnow = true; return result;
+  //       } else {
+  //         result.feasible = true; return result;
+  //       }
+
+  //       return result;
+
+  //     }
+
+  //   };
+
+  // }().boot());
+
+  H.Producers = function(options){
+
+    var self = this, name;
+
+    deb();deb();deb("   PDC: inited for %s", options.parent.name);
+
+    H.extend(this, options, {
+      name: options.parent.name + ":pdc",
+      maxAllocs: H.Config.economy.maxAllocations,
+      tree: options.tree.nodes,
+      producers: {},
+    });
+
+    // TODO ignore units for build
+    this.ingames.forEach(node => {
+      self.register(node.name);
+    });
+
+    deb("   PDC: registered %s producers", H.count(this.producers));
+  };
+
+  H.Producers.prototype = {
+    constructor: H.Producers,
+    isProducer: function(name){
+      return (this.tree[name] && this.tree[name].products.count);
+    },
+    infoProducer: function(){
+      var 
+        train    = H.count(this.tree[name].products.train),
+        build    = H.count(this.tree[name].products.build),
+        research = H.count(this.tree[name].products.research);
+      return H.format("procucer: %s trains: %s, builds: %s, researches: %s", name, train, build, research);
+    },
+    resetAllocs: function(){
+      H.each(this.producers, function (name, producer){
+        producer.allocs = producer.queue.length;
+      });      
+    },
+    unqueue: function(verb, info){
+
+      var found = null;
+
+      H.each(this.producers, function (name, producer){
+        if(!found && producer.queue && producer.queue.length){
+          if (H.delete(producer.queue, task => task[0] === info)){
+            found = producer;
+            producer.allocs -= 1;
+          }
+        }
+      });
+
+      if (found) {
+        deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, found.name);
+      } else {
+        deb("   PDC: unqueue: not found in queue: %s, %s", verb, info);
+      }
+
+    },
+    register: function(nameid){
+      var parts = nameid.split("#"), name = parts[0], id = parts[1];
+      if (this.isProducer(name)){
+        this.producers[nameid] = {queue: [], allocs: 0, name: name, id: ~~id};
+        deb("   PDC: reg: %s", uneval(this.producers[nameid]));
+      }
+    },
+    remove: function(nameid){
+      delete this.producers[nameid];
+    },  
+    allocate: function(product, cc){
+
+      var 
+        tree = this.tree,
+        producer = null, 
+        verb = this.tree[product].verb, 
+        names = H.attribs(this.producers),
+        i = names.length;
+
+      // deb("   PDC: allocate: %s, %s", product, cc);
+
+      // has no producer
+      if(!verb){/* deb("ERROR : PDC.allocate: no verb for %s", product); */ return null;}
+
+      switch (verb){
+
+        case "build":
+          // can ignore cc and allocations
+          while ((producer = this.producers[names[--i]])){
+            if (tree[producer.name].products.build[product]){
+              break;  
+            }        
+          }
+        break;
+
+        case "research":
+          // can ignore cc
+          while ((producer = this.producers[names[--i]])){
+            if (tree[producer.name].products.research[product]){
+              if (producer.allocs < this.maxAllocs){
+                break;
+              } 
+            } 
+          }
+        break;
+        
+        case "train":
+          while ((producer = this.producers[names[--i]])){
+            if (tree[producer.name].products.train[product]){
+              if (producer.allocs < this.maxAllocs){
+                if (!cc || H.MetaData[producer.id].cc === cc) {
+                  break;
+                }
+              }
+            }  
+          }
+        break;
+        
+      }
+
+      if(producer){producer.allocs += 1;}
+
+      return producer;
+
+    },
+  };
+
+
+  H.ProducersXX = (function(){
 
     var self, name, producers = [], tree, maxQueue = 3; // will get overallocated
 
@@ -461,15 +697,15 @@ HANNIBAL = (function(H) {
     }
 
     return {
-      boot: function(){self = this; return self;},
-      init: function(oTree){
+      boot: function(){return (self = this);},
+      init: function(options){ // tree, ingames
 
         deb();deb();deb("   PDC: init");
 
-        tree = oTree.nodes;
+        tree = options.tree.nodes;
 
         // TODO ignore units for build
-        H.QRY("INGAME").forEach(node => {
+        options.ingames.forEach(node => {
           name = node.name.split("#")[0];
           if (isProducer(name)){
             node.queue = [];
@@ -513,7 +749,7 @@ HANNIBAL = (function(H) {
         var producer = null, verb = tree[product].verb, i = producers.length;
 
         // has no producer
-        if(!verb){deb("ERROR : no verb for %s", product); return null;}
+        if(!verb){deb("ERROR : PDC.find: no verb for %s", product); return null;}
 
         switch (verb){
 
@@ -595,11 +831,12 @@ HANNIBAL = (function(H) {
     // options: parent, executor (do, prioverbs, stats)
 
     H.extend(this, options, {
-      name:   options.parent.name + "|OQ",
+      name:   options.parent.name + ":queue",
       queue:  [],
       report: {rem: [], exe: [], ign: []},
       tP:    0,
     });
+
   };
 
   H.OrderQueue.prototype = {
@@ -612,7 +849,7 @@ HANNIBAL = (function(H) {
       var r = this.report;
       deb("    OQ: %s queue: %s, %s msecs, rem: %s, ign: %s, exe: %s", this.name, this.queue.length, this.tP, r.rem, r.ign, r.exe);
     },      
-    process: function(){
+    process: function(isSimulation=false){
 
       var 
         self = this, t0, 
@@ -622,10 +859,10 @@ HANNIBAL = (function(H) {
         // allocs     = H.deepcopy(allocations),
         allocs     = {food: 0, wood: 0, stone: 0, metal: 0, population: 0},
         // budget     = H.deepcopy(H.Stats.stock),
-        budget     = H.deepcopy(this.executor.stats.stock),
+        budget     = H.deepcopy(this.economy.stats.stock),
         allGood    = false, 
         // prioVerbs  = H.Economy.prioVerbs,
-        prioVerbs  = this.executor.prioVerbs, 
+        prioVerbs  = this.economy.prioVerbs, 
         builds     = 0; // only one construction per tick
         
       t0 = Date.now();
@@ -636,10 +873,12 @@ HANNIBAL = (function(H) {
       // queue empty -> exit
       if (!queue.length){this.tP = 0; return;}
 
+      this.economy.producers.resetAllocs();
+
       // sort by (source, verbs) and evaluate
       queue
         .sort((a, b) => prioVerbs.indexOf(a.verb) < prioVerbs.indexOf(b.verb) ? -1 : 1)
-        .forEach(order => order.evaluate(allocs));
+        .forEach(order => isSimulation ? order.simulate(allocs) : order.evaluate(allocs));
 
       // get first quote whether all order fit budget
       allGood = H.Economy.fits(allocs, budget);
@@ -676,7 +915,7 @@ HANNIBAL = (function(H) {
               case "train":
                 // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
                 // H.Economy.do("train", amount, node.producer, node.key, order);
-                self.executor.do("train", amount, node.producer, node.key, order);
+                self.economy.do("train", amount, node.producer, node.key, order, node.costs);
                 H.Economy.subtract(node.costs, budget, amount);
                 order.processing += amount;
                 rep.exe.push(id + ":" + amount);
@@ -686,7 +925,7 @@ HANNIBAL = (function(H) {
                 if (builds === 0){
                   // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.x + "|" + order.z, node.key);
                   // H.Economy.do("build", amount, node.producer, node.key, order);
-                  self.executor.do("build", amount, node.producer, node.key, order);
+                  self.economy.do("build", amount, node.producer, node.key, order, node.costs);
                   H.Economy.subtract(node.costs, budget, amount);
                   order.processing += amount;
                   builds += 1;
@@ -697,7 +936,7 @@ HANNIBAL = (function(H) {
 
               case "research":
                 // H.Economy.do("research", 1, node.producer, node.key, order);
-                self.executor.do("research", 1, node.producer, node.key, order);
+                self.economy.do("research", 1, node.producer, node.key, order, node.costs);
                 H.Economy.subtract(node.costs, budget, amount);
                 order.processing += amount;
                 rep.exe.push(id + ":" + amount);

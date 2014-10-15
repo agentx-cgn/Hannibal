@@ -47,6 +47,7 @@ HANNIBAL = (function(H){
     economy: {
       lengthStatsBuffer:    40, // approx 1 minute
       intervalMonitorGoals: 10,
+      maxAllocations:        5, // for producers
     },
 
     civs : {

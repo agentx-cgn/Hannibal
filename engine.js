@@ -252,7 +252,7 @@ HANNIBAL = (function(H){
 
       deb("   ENG: construct: %s", uneval(arguments));
 
-      if (who.length && H.Templates[what] && pos.length >= 2){
+      if (who.length && H.isInteger(who[0]) && H.Templates[what] && pos.length >= 2){
 
         Engine.PostCommand(H.Bot.id, { type: "construct",
           entities:     who, // array
@@ -260,7 +260,7 @@ HANNIBAL = (function(H){
           x:            pos[0], 
           z:            pos[1],
           angle:        pos[2],
-          autorepair:   false, 
+          autorepair:   false,   //??
           autocontinue: false,
           queued:       false,
           metadata:     meta || {} // {order: order.id}

@@ -58,7 +58,8 @@ HANNIBAL = (function(H){
           };
 
         return {
-          groups: groups[options.phase]
+          groups: groups[options.phase],
+          technologies: [],
         };
 
       },
