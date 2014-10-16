@@ -129,8 +129,8 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), 
-        // utilizers = ["Villages", "Economy", "Military", "Brain"],
-        utilizers = ["Economy"],
+        utilizers = ["Villages", "Economy", "Military", "Brain"],
+        // utilizers = ["Economy"],
         necessities, technologies = [], 
         launches = {"phase.village": [], "phase.town": [], "phase.city": []}
         ;
@@ -151,11 +151,39 @@ HANNIBAL = (function(H){
 
       // [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
 
+      launches["phase.village"].sort((a, b) => a[0] < b[0] ? -1 : 1);
+      launches["phase.town"].sort((a, b) => a[0] < b[0] ? -1 : 1);
+      launches["phase.city"].sort((a, b) => a[0] < b[0] ? -1 : 1);
+
+      context.info = {
+        launches: {
+          "phase.village": launches["phase.village"].length,
+          "phase.town": launches["phase.town"].length,
+          "phase.city": launches["phase.city"].length,
+        },
+        minTicks: {
+          "phase.village": launches["phase.village"].length ? launches["phase.village"].slice(0)[0][0] : 0,
+          "phase.town": launches["phase.town"].length ? launches["phase.town"].slice(-1)[0][0] : 0,
+          "phase.city": launches["phase.city"].length ? launches["phase.city"].slice(-1)[0][0] : 0,
+        },
+        maxTicks: {
+          "phase.village": launches["phase.village"].length ? launches["phase.village"].slice(0)[0][0] : 0,
+          "phase.town": launches["phase.town"].length ? launches["phase.town"].slice(-1)[0][0] : 0,
+          "phase.city": launches["phase.city"].length ? launches["phase.city"].slice(-1)[0][0] : 0,
+        }
+      };
+
       deb();
       deb("     B: launches ...");
-      H.each(launches, function (phase, launches){
-        deb("     B: %s %s", phase, launches.length);
+      JSON.stringify(context.info, null, 2).split("\n").forEach(function(line){
+        deb("     B: %s", line);
       });
+
+
+
+      // H.each(launches, function (phase, launches){
+      //   deb("     B: %s %s", phase, launches.length);
+      // });
 
       H.each(launches, function (phase, launches){
         launches.forEach(launch => {
@@ -183,7 +211,6 @@ HANNIBAL = (function(H){
       
       var 
         cls = H.class2name,
-        tck = options.tick,
         cc  = options.centre,
 
         technologies = [],
@@ -203,7 +230,7 @@ HANNIBAL = (function(H){
 
        return {
          launches: launches,
-         technologies: [],
+         technologies: technologies,
        };
 
     },    

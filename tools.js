@@ -333,13 +333,13 @@ HANNIBAL = (function(H) {
 
   H.Checker = function (context) { // state
     H.extend(this, context, {
-      planner: new H.HTN.Planner({
-        name:         "check.planner",
-        operators:    H.HTN.Economy.operators,
-        methods:      H.HTN.Economy.methods,
-      })
+      // planner: new H.HTN.Planner({
+      //   name:         "check.planner",
+      //   operators:    H.HTN.Economy.operators,
+      //   methods:      H.HTN.Economy.methods,
+      // })
     });
-  }
+  };
 
   H.Checker.prototype = {
     constructor: H.Checker,
@@ -567,7 +567,7 @@ HANNIBAL = (function(H) {
       self.register(node.name);
     });
 
-    deb("   PDC: registered %s producers", H.count(this.producers));
+    // deb("   PDC: registered %s producers", H.count(this.producers));
   };
 
   H.Producers.prototype = {
@@ -913,10 +913,7 @@ HANNIBAL = (function(H) {
             switch(order.verb){
 
               case "train":
-                // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
-                // H.Economy.do("train", amount, node.producer, node.key, order);
-                // self.economy.do("train", amount, node.producer, node.key, order, node.costs, node.name);
-                self.economy.do("train", amount, order, node); //node.producer, node.key, order, node.costs, node.name);
+                self.economy.do("train", amount, order, node); 
                 H.Economy.subtract(node.costs, budget, amount);
                 order.processing += amount;
                 rep.exe.push(id + ":" + amount);
@@ -924,12 +921,9 @@ HANNIBAL = (function(H) {
 
               case "build":
                 if (builds === 0){
-                  // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.x + "|" + order.z, node.key);
-                  // H.Economy.do("build", amount, node.producer, node.key, order);
-                  // self.economy.do("build", amount, node.producer, node.key, order, node.costs, node.name);
-                  self.economy.do("build", amount, order, node); //node.producer, node.key, order, node.costs, node.name);
-                  H.Economy.subtract(node.costs, budget, amount);
-                  order.processing += amount;
+                  self.economy.do("build", 1, order, node); 
+                  H.Economy.subtract(node.costs, budget, 1);
+                  order.processing += 1;
                   builds += 1;
                 } else {
                   deb("    OQ: #%s build postponed", id);
@@ -937,9 +931,7 @@ HANNIBAL = (function(H) {
               break;
 
               case "research":
-                // H.Economy.do("research", 1, node.producer, node.key, order);
-                // self.economy.do("research", 1, node.producer, node.key, order, node.costs, node.name);
-                self.economy.do("research", amount, order, node); //node.producer, node.key, order, node.costs, node.name);
+                self.economy.do("research", amount, order, node);
                 H.Economy.subtract(node.costs, budget, amount);
                 order.processing += amount;
                 rep.exe.push(id + ":" + amount);

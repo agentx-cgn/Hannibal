@@ -164,15 +164,21 @@ var HANNIBAL = (function() {
 
 
     H.Brain.planPhase({
-      tick:      1,
-      civ:       H.Bot.civ,
-      tree:      H.Bot.tree,
-      state:     H.HTN.Economy.getCurState(),
-      curstate:  H.HTN.Economy.getCurState(),
-      phase:    "phase." + H.Player.phase,  // run to this phase until next phase is researchable or run out of actions
-      centre:    H.Villages.Centre.id,
-      ingames:   H.QRY("INGAME"),
-      source:    this.id
+      tick:        1,
+      civ:         H.Bot.civ,
+      tree:        H.Bot.tree,
+      source:      this.id,
+      planner:     H.Planner,
+      state:       H.HTN.Economy.getCurState(),
+      curstate:    H.HTN.Economy.getCurState(),
+      phase:      "phase." + H.Player.phase,  // run to this phase until next phase is researchable or (city) run out of actions
+      curphase:   "phase.village", 
+      centre:      H.Villages.Centre.id,
+      ingames:     H.QRY("INGAME"),
+      nameTower:   H.class2name("defensetower"),
+      nameHouse:   H.class2name("house"),
+      popuHouse:   H.QRY(H.class2name("house")).first().costs.population * -1, // ignores civ
+
     });
 
 

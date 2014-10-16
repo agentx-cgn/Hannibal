@@ -12,21 +12,21 @@
 
 HANNIBAL = (function(H){
 
-  // planner's state with methods
-  function State(state){
-    this.state = state;
-  }
-  State.prototype = {
-    constructor: State,
-    log:     function(){
-      JSON.stringify(this.state.data, null, 2).split("\n").forEach(function(line){
-        deb("     S: %s", line);
-      });      
-    },
-    addTech: function(tech){},
-    addEnts: function(ents){},
-    addRess: function(ress){},
-  };
+  // // planner's state with methods
+  // function State(state){
+  //   this.state = state;
+  // }
+  // State.prototype = {
+  //   constructor: State,
+  //   log:     function(){
+  //     JSON.stringify(this.state.data, null, 2).split("\n").forEach(function(line){
+  //       deb("     S: %s", line);
+  //     });      
+  //   },
+  //   addTech: function(tech){},
+  //   addEnts: function(ents){},
+  //   addRess: function(ress){},
+  // };
 
   // simulation = {
   // state:        H.HTN.Economy.getCurState(),
@@ -40,7 +40,7 @@ HANNIBAL = (function(H){
 
   H.Simulation = function(context){
     H.extend(this, context, {
-      orders: [],
+      // orders:         [],
       techsAvailable: [],
       techsFeasable:  [],
     });
@@ -68,9 +68,12 @@ HANNIBAL = (function(H){
         if (result.feasible){self.techsFeasable.push(tech); deb("     S: veriTech: feasible %s", tech);}
       });
     },
-    createTechOrders: function(tick, techs){
+    appendStateOrders: function(tick, techs, groups, orders){
 
-      var self = this, orders = [];
+    },
+    appendTechOrders: function(techs, orders){
+
+      var self = this;
 
       // deb();deb("   SIM: create orders from tech...");
 
@@ -89,19 +92,82 @@ HANNIBAL = (function(H){
 
       });
 
-      return orders;
-
     },
 
-    createLaunchOrders: function(tick, launches){
+    appendHouseOrders: function(tick, groups, orders){
+
+      var ress = this.curstate.data.ress;
+
+      // deb("     S: createHouseOrders: pop: %s, max: %s, house: %s", ress.pop, ress.popmax, this.popuHouse);
+
+      if (ress.pop > ress.popcap - this.popuHouse -2){
+        if (!this.curstate.groups["g.builder"]){
+          groups.push("g.builder");
+        }
+        orders.push(new H.Order({
+          amount:     1,
+          verb:       "build", 
+          cc:         this.centre,
+          location:   null,
+          hcq:        this.nameHouse, 
+          source:     this.source,
+        }));
+
+        deb("     S: appendHouseOrders %s %s", 1, this.nameHouse);
+
+      }
+
+    },
+    appendBuildingOrder: function(tick, building, amount, orders){
+      
+      orders.push(new H.Order({
+        amount:     amount,
+        verb:       "build", 
+        cc:         this.centre,
+        location:   null,
+        hcq:        building, 
+        source:     this.source,
+      }));
+
+      deb("     S: appendBuildingOrder %s %s", amount, building);
+
+    },
+    appendPhaseOrder: function(orders){
+
+      var 
+        order = null,
+        checker = new H.Checker(this),
+        nextPhase = (
+          this.curstate.phase === "phase.village" ? "phase.town" :
+          this.curstate.phase === "phase.town"    ? "phase.city" :
+            ""
+        );
+
+      if (nextPhase && checker.check(nextPhase, false).available){
+
+        orders.push(new H.Order({
+          amount:     1,
+          verb:       "research", 
+          cc:         this.centre,
+          location:   null,
+          hcq:        nextPhase, 
+          source:     this.source,
+        }));
+
+        deb("     S: appendPhaseOrder %s %s", 1, nextPhase);
+
+      }
+
+      return order;
+
+    },
+    appendLaunchOrders: function(tick, launches, groups, orders){
 
       // [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
 
-      var self = this, hcq, verb, order, exclusives, orders = [], groups = [];
+      var self = this, hcq, verb, order, exclusives;
 
       launches.forEach(launch => {
-
-        // deb(uneval(launch));
 
         if (tick === launch[0]){
 
@@ -130,8 +196,6 @@ HANNIBAL = (function(H){
 
       });      
 
-      return [groups, orders];
-
     }
 
 
@@ -153,30 +217,46 @@ HANNIBAL = (function(H){
 
       
       economy: {
+        
         prioVerbs: ["research", "train", "build"],
+        phases: ["phase.village", "phase.town", "phase.city"],
         producers: null,
         orderqueue: null,
         stats: null, 
-        do: function(verb, amount, order, node){
 
-          var state = self.context.curstate.data;
+        do: function (verb, amount, order, node){
+
+          var 
+            curstate = self.context.curstate,  
+            data = curstate.data;
 
           deb("   SDO: #%s %s, %s, %s", order.id, verb, amount, node.name);
           
-          H.Economy.subtract(node.costs, self.economy.stats.stock, amount);
+          // H.Economy.subtract(node.costs, self.economy.stats.stock, amount);
+          H.Economy.subtract(node.costs, data.ress, amount);
           
           order.remaining -= amount;
-          
+
+          // update curstate
           if (verb === "train"){
-            state.ress.pop += amount;
-            state.ents[node.name] = !state.ents[node.name] ? 1 : state.ents[node.name] +1;
+            data.ress.pop += amount;
+            data.ents[node.name] = !data.ents[node.name] ? 1 : data.ents[node.name] +1;
+
           } else if (verb === "build"){
-            state.ents[node.name] = !state.ents[node.name] ? 1 : state.ents[node.name] +1;
+            data.ents[node.name] = !data.ents[node.name] ? 1 : data.ents[node.name] +1;
+            if (node.name === self.context.nameHouse){
+              data.ress.popcap += self.context.popuHouse;
+            }
+          
           } else if (verb === "research"){
-            state.tech.push(node.name);
+            data.tech.push(node.name);
+            if (H.contains(self.phases, node.name)){
+              curstate.curphase = node.name;
+            }
           }
 
-          // deb("   SDO: state %s", uneval(state));
+
+          // deb("   SDO: data %s", uneval(data));
 
         }
       },
@@ -189,61 +269,90 @@ HANNIBAL = (function(H){
 
         var 
           exit = false,
-          groups, orders, launches,
-          state = context.curstate,
+          tickPhase = 0,
+          lastPhase = "",
           tick = context.tick,
-          simulation = new H.Simulation(context);
+          tickOrders = [], tickGroups = [], 
+          curstate = context.curstate,
+          simulation = new H.Simulation(context),
+          launches = context.launches[context.phase];
 
         self.context = context;
-        self.economy.stats = {stock: state.data.ress};
+        self.economy.stats = {stock: curstate.data.ress};
 
-        self.economy.producers = new H.Producers (
-          H.mixin(context, {
-            parent: self,
-          })
-        );
-
-        self.orderqueue = new H.OrderQueue (
-          H.mixin(context, {
-            parent:  self,
-            economy: self.economy, 
-          })
-        );
-
-        simulation.verifyTechnologies();
-        orders = simulation.createTechOrders(tick, simulation.techsAvailable);
-        orders.forEach(order => {
-          order.economy = self.economy;
-          self.orderqueue.append(order);
+        self.economy.producers = new H.Producers ({
+          parent: self,
+          tree: context.tree,
+          ingames: context.ingames,
         });
 
-        launches = context.launches[context.phase];
-        launches = launches.sort((a, b) => a[0] < b[0] ? -1 : 1);
+        self.orderqueue = new H.OrderQueue ({
+          parent:  self,
+          economy: self.economy, 
+        });
 
+        // append easy techs
+        simulation.verifyTechnologies();
+        simulation.appendTechOrders(simulation.techsAvailable, tickOrders);
+
+        // get orders required by planning
+        simulation.appendStateOrders(tickOrders);
+        
         while (!exit) {
 
-          [groups, orders] = simulation.createLaunchOrders(tick, launches);
-
-          groups.forEach(g => state.groups[g] = !state.groups[g] ? 1 : state.groups[g] +1);
-
-          deb();
-          deb(" SIMUL: @%s orders: %s, stock: %s", tick, orders.length, uneval(state.data.ress));
-
-          orders.forEach(order => {
+          // add groups and orders
+          tickGroups.forEach(g => {
+            curstate.groups[g] = !curstate.groups[g] ? 1 : curstate.groups[g] +1;
+          });
+          tickOrders.forEach(order => {
             order.economy = self.economy;
             self.orderqueue.append(order);
           });
 
+          // debug
+          if (self.orderqueue.length){deb();}
+          deb(" SIMUL: @%s | %s phase: %s, orders: %s, groups: %s", tick, tickPhase, context.curphase, tickOrders.length, tickGroups.length);
+
+          // now process
           self.orderqueue.process(true);
+          tickGroups = [];
+          tickOrders = [];
 
+          if (lastPhase !== context.phase){
+            if (context.phase === "phase.village"){
+              simulation.appendBuildingOrder(tickPhase, context.nameHouse, 5, tickOrders);
+            }
+            if (context.phase === "phase.town"){
+              simulation.appendBuildingOrder(tickPhase, context.nameTower, 4, tickOrders);
+            }
+            tickPhase = 0;
+            lastPhase = context.phase;
+          }
+
+          // can advance to next phase, check techs again
+          if (tick % 5 === 0) {
+            simulation.appendPhaseOrder(tickOrders);
+            simulation.verifyTechnologies();
+            simulation.appendTechOrders(simulation.techsAvailable, tickOrders);
+          }
+
+          // needs houses
+          simulation.appendHouseOrders(tickPhase, tickGroups, tickOrders);
+
+          // check launches for group.orders
+          simulation.appendLaunchOrders(tickPhase, launches, tickGroups, tickOrders);
+
+
+          // prolog
           tick += 1;
-          state.data.cost.time += 1.6;
-
-          if (tick > 5){exit = true;}
+          tickPhase += 1;
+          curstate.data.cost.time += 1.6;
+          if (tick > 10){exit = true;}
 
         }
 
-        deb(" SIMUL: DONE: state %s", uneval(state.data.ress));
+        deb();
+        deb(" SIMUL: DONE: curstate %s", uneval(curstate.data.ress));
         
 
       },

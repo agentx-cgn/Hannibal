@@ -555,12 +555,14 @@ HANNIBAL = (function(H){
                [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "metal"}]],
 
             ],
-            "phase.city" :   [],
+            "phase.city" :   [
+
+            ],
           };
 
         return {
           launches: launches,
-          technologies: [],
+          technologies: technologies,
         };
 
       },

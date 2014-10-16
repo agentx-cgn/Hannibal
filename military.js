@@ -35,11 +35,10 @@ HANNIBAL = (function(H){
         
         var 
           cls = H.class2name,
-          tck = options.tick,
           cc = options.centre,
 
           technologies = [],
-          groups = {
+          launches = {
 
             "phase.village": [
             //   tck,                  act, params
@@ -48,7 +47,7 @@ HANNIBAL = (function(H){
 
             "phase.town" :   [
               [  20, [1, "g.builder",    {cc: cc, size: 5, building: cls("temple"), quantity: 1}]],
-              [  20, [1, "g.tower",      {cc: cc, size: 5, quantity: 1}]],
+              // [  20, [1, "g.tower",      {cc: cc, size: 5, quantity: 1}]],
 
             ],
 
@@ -60,7 +59,7 @@ HANNIBAL = (function(H){
 
         return {
           launches: launches,
-          technologies: [],
+          technologies: technologies,
         };
       },
 
