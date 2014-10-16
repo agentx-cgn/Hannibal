@@ -128,14 +128,11 @@ HANNIBAL = (function(H){
     planPhase: function(context){ // phase, centre, tick, civ
 
       var 
-        t0 = Date.now(),
+        t0 = Date.now(), 
         // utilizers = ["Villages", "Economy", "Military", "Brain"],
         utilizers = ["Economy"],
-        necessities, launches = [], technologies = [], 
-        simulation = H.mixin(context, {
-          launches:     [],
-          technologies: []
-        })
+        necessities, technologies = [], 
+        launches = {"phase.village": [], "phase.town": [], "phase.city": []}
         ;
 
       deb();deb();deb(" BRAIN: planPhase %s");
@@ -143,42 +140,42 @@ HANNIBAL = (function(H){
       // collect
       utilizers.forEach(utilizer => {
         necessities = H[utilizer].getPhaseNecessities(context);
-        deb("     B: got %s group actions, %s technologies from %s", necessities.groups.length, necessities.technologies.length, utilizer);
-        launches = launches.concat(necessities.groups);
+        deb("     B: got %s phases, %s technologies from %s", H.count(necessities.launches), necessities.technologies.length, utilizer);
+        launches["phase.village"] = launches["phase.village"].concat(necessities.launches["phase.village"]);
+        launches["phase.town"] = launches["phase.town"].concat(necessities.launches["phase.town"]);
+        launches["phase.city"] = launches["phase.city"].concat(necessities.launches["phase.city"]);
         if (necessities.technologies.length){
           technologies = H.unique(technologies.concat(necessities.technologies));
         }
       });
 
-      deb();
-      deb("     B: have %s group launches", launches.length);
-      deb("     B: have %s technologies",  technologies.length);
-      deb();
-
       // [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
 
+      deb();
       deb("     B: launches ...");
-      launches.forEach(ga => {
-        deb("     B:  %s", uneval(ga));
+      H.each(launches, function (phase, launches){
+        deb("     B: %s %s", phase, launches.length);
       });
 
-      // deb("     B: get group techs...");
-      launches.forEach(launch => {
-        H.Groups.getGroupTechnologies(launch[1]).forEach(t => {
-          // deb("getGroupTechnologies: %s", t);
-          technologies.push(t);
+      H.each(launches, function (phase, launches){
+        launches.forEach(launch => {
+          H.Groups.getGroupTechnologies(launch[1]).forEach(t => {
+            technologies.push(t);
+          });
         });
       });
-      simulation.technologies = H.unique(technologies);
-      // deb("     B: have %s technologies: %s",  technologies.length, technologies);
-      deb("     B: have %s technologies",  simulation.technologies.length);
 
-      // sort by tick
-      simulation.launches = launches.sort((a, b) => a[0] < b[0] ? -1 : 1);
+      context.launches = launches;
+      context.technologies = H.unique(technologies);
+      deb("     B: have %s technologies",  context.technologies.length);
 
-      var state = H.Simulator.simulate(simulation);
+      H.Simulator.simulate(context);
 
-      deb();deb(" BRAIN: planPhase %s msecs", Date.now() - t0);
+      deb();
+      deb(" BRAIN: planPhase state: %s, %s msecs", context.phase, Date.now() - t0);
+      JSON.stringify(context.curstate, null, 2).split("\n").forEach(function(line){
+        deb("     B: %s", line);
+      });
 
 
     },
@@ -189,10 +186,12 @@ HANNIBAL = (function(H){
         tck = options.tick,
         cc  = options.centre,
 
-        groups = {
+        technologies = [],
+
+        launches = {
           "phase.village": [
           //   tck,                  act, params
-            [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
+            [   4, [1, "g.scouts",     {cc:cc, size: 5}]],
           ],
           "phase.town" :   [
 
@@ -203,7 +202,7 @@ HANNIBAL = (function(H){
         };
 
        return {
-         groups: groups[options.phase],
+         launches: launches,
          technologies: [],
        };
 

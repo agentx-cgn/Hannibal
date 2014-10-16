@@ -56,16 +56,17 @@ HANNIBAL = (function(H){
         
         var 
           cls = H.class2name,
-          tck = options.tick,
           cc  = options.centre,
           housePopu = H.QRY(cls("house")).first().costs.population * -1,
-          groups = {
+
+          technologies = [],
+          launches = {
 
             "phase.village": [
 
                //  tck, amount,       group,        params
-               [  3 + tck, [1, "g.mayor",       {cc: cc, size: 0}]],
-               [  3 + tck, [1, "g.custodian",   {cc: cc, size: 0}]],
+               [  3, [1, "g.mayor",       {cc: cc, size: 0}]],
+               [  3, [1, "g.custodian",   {cc: cc, size: 0}]],
 
             ],
             "phase.town" :   [],
@@ -73,7 +74,7 @@ HANNIBAL = (function(H){
           };
 
         return {
-          groups: groups[options.phase],
+          launches: launches,
           technologies: [],
         };
 
@@ -206,7 +207,7 @@ HANNIBAL = (function(H){
           deb("     V: 1 %s %s", node.name, uneval(node.metadata));
           
           if (opname === 'none'){
-            deb("     V: 2 %s %s", node.name, opname);
+            // deb("     V: 2 %s %s", node.name, opname);
             // do nothing, is unit
 
           } else if (opname === "g.custodian"){

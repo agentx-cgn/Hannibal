@@ -38,16 +38,17 @@ HANNIBAL = (function(H){
           tck = options.tick,
           cc = options.centre,
 
+          technologies = [],
           groups = {
 
             "phase.village": [
             //   tck,                  act, params
-              [  20 + tck, [1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}]],
+              [  20, [1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}]],
             ],
 
             "phase.town" :   [
-              [  20 + tck, [1, "g.builder",    {cc: cc, size: 5, building: cls("temple"), quantity: 1}]],
-              [  20 + tck, [1, "g.tower",      {cc: cc, size: 5, quantity: 1}]],
+              [  20, [1, "g.builder",    {cc: cc, size: 5, building: cls("temple"), quantity: 1}]],
+              [  20, [1, "g.tower",      {cc: cc, size: 5, quantity: 1}]],
 
             ],
 
@@ -58,10 +59,9 @@ HANNIBAL = (function(H){
           };
 
         return {
-          groups: groups[options.phase],
+          launches: launches,
           technologies: [],
         };
-
       },
 
 

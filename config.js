@@ -16,23 +16,20 @@ HANNIBAL = (function(H){
 
   H.Config = {
 
-    //logging 0=zero, 1=errors, 2=errors+warnings, 3=errors+warnings+info, 4=everything
+    //logging 0=zero, 1=errors, 2=1+warnings, 3=2+info, 4=everything
     deb:      4,                   // enables messages to dbgView via _xdebug.js.deb()
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
     // "" disables H.Tester
-    sequence: "brain01",
+    sequence:                "brain01",
     // sequence: "Forest Battle",
 
     // enable psy-ops
-    brag:     true,  
+    brag:                    true,  
 
-    angle:    3 * Math.PI/4,       // depends on first CC
+    angle:                   3 * Math.PI/4,       // depends on first CC
 
-    // seed for H.Random
-    seed:     1234,           
-
-    attackRelax: 2,     
+    attackRelax:             2,     
 
     data:                    {
       sharedBuildingClasses: ['civilcentre', 'blacksmith', 'farmstead'],

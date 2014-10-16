@@ -62,6 +62,11 @@ H.extend(H, {
   isInteger:  function (n){return Math.floor(n) === n;},
   pareto:     function (alpha) {return 1.0 / Math.pow((1 - Math.random()), 1.0 / alpha);},
 
+  // function randomIntFromInterval(min,max)
+  // {
+  //     return Math.floor(Math.random()*(max-min+1)+min);
+  // }
+
   // strings
   replace:    function (s,f,r){return s.replace(new RegExp(H.escapeRex(f), 'g'), r);},
   padZero:    function (num, len){len = len || 2; num = "0000" + num; return num.substr(num.length-2, 2);},

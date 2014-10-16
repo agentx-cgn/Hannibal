@@ -162,16 +162,17 @@ var HANNIBAL = (function() {
     // this needs to go to tick 0, later, because of autotech
     H.Stats.init();
 
+
     H.Brain.planPhase({
-      tick:    0,
-      civ:     H.Bot.civ,
-      tree:    H.Bot.tree,
-      state:   H.HTN.Economy.getCurState(),
-      phase:  "phase." + H.Player.phase,
-      centre:  H.Villages.Centre.id,
-      budget:  H.deepcopy(H.Stats.stock),
-      ingames: H.QRY("INGAME"),
-      source:  this.id
+      tick:      1,
+      civ:       H.Bot.civ,
+      tree:      H.Bot.tree,
+      state:     H.HTN.Economy.getCurState(),
+      curstate:  H.HTN.Economy.getCurState(),
+      phase:    "phase." + H.Player.phase,  // run to this phase until next phase is researchable or run out of actions
+      centre:    H.Villages.Centre.id,
+      ingames:   H.QRY("INGAME"),
+      source:    this.id
     });
 
 

@@ -326,7 +326,7 @@ HANNIBAL = (function(H){
         },
         properties = {
           id        : +id || undefined,
-          civ       : this.getCivilisation(template),
+          civ       : H.test(template, "Identity.Civ"), // this.getCivilisation(template),
           info      : this.getInfo(template),
           icon      : (!!template.Identity && template.Identity.Icon) ? template.Identity.Icon : undefined,       // tech
           size      : this.getSize(template),
@@ -341,7 +341,7 @@ HANNIBAL = (function(H){
           capacity  : this.getCapacity(template),
           requires  : this.getRequirements(template),     // tech
           autoresearch : (!!template.autoResearch ? template.autoResearch : undefined),       // tech
-          modifications: this.getModifications(template),
+          modifications: H.test(template, "modifications"), //this.getModifications(template),
         };
 
       // create only props with value
@@ -350,17 +350,6 @@ HANNIBAL = (function(H){
           node[prop] = value;
         }
       });
-
-      // dynamic properties for ingames
-      // if (id){
-      //   H.extend(node, {
-      //     get position () {return H.Entities[id].position();},
-      //     get metadata () {var meta = H.MetaData[id]; return (meta === Object(meta)) ? meta : {};}, // ~~??
-      //     get state    () {return H.Entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();},
-      //     get health   () {var ent = H.Entities[id]; return Math.round(ent.hitpoints() / ent.maxHitpoints());}, // propbably slow
-      //     get slots    () {return node.capacity ? node.capacity - H.Entities[id].garrisoned.length : undefined;},
-      //   });
-      // }
 
       if (id){
         Object.defineProperties(node, {
@@ -462,10 +451,7 @@ HANNIBAL = (function(H){
       return t.requirements || undefined;
     },    
     getAffects: function(t){
-      // affects: ["Infantry Spear"],      
-      return !t.affects ? undefined : (
-        t.affects.map(String.toLowerCase)
-      );
+      return !!t.affects ? !t.affects.map(String.toLowerCase) : undefined;
     },
     getType: function(template, type){
       type = [type];
@@ -480,23 +466,35 @@ HANNIBAL = (function(H){
       return type.join("|");
     },
     getInfo: function(t){
+
       var tip;
-      if (t.Identity !== undefined){
-        if (t.Identity.Tooltip){
-          tip = H.replace(t.Identity.Tooltip, "\n", " ");
-        }
-      } else if (t.tooltip !== undefined) {
-        tip = t.tooltip;
-      } else if (t.description) {
-        tip = t.description;
-      } else if (t.top) { // pair
-        tip = t.genericName;
-      } else if (t.genericName) { // phase.city
-        tip = t.genericName;
-      }
-      return tip;
+
+      return (
+        (tip = H.test(t, "Identity.Tooltip")) ? H.replace(tip, "\n", " ") :
+        (tip = H.test(t, "tooltip"))     ? tip :
+        (tip = H.test(t, "description")) ? tip :
+        (tip = H.test(t, "top"))         ? t.genericName :
+        (tip = H.test(t, "genericName")) ? tip :
+          undefined
+      );
+
+      // if (t.Identity !== undefined){
+      //   if (t.Identity.Tooltip){
+      //     tip = H.replace(t.Identity.Tooltip, "\n", " ");
+      //   }
+      // } else if (t.tooltip !== undefined) {
+      //   tip = t.tooltip;
+      // } else if (t.description) {
+      //   tip = t.description;
+      // } else if (t.top) { // pair
+      //   tip = t.genericName;
+      // } else if (t.genericName) { // phase.city
+      //   tip = t.genericName;
+      // }
+      // return tip;
     }, 
     getCivilisation: function(t){
+      // return H.test(t, "Identity.Civ")
       var civ;
       if (t.Identity !== undefined){
         if (t.Identity.Civ){
@@ -506,20 +504,21 @@ HANNIBAL = (function(H){
       return civ;
     },
     // getRequirements: function(template){
-    //   var requirement;
-    //   if (template.Identity !== undefined){
-    //     if (template.Identity.RequiredTechnology){
-    //       requirement = template.Identity.RequiredTechnology;
-    //     }
-    //   }    
-    //   return requirement;
-    // },
-    getHealth: function(tpl){
-      return (
-        (!!tpl.Health && ~~tpl.Health.Max) ? 
-          ~~tpl.Health.Max : 
-            undefined
-      );
+      //   var requirement;
+      //   if (template.Identity !== undefined){
+      //     if (template.Identity.RequiredTechnology){
+      //       requirement = template.Identity.RequiredTechnology;
+      //     }
+      //   }    
+      //   return requirement;
+      // },
+    getHealth: function(t){
+      var test;
+      return (test = H.test(t, "Health.Max")) ? ~~test : undefined;
+      //   (!!tpl.Health && ~~tpl.Health.Max) ? 
+      //     ~~tpl.Health.Max : 
+      //       undefined
+      // );
     },
     getRates: function(tpl){
       // <ResourceGatherer>
@@ -573,41 +572,47 @@ HANNIBAL = (function(H){
       }
       return H.count(size) > 0 ? size : undefined;
     },
-    getSpeed: function(tpl){
-      return (
-        (!!tpl.UnitMotion && ~~tpl.UnitMotion.WalkSpeed) ? 
-          ~~tpl.UnitMotion.WalkSpeed : 
-            undefined
-      );
+    getSpeed: function(t){
+      var test;
+      return (test = H.test(t, "UnitMotion.WalkSpeed")) ? ~~test : undefined;
+      // return (
+      //   (!!tpl.UnitMotion && ~~tpl.UnitMotion.WalkSpeed) ? 
+      //     ~~tpl.UnitMotion.WalkSpeed : 
+      //       undefined
+      // );
     },   
-    getVision: function(tpl){
-      return (
-        (!!tpl.Vision && ~~tpl.Vision.Range) ? 
-          ~~tpl.Vision.Range : 
-            undefined
-      );
+    getVision: function(t){
+      var test;
+      return (test = H.test(t, "Vision.Range")) ? ~~test : undefined;
+      // return (
+      //   (!!tpl.Vision && ~~tpl.Vision.Range) ? 
+      //     ~~tpl.Vision.Range : 
+      //       undefined
+      // );
     },
-    getCapacity: function(tpl){
-      return (
-        (!!tpl.GarrisonHolder && ~~tpl.GarrisonHolder.Max) ? 
-          ~~tpl.GarrisonHolder.Max : 
-            undefined
-      );
+    getCapacity: function(t){
+      var test;
+      return (test = H.test(t, "GarrisonHolder.Max")) ? ~~test : undefined;
+      // return (
+      //   (!!tpl.GarrisonHolder && ~~tpl.GarrisonHolder.Max) ? 
+      //     ~~tpl.GarrisonHolder.Max : 
+      //       undefined
+      // );
     },
-    getArmour: function(template){
+    getArmour: function(t){
       var armour = {}; // {hack: 0, pierce: 0, crush: 0};
-      if (template.Armour !== undefined){
-        if (~~template.Armour.Hack)  {armour.hack   = ~~template.Armour.Hack;}
-        if (~~template.Armour.Pierce){armour.pierce = ~~template.Armour.Pierce;}
-        if (~~template.Armour.Crush) {armour.crush  = ~~template.Armour.Crush;}
+      if (t.Armour !== undefined){
+        if (~~t.Armour.Hack)  {armour.hack   = ~~t.Armour.Hack;}
+        if (~~t.Armour.Pierce){armour.pierce = ~~t.Armour.Pierce;}
+        if (~~t.Armour.Crush) {armour.crush  = ~~t.Armour.Crush;}
       }
       return H.count(armour) > 0 ? armour : undefined;
     },
-    getCosts: function(template){
+    getCosts: function(t){
       // we want integers
       var has = false, costs = {population: 0, time: 0, food:0, wood: 0, stone: 0, metal: 0},
-          TC = template.Cost, // ents
-          tc = template.cost; // tech
+          TC = t.Cost, // ents
+          tc = t.cost; // tech
       if (TC !== undefined){
         has = true;
         costs.population = ~~TC.Population || -~~TC.PopulationBonus || 0;
@@ -629,8 +634,8 @@ HANNIBAL = (function(H){
         if (tc.stone){costs.stone = ~~tc.stone;}
       }
 
-      if (template.researchTime){
-        costs.time =  ~~template.researchTime;
+      if (t.researchTime){
+        costs.time =  ~~t.researchTime;
         has = true;
       }
 

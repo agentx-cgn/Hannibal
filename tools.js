@@ -331,8 +331,8 @@ HANNIBAL = (function(H) {
 
 
 
-  H.Checker = function (options) { // state
-    H.extend(this, options, {
+  H.Checker = function (context) { // state
+    H.extend(this, context, {
       planner: new H.HTN.Planner({
         name:         "check.planner",
         operators:    H.HTN.Economy.operators,
@@ -915,7 +915,8 @@ HANNIBAL = (function(H) {
               case "train":
                 // deb("    PQ: #%s train, prod: %s, amount: %s, tpl: %s", id, node.producer, amount, node.key);
                 // H.Economy.do("train", amount, node.producer, node.key, order);
-                self.economy.do("train", amount, node.producer, node.key, order, node.costs);
+                // self.economy.do("train", amount, node.producer, node.key, order, node.costs, node.name);
+                self.economy.do("train", amount, order, node); //node.producer, node.key, order, node.costs, node.name);
                 H.Economy.subtract(node.costs, budget, amount);
                 order.processing += amount;
                 rep.exe.push(id + ":" + amount);
@@ -925,7 +926,8 @@ HANNIBAL = (function(H) {
                 if (builds === 0){
                   // deb("    PQ: #%s construct, prod: %s, amount: %s, pos: %s, tpl: %s", id, node.producer, amount, order.x + "|" + order.z, node.key);
                   // H.Economy.do("build", amount, node.producer, node.key, order);
-                  self.economy.do("build", amount, node.producer, node.key, order, node.costs);
+                  // self.economy.do("build", amount, node.producer, node.key, order, node.costs, node.name);
+                  self.economy.do("build", amount, order, node); //node.producer, node.key, order, node.costs, node.name);
                   H.Economy.subtract(node.costs, budget, amount);
                   order.processing += amount;
                   builds += 1;
@@ -936,7 +938,8 @@ HANNIBAL = (function(H) {
 
               case "research":
                 // H.Economy.do("research", 1, node.producer, node.key, order);
-                self.economy.do("research", 1, node.producer, node.key, order, node.costs);
+                // self.economy.do("research", 1, node.producer, node.key, order, node.costs, node.name);
+                self.economy.do("research", amount, order, node); //node.producer, node.key, order, node.costs, node.name);
                 H.Economy.subtract(node.costs, budget, amount);
                 order.processing += amount;
                 rep.exe.push(id + ":" + amount);

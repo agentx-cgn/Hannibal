@@ -40,7 +40,9 @@ HANNIBAL = (function(H){
 
   H.Simulation = function(context){
     H.extend(this, context, {
-      orders: []
+      orders: [],
+      techsAvailable: [],
+      techsFeasable:  [],
     });
   };
 
@@ -56,27 +58,25 @@ HANNIBAL = (function(H){
       return verb;
     },
     verifyTechnologies: function () {
-      var 
-        self = this, result, isGood, outTechs = [],
-        checker = new H.Checker(this);
-      this.technologies = this.technologies.filter(tech => {
-        result = checker.check(tech, false);
-        isGood = result.done || result.available || result.feasible;
-        if (!isGood){outTechs.push(tech)}
-        deb(" CHECK: %s %s, ", isGood ? "X" : "-", tech, uneval(result));
-        return isGood;
-      });
-      return outTechs;
-    },
-    createOrders: function(){
-
-      var self = this;
-
-      deb();deb("     B: create orders...");
-
+      var self = this, result, checker = new H.Checker(this);
+      deb("     S: veriTech: %s", this.technologies.length);
+      self.techsAvailable = [];
+      self.techsFeasable  = [];
       this.technologies.forEach(tech => {
+        result = checker.check(tech, false);
+        if (result.available){self.techsAvailable.push(tech); deb("     S: veriTech: available %s", tech);}
+        if (result.feasible){self.techsFeasable.push(tech); deb("     S: veriTech: feasible %s", tech);}
+      });
+    },
+    createTechOrders: function(tick, techs){
 
-        self.orders.push(new H.Order({
+      var self = this, orders = [];
+
+      // deb();deb("   SIM: create orders from tech...");
+
+      techs.forEach(tech => {
+
+        orders.push(new H.Order({
           amount:     1,
           verb:       "research", 
           cc:         self.centre,
@@ -85,40 +85,55 @@ HANNIBAL = (function(H){
           source:     self.source,
         }));
 
-          deb("   SIM: order %s", tech);
+        // deb("   SIM: order %s", tech);
 
       });
 
-      this.launches.forEach(launch => {
+      return orders;
+
+    },
+
+    createLaunchOrders: function(tick, launches){
+
+      // [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
+
+      var self = this, hcq, verb, order, exclusives, orders = [], groups = [];
+
+      launches.forEach(launch => {
 
         // deb(uneval(launch));
 
-        var exclusives = H.Groups.getGroupExclusives(launch[1]);
+        if (tick === launch[0]){
 
-        H.each(exclusives, function(name, params){
+          groups.push(launch[1][1]);
+          exclusives = H.Groups.getGroupExclusives(launch[1]);
 
-          var
-            amount = params[0],
-            hcq    = params[1][1],
-            verb   = self.verbFromNodes(hcq),
+          H.each(exclusives, function(name, params){
+            hcq    = params[1][1];
+            verb   = self.verbFromNodes(hcq);
             order  = {
-              amount:     amount,
+              amount:     params[0],
               verb:       verb, 
               cc:         launch[1][2].cc,
               location:   null,
-              hcq:        hcq, 
+              hcq:        params[1][1], 
               source:     self.source,
             };
 
-          deb("   SIM: order @%s %s: %s", launch[0], launch[1][1] ,uneval(order));
+            // deb("   SIM: order @%s %s: %s", launch[0], launch[1][1] ,uneval(order));
 
-          self.orders.push(new H.Order(order));
+            orders.push(new H.Order(order));
 
-        });
+          });
+
+        }
 
       });      
 
+      return [groups, orders];
+
     }
+
 
   };
 
@@ -129,39 +144,62 @@ HANNIBAL = (function(H){
     return {
 
       name: "simulator",
-      
+      context: null,
+
       log:  function(){},
       boot: function(){return (self = this);},
       init: function(){},
       activate: function(){},
+
       
       economy: {
         prioVerbs: ["research", "train", "build"],
         producers: null,
         orderqueue: null,
         stats: null, 
-        do: function(verb, amount, producer, template, order, cost){
-          deb("     S: #%s %s, %s, %s", order.id, verb, amount, H.saniTemplateName(template));
-          H.Economy.subtract(cost, self.economy.stats.stock, amount);
+        do: function(verb, amount, order, node){
+
+          var state = self.context.curstate.data;
+
+          deb("   SDO: #%s %s, %s, %s", order.id, verb, amount, node.name);
+          
+          H.Economy.subtract(node.costs, self.economy.stats.stock, amount);
+          
           order.remaining -= amount;
-        },
+          
+          if (verb === "train"){
+            state.ress.pop += amount;
+            state.ents[node.name] = !state.ents[node.name] ? 1 : state.ents[node.name] +1;
+          } else if (verb === "build"){
+            state.ents[node.name] = !state.ents[node.name] ? 1 : state.ents[node.name] +1;
+          } else if (verb === "research"){
+            state.tech.push(node.name);
+          }
+
+          // deb("   SDO: state %s", uneval(state));
+
+        }
       },
       
       simulate: function(context){  // phase, centre, tick, civ, budget, launches, technologies, tree
  
-        deb();deb();deb("  SIMU: start budget: %s", uneval(context.budget));
-        deb();deb();deb("  SIMU: start attribs: %s", H.attribs(context));
+        deb();deb();
+        deb("  SIMU: start %s budget: %s", context.phase, uneval(context.budget));
+        deb("  SIMU: attribs: %s", H.attribs(context));
 
         var 
-          techToPlan, cb = context.budget,
+          exit = false,
+          groups, orders, launches,
+          state = context.curstate,
+          tick = context.tick,
           simulation = new H.Simulation(context);
 
-        self.startBudget = H.deepcopy(context.budget);
-        self.economy.stats = {stock: {food: cb.food, wood: cb.wood, stone: cb.stone, metal: cb.metal}};
+        self.context = context;
+        self.economy.stats = {stock: state.data.ress};
 
         self.economy.producers = new H.Producers (
           H.mixin(context, {
-            parent:  self,
+            parent: self,
           })
         );
 
@@ -172,32 +210,41 @@ HANNIBAL = (function(H){
           })
         );
 
-        techToPlan = simulation.verifyTechnologies();
-        simulation.createOrders();
-
-
-        simulation.orders.forEach(order => {
+        simulation.verifyTechnologies();
+        orders = simulation.createTechOrders(tick, simulation.techsAvailable);
+        orders.forEach(order => {
           order.economy = self.economy;
           self.orderqueue.append(order);
         });
 
+        launches = context.launches[context.phase];
+        launches = launches.sort((a, b) => a[0] < b[0] ? -1 : 1);
 
-        // while (orderqueue.length){
+        while (!exit) {
 
-          deb();deb("  SIMU: process 1 stock: %s", uneval(self.economy.stats.stock));
+          [groups, orders] = simulation.createLaunchOrders(tick, launches);
+
+          groups.forEach(g => state.groups[g] = !state.groups[g] ? 1 : state.groups[g] +1);
+
+          deb();
+          deb(" SIMUL: @%s orders: %s, stock: %s", tick, orders.length, uneval(state.data.ress));
+
+          orders.forEach(order => {
+            order.economy = self.economy;
+            self.orderqueue.append(order);
+          });
+
           self.orderqueue.process(true);
 
-          deb();deb("  SIMU: process 2 stock: %s", uneval(self.economy.stats.stock));
-          self.orderqueue.process(true);
+          tick += 1;
+          state.data.cost.time += 1.6;
 
-          deb();deb("  SIMU: process 3 stock: %s", uneval(self.economy.stats.stock));
-          self.orderqueue.process(true);
+          if (tick > 5){exit = true;}
 
-          deb();deb("  SIMU: process 4 stock: %s", uneval(self.economy.stats.stock));
-          self.orderqueue.process(true);
+        }
 
-        // }
-
+        deb(" SIMUL: DONE: state %s", uneval(state.data.ress));
+        
 
       },
 

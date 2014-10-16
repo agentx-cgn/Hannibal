@@ -511,13 +511,13 @@ HANNIBAL = (function(H){
 
         H.Events.on("Advance", function (msg){
           var node = H.QRY("INGAME WITH id = " + msg.id).first();
-          if (node){self.producers.remove(node.name)};
+          if (node){self.producers.remove(node.name);}
           // H.Producers.removeById(msg.id);
         });
 
         H.Events.on("Destroy", function (msg){
           var node = H.QRY("INGAME WITH id = " + msg.id).first();
-          if (node){self.producers.remove(node.name)};
+          if (node){self.producers.remove(node.name);}
           // H.Producers.removeById(msg.id);
         });
 
@@ -533,26 +533,33 @@ HANNIBAL = (function(H){
           tck = options.tick,
           cc  = options.centre,
           housePopu = H.QRY(cls("house")).first().costs.population * -1,
-          groups = {
+          
+          technologies = [],
+          launches = {
 
             "phase.village": [
 
                //  tck, amount,       group,        params
-               [   2 + tck, [1, "g.supplier",   {cc: cc, size: 4, resource: "food.fruit"}]],
-               [   2 + tck, [1, "g.supplier",   {cc: cc, size: 1, resource: "food.meat"}]],
-               [   2 + tck, [1, "g.supplier",   {cc: cc, size: 5, resource: "wood"}]],
-               [   3 + tck, [1, "g.builder",    {cc: cc, size: 2, building: cls("house"), quantity: 2}]],
-               [  10 + tck, [1, "g.harvester",  {cc: cc, size: 5}]],
-               [  20 + tck, [1, "g.supplier",   {cc: cc, size: 5, resource: "stone"}]],
-               [  30 + tck, [1, "g.supplier",   {cc: cc, size: 5, resource: "metal"}]],
+               [   2, [1, "g.supplier",   {cc: cc, size: 4, resource: "food.fruit"}]],
+               [   2, [1, "g.supplier",   {cc: cc, size: 1, resource: "food.meat"}]],
+               [   2, [1, "g.supplier",   {cc: cc, size: 5, resource: "wood"}]],
+               [   3, [1, "g.builder",    {cc: cc, size: 2, building: cls("house"), quantity: 2}]],
+               [  10, [1, "g.harvester",  {cc: cc, size: 5}]],
+               [  20, [1, "g.supplier",   {cc: cc, size: 5, resource: "stone"}]],
+               [  30, [1, "g.supplier",   {cc: cc, size: 5, resource: "metal"}]],
 
             ],
-            "phase.town" :   [],
+            "phase.town" :   [
+               [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "wood"}]],
+               [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "stone"}]],
+               [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "metal"}]],
+
+            ],
             "phase.city" :   [],
           };
 
         return {
-          groups: groups[options.phase],
+          launches: launches,
           technologies: [],
         };
 
@@ -704,11 +711,13 @@ HANNIBAL = (function(H){
 
       },
 
-      do: function(verb, amount, producer, template, order, cost){
+      // do: function(verb, amount, producer, template, order, cost){
+      do: function(verb, amount, order, node){
 
         var 
-          pos, id = producer.id, task, 
-          techname = H.saniTemplateName(template),
+          pos, id = node.producer.id, task, 
+          template = node.key,
+          techname = H.saniTemplateName(node.key),
           msg = ( verb === "build" ?
             "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s" : 
             "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s"
@@ -721,13 +730,13 @@ HANNIBAL = (function(H){
           case "train" :
             task = H.Task.id;
             // task = self.genTaskId();
-            producer.queue.push([task, order]);
+            node.producer.queue.push([task, order]);
             deb(msg, order.id, verb, id, amount, template); 
             H.Engine.train([id], template, amount, {order: order.id, task: task});
           break;
 
           case "research" : 
-            producer.queue.push([techname, order]);
+            node.producer.queue.push([techname, order]);
             deb(msg, order.id, verb, id, 1, template); 
             H.Engine.research(id, template);
           break;
