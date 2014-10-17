@@ -159,7 +159,7 @@ HANNIBAL = (function(H){
         
         // H.Events.registerListener(id, instance.structure.listener.bind(instance.structure));
 
-        deb("   GRP: appointed %s for %s, id: %s, nodename: %s, ccid: %s", options.name, H.Entities[id], id, nodename, options.cc);
+        deb("   GRP: appointed %s for %s, ccid: %s", options.name, H.Entities[id], options.cc);
 
         return instance;
 

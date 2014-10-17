@@ -42,7 +42,7 @@ HANNIBAL = (function(H){
 
             "phase.village": [
             //   tck,                  act, params
-              [  20, [1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}]],
+              [  16, [1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}]],
             ],
 
             "phase.town" :   [

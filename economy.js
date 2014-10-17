@@ -19,8 +19,8 @@ HANNIBAL = (function(H){
     config = H.Config.economy,
 
     // defines a sort order
-    gatherables  = ["food", "wood", "stone", "metal"],
-    availability = H.deepcopy(gatherables),
+    // gatherables  = ["food", "wood", "stone", "metal"],
+    // availability = H.deepcopy(gatherables),
 
     // sorts processing order in queue
 
@@ -50,7 +50,7 @@ HANNIBAL = (function(H){
     forec: H.deepcopy(ress), // ???
     trend: H.deepcopy(ress), // as per suply
     stack: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
-    availability: availability,
+    // availability: availability,
     init: function(){
       H.Stats.tick();
     },
@@ -79,8 +79,8 @@ HANNIBAL = (function(H){
         stock[prop]   = available[prop];                // available
       });
       
-      // sort availability by stock
-      availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
+      // // sort availability by stock
+      // availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
 
       // other data
       stock.pops   = H.Player.popCount;
@@ -126,7 +126,9 @@ HANNIBAL = (function(H){
     constructor: H.Order,
     simulate: function(allocs){
 
-      var self = this;
+      var 
+        self = this,
+        availability = this.economy.availability;
 
       this.executable = false; // ready to send
       if(this.remaining - this.processing < 1){
@@ -154,6 +156,7 @@ HANNIBAL = (function(H){
         } else {
           node.qualifies = false;
           node.info += !producer ? "no producer, " : "";
+          // deb("    OE: no producer: %s", node.name);
         }
       });
 
@@ -198,7 +201,9 @@ HANNIBAL = (function(H){
     },
     evaluate: function(allocs){
 
-      var self = this;
+      var 
+        self = this,
+        availability = this.economy.availability;
 
       this.executable = false; // ready to send
 
@@ -365,13 +370,15 @@ HANNIBAL = (function(H){
   H.Economy = (function(){
 
     var 
-      self, goals, //planner, //orderqueue, producers, 
-      phases = ["phase.village", "phase.town", "phase.city"];
+      self, goals; //planner, //orderqueue, producers, 
+      //phases = ["phase.village", "phase.town", "phase.city"];
 
     return {
 
       name: "economy",
       prioVerbs: ["research", "train", "build"],
+      // gatherables  = ["food", "wood", "stone", "metal"],
+      availability: ["food", "wood", "stone", "metal"],
       stats: H.Stats,
       planner: null,
       producers: null,
@@ -410,11 +417,18 @@ HANNIBAL = (function(H){
       },
       tick: function(secs, ticks){
 
-        var t0 = Date.now();
+        var 
+          t0 = Date.now(),
+          stock = H.Player.resourceCounts;
         
         if ((ticks % H.Config.economy.intervalMonitorGoals) === 0){
           self.monitorGoals();
         }
+
+        // sort availability by stock
+        self.availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
+
+
         // H.OrderQueue.process();
         // H.OrderQueue.log();
         self.orderqueue.process();
@@ -543,7 +557,9 @@ HANNIBAL = (function(H){
                [   2, [1, "g.supplier",   {cc: cc, size: 4, resource: "food.fruit"}]],
                [   2, [1, "g.supplier",   {cc: cc, size: 1, resource: "food.meat"}]],
                [   2, [1, "g.supplier",   {cc: cc, size: 5, resource: "wood"}]],
-               [   3, [1, "g.builder",    {cc: cc, size: 2, building: cls("house"), quantity: 2}]],
+               [   3, [1, "g.builder",    {cc: cc, size: 2, building: cls("house"),      quantity: 2}]],
+               [   4, [1, "g.builder",    {cc: cc, size: 2, building: cls("farmstead"),  quantity: 1}]],
+               [   4, [1, "g.builder",    {cc: cc, size: 2, building: cls("storehouse"), quantity: 1}]],
                [  10, [1, "g.harvester",  {cc: cc, size: 5}]],
                [  20, [1, "g.supplier",   {cc: cc, size: 5, resource: "stone"}]],
                [  30, [1, "g.supplier",   {cc: cc, size: 5, resource: "metal"}]],
@@ -691,6 +707,16 @@ HANNIBAL = (function(H){
         );  
       },
       diff: function(cost, budget, amount=1){
+        return {
+          food:   (budget.food   || 0) - (cost.food   || 0 * amount),
+          wood:   (budget.wood   || 0) - (cost.wood   || 0 * amount),
+          stone:  (budget.stone  || 0) - (cost.stone  || 0 * amount),
+          metal:  (budget.metal  || 0) - (cost.metal  || 0 * amount),
+          pop  :  (budget.pop    || 0) - (cost.pop    || 0 * amount),
+          popcap: (budget.popcap || 0) - (cost.popcap || 0 * amount),
+        };
+      },
+      diffX: function(cost, budget, amount=1){
         var c = cost, b = budget, a = amount; // TODO amount 
         return {
           food:  ((c.food  || 0) > (b.food  || 0)) ? c.food  - (b.food  || 0) : undefined,

@@ -375,7 +375,7 @@ HANNIBAL = (function(H) {
         t0 = Date.now(),
         tree = this.tree.nodes,
         planner = this.planner,
-        state = this.state,
+        state = this.curstate || this.state, // a bit hacky
         data, goal, operations, 
         // tree = H.Bot.tree.nodes, 
         // state = H.HTN.Economy.getCurState(),
@@ -572,10 +572,17 @@ HANNIBAL = (function(H) {
 
   H.Producers.prototype = {
     constructor: H.Producers,
+    log: function(){
+      var self = this;
+      H.each(this.producers, function(nameid, data){
+        var [name, id] = nameid.split("#");
+        deb("   PDC: %s %s info: %s", id, name, self.infoProducer(name));
+      });
+    },
     isProducer: function(name){
       return (this.tree[name] && this.tree[name].products.count);
     },
-    infoProducer: function(){
+    infoProducer: function(name){
       var 
         train    = H.count(this.tree[name].products.train),
         build    = H.count(this.tree[name].products.build),
@@ -607,11 +614,20 @@ HANNIBAL = (function(H) {
       }
 
     },
+    findCentre: function(name){
+      var producer, names = H.attribs(this.producers), i = names.length;
+      while ((producer = this.producers[names[--i]])){
+        if (producer.name === this.nameCentre){
+          return producer;
+        }
+      }      
+      return null;
+    },
     register: function(nameid){
       var parts = nameid.split("#"), name = parts[0], id = parts[1];
-      if (this.isProducer(name)){
+      if (this.isProducer(name) && !this.producers[nameid]){
         this.producers[nameid] = {queue: [], allocs: 0, name: name, id: ~~id};
-        deb("   PDC: reg: %s", uneval(this.producers[nameid]));
+        // deb("   PDC: reg: %s", uneval(this.producers[nameid]));
       }
     },
     remove: function(nameid){
@@ -620,22 +636,29 @@ HANNIBAL = (function(H) {
     allocate: function(product, cc){
 
       var 
+        phase,
         tree = this.tree,
         producer = null, 
         verb = this.tree[product].verb, 
         names = H.attribs(this.producers),
         i = names.length;
 
-      // deb("   PDC: allocate: %s, %s", product, cc);
+      // deb("   PDC: allocate: %s, %s", product, cc || "nocc");
 
       // has no producer
-      if(!verb){/* deb("ERROR : PDC.allocate: no verb for %s", product); */ return null;}
+      if(!verb){
+        // deb("ERROR : PDC.allocate: no verb for %s", product);
+        return null;
+      }
 
       switch (verb){
 
         case "build":
           // can ignore cc and allocations
           while ((producer = this.producers[names[--i]])){
+
+            // deb("   PDC testing %s %s %s", !!tree[producer.name].products.build[product], producer.name, product);
+
             if (tree[producer.name].products.build[product]){
               break;  
             }        
@@ -643,13 +666,21 @@ HANNIBAL = (function(H) {
         break;
 
         case "research":
-          // can ignore cc
-          while ((producer = this.producers[names[--i]])){
-            if (tree[producer.name].products.research[product]){
-              if (producer.allocs < this.maxAllocs){
-                break;
+          if (product.contains("phase")){
+            if ((producer = this.findCentre())){
+              if (producer.allocs >= this.maxAllocs){
+                producer = null;
+              }
+            }
+          } else {
+            // can ignore cc
+            while ((producer = this.producers[names[--i]])){
+              if (tree[producer.name].products.research[product]){
+                if (producer.allocs < this.maxAllocs){
+                  break;
+                } 
               } 
-            } 
+            }
           }
         break;
         
@@ -675,156 +706,156 @@ HANNIBAL = (function(H) {
   };
 
 
-  H.ProducersXX = (function(){
+  // H.ProducersXX = (function(){
 
-    var self, name, producers = [], tree, maxQueue = 3; // will get overallocated
+  //   var self, name, producers = [], tree, maxQueue = 3; // will get overallocated
 
-    function isProducer(name){
-      if (tree[name] && tree[name].products.count){
-        return tree[name];
-      } else {
-        deb("   PDC: not a producer: %s", name);
-        return null;
-      }
-    }
+  //   function isProducer(name){
+  //     if (tree[name] && tree[name].products.count){
+  //       return tree[name];
+  //     } else {
+  //       deb("   PDC: not a producer: %s", name);
+  //       return null;
+  //     }
+  //   }
 
-    function infoProducer(name){
-      var 
-        train    = H.count(tree[name].products.train),
-        build    = H.count(tree[name].products.build),
-        research = H.count(tree[name].products.research);
-      return H.format("procucer: %s trains: %s, builds: %s, researches: %s", name, train, build, research);
-    }
+  //   function infoProducer(name){
+  //     var 
+  //       train    = H.count(tree[name].products.train),
+  //       build    = H.count(tree[name].products.build),
+  //       research = H.count(tree[name].products.research);
+  //     return H.format("procucer: %s trains: %s, builds: %s, researches: %s", name, train, build, research);
+  //   }
 
-    return {
-      boot: function(){return (self = this);},
-      init: function(options){ // tree, ingames
+  //   return {
+  //     boot: function(){return (self = this);},
+  //     init: function(options){ // tree, ingames
 
-        deb();deb();deb("   PDC: init");
+  //       deb();deb();deb("   PDC: init");
 
-        tree = options.tree.nodes;
+  //       tree = options.tree.nodes;
 
-        // TODO ignore units for build
-        options.ingames.forEach(node => {
-          name = node.name.split("#")[0];
-          if (isProducer(name)){
-            node.queue = [];
-            producers.push(node);
-          }
-        });
+  //       // TODO ignore units for build
+  //       options.ingames.forEach(node => {
+  //         name = node.name.split("#")[0];
+  //         if (isProducer(name)){
+  //           node.queue = [];
+  //           producers.push(node);
+  //         }
+  //       });
 
-        // producers.forEach(p => {
-        //   deb("     P: %s", p.name);
-        //   ["train", "build", "research"].forEach(verb => {
-        //     deb("     P:    %s", verb);
-        //     H.attribs(tree[p.name.split("#")[0]].products[verb]).forEach(prod => {
-        //       deb("     P:     %s", prod);
-        //     });
-        //   });
-        // });
+  //       // producers.forEach(p => {
+  //       //   deb("     P: %s", p.name);
+  //       //   ["train", "build", "research"].forEach(verb => {
+  //       //     deb("     P:    %s", verb);
+  //       //     H.attribs(tree[p.name.split("#")[0]].products[verb]).forEach(prod => {
+  //       //       deb("     P:     %s", prod);
+  //       //     });
+  //       //   });
+  //       // });
 
-        deb("   PDC: found %s producers", producers.length);
+  //       deb("   PDC: found %s producers", producers.length);
 
-      },
-      unqueue: function(verb, info){
+  //     },
+  //     unqueue: function(verb, info){
 
-        var p, i = producers.length;
+  //       var p, i = producers.length;
 
-        while((p = producers[--i])){
-          if(p.queue && p.queue.length){
-            if (H.delete(p.queue, task => task[0] === info)){
-              deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, p.name);
-              return;
-            } else {
-              deb("   PDC: unqueue not found %s, %s, -> %s : %s", verb, info, p.name, p.queue);
-            }
-          }
-        }
+  //       while((p = producers[--i])){
+  //         if(p.queue && p.queue.length){
+  //           if (H.delete(p.queue, task => task[0] === info)){
+  //             deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, p.name);
+  //             return;
+  //           } else {
+  //             deb("   PDC: unqueue not found %s, %s, -> %s : %s", verb, info, p.name, p.queue);
+  //           }
+  //         }
+  //       }
 
-        deb("   PDC: unqueue: not found in queue: %s, %s", verb, info);
+  //       deb("   PDC: unqueue: not found in queue: %s, %s", verb, info);
 
-      },
-      find: function(product, ccid){
+  //     },
+  //     find: function(product, ccid){
 
-        var producer = null, verb = tree[product].verb, i = producers.length;
+  //       var producer = null, verb = tree[product].verb, i = producers.length;
 
-        // has no producer
-        if(!verb){deb("ERROR : PDC.find: no verb for %s", product); return null;}
+  //       // has no producer
+  //       if(!verb){deb("ERROR : PDC.find: no verb for %s", product); return null;}
 
-        switch (verb){
+  //       switch (verb){
 
-          case "build":
-            // can ignore cc and queue
-            while ((producer = producers[--i])){
-              name = producer.name.split("#")[0];
-              if (tree[name].products.build[product]){
-                break;  
-              }        
-            }
-          break;
+  //         case "build":
+  //           // can ignore cc and queue
+  //           while ((producer = producers[--i])){
+  //             name = producer.name.split("#")[0];
+  //             if (tree[name].products.build[product]){
+  //               break;  
+  //             }        
+  //           }
+  //         break;
 
-          case "research":
-          // can ignore cc
-            // deb("   PDC: searching: %s", product);
-            while ((producer = producers[--i])){
-              name = producer.name.split("#")[0];
-              if (tree[name].products.research[product]){
-                if (producer.queue.length <= maxQueue){
-                  break;
-                } // else {deb("---> maxQueue: %s, %s", producer.name, producer.queue.length);}
-              } // else {deb("---> tree: %s, %s", name, product);}       
-            }
-          break;
+  //         case "research":
+  //         // can ignore cc
+  //           // deb("   PDC: searching: %s", product);
+  //           while ((producer = producers[--i])){
+  //             name = producer.name.split("#")[0];
+  //             if (tree[name].products.research[product]){
+  //               if (producer.queue.length <= maxQueue){
+  //                 break;
+  //               } // else {deb("---> maxQueue: %s, %s", producer.name, producer.queue.length);}
+  //             } // else {deb("---> tree: %s, %s", name, product);}       
+  //           }
+  //         break;
           
-          case "train":
-            while ((producer = producers[--i])){
-              name = producer.name.split("#")[0];
-              if (tree[name].products.train[product]){
-                if (ccid && H.MetaData[producer.id].ccid === ccid){
-                  if (producer.queue.length <= maxQueue){
-                    break;
-                  } // else {deb("---> maxQueue: %s, %s", producer.name, producer.queue.length);}
-                } // else {deb("---> ccid: %s, %s", producer.name, H.MetaData[producer.id].ccid);}
-              }        
-            }
-          break;
+  //         case "train":
+  //           while ((producer = producers[--i])){
+  //             name = producer.name.split("#")[0];
+  //             if (tree[name].products.train[product]){
+  //               if (ccid && H.MetaData[producer.id].ccid === ccid){
+  //                 if (producer.queue.length <= maxQueue){
+  //                   break;
+  //                 } // else {deb("---> maxQueue: %s, %s", producer.name, producer.queue.length);}
+  //               } // else {deb("---> ccid: %s, %s", producer.name, H.MetaData[producer.id].ccid);}
+  //             }        
+  //           }
+  //         break;
           
-          default:
-            deb("ERROR : Producer.find unknown verb %s for %s", verb, product);
-        }
+  //         default:
+  //           deb("ERROR : Producer.find unknown verb %s for %s", verb, product);
+  //       }
 
-        // if (producer){
-        //   deb("   PDC: found %s for %s with cc: %s, verb: %s", producer.name, product, ccid, verb);
-        // } else {
-        //   deb("   PDC: found NONE for %s with cc: %s, verb: %s", product, ccid, verb);
-        // }
+  //       // if (producer){
+  //       //   deb("   PDC: found %s for %s with cc: %s, verb: %s", producer.name, product, ccid, verb);
+  //       // } else {
+  //       //   deb("   PDC: found NONE for %s with cc: %s, verb: %s", product, ccid, verb);
+  //       // }
 
-        return producer;
-      },
-      loadById: function(id){
-        var name, node = H.QRY("INGAME WITH id = " + id).first();
-        if(node){
-          name = node.name.split("#")[0];
-          if (isProducer(name)){
-            node.queue = [];
-            producers.push(node);
-            // deb("   PDC: loadById #%s, %s, have: %s", id, infoProducer(name), producers.length);
-          }
-        } else{
-          deb("ERROR : PDC loadById failed #%s not in store", id);
-        }
-      },
-      removeById: function(id){
-        if (H.delete(producers, p => p.id === id)){ // could get slow...
-          deb("   PDC: removed #%s, %s", id, H.Entities[id] ? H.Entities[id]._templateName : "no entity");
-        } else {
-          // deb("INFO  : PDC didn't remove #%s, %s", id, H.Entities[id] ? H.Entities[id]._templateName : "no entity");
-        }
-      },
+  //       return producer;
+  //     },
+  //     loadById: function(id){
+  //       var name, node = H.QRY("INGAME WITH id = " + id).first();
+  //       if(node){
+  //         name = node.name.split("#")[0];
+  //         if (isProducer(name)){
+  //           node.queue = [];
+  //           producers.push(node);
+  //           // deb("   PDC: loadById #%s, %s, have: %s", id, infoProducer(name), producers.length);
+  //         }
+  //       } else{
+  //         deb("ERROR : PDC loadById failed #%s not in store", id);
+  //       }
+  //     },
+  //     removeById: function(id){
+  //       if (H.delete(producers, p => p.id === id)){ // could get slow...
+  //         deb("   PDC: removed #%s, %s", id, H.Entities[id] ? H.Entities[id]._templateName : "no entity");
+  //       } else {
+  //         // deb("INFO  : PDC didn't remove #%s, %s", id, H.Entities[id] ? H.Entities[id]._templateName : "no entity");
+  //       }
+  //     },
 
-    };
+  //   };
 
-  }().boot());
+  // }().boot());
 
   H.OrderQueue = function (options){
 
@@ -889,7 +920,7 @@ HANNIBAL = (function(H) {
       queue
         .forEach(o => {
           exec = o.executable ? "X" : "-";
-          source = H.Objects(o.source).name;
+          source = H.isInteger(o.source) ? H.Objects(o.source).name : o.source;
           nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
           deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
       });

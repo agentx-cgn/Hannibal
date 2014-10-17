@@ -145,7 +145,7 @@ HANNIBAL = (function(H){
         launches["phase.town"] = launches["phase.town"].concat(necessities.launches["phase.town"]);
         launches["phase.city"] = launches["phase.city"].concat(necessities.launches["phase.city"]);
         if (necessities.technologies.length){
-          technologies = H.unique(technologies.concat(necessities.technologies));
+          technologies = technologies.concat(necessities.technologies);
         }
       });
 
@@ -163,11 +163,11 @@ HANNIBAL = (function(H){
         },
         minTicks: {
           "phase.village": launches["phase.village"].length ? launches["phase.village"].slice(0)[0][0] : 0,
-          "phase.town": launches["phase.town"].length ? launches["phase.town"].slice(-1)[0][0] : 0,
-          "phase.city": launches["phase.city"].length ? launches["phase.city"].slice(-1)[0][0] : 0,
+          "phase.town": launches["phase.town"].length ? launches["phase.town"].slice(0)[0][0] : 0,
+          "phase.city": launches["phase.city"].length ? launches["phase.city"].slice(0)[0][0] : 0,
         },
         maxTicks: {
-          "phase.village": launches["phase.village"].length ? launches["phase.village"].slice(0)[0][0] : 0,
+          "phase.village": launches["phase.village"].length ? launches["phase.village"].slice(-1)[0][0] : 0,
           "phase.town": launches["phase.town"].length ? launches["phase.town"].slice(-1)[0][0] : 0,
           "phase.city": launches["phase.city"].length ? launches["phase.city"].slice(-1)[0][0] : 0,
         }
@@ -200,7 +200,7 @@ HANNIBAL = (function(H){
       H.Simulator.simulate(context);
 
       deb();
-      deb(" BRAIN: planPhase state: %s, %s msecs", context.phase, Date.now() - t0);
+      deb(" BRAIN: planPhase state: %s, %s msecs", context.curphase, Date.now() - t0);
       JSON.stringify(context.curstate, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });

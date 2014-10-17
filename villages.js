@@ -161,7 +161,7 @@ HANNIBAL = (function(H){
             if (ent.hasClass("Unit")){
               H.MetaData[id].opname = "none";
               // ent.setMetadata(H.Bot.id, "opname", "none");
-              deb("     V: set opname to 'none' %s", ent);
+              // deb("     V: set opname to 'none' %s", ent);
 
             } else if (ent.hasClass("Structure")){
 
@@ -179,7 +179,7 @@ HANNIBAL = (function(H){
               } else {
                 H.MetaData[id].opname = "none";
                 // ent.setMetadata(H.Bot.id, "opname", "none");
-                deb("     V: set opname to 'none' for %s", ent);
+                // deb("     V: set opname to 'none' for %s", ent);
               
               }
 
@@ -204,7 +204,7 @@ HANNIBAL = (function(H){
 
           opname = node.metadata.opname;
 
-          deb("     V: 1 %s %s", node.name, uneval(node.metadata));
+          // deb("     V: 1 %s %s", node.name, uneval(node.metadata));
           
           if (opname === 'none'){
             // deb("     V: 2 %s %s", node.name, opname);

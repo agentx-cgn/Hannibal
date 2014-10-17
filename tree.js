@@ -23,9 +23,9 @@
 HANNIBAL = (function(H){
 
   var phases = H.Phases = {
-      "1" : {idx: 1, abbr: "vill", generic: "phase_village", alternates: ["vill", "phase_village"]},
-      "2" : {idx: 2, abbr: "town", generic: "phase_town",    alternates: ["town", "phase_town"]},
-      "3" : {idx: 3, abbr: "city", generic: "phase_city",    alternates: ["city", "phase_city"]},
+      "1" : {idx: 1, abbr: "vill", next: "", generic: "phase_village", alternates: ["vill", "phase_village"]},
+      "2" : {idx: 2, abbr: "town", next: "", generic: "phase_town",    alternates: ["town", "phase_town"]},
+      "3" : {idx: 3, abbr: "city", next: "", generic: "phase_city",    alternates: ["city", "phase_city"]},
       current: "",
       find: function(phase){
         for (var i=1; i<=3; i++) {
@@ -36,7 +36,7 @@ HANNIBAL = (function(H){
         //H.throw("phases.find: '%s' unknown", phase);
       },
       prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];},
-      update: function(){
+      init: function(){
         var test;
         function extract(str){
           if (str && str.contains("phase")){
@@ -55,15 +55,22 @@ HANNIBAL = (function(H){
         phases["1"].alternates = H.unique(phases["1"].alternates);
         phases["2"].alternates = H.unique(phases["2"].alternates);
         phases["3"].alternates = H.unique(phases["3"].alternates);
-      }
+      },
+      finalize: function(){
+        H.QRY(H.class2name("civilcentre") + " RESEARCH").forEach(node => {
+          if (node.name.contains("town")){phases["1"].next = node.name;}
+          if (node.name.contains("city")){phases["2"].next = node.name;}
+        });
+        deb("     T: phases: 1 next: %s, %s", phases["1"].next, uneval(phases["1"].alternates));
+        deb("     T: phases: 2 next: %s, %s", phases["2"].next, uneval(phases["2"].alternates));
+        deb("     T: phases: 3 %s", uneval(phases["3"].alternates));
+      },
     };
 
 
   H.TechTree = function (idplayer) {
 
     deb();deb();
-
-    phases.update(); // needs better place
 
     this.id = idplayer;
     this.civ = H.Players[idplayer].civ;
@@ -85,9 +92,6 @@ HANNIBAL = (function(H){
     this.keys  = H.attribs(this.nodes).map(t => this.nodes[t].key);
 
     deb("     T: found %s nodes", this.names.length);
-    deb("     T: phases: 1 %s", uneval(phases["1"].alternates));
-    deb("     T: phases: 2 %s", uneval(phases["2"].alternates));
-    deb("     T: phases: 3 %s", uneval(phases["3"].alternates));
 
   };
 
@@ -154,7 +158,7 @@ HANNIBAL = (function(H){
       // called after culture was loaded
 
       var 
-        tech, name, nodes = this.nodes, t0 = Date.now(),
+        tech, name, producers, nodes = this.nodes, t0 = Date.now(),
         operMapper = {
           "BUILDBY":       "build_structures",
           "TRAINEDBY":     "train_units",
@@ -213,25 +217,46 @@ HANNIBAL = (function(H){
       H.QRY("RESEARCHEDBY DISTINCT").forEach(researcher => {  
         H.QRY(researcher.name + " RESEARCH PAIR").forEach(p => {
           nodes[researcher.name].products.research[p.name] = p;
-          nodes[researcher.name].products.count = H.count(nodes[researcher.name].products.research);
+          nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
         });
       });          
 
       H.QRY("RESEARCHEDBY DISTINCT").forEach(researcher => {  
         H.QRY(researcher.name + " RESEARCH SUPERSED").forEach(p => {
           nodes[researcher.name].products.research[p.name] = p;
-          nodes[researcher.name].products.count = H.count(nodes[researcher.name].products.research);
+          nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
         });
       });          
 
 
-      // setting research as verb for all phases
+      // setting research as verb for all phase alternatives
 
-      H.range(1, 4).forEach(n => {
+      // H.range(1, 4).forEach(n => {
+      H.loop(3, n => {
         phases[n].alternates.forEach(a => {
           name = H.saniTemplateName(a);
           if (nodes[name] && !nodes[name].verb){
             nodes[name].verb = "research";
+          }
+        });
+      });
+
+      // setting producers for all phase alternatives
+
+      H.loop(3, n => {
+        producers = null;
+        phases[n].alternates.forEach(a => {
+          name = H.saniTemplateName(a);
+          if (nodes[name] && H.count(nodes[name].producers)){
+            producers = nodes[name].producers;
+          }
+        });
+        // deb("  TREE: phase: %s, producers: %s", phases[n].abbr, uneval(producers));
+        phases[n].alternates.forEach(a => {
+          name = H.saniTemplateName(a);
+          if (nodes[name] && !H.count(nodes[name].producers)){
+            nodes[name].producers = H.deepcopy(producers);
+            // deb("tree: set %s", name);
           }
         });
       });

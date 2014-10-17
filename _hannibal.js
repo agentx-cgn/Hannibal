@@ -116,6 +116,7 @@ var HANNIBAL = (function() {
     // launch the stats extension
     H.Numerus.init();                       
 
+    H.Phases.init();                         // acquire all phase names
     this.tree    = new H.TechTree(this.id);  // analyse templates of bot's civ
     this.culture = new H.Culture(this.tree); // culture knowledgebase as triple store
     this.culture.searchTemplates();          // extrcact classes, resources, etc from templates
@@ -125,6 +126,7 @@ var HANNIBAL = (function() {
     this.culture.loadTechnologies();         // from game to triple store
     this.culture.finalize();                 // clear up
     this.tree.finalize();                    // caches required techs, producers for entities
+    H.Phases.finalize();                     // phases order
 
     // init map, grids and related services
     H.Map.width         = H.SharedScript.passabilityMap.width;
@@ -153,7 +155,7 @@ var HANNIBAL = (function() {
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
-    // this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
+    this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
 
     H.Brain.init();
     H.Economy.init();
@@ -164,7 +166,7 @@ var HANNIBAL = (function() {
 
 
     H.Brain.planPhase({
-      tick:        1,
+      tick:        0,
       civ:         H.Bot.civ,
       tree:        H.Bot.tree,
       source:      this.id,
@@ -174,7 +176,8 @@ var HANNIBAL = (function() {
       phase:      "phase." + H.Player.phase,  // run to this phase until next phase is researchable or (city) run out of actions
       curphase:   "phase.village", 
       centre:      H.Villages.Centre.id,
-      ingames:     H.QRY("INGAME"),
+      // ingames:     H.QRY("INGAME"),
+      nameCentre:  H.class2name("civilcentre"),
       nameTower:   H.class2name("defensetower"),
       nameHouse:   H.class2name("house"),
       popuHouse:   H.QRY(H.class2name("house")).first().costs.population * -1, // ignores civ
@@ -258,6 +261,8 @@ var HANNIBAL = (function() {
     // testing Triple Store
     ts = this.culture.store;
     ts.debug = 5;
+
+    // H.QRY(H.class2name("civilcentre") + " RESEARCH").execute("metadata", 5, 10, "next phases");
 
     // H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
     // H.QRY("TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
