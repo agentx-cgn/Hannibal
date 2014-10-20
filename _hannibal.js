@@ -155,7 +155,7 @@ var HANNIBAL = (function() {
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
-    this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
+    // this.tree.export(); // filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
 
     H.Brain.init();
     H.Economy.init();
@@ -176,13 +176,16 @@ var HANNIBAL = (function() {
       phase:      "phase." + H.Player.phase,  // run to this phase until next phase is researchable or (city) run out of actions
       curphase:   "phase.village", 
       centre:      H.Villages.Centre.id,
-      // ingames:     H.QRY("INGAME"),
       nameCentre:  H.class2name("civilcentre"),
       nameTower:   H.class2name("defensetower"),
       nameHouse:   H.class2name("house"),
       popuHouse:   H.QRY(H.class2name("house")).first().costs.population * -1, // ignores civ
-
+      technologies: [],
+      launches:     {"phase.village": [], "phase.town": [], "phase.city": []},
+      resources:   H.Resources.availability("wood", "food", "metal", "stone", "treasure"),
     });
+
+    H.Config.deb = 0;
 
 
     /*

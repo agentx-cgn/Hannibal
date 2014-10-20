@@ -102,6 +102,26 @@ HANNIBAL = (function(H){
 
     return {
       boot: function(){return (self = this);},
+      availability: function( /* arguments */ ){
+
+        var 
+          types = H.toArray(arguments), 
+          res = {food: 0, wood: 0, stone: 0, metal: 0};
+
+        types.forEach(type => self.eachType(type, (generic, specific, id, resource) => {
+          resource.update();
+          if (resource.found){
+            if (generic === "treasure"){
+              res[specific] += resource.supply;              
+            } else {
+              res[generic] += resource.supply;
+            }
+          }
+        }));
+
+        return res;
+
+      },
       eachType: function(type, fn){
 
         var 

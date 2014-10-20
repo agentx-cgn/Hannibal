@@ -39,8 +39,13 @@ HANNIBAL = (function(H){
       "Garrison",
       "UnGarrison",
       "RangeUpdate",
-      "PlayerDefeated"
+      "PlayerDefeated",
     ],
+
+    internalEvents = [
+      "OrderReady",
+      "BroadCast",
+    ], 
 
     // saves the listeners
     dispatcher = {

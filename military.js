@@ -42,11 +42,11 @@ HANNIBAL = (function(H){
 
             "phase.village": [
             //   tck,                  act, params
-              [  16, [1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}]],
+              [  16, 1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}],
             ],
 
             "phase.town" :   [
-              [  20, [1, "g.builder",    {cc: cc, size: 5, building: cls("temple"), quantity: 1}]],
+              [  20, 1, "g.builder",    {cc: cc, size: 5, building: cls("temple"), quantity: 1}],
               // [  20, [1, "g.tower",      {cc: cc, size: 5, quantity: 1}]],
 
             ],
@@ -55,11 +55,16 @@ HANNIBAL = (function(H){
 
             ],
 
-          };
+          },
+
+          messages = [
+            [  20, {name: "BroadCast", data: {group: "g.builder", size: 5, building: cls("baracks"), quantity: 2}}],
+          ];
 
         return {
           launches: launches,
           technologies: technologies,
+          messages: messages,
         };
       },
 

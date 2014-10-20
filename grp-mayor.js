@@ -37,7 +37,7 @@ HANNIBAL = (function(H){
       parent:         "",             // inherit useful features
 
       technologies: [
-                      "unlock_females_house"
+                      "unlock.females.house"
       ],
 
       position:       null,           // refers to the coords of the group's position/activities

@@ -17,16 +17,7 @@ HANNIBAL = (function(H){
   var 
     // relies on c before e
     config = H.Config.economy,
-
-    // defines a sort order
-    // gatherables  = ["food", "wood", "stone", "metal"],
-    // availability = H.deepcopy(gatherables),
-
-    // sorts processing order in queue
-
-    ress         = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0}
-    ;
-
+    ress   = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0};
 
   function pritc(cost){ // pretty cost
     var out = [];
@@ -379,6 +370,7 @@ HANNIBAL = (function(H){
       prioVerbs: ["research", "train", "build"],
       // gatherables  = ["food", "wood", "stone", "metal"],
       availability: ["food", "wood", "stone", "metal"],
+      allocations: {food: 0, wood: 0, stone: 0, metal: 0, population: 0},
       stats: H.Stats,
       planner: null,
       producers: null,
@@ -540,12 +532,12 @@ HANNIBAL = (function(H){
       monitorGoals: function(){
 
       },
-      getPhaseNecessities: function(options){ // phase, centre, tick
+      getPhaseNecessities: function(context){ // phase, centre, tick
         
         var 
           cls = H.class2name,
-          tck = options.tick,
-          cc  = options.centre,
+          tck = context.tick,
+          cc  = context.centre,
           housePopu = H.QRY(cls("house")).first().costs.population * -1,
           
           technologies = [],
@@ -579,6 +571,7 @@ HANNIBAL = (function(H){
         return {
           launches: launches,
           technologies: technologies,
+          messages: messages,
         };
 
       },

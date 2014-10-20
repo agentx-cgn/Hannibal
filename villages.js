@@ -76,6 +76,7 @@ HANNIBAL = (function(H){
         return {
           launches: launches,
           technologies: technologies,
+          messages: messages,
         };
 
       },      

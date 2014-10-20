@@ -196,22 +196,24 @@ HANNIBAL = (function(H){
         });
       },
       // launch: function(name, ccid, args){
-      getGroupTechnologies: function(launchaction){
+      getGroupTechnologies: function(launch){
 
-        // [1, "g.supplier", {cc:44, size:4, resource:"food.fruit"}]
+        // [   4,    1, "g.scouts",     {cc:cc, size: 5}],
 
-        var def = groups[launchaction[1]].definition;
+        var def = groups[launch[2]].definition;
 
         return def.technologies || [];
 
       },
-      getGroupExclusives: function(launchaction){
+      getExclusives: function(launch){
 
-        // [1, "g.supplier", {cc:44, size:4, civ: "athen", resource:"food.fruit"}]
+        // [   4,    1, "g.scouts",     {cc:cc, size: 5}],
 
-        var def = groups[launchaction[1]].definition;
+        deb("   GRP: getExclusives: %s", uneval(launch));
 
-        return def.exclusives ? def.exclusives(launchaction[2]) : {};
+        var def = groups[launch[2]].definition;
+
+        return def.exclusives ? def.exclusives(launch[3]) : {};
 
       },
       launch: function(options){

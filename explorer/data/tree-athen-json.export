@@ -1,0 +1,1600 @@
+// EXPORTED tree 'athen' at Sun Oct 05 2014 15:25:37 GMT+0200 (CEST)
+     T:   1000 tech vill phase.village
+     T:        d:    0,  o:    1
+     T:        phase_village
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.civil.centre
+     T:        NO PRODUCTS
+     T:   1001 unit vill units.athen.infantry.spearman.e
+     T:        d:    3,  o:    0
+     T:        units/athen_infantry_spearman_e
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   1001 unit vill units.athen.infantry.spearman.a
+     T:        d:    3,  o:    0
+     T:        units/athen_infantry_spearman_a
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   1001 unit vill units.athen.cavalry.javelinist.e
+     T:        d:    4,  o:    0
+     T:        units/athen_cavalry_javelinist_e
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   1001 unit vill units.athen.cavalry.javelinist.a
+     T:        d:    4,  o:    0
+     T:        units/athen_cavalry_javelinist_a
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   1001 unit vill units.athen.infantry.slinger.e
+     T:        d:    7,  o:    0
+     T:        units/athen_infantry_slinger_e
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   1001 unit vill units.athen.infantry.slinger.a
+     T:        d:    7,  o:    0
+     T:        units/athen_infantry_slinger_a
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   1001 unit vill units.athen.support.healer.e
+     T:        d:   56,  o:    0
+     T:        units/athen_support_healer_e
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   1001 unit vill units.athen.support.healer.a
+     T:        d:   56,  o:    0
+     T:        units/athen_support_healer_a
+     T:        reqs: none
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   1009 unit vill units.athen.support.female.citizen
+     T:        d:    0,  o:    8
+     T:        units/athen_support_female_citizen
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.civil.centre
+     T:        products: 9
+     T:          build
+     T:            structures.athen.civil.centre
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.dock
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   1010 unit vill units.athen.infantry.spearman.b
+     T:        d:    0,  o:    9
+     T:        units/athen_infantry_spearman_b
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.barracks
+     T:          structures.athen.civil.centre
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   1010 unit vill units.athen.cavalry.javelinist.b
+     T:        d:    0,  o:    9
+     T:        units/athen_cavalry_javelinist_b
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.barracks
+     T:          structures.athen.civil.centre
+     T:        NO PRODUCTS
+     T:   1010 unit vill units.athen.infantry.slinger.b
+     T:        d:    1,  o:    9
+     T:        units/athen_infantry_slinger_b
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.barracks
+     T:          structures.athen.civil.centre
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   1015 othr vill other.wallset.palisade
+     T:        d:    3,  o:   14
+     T:        other/wallset_palisade
+     T:        reqs: phase.village
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        NO PRODUCTS
+     T:   1018 stuc vill structures.athen.house
+     T:        d:    2,  o:   17
+     T:        structures/athen_house
+     T:        reqs: none
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 3
+     T:          train
+     T:            units.athen.support.female.citizen.house
+     T:          research
+     T:            pair.house.02
+     T:            pair.house.01
+     T:   1018 stuc vill structures.athen.storehouse
+     T:        d:    2,  o:   17
+     T:        structures/athen_storehouse
+     T:        reqs: none
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 4
+     T:          research
+     T:            pair.gather.wood.01
+     T:            pair.gather.03
+     T:            pair.gather.02
+     T:            pair.gather.01
+     T:   1018 stuc vill structures.athen.farmstead
+     T:        d:    2,  o:   17
+     T:        structures/athen_farmstead
+     T:        reqs: none
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 2
+     T:          research
+     T:            gather.farming.plows
+     T:            gather.wicker.baskets
+     T:   1018 stuc vill structures.athen.field
+     T:        d:    2,  o:   17
+     T:        structures/athen_field
+     T:        reqs: none
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        NO PRODUCTS
+     T:   1018 stuc vill structures.athen.corral
+     T:        d:    2,  o:   17
+     T:        structures/athen_corral
+     T:        reqs: none
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 2
+     T:          train
+     T:            gaia.fauna.sheep
+     T:          research
+     T:            gather.animals.stockbreeding
+     T:   1018 stuc vill structures.athen.dock
+     T:        d:    2,  o:   17
+     T:        structures/athen_dock
+     T:        reqs: none
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 8
+     T:          train
+     T:            units.athen.ship.trireme
+     T:            units.athen.ship.bireme
+     T:            units.athen.ship.merchant
+     T:            units.athen.ship.fishing
+     T:          research
+     T:            armor.ship.hullsheathing
+     T:            armor.ship.hypozomata
+     T:            armor.ship.reinforcedhull
+     T:            training.naval.architects
+     T:   1019 stuc vill structures.athen.outpost
+     T:        d:    3,  o:   18
+     T:        structures/athen_outpost
+     T:        reqs: none
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        products: 2
+     T:          research
+     T:            decay.outpost
+     T:            vision.outpost
+     T:   1020 stuc vill structures.athen.barracks
+     T:        d:    3,  o:   19
+     T:        structures/athen_barracks
+     T:        reqs: phase.village
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        products: 9
+     T:          train
+     T:            units.athen.cavalry.javelinist.b
+     T:            units.athen.cavalry.swordsman.b
+     T:            units.athen.infantry.slinger.b
+     T:            units.athen.infantry.javelinist.b
+     T:            units.athen.infantry.spearman.b
+     T:          research
+     T:            upgrade.rank.elite.infantry
+     T:            upgrade.rank.advanced.infantry
+     T:            training.conscription
+     T:            pair.levy.01
+     T:   1026 tech vill pair.house.01
+     T:        d:    9,  o:   25
+     T:        pair_house_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.house
+     T:        NO PRODUCTS
+     T:   1026 tech vill pair.gather.01
+     T:        d:   10,  o:   25
+     T:        pair_gather_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   1026 tech vill pair.gather.wood.01
+     T:        d:   10,  o:   25
+     T:        pair_gather_wood_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   1029 gaia vill gaia.fauna.sheep
+     T:        d:   13,  o:   28
+     T:        gaia/fauna_sheep
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.corral
+     T:        NO PRODUCTS
+     T:   1029 unit vill units.athen.ship.fishing
+     T:        d:   14,  o:   28
+     T:        units/athen_ship_fishing
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.dock
+     T:        NO PRODUCTS
+     T:   1030 tech vill gather.wicker.baskets
+     T:        d:   11,  o:   29
+     T:        gather_wicker_baskets
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.farmstead
+     T:        NO PRODUCTS
+     T:   1030 tech vill gather.animals.stockbreeding
+     T:        d:   13,  o:   29
+     T:        gather_animals_stockbreeding
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.corral
+     T:        NO PRODUCTS
+     T:   1030 tech vill armor.ship.reinforcedhull
+     T:        d:   14,  o:   29
+     T:        armor_ship_reinforcedhull
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.dock
+     T:        NO PRODUCTS
+     T:   1030 tech vill pop.house.01
+     T:        d:   34,  o:   29
+     T:        pop_house_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.house
+     T:        NO PRODUCTS
+     T:   1030 tech vill health.females.01
+     T:        d:   34,  o:   29
+     T:        health_females_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.house
+     T:        NO PRODUCTS
+     T:   1030 tech vill gather.mining.wedgemallet
+     T:        d:   37,  o:   29
+     T:        gather_mining_wedgemallet
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   1030 tech vill gather.mining.servants
+     T:        d:   37,  o:   29
+     T:        gather_mining_servants
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   1031 tech vill vision.outpost
+     T:        d:   19,  o:   30
+     T:        vision_outpost
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.outpost
+     T:        NO PRODUCTS
+     T:   1031 tech vill decay.outpost
+     T:        d:   19,  o:   30
+     T:        decay_outpost
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.outpost
+     T:        NO PRODUCTS
+     T:   1031 tech vill gather.capacity.wheelbarrow
+     T:        d:   40,  o:   30
+     T:        gather_capacity_wheelbarrow
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   1031 tech vill gather.lumbering.ironaxes
+     T:        d:   40,  o:   30
+     T:        gather_lumbering_ironaxes
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   1066 unit vill units.athen.support.healer.b
+     T:        d:   15,  o:   65
+     T:        units/athen_support_healer_b
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   1067 unit vill units.athen.support.trader
+     T:        d:   16,  o:   66
+     T:        units/athen_support_trader
+     T:        reqs: none
+     T:        verb: train
+     T:          structures.athen.market
+     T:        NO PRODUCTS
+     T:   2000 tech vill phase.town.athen
+     T:        d:    1,  o:   35
+     T:        phase_town_athen
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.civil.centre
+     T:        NO PRODUCTS
+     T:   2000 tech town phase.town
+     T:        d:    1,  o:   47
+     T:        phase_town
+     T:        reqs: none
+     T:        verb: research
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   2001 unit town units.athen.infantry.javelinist.e
+     T:        d:   65,  o:    0
+     T:        units/athen_infantry_javelinist_e
+     T:        reqs: phase.town
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   2001 unit town units.athen.infantry.javelinist.a
+     T:        d:   65,  o:    0
+     T:        units/athen_infantry_javelinist_a
+     T:        reqs: phase.town
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   2001 unit town units.athen.cavalry.swordsman.e
+     T:        d:   66,  o:    0
+     T:        units/athen_cavalry_swordsman_e
+     T:        reqs: phase.town
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   2001 unit town units.athen.cavalry.swordsman.a
+     T:        d:   66,  o:    0
+     T:        units/athen_cavalry_swordsman_a
+     T:        reqs: phase.town
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   2002 stuc town structures.athen.civil.centre
+     T:        d:    0,  o:    1
+     T:        structures/athen_civil_centre
+     T:        reqs: phase.town
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 6
+     T:          train
+     T:            units.athen.cavalry.javelinist.b
+     T:            units.athen.infantry.slinger.b
+     T:            units.athen.infantry.spearman.b
+     T:            units.athen.support.female.citizen
+     T:          research
+     T:            phase.city.athen
+     T:            phase.town.athen
+     T:   2026 tech town pair.house.02
+     T:        d:    9,  o:   25
+     T:        pair_house_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.house
+     T:        NO PRODUCTS
+     T:   2026 tech town pair.gather.02
+     T:        d:   10,  o:   25
+     T:        pair_gather_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   2028 tech town pair.levy.01
+     T:        d:   21,  o:   27
+     T:        pair_levy_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.barracks
+     T:        NO PRODUCTS
+     T:   2048 stuc town structures.athen.wallset.stone
+     T:        d:    3,  o:   47
+     T:        structures/athen_wallset_stone
+     T:        reqs: phase.town
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        NO PRODUCTS
+     T:   2051 stuc town structures.athen.temple
+     T:        d:    2,  o:   50
+     T:        structures/athen_temple
+     T:        reqs: phase.town
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 4
+     T:          train
+     T:            units.athen.support.healer.b
+     T:          research
+     T:            pair.heal.03
+     T:            pair.heal.02
+     T:            pair.heal.01
+     T:   2051 stuc town structures.athen.market
+     T:        d:    2,  o:   50
+     T:        structures/athen_market
+     T:        reqs: phase.town
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.support.female.citizen.house
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:          units.athen.support.female.citizen
+     T:        products: 2
+     T:          train
+     T:            units.athen.support.trader
+     T:          research
+     T:            speed.trader.01
+     T:   2052 stuc town structures.athen.blacksmith
+     T:        d:    3,  o:   51
+     T:        structures/athen_blacksmith
+     T:        reqs: phase.town
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        products: 8
+     T:          research
+     T:            armor.hero.01
+     T:            pair.cav.01
+     T:            pair.inf.armor.04
+     T:            pair.inf.armor.03
+     T:            pair.inf.armor.02
+     T:            pair.inf.armor.01
+     T:            pair.inf.02
+     T:            pair.inf.01
+     T:   2053 stuc town structures.athen.defense.tower
+     T:        d:    3,  o:   52
+     T:        structures/athen_defense_tower
+     T:        reqs: phase.town
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        products: 1
+     T:          research
+     T:            pair.tower.01
+     T:   2062 unit town units.athen.ship.merchant
+     T:        d:   14,  o:   61
+     T:        units/athen_ship_merchant
+     T:        reqs: phase.town
+     T:        verb: train
+     T:          structures.athen.dock
+     T:        NO PRODUCTS
+     T:   2063 unit town units.athen.ship.bireme
+     T:        d:   14,  o:   62
+     T:        units/athen_ship_bireme
+     T:        reqs: phase.town
+     T:        verb: train
+     T:          structures.athen.dock
+     T:        NO PRODUCTS
+     T:   2063 unit town units.athen.ship.trireme
+     T:        d:   14,  o:   62
+     T:        units/athen_ship_trireme
+     T:        reqs: phase.town
+     T:        verb: train
+     T:          structures.athen.dock
+     T:        products: 2
+     T:          train
+     T:            units.athen.infantry.archer.b
+     T:            units.athen.champion.marine
+     T:   2063 tech town pair.heal.01
+     T:        d:   15,  o:   62
+     T:        pair_heal_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   2064 tech town pair.inf.01
+     T:        d:   22,  o:   63
+     T:        pair_inf_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2064 tech town pair.inf.armor.01
+     T:        d:   22,  o:   63
+     T:        pair_inf_armor_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2064 tech town pair.inf.armor.02
+     T:        d:   22,  o:   63
+     T:        pair_inf_armor_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2064 tech town pair.cav.01
+     T:        d:   22,  o:   63
+     T:        pair_cav_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2065 unit town units.athen.infantry.javelinist.b
+     T:        d:   21,  o:   64
+     T:        units/athen_infantry_javelinist_b
+     T:        reqs: phase.town
+     T:        verb: train
+     T:          structures.athen.barracks
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   2065 unit town units.athen.cavalry.swordsman.b
+     T:        d:   21,  o:   64
+     T:        units/athen_cavalry_swordsman_b
+     T:        reqs: phase.town
+     T:        verb: train
+     T:          structures.athen.barracks
+     T:        NO PRODUCTS
+     T:   2065 tech town pair.tower.01
+     T:        d:   23,  o:   64
+     T:        pair_tower_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.defense.tower
+     T:        NO PRODUCTS
+     T:   2067 tech town speed.trader.01
+     T:        d:   16,  o:   66
+     T:        speed_trader_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.market
+     T:        NO PRODUCTS
+     T:   2067 tech town heal.rate
+     T:        d:   53,  o:   66
+     T:        heal_rate
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   2067 tech town heal.range
+     T:        d:   53,  o:   66
+     T:        heal_range
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   2068 tech town ranged.inf.irregulars
+     T:        d:   67,  o:   67
+     T:        ranged_inf_irregulars
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2068 tech town melee.inf.sidearms
+     T:        d:   67,  o:   67
+     T:        melee_inf_sidearms
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2068 tech town armor.infantryspearmen.pierce.01
+     T:        d:   69,  o:   67
+     T:        armor_infantryspearmen_pierce_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2068 tech town armor.infantry.hack.01
+     T:        d:   69,  o:   67
+     T:        armor_infantry_hack_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2068 tech town armor.infantryspearmen.pierce.02
+     T:        d:   70,  o:   67
+     T:        armor_infantryspearmen_pierce_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2068 tech town armor.cav.chamfron
+     T:        d:   73,  o:   67
+     T:        armor_cav_chamfron
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2069 tech town armor.infantry.hack.02
+     T:        d:   70,  o:   68
+     T:        armor_infantry_hack_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2069 tech town attack.cav.lance
+     T:        d:   73,  o:   68
+     T:        attack_cav_lance
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   2070 tech town attack.tower.crenellations
+     T:        d:   75,  o:   69
+     T:        attack_tower_crenellations
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.defense.tower
+     T:        NO PRODUCTS
+     T:   2070 tech town attack.tower.watch
+     T:        d:   75,  o:   69
+     T:        attack_tower_watch
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.defense.tower
+     T:        NO PRODUCTS
+     T:   2071 tech town unlock.females.house
+     T:        d:   35,  o:   70
+     T:        unlock_females_house
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.house
+     T:        NO PRODUCTS
+     T:   2072 tech town training.levy.cavalry
+     T:        d:   61,  o:   71
+     T:        training_levy_cavalry
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.barracks
+     T:        NO PRODUCTS
+     T:   2072 tech town training.levy.infantry
+     T:        d:   61,  o:   71
+     T:        training_levy_infantry
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.barracks
+     T:        NO PRODUCTS
+     T:   2074 tech town gather.farming.plows
+     T:        d:   11,  o:   73
+     T:        gather_farming_plows
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.farmstead
+     T:        NO PRODUCTS
+     T:   2074 tech town armor.ship.hypozomata
+     T:        d:   14,  o:   73
+     T:        armor_ship_hypozomata
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.dock
+     T:        NO PRODUCTS
+     T:   2074 tech town pop.house.02
+     T:        d:   35,  o:   73
+     T:        pop_house_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.house
+     T:        NO PRODUCTS
+     T:   2075 tech town gather.mining.shaftmining
+     T:        d:   38,  o:   74
+     T:        gather_mining_shaftmining
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   2075 tech town gather.mining.serfs
+     T:        d:   38,  o:   74
+     T:        gather_mining_serfs
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   2077 tech town upgrade.rank.advanced.infantry
+     T:        d:   21,  o:   76
+     T:        upgrade_rank_advanced_infantry
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.barracks
+     T:        NO PRODUCTS
+     T:   2085 unit town units.athen.support.female.citizen.house
+     T:        d:    9,  o:   84
+     T:        units/athen_support_female_citizen_house
+     T:        reqs: unlock.females.house
+     T:        verb: train
+     T:          structures.athen.house
+     T:        products: 9
+     T:          build
+     T:            structures.athen.civil.centre
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.dock
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   3000 tech town phase.city.athen
+     T:        d:    1,  o:   78
+     T:        phase_city_athen
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.civil.centre
+     T:        NO PRODUCTS
+     T:   3000 tech city phase.city
+     T:        d:   25,  o:   98
+     T:        phase_city
+     T:        reqs: none
+     T:        verb: research
+     T:        NO PRODUCER
+     T:        NO PRODUCTS
+     T:   3001 unit city units.athen.infantry.archer.e
+     T:        d:  103,  o:    0
+     T:        units/athen_infantry_archer_e
+     T:        reqs: hellenes.special.iphicratean.reforms
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   3001 unit city units.athen.infantry.archer.a
+     T:        d:  103,  o:    0
+     T:        units/athen_infantry_archer_a
+     T:        reqs: hellenes.special.iphicratean.reforms
+     T:        verb: none
+     T:        NO PRODUCER
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house
+     T:   3026 tech city pair.gather.03
+     T:        d:   10,  o:   25
+     T:        pair_gather_03
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   3063 tech city pair.heal.02
+     T:        d:   15,  o:   62
+     T:        pair_heal_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   3063 tech city pair.heal.03
+     T:        d:   15,  o:   62
+     T:        pair_heal_03
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   3064 tech city pair.inf.02
+     T:        d:   22,  o:   63
+     T:        pair_inf_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3064 tech city pair.inf.armor.03
+     T:        d:   22,  o:   63
+     T:        pair_inf_armor_03
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3064 tech city pair.inf.armor.04
+     T:        d:   22,  o:   63
+     T:        pair_inf_armor_04
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3106 stuc city structures.athen.fortress
+     T:        d:    3,  o:  105
+     T:        structures/athen_fortress
+     T:        reqs: phase.city
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        products: 5
+     T:          train
+     T:            units.athen.mechanical.siege.lithobolos.packed
+     T:            units.athen.mechanical.siege.oxybeles.packed
+     T:          research
+     T:            siege.bolt.accuracy
+     T:            pair.siege.cost.armor
+     T:            pair.siege.attack.pack
+     T:   3107 stuc city structures.athen.gymnasion
+     T:        d:    3,  o:  106
+     T:        structures/athen_gymnasion
+     T:        reqs: phase.city
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        products: 3
+     T:          train
+     T:            units.athen.champion.ranged
+     T:            units.athen.champion.infantry
+     T:          research
+     T:            pair.champ.02
+     T:   3107 stuc city structures.athen.theatron
+     T:        d:    3,  o:  106
+     T:        structures/athen_theatron
+     T:        reqs: phase.city
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        NO PRODUCTS
+     T:   3107 stuc city structures.athen.prytaneion
+     T:        d:    3,  o:  106
+     T:        structures/athen_prytaneion
+     T:        reqs: phase.city
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        products: 5
+     T:          train
+     T:            units.athen.hero.iphicrates
+     T:            units.athen.hero.pericles
+     T:            units.athen.hero.themistocles
+     T:          research
+     T:            hellenes.special.iphicratean.reforms
+     T:            hellenes.special.long.walls
+     T:   3108 stuc city structures.athen.wonder
+     T:        d:    3,  o:  107
+     T:        structures/athen_wonder
+     T:        reqs: phase.city
+     T:        verb: build
+     T:          units.athen.infantry.archer.a
+     T:          units.athen.infantry.archer.e
+     T:          units.athen.infantry.javelinist.a
+     T:          units.athen.infantry.javelinist.e
+     T:          units.athen.infantry.archer.b
+     T:          units.athen.infantry.javelinist.b
+     T:          units.athen.infantry.slinger.a
+     T:          units.athen.infantry.slinger.e
+     T:          units.athen.infantry.spearman.a
+     T:          units.athen.infantry.spearman.e
+     T:          units.athen.infantry.slinger.b
+     T:          units.athen.infantry.spearman.b
+     T:        NO PRODUCTS
+     T:   3109 tech city armor.hero.01
+     T:        d:   22,  o:  108
+     T:        armor_hero_01
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3109 tech city ranged.inf.skirmishers
+     T:        d:   68,  o:  108
+     T:        ranged_inf_skirmishers
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3109 tech city melee.inf.spearheads
+     T:        d:   68,  o:  108
+     T:        melee_inf_spearheads
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3109 tech city armor.infantryspearmen.pierce.03
+     T:        d:   71,  o:  108
+     T:        armor_infantryspearmen_pierce_03
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3109 tech city armor.infantryspearmen.pierce.04
+     T:        d:   72,  o:  108
+     T:        armor_infantryspearmen_pierce_04
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3109 tech city armor.infantry.hack.04
+     T:        d:   72,  o:  108
+     T:        armor_infantry_hack_04
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3110 tech city armor.infantry.hack.03
+     T:        d:   71,  o:  109
+     T:        armor_infantry_hack_03
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.blacksmith
+     T:        NO PRODUCTS
+     T:   3122 tech city pair.siege.attack.pack
+     T:        d:   25,  o:  121
+     T:        pair_siege_attack_pack
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3122 tech city pair.siege.cost.armor
+     T:        d:   25,  o:  121
+     T:        pair_siege_cost_armor
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3123 tech city pair.champ.02
+     T:        d:   27,  o:  122
+     T:        pair_champ_02
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.gymnasion
+     T:        NO PRODUCTS
+     T:   3126 tech city siege.bolt.accuracy
+     T:        d:   25,  o:  125
+     T:        siege_bolt_accuracy
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3126 unit city units.athen.mechanical.siege.oxybeles.packed
+     T:        d:   25,  o:  125
+     T:        units/athen_mechanical_siege_oxybeles_packed
+     T:        reqs: phase.city
+     T:        verb: train
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3126 unit city units.athen.mechanical.siege.lithobolos.packed
+     T:        d:   25,  o:  125
+     T:        units/athen_mechanical_siege_lithobolos_packed
+     T:        reqs: phase.city
+     T:        verb: train
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3126 tech city siege.cost.wood
+     T:        d:   77,  o:  125
+     T:        siege_cost_wood
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3127 unit city units.athen.champion.infantry
+     T:        d:   27,  o:  126
+     T:        units/athen_champion_infantry
+     T:        reqs: phase.city
+     T:        verb: train
+     T:          structures.athen.gymnasion
+     T:        NO PRODUCTS
+     T:   3127 unit city units.athen.champion.ranged
+     T:        d:   27,  o:  126
+     T:        units/athen_champion_ranged
+     T:        reqs: phase.city
+     T:        verb: train
+     T:          structures.athen.gymnasion
+     T:        NO PRODUCTS
+     T:   3127 unit city units.athen.hero.themistocles
+     T:        d:   29,  o:  126
+     T:        units/athen_hero_themistocles
+     T:        reqs: phase.city
+     T:        verb: train
+     T:          structures.athen.prytaneion
+     T:        NO PRODUCTS
+     T:   3127 unit city units.athen.hero.pericles
+     T:        d:   29,  o:  126
+     T:        units/athen_hero_pericles
+     T:        reqs: phase.city
+     T:        verb: train
+     T:          structures.athen.prytaneion
+     T:        NO PRODUCTS
+     T:   3127 unit city units.athen.hero.iphicrates
+     T:        d:   29,  o:  126
+     T:        units/athen_hero_iphicrates
+     T:        reqs: phase.city
+     T:        verb: train
+     T:          structures.athen.prytaneion
+     T:        NO PRODUCTS
+     T:   3127 tech city siege.packing
+     T:        d:   76,  o:  126
+     T:        siege_packing
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3127 tech city siege.attack
+     T:        d:   76,  o:  126
+     T:        siege_attack
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3127 tech city siege.armor
+     T:        d:   77,  o:  126
+     T:        siege_armor
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.fortress
+     T:        NO PRODUCTS
+     T:   3127 tech city attack.citizensoldiers.will
+     T:        d:   82,  o:  126
+     T:        attack_citizensoldiers_will
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.gymnasion
+     T:        NO PRODUCTS
+     T:   3127 tech city attack.champions.elite
+     T:        d:   82,  o:  126
+     T:        attack_champions_elite
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.gymnasion
+     T:        NO PRODUCTS
+     T:   3128 tech city hellenes.special.long.walls
+     T:        d:   29,  o:  127
+     T:        hellenes/special_long_walls
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.prytaneion
+     T:        NO PRODUCTS
+     T:   3128 tech city hellenes.special.iphicratean.reforms
+     T:        d:   29,  o:  127
+     T:        hellenes/special_iphicratean_reforms
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.prytaneion
+     T:        NO PRODUCTS
+     T:   3129 tech city heal.rate.2
+     T:        d:   54,  o:  128
+     T:        heal_rate_2
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   3130 tech city training.conscription
+     T:        d:   21,  o:  129
+     T:        training_conscription
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.barracks
+     T:        NO PRODUCTS
+     T:   3130 tech city heal.range.2
+     T:        d:   54,  o:  129
+     T:        heal_range_2
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   3130 tech city heal.temple
+     T:        d:   55,  o:  129
+     T:        heal_temple
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   3133 tech city health.regen.units
+     T:        d:   55,  o:  132
+     T:        health_regen_units
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.temple
+     T:        NO PRODUCTS
+     T:   3134 tech city upgrade.rank.elite.infantry
+     T:        d:   21,  o:  133
+     T:        upgrade_rank_elite_infantry
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.barracks
+     T:        NO PRODUCTS
+     T:   3150 tech city armor.ship.hullsheathing
+     T:        d:   14,  o:  149
+     T:        armor_ship_hullsheathing
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.dock
+     T:        NO PRODUCTS
+     T:   3151 tech city training.naval.architects
+     T:        d:   14,  o:  150
+     T:        training_naval_architects
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.dock
+     T:        NO PRODUCTS
+     T:   3155 tech city gather.mining.slaves
+     T:        d:   39,  o:  154
+     T:        gather_mining_slaves
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   3156 tech city gather.mining.silvermining
+     T:        d:   39,  o:  155
+     T:        gather_mining_silvermining
+     T:        reqs: none
+     T:        verb: research
+     T:          structures.athen.storehouse
+     T:        NO PRODUCTS
+     T:   3160 unit city units.athen.champion.marine
+     T:        d:   52,  o:  159
+     T:        units/athen_champion_marine
+     T:        reqs: hellenes.special.iphicratean.reforms
+     T:        verb: train
+     T:          units.athen.ship.trireme
+     T:        NO PRODUCTS
+     T:   3160 unit city units.athen.infantry.archer.b
+     T:        d:   52,  o:  159
+     T:        units/athen_infantry_archer_b
+     T:        reqs: hellenes.special.iphicratean.reforms
+     T:        verb: train
+     T:          units.athen.ship.trireme
+     T:        products: 20
+     T:          build
+     T:            structures.athen.prytaneion
+     T:            structures.athen.theatron
+     T:            structures.athen.gymnasion
+     T:            structures.athen.wonder
+     T:            structures.athen.fortress
+     T:            structures.athen.civil.centre
+     T:            structures.athen.wallset.stone
+     T:            structures.athen.defense.tower
+     T:            structures.athen.market
+     T:            structures.athen.temple
+     T:            structures.athen.blacksmith
+     T:            structures.athen.barracks
+     T:            structures.athen.dock
+     T:            other.wallset.palisade
+     T:            structures.athen.outpost
+     T:            structures.athen.corral
+     T:            structures.athen.field
+     T:            structures.athen.farmstead
+     T:            structures.athen.storehouse
+     T:            structures.athen.house

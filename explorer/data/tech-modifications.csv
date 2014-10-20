@@ -1,0 +1,154 @@
+armor.ship.hullsheathing,Armour/Crush,add,2,Ship
+armor.ship.hypozomata,Armour/Crush,add,2,Ship
+armor.ship.reinforcedhull,Armour/Crush,add,2,Ship
+buildtime.walls.rubble,Armour/Crush,add,-1,StoneWall
+health.walls.geometric.masonry,Armour/Crush,add,2,StoneWall
+armor.cav.chamfron,Armour/Hack,add,1,Cavalry
+armor.hero.01,Armour/Hack,add,2,Hero
+armor.infantry.hack.01,Armour/Hack,add,1,Infantry
+armor.infantry.hack.02,Armour/Hack,add,1,Infantry
+armor.infantry.hack.03,Armour/Hack,add,1,Infantry
+armor.infantry.hack.04,Armour/Hack,add,2,Champion
+armor.ship.hullsheathing,Armour/Hack,add,2,Ship
+armor.ship.hypozomata,Armour/Hack,add,2,Ship
+armor.ship.reinforcedhull,Armour/Hack,add,2,Ship
+armor.trade.convoys,Armour/Hack,add,2,Trader
+siege.armor,Armour/Hack,add,2,Siege
+armor.hero.01,Armour/Pierce,add,2,Hero
+armor.infantryspearmen.pierce.01,Armour/Pierce,add,2,Infantry Spear
+armor.infantryspearmen.pierce.02,Armour/Pierce,add,1,Infantry Spear
+armor.infantryspearmen.pierce.03,Armour/Pierce,add,1,Infantry Spear
+armor.infantryspearmen.pierce.04,Armour/Pierce,add,2,Champion
+armor.ship.hullsheathing,Armour/Pierce,add,2,Ship
+armor.ship.hypozomata,Armour/Pierce,add,2,Ship
+armor.ship.reinforcedhull,Armour/Pierce,add,2,Ship
+armor.trade.convoys,Armour/Pierce,add,2,Trader
+siege.attack,Attack/Melee/Crush,add,5,Siege
+attack.cav.lance,Attack/Melee/Hack,add,2,Cavalry Melee
+attack.champions.elite,Attack/Melee/Hack,add,2,Champion Melee
+attack.citizensoldiers.will,Attack/Melee/Hack,add,2,CitizenSoldier Melee
+attack.steel.working,Attack/Melee/Hack,add,2,Sword
+melee.inf.sidearms,Attack/Melee/Hack,add,1,Infantry Melee
+melee.inf.spearheads,Attack/Melee/Hack,add,2,Spear
+hellenes.attack.inf.spearfighting,Attack/Melee/Hack,add,2,Infantry Spear
+siege.attack,Attack/Ranged/Crush,add,5,Siege
+ranged.inf.skirmishers,Attack/Ranged/MaxRange,add,4,Javelin
+mauryans.special.archery.tradition,Attack/Ranged/MaxRange,add,10,Archer
+persians.special.archery.tradition,Attack/Ranged/MaxRange,add,10,Archer
+attack.champions.elite,Attack/Ranged/Pierce,add,2,Champion Ranged
+attack.citizensoldiers.will,Attack/Ranged/Pierce,add,2,CitizenSoldier Ranged
+ranged.inf.irregulars,Attack/Ranged/Pierce,add,2,Infantry Ranged
+ranged.inf.skirmishers,Attack/Ranged/Pierce,add,2,Javelin
+siege.bolt.accuracy,Attack/Ranged/Spread,multiply,0.75,Bolt Shooter
+attack.tower.watch,BuildingAI/DefaultArrowCount,add,1,Defensive Tower
+successors.special.hellenistic.metropolis,BuildingAI/DefaultArrowCount,multiply,2,CivCentre
+attack.tower.crenellations,BuildingAI/GarrisonArrowMultiplier,multiply,1.4,Defensive Tower
+hellenes.special.long.walls,BuildRestrictions/Territory,replace,"own,neutral",StoneWall
+buildtime.walls.rubble,Cost/BuildTime,multiply,0.8,StoneWall
+gather.animals.stockbreeding,Cost/BuildTime,multiply,0.75,Domestic
+health.walls.geometric.masonry,Cost/BuildTime,multiply,1.1,StoneWall
+training.levy.cavalry,Cost/BuildTime,multiply,0.8,Cavalry
+training.levy.infantry,Cost/BuildTime,multiply,0.9,Infantry
+carthaginians.civbonus.triple.walls,Cost/BuildTime,multiply,2,StoneWall
+carthaginians.special.colonisation,Cost/BuildTime,multiply,0.75,Civic
+carthaginians.traintime.celt.mercs,Cost/BuildTime,multiply,0.8,Celt Mercenary
+carthaginians.traintime.celt.mercs.2,Cost/BuildTime,multiply,0.8,Celt Mercenary
+carthaginians.traintime.iberian.mercs,Cost/BuildTime,multiply,0.8,Iberian Mercenary
+carthaginians.traintime.iberian.mercs.2,Cost/BuildTime,multiply,0.8,Iberian Mercenary
+carthaginians.traintime.italian.mercs,Cost/BuildTime,multiply,0.8,Italian Mercenary
+carthaginians.traintime.italian.mercs.2,Cost/BuildTime,multiply,0.8,Italian Mercenary
+celts.civbonus.celts.wooden.struct,Cost/BuildTime,multiply,0.8,Structure
+hellenes.civbonus.hellenic.architecture,Cost/BuildTime,multiply,1.1,Structure
+hellenes.spartans.agoge,Cost/BuildTime,multiply,1.1,Spear Infantry
+hellenes.teambonus.athen.delian.league,Cost/BuildTime,multiply,0.75,Warship
+mauryans.special.archery.tradition,Cost/BuildTime,multiply,0.8,Archer
+mauryans.wooden.walls,Cost/BuildTime,multiply,0.8,StoneWall
+persians.immortals,Cost/BuildTime,multiply,0.5,Champion Infantry
+persians.persian.architecture,Cost/BuildTime,multiply,1.2,Structure
+persians.special.archery.tradition,Cost/BuildTime,multiply,0.8,Archer
+persians.training.levy.cavalry,Cost/BuildTime,multiply,0.8,Cavalry
+persians.training.levy.infantry,Cost/BuildTime,multiply,0.9,Infantry
+successors.special.war.horses,Cost/BuildTime,multiply,1.1,Cavalry
+pop.civic.01,Cost/PopulationBonus,add,5,CivCentre
+pop.civic.02,Cost/PopulationBonus,add,5,CivCentre
+pop.house.01,Cost/PopulationBonus,add,1,House
+pop.house.02,Cost/PopulationBonus,add,2,House
+armor.hero.01,Cost/Resources/metal,add,50,Hero
+armor.infantry.hack.04,Cost/Resources/metal,add,10,Champion
+armor.infantryspearmen.pierce.04,Cost/Resources/metal,add,10,Champion
+siege.cost.metal,Cost/Resources/metal,multiply,0.8,Siege
+carthaginians.cost.celt.mercs,Cost/Resources/metal,add,-20,Celt Mercenary
+carthaginians.cost.celt.mercs.2,Cost/Resources/metal,add,-20,Celt Mercenary
+carthaginians.cost.iberian.mercs,Cost/Resources/metal,add,-20,Iberian Mercenary
+carthaginians.cost.iberian.mercs.2,Cost/Resources/metal,add,-20,Iberian Mercenary
+carthaginians.cost.italian.mercs,Cost/Resources/metal,add,-20,Italian Mercenary
+carthaginians.cost.italian.mercs.2,Cost/Resources/metal,add,-20,Italian Mercenary
+carthaginians.civbonus.triple.walls,Cost/Resources/stone,multiply,2,StoneWall
+siege.cost.wood,Cost/Resources/wood,multiply,0.8,Siege
+heal.temple,GarrisonHolder/BuffHeal,multiply,1.5,Temple
+heal.range,Heal/Range,add,4,Healer
+heal.range.2,Heal/Range,add,4,Healer
+heal.rate,Heal/Rate,add,-500,Healer
+heal.rate.2,Heal/Rate,add,-500,Healer
+health.females.01,Health/Max,multiply,1.5,Female Citizen
+training.levy.cavalry,Health/Max,add,-10,Cavalry
+training.levy.infantry,Health/Max,add,-5,Infantry
+carthaginians.civbonus.triple.walls,Health/Max,multiply,3,StoneWall
+celts.civbonus.celts.wooden.struct,Health/Max,multiply,0.8,Structure
+hellenes.civbonus.hellenic.architecture,Health/Max,multiply,1.1,Structure
+hellenes.spartans.agoge,Health/Max,multiply,1.25,Spear Infantry
+mauryans.special.archery.tradition,Health/Max,multiply,0.8,Archer
+mauryans.wooden.walls,Health/Max,multiply,0.8,StoneWall
+persians.immortals,Health/Max,add,-20,Champion Infantry
+persians.persian.architecture,Health/Max,multiply,1.25,Structure
+persians.special.archery.tradition,Health/Max,multiply,0.8,Archer
+persians.training.levy.cavalry,Health/Max,add,-10,Cavalry
+persians.training.levy.infantry,Health/Max,add,-5,Infantry
+successors.special.hellenistic.metropolis,Health/Max,multiply,2,CivCentre
+successors.special.war.horses,Health/Max,multiply,1.2,Cavalry
+health.regen.units,Health/RegenRate,add,0.5,Unit Organic
+siege.packing,Pack/Time,multiply,0.75,Siege
+hellenes.civpenalty.spart.popcap,Player/MaxPopulation,multiply,0.9,wtf
+mauryans.civbonus.maur.popcap,Player/MaxPopulation,multiply,1.1,wtf
+persians.civbonus.pers.popcap,Player/MaxPopulation,multiply,1.1,wtf
+training.conscription,ProductionQueue/BatchTimeModifier,add,-0.1,Barracks
+training.naval.architects,ProductionQueue/BatchTimeModifier,add,-0.1,Dock
+carthaginians.training.phoenician.naval.architects,ProductionQueue/BatchTimeModifier,add,-0.1,Shipyard
+persians.training.conscription.cavalry,ProductionQueue/BatchTimeModifier,add,-0.1,Stables
+persians.training.conscription.infantry,ProductionQueue/BatchTimeModifier,add,-0.1,Barracks
+successors.special.parade.of.daphne,ProductionQueue/BatchTimeModifier,add,-0.2,Fortress
+upgrade.rank.advanced.cavalry,Promotion/RequiredXp,replace,0,Cavalry Basic
+upgrade.rank.advanced.infantry,Promotion/RequiredXp,replace,0,Infantry Basic
+upgrade.rank.elite.cavalry,Promotion/RequiredXp,replace,0,Cavalry Advanced
+upgrade.rank.elite.infantry,Promotion/RequiredXp,replace,0,Infantry Advanced
+carthaginians.upgrade.rank.advanced.celts,Promotion/RequiredXp,replace,0,Celt Basic
+carthaginians.upgrade.rank.advanced.iberian,Promotion/RequiredXp,replace,0,Iberian Basic
+carthaginians.upgrade.rank.advanced.italiote,Promotion/RequiredXp,replace,0,Italian Basic
+carthaginians.upgrade.rank.elite.celts,Promotion/RequiredXp,replace,0,Celt Advanced
+carthaginians.upgrade.rank.elite.iberian,Promotion/RequiredXp,replace,0,Iberian Advanced
+carthaginians.upgrade.rank.elite.italiote,Promotion/RequiredXp,replace,0,Italian Advanced
+successors.upgrade.mace.silvershields,Promotion/RequiredXp,replace,0,Champion Infantry
+gather.capacity.wheelbarrow,ResourceGatherer/Capacities/food,add,5,Worker
+gather.capacity.wheelbarrow,ResourceGatherer/Capacities/metal,add,5,Worker
+gather.capacity.wheelbarrow,ResourceGatherer/Capacities/stone,add,5,Worker
+gather.capacity.wheelbarrow,ResourceGatherer/Capacities/wood,add,5,Worker
+gather.wicker.baskets,ResourceGatherer/Rates/food.fruit,multiply,1.5,Worker
+gather.farming.plows,ResourceGatherer/Rates/food.grain,multiply,1.25,Worker
+celts.special.gather.crop.rotation,ResourceGatherer/Rates/food.grain,multiply,1.25,Worker
+gather.mining.shaftmining,ResourceGatherer/Rates/metal.ore,multiply,1.25,Worker
+gather.mining.silvermining,ResourceGatherer/Rates/metal.ore,multiply,1.25,Worker
+gather.mining.wedgemallet,ResourceGatherer/Rates/metal.ore,multiply,1.25,Worker
+phase.city.athen,ResourceGatherer/Rates/metal.ore,multiply,1.1,Worker
+phase.town.athen,ResourceGatherer/Rates/metal.ore,multiply,1.1,Worker
+gather.mining.serfs,ResourceGatherer/Rates/stone.rock,multiply,1.25,Worker
+gather.mining.servants,ResourceGatherer/Rates/stone.rock,multiply,1.25,Worker
+gather.mining.slaves,ResourceGatherer/Rates/stone.rock,multiply,1.25,Worker
+gather.lumbering.ironaxes,ResourceGatherer/Rates/wood.tree,multiply,1.25,Worker
+decay.outpost,TerritoryDecay/HealthDecayRate,multiply,0.5,Outpost
+romans.decay.logistics,TerritoryDecay/HealthDecayRate,replace,0,ArmyCamp SiegeWall
+phase.city,TerritoryInfluence/Radius,multiply,1.5,CivCentre
+phase.town,TerritoryInfluence/Radius,multiply,1.3,CivCentre
+hellenes.temp.special.hellenization,TerritoryInfluence/Radius,multiply,1.2,Structure
+speed.trader.01,UnitMotion/WalkSpeed,multiply,1.25,Trader
+vision.outpost,Vision/Range,multiply,1.5,Outpost
+carthaginians.special.exploration,Vision/Range,multiply,1.25,Trader Ship

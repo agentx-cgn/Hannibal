@@ -70,7 +70,6 @@ HANNIBAL = (function(H){
     id:   null,
     name: "brain",
     scouts: [],
-    dump: function(){},
     init: function(){
 
       deb();deb();deb(" BRAIN: init - phase.%s", H.Player.phase);
@@ -99,8 +98,13 @@ HANNIBAL = (function(H){
 
       });
 
+
       H.Events.on("Attack", "*", function (msg){
         deb(" BRAIN: Attack: damage: %s, type: %s", msg.data.damage, msg.data.type);
+      });
+
+      H.Events.on("BroadCast", function (msg){
+        deb(" BRAIN: BroadCast: %s", uneval(msg));
       });
 
     },
@@ -129,24 +133,24 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), 
-        utilizers = ["Villages", "Economy", "Military", "Brain"],
-        // utilizers = ["Economy"],
+        // utilizers = ["Villages", "Economy", "Military", "Brain"],
+        utilizers = ["Brain"],
         necessities, technologies = [], 
         launches = {"phase.village": [], "phase.town": [], "phase.city": []}
         ;
 
-      deb();deb();deb(" BRAIN: planPhase %s");
+      deb();deb();
+      deb(" BRAIN: planPhase budget    : %s", uneval(context.curstate.data.ress));
+      deb(" BRAIN: planPhase resources : %s", uneval(context.resources));
 
-      // collect
+      // collect groups and techs from utilizers
       utilizers.forEach(utilizer => {
         necessities = H[utilizer].getPhaseNecessities(context);
         deb("     B: got %s phases, %s technologies from %s", H.count(necessities.launches), necessities.technologies.length, utilizer);
-        launches["phase.village"] = launches["phase.village"].concat(necessities.launches["phase.village"]);
-        launches["phase.town"] = launches["phase.town"].concat(necessities.launches["phase.town"]);
-        launches["phase.city"] = launches["phase.city"].concat(necessities.launches["phase.city"]);
-        if (necessities.technologies.length){
-          technologies = technologies.concat(necessities.technologies);
-        }
+        H.pushflat(technologies, necessities.technologies);
+        H.each(launches, phase => {
+          H.pushflat(launches[phase], necessities.launches[phase]);
+        });
       });
 
       // [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
@@ -184,41 +188,44 @@ HANNIBAL = (function(H){
       // H.each(launches, function (phase, launches){
       //   deb("     B: %s %s", phase, launches.length);
       // });
-
-      H.each(launches, function (phase, launches){
-        launches.forEach(launch => {
-          H.Groups.getGroupTechnologies(launch[1]).forEach(t => {
-            technologies.push(t);
-          });
+      
+      // collect techs from groups
+      H.each(launches, function (phase, phaselaunches){
+        phaselaunches.forEach(launch => {
+          H.pushflat(technologies, H.Groups.getGroupTechnologies(launch));
         });
       });
 
       context.launches = launches;
       context.technologies = H.unique(technologies);
       deb("     B: have %s technologies",  context.technologies.length);
+      context.technologies.forEach(t => {
+        deb("     B:   %s", t);
+      });
 
       H.Simulator.simulate(context);
 
       deb();
-      deb(" BRAIN: planPhase state: %s, %s msecs", context.curphase, Date.now() - t0);
+      deb(" BRAIN: planPhase state: %s, %s msecs, gametime: %s", context.curphase, Date.now() - t0, H.Simulator.tick * 1.6);
       JSON.stringify(context.curstate, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
 
 
     },
-    getPhaseNecessities: function(options){ // phase, centre, tick
+    getPhaseNecessities: function(context){ // phase, centre, tick
       
       var 
         cls = H.class2name,
-        cc  = options.centre,
+        cc  = context.centre,
 
         technologies = [],
 
         launches = {
           "phase.village": [
-          //   tck,                  act, params
-            [   4, [1, "g.scouts",     {cc:cc, size: 5}]],
+          //  tck,  amt,  group,         params
+            [   2,    1, "g.builder",    {cc:cc, size: 3, building: cls("house"), quantity: 4}],
+            [   4,    1, "g.scouts",     {cc:cc, size: 5}],
           ],
           "phase.town" :   [
 
@@ -229,8 +236,9 @@ HANNIBAL = (function(H){
         };
 
        return {
-         launches: launches,
-         technologies: technologies,
+          launches: launches,
+          technologies: technologies,
+          messages: messages,
        };
 
     },    
