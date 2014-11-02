@@ -289,7 +289,7 @@
 
               <ul id="menutabberSimu" class="tabber">
                 <li class="tabberitem">
-                  <a href="javascript:H.Display.activateTab('tabberSimu', 'tabTerr')">Terrain</a>
+                  <a href="javascript:H.Display.activateTab('tabberSimu', 'tabSimu')">Simulatn</a>
                 </li>
                 <li class="tabberitem">
                   <a href="javascript:H.Display.activateTab('tabberSimu', 'tabEnts')">Entities</a>
@@ -302,11 +302,13 @@
               <div class="trenner"></div>
               <div id="tabberSimu" >
 
-                <div id="tabTerr" class="divTabber">
+                <div id="tabSimu" class="divTabber">
 
-                  <div style="padding-left: 8px">
-                    <span class="chklabel">Options:</span><br />
-                      <input type="checkbox" id="chkPathTree"><span class="chklabel">Tree cost</span></input><br />
+                  <div style="padding-left: 8px; padding-top: 8px;">
+                    <img class="imgbtnsimu" src="images/ic_stop_24px.svg" id="" onclick="H.Simulation.stop();" />
+                    <img class="imgbtnsimu" src="images/ic_skip_previous_24px.svg" id="" onclick="H.Simulation.reset();" />
+                    <img class="imgbtnsimu" src="images/ic_play_arrow_24px.svg" id="" onclick="H.Simulation.play();" />
+                    <img class="imgbtnsimu" src="images/ic_pause_24px.svg" id="" onclick="H.Simulation.pause();" />
                   </div>
 
                 </div>
@@ -686,8 +688,8 @@
       <script type="text/javascript" src="../htn-helper.js"></script>
       <script type="text/javascript" src="../htn-eco-methods.js"></script>
       <script type="text/javascript" src="../htn-eco-operators.js"></script>
-      <script type="text/javascript" src="../htn-tree-methods.js"></script>
-      <script type="text/javascript" src="../htn-tree-operators.js"></script>
+      <script type="text/javascript" src="../explorer/htn-tree-methods.js"></script>
+      <script type="text/javascript" src="../explorer/htn-tree-operators.js"></script>
       <script type="text/javascript" src="../htn-planner.js"></script>
       <script type="text/javascript" src="../grids.js"></script>
       <script type="text/javascript" src="../geometry.js"></script>
@@ -704,7 +706,7 @@
       <script type="text/javascript" src="browser.js"></script>
       <script type="text/javascript" src="maps.js"></script>
       <script type="text/javascript" src="village.js"></script>
-      <script type="text/javascript" src="simu.js"></script>
+      <script type="text/javascript" src="sim.js"></script>
       <script type="text/javascript" src="simulation.js"></script>
       <!-- // <script type="text/javascript" src="c.pretty.js"></script> -->
       

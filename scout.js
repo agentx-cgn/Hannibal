@@ -43,19 +43,20 @@ HANNIBAL = (function(H){
 
   H.Scout = (function(){
 
-    var self, width, height, cellsize, circular, grid,
-        attackTiles = [],
-        mTrees      = 1 << 1, // 2
-        mGeo        = 1 << 2,
-        mShallow    = 1 << 3,
-        mHostile    = 1 << 4, // 16
-        maskLand    = 1 << 5,
-        maskWater   = 1 << 6,
-        maskImpass  = 1 << 7, // 128
-        maskShallow = maskWater + mShallow,
-        maskTrees   = maskLand  + mTrees,
-        maskGeo     = maskLand  + mGeo,
-        cacheHypot  = {};
+    var 
+      self, width, height, cellsize, circular, grid,
+      attackTiles = [],
+      mTrees      = 1 << 1, // 2
+      mGeo        = 1 << 2,
+      mShallow    = 1 << 3,
+      mHostile    = 1 << 4, // 16
+      maskLand    = 1 << 5,
+      maskWater   = 1 << 6,
+      maskImpass  = 1 << 7, // 128
+      maskShallow = maskWater + mShallow,
+      maskTrees   = maskLand  + mTrees,
+      maskGeo     = maskLand  + mGeo,
+      cacheHypot  = {};
 
     return {
       boot: function (){return (self = this);},
@@ -73,15 +74,16 @@ HANNIBAL = (function(H){
       },
       scanAttacker: function (attacker){
 
-        var [cx, cy] = H.Map.gamePosToMapPos(attacker.position),
-            index    = H.Map.gamePosToMapIndex(attacker.position),
-            radius   = ~~(attacker.range / cellsize),
-            data = grid.data,
-            x0   = ~~Math.max(0, cx - radius),
-            y0   = ~~Math.max(0, cy - radius),
-            x1   = ~~Math.min(width,  cx + radius),
-            y1   = ~~Math.min(height, cy + radius),
-            x = 0, y = y1, dx = 0, dy = 0, r2 = 0;
+        var 
+          data = grid.data,
+          [cx, cy] = H.Map.gamePosToMapPos(attacker.position),
+          index    = H.Map.gamePosToMapIndex(attacker.position),
+          radius   = ~~(attacker.range / cellsize),
+          x0   = ~~Math.max(0, cx - radius),
+          y0   = ~~Math.max(0, cy - radius),
+          x1   = ~~Math.min(width,  cx + radius),
+          y1   = ~~Math.min(height, cy + radius),
+          x = 0, y = y1, dx = 0, dy = 0, r2 = 0;
 
         if (H.contains(attackTiles, index)){
           deb(" SCOUT: ignored attacker at: %s", index);
@@ -109,23 +111,23 @@ HANNIBAL = (function(H){
         } else {
           hyp = Math.sqrt(x * x + y * y);
           if (cacheHypot[x] === undefined){cacheHypot[x] = {};}
-          return cacheHypot[x][y] = hyp;
+          return (cacheHypot[x][y] = hyp);
         }
 
       },
       scan: function (selection){
-        var t0  = Date.now(),
-            ent = H.Entities[selection.resources[0]],
-            [cx, cy] = H.Map.gamePosToMapPos(ent.position()),
-            radius = ~~(ent.visionRange() / cellsize),
-            dataObst  = H.Grids.obstruction.data,
-            x0 = ~~Math.max(0, cx - radius),
-            y0 = ~~Math.max(0, cy - radius),
-            x1 = ~~Math.min(width,  cx + radius),
-            y1 = ~~Math.min(height, cy + radius);
+
+        var 
+          ent = H.Entities[selection.resources[0]],
+          [cx, cy] = H.Map.gamePosToMapPos(ent.position()),
+          radius = ~~(ent.visionRange() / cellsize),
+          dataObst  = H.Grids.obstruction.data,
+          x0 = ~~Math.max(0, cx - radius),
+          y0 = ~~Math.max(0, cy - radius),
+          x1 = ~~Math.min(width,  cx + radius),
+          y1 = ~~Math.min(height, cy + radius);
         
         this.scanLifted(grid.data, dataObst, cx, cy, x0, x1, y0, y1, radius, width); 
-        // deb(" SCOUT: scan: %s msecs", Date.now() - t0); // ~1 msecs
 
       },     
       scanLifted: function(dataScout, dataObst, cx, cy, x0, x1, y0, y1, radius, width){
@@ -155,16 +157,32 @@ HANNIBAL = (function(H){
 
         // Object Factory
 
-        var ent = H.Entities[asset.resources[0]],
-            rng = ~~ent.visionRange() * 0.9,
-            queueNow    = [],
-            queueLater  = [],
-            recentTiles = [],
-            terrain = "land",
-            pos2pointer = (pos) => {
-              var [x, y] = [~~(pos[0]/cellsize), ~~(pos[1]/cellsize)];
-              return x + y * width;
-            };
+        var 
+          data = grid.data, 
+          ent = H.Entities[asset.resources[0]],
+          rng = ~~ent.visionRange() * 0.9,
+          corners = [[-rng,-rng],[-rng,rng],[rng,rng],[rng,-rng]],
+
+          queueNow    = [],
+          queueLater  = [],
+          recentTiles = [],
+          terrain = "land",
+
+          pushUnique  = H.HTN.Helper.pushUnique,
+          pos2pointer = (pos) => {
+            var [x, y] = [~~(pos[0]/cellsize), ~~(pos[1]/cellsize)];
+            return x >= 0 && y >= 0 ? x + y * width : null;
+          },
+          isHostile = index => {
+            return (data[index] & mHostile) !== 0;
+          },
+          isUnknown  = pos => {
+            return corners.some(sq => {
+              var test = [~~(pos[0] + sq[0] * 0.7), ~~(pos[1] + sq[1] * 0.7)]; // with 1/sqrt2
+              deb("   SCT: isUnknown test: %s, tile: %s", test, data[pos2pointer(test)]);
+              return data[pos2pointer(test)] && data[pos2pointer(test)] === 0;
+            });
+          };
 
 
         queueNow.push(ent.position());
@@ -173,24 +191,13 @@ HANNIBAL = (function(H){
 
           next: function(pos){
 
-            var t0 = Date.now(), data = grid.data, treasures = [], test, 
-                sq, value, posTest, posNext, index,
-                corners = [[-rng,-rng],[-rng,rng],[rng,rng],[rng,-rng]],
-                pushUnique = H.HTN.Helper.pushUnique,
-                isUnknown  = pos => {
-                  return corners.some(sq => {
-                    // with 1/sqrt2
-                    var test = [~~(pos[0] + sq[0] * 0.7), ~~(pos[1] + sq[1] * 0.7)];
-                    return data[pos2pointer(test)] === 0;
-                  });
-                },
-                isHostile = index => {
-                  return (data[index] & mHostile) !== 0;
-                };
+            var 
+              t0 = Date.now(), sq, value, posTest, posNext, index,
+              test = H.Resources.nearest(pos, "treasure"),
+              treasures = test ? [test] : [];
+
 
             H.Resources.markFound(pos, rng);
-            test = H.Resources.nearest(pos, "treasure");
-            treasures = test ? [test] : [];
 
             // // make resources in range visible, check for treasure
             // H.each(resources, function(id, res){
@@ -236,10 +243,18 @@ HANNIBAL = (function(H){
             while (queueNow.length){
 
               posNext = queueNow.pop();
+
+              deb("   SCT: posNext: %s, len: %s", posNext, data.length);
+
               index   = pos2pointer(posNext);
 
-              if (posNext[0] < 0 || ~~(posNext[0] / cellsize) > width || posNext[1] < 0 || ~~(posNext[1] / cellsize) > height){
-                // deb(" SCOUT: ignored outside tile %s", index); 
+              deb("   SCT: posNext: %s, index: %s", posNext, index);
+
+              if (
+                posNext[0] < 0 || posNext[0] / cellsize > width || 
+                posNext[1] < 0 || posNext[1] / cellsize > height
+                ){
+                deb(" SCOUT: ignored outside tile %s, x: %s, y: %s", index, posNext[0], posNext[1]); 
                 continue;}
 
               if (H.contains(recentTiles, index)){

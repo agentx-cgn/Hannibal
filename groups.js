@@ -45,7 +45,7 @@ HANNIBAL = (function(H){
           group.instances.forEach(function(instance){
             var interval = ~~instance.interval; // positive ints only
             if (interval > 0 && instance.listener.onInterval){ 
-              if (ticks % interval === 0){
+              if (ticks % interval === 0){ // x % 0 => NaN
                 instance.tick(secs, ticks);
               }
             }
@@ -59,7 +59,6 @@ HANNIBAL = (function(H){
           if (definition.active) {
             switch(name.split(".")[0]){
               case "g": 
-                // H.Groups.register(name, definition);
                 groups[name] = {
                   name: name,
                   definition: definition,
@@ -83,7 +82,7 @@ HANNIBAL = (function(H){
 
           if (order && order.shared){
 
-            host = H.Groups.launch({name: "g.custodian", cc: order.ccid});
+            host = H.Groups.launch({name: "g.custodian", cc: order.cc});
             host.structure = ["private", "INGAME WITH id = " + msg.id];
             host.structure = H.createAsset(host, "structure");
 
@@ -112,13 +111,14 @@ HANNIBAL = (function(H){
       request: function(cc, amount, asset /* , location */ ){
         
         // sanitize args
-        var args = H.toArray(arguments),
-            location  = (
-              args.length === 3 ? [] : 
-              args[3].location ? args[3].location() :
-              Array.isArray(args[3]) ? args[3] :
-                []
-            );
+        var 
+          args = H.toArray(arguments),
+          location = (
+            args.length === 3 ? [] : 
+            args[3].location ? args[3].location() :
+            Array.isArray(args[3]) ? args[3] :
+              []
+          );
 
         asset.isRequested = true;
 
@@ -159,7 +159,7 @@ HANNIBAL = (function(H){
         
         // H.Events.registerListener(id, instance.structure.listener.bind(instance.structure));
 
-        deb("   GRP: appointed %s for %s, ccid: %s", options.name, H.Entities[id], options.cc);
+        deb("   GRP: appointed %s for %s, cc: %s", options.name, H.Entities[id], options.cc);
 
         return instance;
 
@@ -195,7 +195,7 @@ HANNIBAL = (function(H){
           });
         });
       },
-      // launch: function(name, ccid, args){
+      // launch: function(name, cc, args){
       getGroupTechnologies: function(launch){
 
         // [   4,    1, "g.scouts",     {cc:cc, size: 5}],
@@ -298,10 +298,9 @@ HANNIBAL = (function(H){
 
         });
 
-        deb("   GRP: launch %s cc: %s, args: %s", instance, options.cc, uneval(options));
+        deb("   GRP: launch %s args: %s", instance, uneval(options));
 
         // call and activate
-        // instance.listener.onLaunch.apply(null, [ccid].concat(args));
         instance.listener.onLaunch(options);
 
         return instance;

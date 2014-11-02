@@ -390,3 +390,15 @@ td.nw {
   overflow:hidden;
 }
 
+.imgbtnsimu {
+  width:  24px;
+  height: 24px;
+  margin: 4px;
+  border: 1px solid transparent;
+  background: white;
+  cursor: pointer;
+}
+
+.imgbtnsimu:hover {
+  border: 1px solid black;
+}

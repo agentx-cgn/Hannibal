@@ -53,7 +53,7 @@ HANNIBAL = (function(H){
                   hcq.substr(pos1 +1, pos2 - pos1 -1) : 
                   null;
 
-    if (token === "ccid"){
+    if (token === "cc"){
       hcq = H.replace(hcq, "<" + token + ">", instance[token]);
 
     } else if (token && instance[token] !== undefined){
@@ -70,12 +70,13 @@ HANNIBAL = (function(H){
 
   H.createAsset = function(instance, property, resources){
 
-    var asset = new H.Asset(instance, property),
-        definition = instance[property],
-        id = H.Objects(asset),
-        name = H.format("%s:%s#%s", instance.name, property, id),
-        shared  = definition[0] === "shared",  
-        dynamic = definition[0] === "dynamic";
+    var 
+      asset = new H.Asset(instance, property),
+      definition = instance[property],
+      id = H.Objects(asset),
+      name = H.format("%s:%s#%s", instance.name, property, id),
+      shared  = definition[0] === "shared",  
+      dynamic = definition[0] === "dynamic";
 
     H.extend(asset, {
       id:          id,
@@ -105,26 +106,6 @@ HANNIBAL = (function(H){
     this.instance  = instance;
     this.property  = property;
 
-    // Object.defineProperties(this, {
-    //   health: {enumerable: true, get: function(){
-    //     return H.health(this.resources);
-    //   }},
-    //   count:  {enumerable: true, get: function(){
-    //     return this.resources.length;
-    //   }},
-    //   first:  {enumerable: true, get: function(){
-    //     return this.toSelection(this.resources.slice(0, 1));
-    //   }},
-    //   center: {enumerable: true, get: function(){
-    //     return H.Map.getCenter(this.resources);
-    //   }}
-    // });  
-
-    // logObject(this, "asset.this");
-
-    // deb("   AST: new: %s, res: %s, this.res: %s, keys: %s", instance.name, uneval(resources), uneval(this.resources), Object.keys(this));
-
-
   };
 
   H.Asset.prototype = {
@@ -133,6 +114,8 @@ HANNIBAL = (function(H){
     get count  () {return this.resources.length;},
     get first  () {return this.toSelection(this.resources.slice(0, 1));},
     get center () {return H.Map.getCenter(this.resources);},
+    get spread () {return H.Map.getSpread(this.resources);},
+
     tick:     function(secs, tick){ /**/ },
     toString: function(){return H.format("[asset %s]", this.name);},
     toLog:    function(){return "    AST: " + this + " " + JSON.stringify(this, null, "      : ");},
@@ -266,8 +249,9 @@ HANNIBAL = (function(H){
     },
     toSelection: function(resources){
       var asset = new H.Asset(this.instance, this.property);
+      asset.name = H.format("[selection %s [%s]]", this.instance.name, resources);
+      asset.toString = function(){return asset.name;};
       asset.initActions(resources);
-      asset.toString = function(){return H.format("[selection %s [%s]]", this.name, resources);}.bind(this);
       return asset;
     },
     initActions: function(ids){
@@ -294,7 +278,7 @@ HANNIBAL = (function(H){
         collect:  function(targets){
           // deb("   AST: collect: %s", uneval(targets));
           H.Engine.collect(ids, targets.map(t => t.resources[0]));
-        }
+        },
 
       });
     },
@@ -399,10 +383,13 @@ HANNIBAL = (function(H){
       } else if (Array.isArray(param)){
         ids = [H.Map.nearest(param, this.resources)];
 
+      } else {
+        deb("WARN  : Asset.nearast: got strange param: %s", param);
+
       }
 
       // deb("   AST: nearest hcq: %s", hcq);
-      // deb("   AST: nearest ids: %s", ids);
+      deb("   AST: nearest %s ids: %s, param", this.name, ids, param);
 
       return this.toSelection(ids);
       

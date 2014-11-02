@@ -72,7 +72,7 @@ HANNIBAL = (function(H){
       listener: {
 
         // game started, something launched this group
-        onLaunch: function(options /*ccid, size*/){
+        onLaunch: function(options /*cc, size*/){
 
           this.options = options;
           this.size = options.size;

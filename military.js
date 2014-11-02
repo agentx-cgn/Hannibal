@@ -23,10 +23,10 @@ HANNIBAL = (function(H){
       boot: function(){self = this; return this;},
       init: function(){
       },
-      tick: function(){},
+      tick: function(){return 0;},
       activate: function(){
 
-        H.Events.on("Attack", "*", function (msg){
+        H.Events.on("Attacked", "*", function (msg){
 
         });
 
@@ -38,6 +38,17 @@ HANNIBAL = (function(H){
           cc = options.centre,
 
           technologies = [],
+          messages = {
+            "phase.village": [
+              [  20, {name: "BroadCast", data: {group: "g.builder", cc: cc, size: 5, building: cls("baracks"), quantity: 2}}],
+            ],
+            "phase.town" :   [
+
+            ],
+            "phase.city" :   [
+
+            ],
+          },
           launches = {
 
             "phase.village": [
@@ -55,17 +66,14 @@ HANNIBAL = (function(H){
 
             ],
 
-          },
-
-          messages = [
-            [  20, {name: "BroadCast", data: {group: "g.builder", size: 5, building: cls("baracks"), quantity: 2}}],
-          ];
+          };
 
         return {
           launches: launches,
           technologies: technologies,
           messages: messages,
         };
+
       },
 
 

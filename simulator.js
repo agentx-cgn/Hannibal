@@ -17,8 +17,9 @@ HANNIBAL = (function(H){
       techsAvailable: [],
       techsFeasable:  [],
       stackBuildings: [],
-      nextBuilding: null,
-      sizeBuilder: 0,
+      groupIsBuilding: false,
+      groupIsComplete: false,
+      groupSizeBuilder: 0,
     });
     this.checker = new H.Checker(this);
   };
@@ -26,13 +27,6 @@ HANNIBAL = (function(H){
   H.Simulation.prototype = {
     constructor: H.Simulation,
     tick: function(){  
-    },
-    onBuildingFinished: function(){
-      var order = this.stackBuildings.shift();
-      deb("   SIM: finished: #%s %s from %s", order.id, order.hcq, order.source);
-      if(this.stackBuildings.length){
-        this.nextBuilding = this.stackBuildings[1];
-      }
     },
     verbFromNodes: function (hcq){
       var self = this, verb = "";
@@ -71,56 +65,54 @@ HANNIBAL = (function(H){
         }));
       });
     },
-    appendHouseOrders: function(tick, groups, orders){
-      var ress = this.curstate.data.ress;
-      if (ress.pop > ress.popcap - this.popuHouse -2){
-        if (!this.curstate.groups["g.builder"]){
-          groups.push("g.builder");
-        }
-        orders.push(new H.Order({
-          amount:     1,
-          verb:       "build", 
-          cc:         this.centre,
-          location:   null,
-          hcq:        this.nameHouse, 
-          source:     this.source,
-        }));
-        deb("     S: appendHouseOrders %s %s", 1, this.nameHouse);
-      }
-    },
-    appendBuildingOrder: function(tick, building, amount, orders){
+    // appendHouseOrders: function(tick, groups, orders){
+      //   var ress = this.curstate.data.ress;
+      //   if (ress.pop > ress.popcap - this.popuHouse -2){
+      //     if (!this.curstate.groups["g.builder"]){
+      //       groups.push("g.builder");
+      //     }
+      //     orders.push(new H.Order({
+      //       amount:     1,
+      //       verb:       "build", 
+      //       cc:         this.centre,
+      //       location:   null,
+      //       hcq:        this.nameHouse, 
+      //       source:     this.source,
+      //     }));
+      //     deb("     S: appendHouseOrders %s %s", 1, this.nameHouse);
+      //   }
+      // },
+      // appendBuildingOrder: function(tick, building, amount, orders){
 
-      if (!this.nextBuilding && !this.stackBuildings.length){
-        orders.push(new H.Order({
-          amount:     1,
-          verb:       "build", 
-          cc:         this.centre,
-          location:   null,
-          hcq:        building, 
-          source:     "g.builder",
-        }));
-        amount -= 1;
-      }
+      //   if (!this.nextBuilding && !this.stackBuildings.length){
+      //     orders.push(new H.Order({
+      //       amount:     1,
+      //       verb:       "build", 
+      //       cc:         this.centre,
+      //       location:   null,
+      //       hcq:        building, 
+      //       source:     "g.builder",
+      //     }));
+      //     amount -= 1;
+      //   }
 
-      H.loop(amount, () => {
-        this.stackBuildings.push(new H.Order({
-          amount:     1,
-          verb:       "build", 
-          cc:         this.centre,
-          location:   null,
-          hcq:        building, 
-          source:     "g.builder",
-        }));
-      });
+      //   H.loop(amount, () => {
+      //     this.stackBuildings.push(new H.Order({
+      //       amount:     1,
+      //       verb:       "build", 
+      //       cc:         this.centre,
+      //       location:   null,
+      //       hcq:        building, 
+      //       source:     "g.builder",
+      //     }));
+      //   });
 
-      if (this.nextBuilding){
-        orders.push(this.nextBuilding);
-        this.nextBuilding = null;
-      }
-
-
-    },
-    appendPhaseOrder: function(orders, phase){
+      //   if (this.nextBuilding){
+      //     orders.push(this.nextBuilding);
+      //     this.nextBuilding = null;
+      //   }
+      // },
+    tryAppendPhaseOrder: function(orders, phase){
       if (this.checker.check(phase, false).available) {
         orders.push(new H.Order({
           amount:     1,
@@ -130,43 +122,86 @@ HANNIBAL = (function(H){
           hcq:        phase, 
           source:     "phase.order", 
         }));
+        return true;
       }
+      return false;
+    },
+    onBuildingFinished: function(){
+      var order = this.stackBuildings.shift();
+      deb("   SIM: finished: #%s %s from %s", order.id, order.hcq, order.source);
+      if(this.stackBuildings.length){
+        this.nextBuilding = this.stackBuildings[1];
+      }
+    },
+    processMessage: function(message){
+
+      var tick, msg;
+
+      [tick, msg] = message;
+
+      // simulates one builder group
+
+      if (msg.name === "BroadCast" && msg.group === "g.builder"){
+        stackBuildings.push(msg);
+        if (!this.groupIsBuilding && this.groupComplete) {
+
+        }
+
+      } else {
+        deb("   SIM: can't process msg: %s", uneval(msg));
+      }
+
+
+    },
+    appendMessages: function(tick, source, target){
+
+      source
+        .filter(message => tick === message[0])
+        .forEach(message => {
+          target.push(message);
+        });
+
     },
     appendLaunchOrders: function(tick, launches, groups, orders){
 
       // [   4,    1, "g.scouts",     {cc:cc, size: 5}],
 
-      var hcq, verb, order, exclusives, amount, type;
+      var verb, order, exclusives;
 
       launches
         .filter(launch => tick === launch[0])
         .forEach(launch => {
 
-          groups.push(launch[2]);
+          var [junk, count, group, params] = launch;
 
-          exclusives = H.Groups.getExclusives(launch);
+          H.loop(count, () => {
 
-          // if (launch[1][1] === "g.builder"){
-          //   exclusives = {building: exclusives = [launch[1][2].quantity, ["exclusive", launch[1][2].building]]};
-          // } else {
-          //   exclusives = H.Groups.getExclusives(launch[1]);
-          // }
+            groups.push(group);
 
-          H.each(exclusives, (name, params) => {
-            [amount, [type, hcq]] = params;
-            verb   = this.verbFromNodes(hcq);
-            order  = {
-              amount:     amount,
-              verb:       verb, 
-              cc:         launch[3].cc,
-              location:   null,
-              hcq:        hcq, 
-              source:     launch[2], //self.source,
-            };
-            orders.push(new H.Order(order));
+            if (group === "g.builder"){
+              this.groupSizeBuilder = params.size;
+              deb("     S: set buildersize to : %s", this.groupSizeBuilder);
+            }
+
+            exclusives = H.Groups.getExclusives(launch);
+
+            H.each(exclusives, (name, params) => {
+              var [amount, [type, hcq]] = params;
+              verb   = this.verbFromNodes(hcq);
+              order  = new H.Order({
+                amount:     amount,
+                verb:       verb, 
+                cc:         params.cc,
+                location:   null,
+                hcq:        hcq, 
+                source:     group, //self.source,
+              });
+              orders.push(order);
+            });
+
           });
 
-        });      
+      });      
 
     }
 
@@ -183,7 +218,10 @@ HANNIBAL = (function(H){
       simulation: null,
       tick: 0,
       researchStarted: [],
-
+      phases: ["phase.village", "phase.town", "phase.city"],
+      nextPhase : function (phase) {
+        return self.phases[self.phases.indexOf(phase) +1];
+      },
       log:  function(){},
       boot: function(){return (self = this);},
       generate: (function(){var counter = 0; return { get id () {return ++counter;} }; }()),
@@ -213,7 +251,6 @@ HANNIBAL = (function(H){
         producers: null,
         orderqueue: null,
         prioVerbs: ["research", "train", "build"],
-        phases: ["phase.village", "phase.town", "phase.city"],
         availability: ["food", "wood", "stone", "metal"],
         allocations: {food: 0, wood: 0, stone: 0, metal: 0, population: 0},
 
@@ -279,16 +316,20 @@ HANNIBAL = (function(H){
  
         var 
           msg, simulation, 
-          exit = false,
-          townFired = false,
-          cityFired = false,
+          canAdvance = false,
+          exitSimulation = false,
+          nextPhaseFired = false,
           lastPhase = "",
+          curstate = context.curstate,
           tick = context.tick,
           tickPhase = context.tick,
-          tickOrders = [], tickGroups = [], ingames = [],
-          curstate = context.curstate,
+          tickOrders = [], 
+          tickMessages = [], 
+          tickGroups = [], 
           stock = curstate.data.ress,
-          launches = context.launches[context.phase];
+          launches = context.launches[context.phase],
+          messages = context.messages[context.phase]
+          ;
 
         deb();deb();deb(" SIMUL: start %s budget: %s", context.phase, uneval(stock));
 
@@ -299,38 +340,30 @@ HANNIBAL = (function(H){
         // fake ingames for producers
         H.each(context.state.data.ents, (name, amount) => {
           H.loop(amount, () => {
-            ingames.push({name: name + "#" + self.generate.id});
+            context.ingames.push({name: name + "#" + self.generate.id});
           });
         });
 
-        self.economy.producers = new H.Producers ({
-          parent: self,
-          tree: context.tree,
-          ingames: ingames,
-          nameCentre: context.nameCentre,
-        });
-
-        self.orderqueue = new H.OrderQueue ({
-          parent:  self,
-          economy: self.economy, 
-        });
+        self.orderqueue = new H.OrderQueue (H.mixin({}, context, {parent: self, economy: self.economy}));
+        self.economy.producers = new H.Producers (H.mixin({}, context, {parent: self}));
 
         // append easy techs
         simulation.evaluateTechnologies();
         simulation.appendTechOrders(simulation.techsAvailable, tickOrders);
 
-        // get orders required by planning
-        // simulation.appendStateOrders(tickOrders);
-        
         deb();
 
-        while (!exit) {
+        while (!exitSimulation) {
 
           // add groups and orders
           H.consume(tickGroups, g => curstate.groups[g] = !curstate.groups[g] ? 1 : curstate.groups[g] +1);
           H.consume(tickOrders, order => {
             order.economy = self.economy;
             self.orderqueue.append(order);
+          });
+
+          H.consume(tickMessages, message => {
+            simulation.processMessage(message);
           });
 
           // debug
@@ -347,43 +380,41 @@ HANNIBAL = (function(H){
           // now process
           self.orderqueue.process(true, false);
 
-          // collect for next tick
-
+          // phase changed
           if (lastPhase !== context.curphase){
-            if (context.curphase === "phase.village"){
-              simulation.appendBuildingOrder(tickPhase, context.nameHouse, 5, tickOrders);
-            }
-            if (context.curphase === "phase.town"){
-              simulation.appendBuildingOrder(tickPhase, context.nameTower, 4, tickOrders);
-            }
             tickPhase = 0;
+            nextPhaseFired = false;
             lastPhase = context.curphase;
+            launches  = context.launches[context.curphase];
+            messages  = context.messages[context.curphase];
           }
 
-          // needs houses
-          // simulation.appendHouseOrders(tickPhase, tickGroups, tickOrders);
-
-          // check buildings
-          simulation.appendBuildingOrder(tickPhase, "", 0, tickOrders);
+          // check messages
+          simulation.appendMessages(tickPhase, messages, tickMessages);
 
           // check launches for group.orders
           simulation.appendLaunchOrders(tickPhase, launches, tickGroups, tickOrders);
 
-          // can advance to next phase, check techs again
-          if (tickPhase > context.info.maxTicks[context.curphase] && tick % 5 === 0){
-
+          // check techs every 5
+          if (tick % 5 === 0){
             simulation.evaluateTechnologies();
             simulation.appendTechOrders(simulation.techsAvailable, tickOrders);
+          }
 
-            if (!townFired && context.curphase === "phase.village" && curstate.data.ents[H.class2name("house")] >= 5){
-              simulation.appendPhaseOrder(tickOrders, H.Phases["1"].next);
-              townFired = true;
-            
-            } else if (!cityFired && context.curphase === "phase.town" && curstate.data.ents[H.class2name("defensetower")] >= 4){
-              simulation.appendPhaseOrder(tickOrders, H.Phases["2"].next);
-              cityFired = true;
+          // can advance to next phase (maxtick, etc),
+          canAdvance = (
+            tick % 5 === 0 &&
+            !nextPhaseFired &&
+            tickPhase > context.info.launches[context.curphase][2] &&
+            tickPhase < context.info.messages[context.curphase][2] 
+          );
+
+          if (canAdvance){
+            if (simulation.tryAppendPhaseOrder(tickOrders, self.nextPhase(context.curphase))){
+              nextPhaseFired = true;
+            } else {
+              deb(" SIMUL: Next Phase failed: current: %s", context.curphase);
             }
-
           }
 
           // prolog
@@ -392,7 +423,11 @@ HANNIBAL = (function(H){
           self.tick = tick;
           curstate.data.cost.time += 1.6;
           self.triggers.tick();
-          exit = tick > 50 && !tickActions.length;
+
+          exitSimulation = (
+            tick > context.simticks &&
+            !tickActions.length
+          );
 
         }
 

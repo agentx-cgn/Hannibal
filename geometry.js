@@ -88,7 +88,7 @@ HANNIBAL = (function(H){
       ctx.lineTo(corners[0].x, corners[0].y);
       ctx.stroke();
       ctx.fillStyle = "rgba(200, 0, 0, 0.8)";
-      ctx.fillRect(corners[0].x -1, corners[0].y -1, 3, 3);
+      ctx.fillRect(corners[0].x -1, corners[0].y -1, 2, 2);
     }
   };
 
@@ -103,8 +103,8 @@ HANNIBAL = (function(H){
       var out = [], s = (Math.PI * 2)/n;
       while (n--){
         out.push({
-          x: x + Math.cos(n * s) * this.radius,
-          y: y + Math.sin(n * s) * this.radius
+          x: this.x + Math.cos(n * s) * this.radius,
+          y: this.y + Math.sin(n * s) * this.radius
         });
       }
       return out;

@@ -14,17 +14,16 @@
 
 HANNIBAL = (function(H){
 
-  var self;
-
   function isShared (ent){
     var klasses = ent.classes().map(String.toLowerCase);
     return H.Config.data.sharedBuildingClasses.some(function(klass){
-      // return (klasses.indexOf(klass) !== -1);
       return H.contains(klasses, klass);
     });
   }
 
   H.Villages = (function(){
+
+    var self, groups;
 
     return {
       Centre: {
@@ -44,12 +43,21 @@ HANNIBAL = (function(H){
 
           var order = H.Objects(H.MetaData[msg.id].order);
 
-          if (order.ccid){
-            H.MetaData[msg.id].ccid = order.ccid;
-            // deb("  VILL: set ccid: %s of %s %s", order.ccid, msg.id, H.Entities[msg.id]._templateName);
+          if (order.cc){
+            H.MetaData[msg.id].cc = order.cc;
+            // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
           }
 
         });
+
+        H.Events.on("BroadCast", function (msg){
+
+          if (msg.data.group === "g.builder"){
+
+          }
+
+        });
+
 
       },
       getPhaseNecessities: function(options){ // phase, centre, tick
@@ -121,20 +129,20 @@ HANNIBAL = (function(H){
               posCic = cic.position;
               dis = H.Map.distance(posCic, posNode);
               if (dis < distance){
-                H.MetaData[node.id].ccid = cic.id;
+                H.MetaData[node.id].cc = cic.id;
                 distance = dis;
               }
             });
 
             // deb("     I: chosing cc: %s at %s for [%s %s] at %s", 
-            //   H.MetaData[node.id].ccid, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
+            //   H.MetaData[node.id].cc, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
 
-            cics[H.MetaData[node.id].ccid] += 1;
+            cics[H.MetaData[node.id].cc] += 1;
 
 
           // CCs have themself as cc
           } else {
-            H.MetaData[node.id].ccid = node.id;
+            H.MetaData[node.id].cc = node.id;
 
           }
 
@@ -213,11 +221,11 @@ HANNIBAL = (function(H){
 
           } else if (opname === "g.custodian"){
             deb("     V: 2 %s %s", node.name, opname);
-            H.Groups.appoint(node.id, {name: "g.custodian", cc: H.MetaData[node.id].ccid});
+            H.Groups.appoint(node.id, {name: "g.custodian", cc: H.MetaData[node.id].cc});
 
           } else if (opname === "g.mayor"){
             deb("     V: 2 %s %s", node.name, opname);
-            H.Groups.appoint(node.id, {name: "g.mayor", cc: H.MetaData[node.id].ccid});
+            H.Groups.appoint(node.id, {name: "g.mayor", cc: H.MetaData[node.id].cc});
             // H.Groups.appoint("g.mayor", node.id, {});
 
           } else {

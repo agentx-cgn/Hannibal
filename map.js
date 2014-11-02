@@ -100,7 +100,7 @@ HANNIBAL = (function(H){
       return result;
 
     },
-    spread: function(ids){
+    getSpread: function(ids){
       var poss = ids.map(id => H.Entities[id].position()),
           xs = poss.map(pos => pos[0]),
           zs = poss.map(pos => pos[1]),

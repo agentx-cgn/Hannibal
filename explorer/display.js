@@ -97,13 +97,12 @@ HANNIBAL = (function(H){
       });
 
     },
-    sim: function(simulation){
+    sim: function(){
 
-      console.log("Display.sim:", simulation);
+      TIM.step("Display.sim:");
 
-      simulation = simulation || null;
-
-      H.Simu.load(simulation, function(){
+      H.Simulation.init();
+      H.Simulation.load({}, function(){
         // H.Display.boxSelect($("slcMaps"), map);
       });
 

@@ -59,7 +59,7 @@ HANNIBAL = (function(H){
 
       listener: {
 
-        onLaunch:    function(options /*ccid, maxUnits*/){
+        onLaunch:    function(options /*cc, maxUnits*/){
 
           this.options = options;
           this.size    = options.size;

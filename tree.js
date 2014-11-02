@@ -33,7 +33,7 @@ HANNIBAL = (function(H){
             return phases[i];
           }
         } 
-        //H.throw("phases.find: '%s' unknown", phase);
+        return undefined; //H.throw("phases.find: '%s' unknown", phase);
       },
       prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];},
       init: function(){
@@ -48,7 +48,7 @@ HANNIBAL = (function(H){
         function check(key, tpl){
           if ((test = H.test(tpl, "Identity.RequiredTechnology"))){extract(test);}
           if ((test = H.test(tpl, "requirements.tech"))){extract(test);}
-          if ((test = H.test(tpl, "requirements.any"))){test.forEach(t => extract(t.tech));}
+          if ((test = H.test(tpl, "requirements.any"))){test.filter(t => !!t.tech).forEach(t => extract(t.tech));}
         }
         H.each(H.Templates, check); 
         H.each(H.TechTemplates, check); 

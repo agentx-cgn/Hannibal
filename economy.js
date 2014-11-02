@@ -17,6 +17,7 @@ HANNIBAL = (function(H){
   var 
     // relies on c before e
     config = H.Config.economy,
+    gatherables = ["food", "wood", "stone", "metal"],
     ress   = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0};
 
   function pritc(cost){ // pretty cost
@@ -64,7 +65,7 @@ HANNIBAL = (function(H){
       // });    
 
       // gather diffs
-      H.attribs(ress).forEach(function(prop){ 
+      gatherables.forEach(function(prop){ 
         diffs[prop].push(gathered[prop] - suply[prop]); // prep flows
         suply[prop]   = gathered[prop];                 // totals
         stock[prop]   = available[prop];                // available
@@ -141,7 +142,7 @@ HANNIBAL = (function(H){
       // check whether ingame producer exists
       this.nodes.forEach(function(node){
         // deb("simulate: %s", node.name);
-        var producer = self.economy.producers.allocate(node.name, self.ccid);
+        var producer = self.economy.producers.allocate(node.name, self);
         if (producer){
           node.producer  = producer;
         } else {
@@ -226,7 +227,7 @@ HANNIBAL = (function(H){
 
       // // check whether ingame producer exists
       // this.nodes.forEach(function(node){
-      //   var producer   = H.Producers.find(node.name, self.ccid);
+      //   var producer   = H.Producers.find(node.name, self.cc);
       //   node.producer  = producer;
       //   node.qualifies = !producer ? false : node.qualifies;
       //   node.info += !producer ? "no producer, " : "";
@@ -235,7 +236,7 @@ HANNIBAL = (function(H){
       // check whether ingame producer exists
       this.nodes.forEach(function(node){
         // deb("evaluate: %s node: ", self.id, node.name);
-        var producer = self.economy.producers.allocate(node.name, self.ccid);
+        var producer = self.economy.producers.allocate(node.name, self);
         if (producer){
           node.producer = producer;
           // deb("evaluate: %s prod for %s #%s %s", self.id, node.name, producer.id, producer.name);
@@ -396,6 +397,7 @@ HANNIBAL = (function(H){
           parent:  self,
           tree:    H.Bot.tree,
           ingames: H.QRY("INGAME"),
+          config:  H.Config,
         });
 
         flowBarrack  = tree[cls("barracks")].flow;
@@ -441,11 +443,10 @@ HANNIBAL = (function(H){
 
           node = H.QRY("INGAME WITH id = " + msg.id).first();
           if (node){
-            self.producers.remove(node.name);
+            self.producers.remove(node);
           } else {
             deb("WARN  : eco.activate.EntityRenamed: id %s no ingame", msg.id);
           }
-          // self.producers.remove(H.QRY("INGAME WITH id = " + msg.id).first().name);
 
           node = H.QRY("INGAME WITH id = " + msg.id2).first();
           if (node){
@@ -473,6 +474,8 @@ HANNIBAL = (function(H){
         });
 
         H.Events.on("TrainingFinished", function (msg){
+
+          deb("   ECO: TrainingFinished id: %s, meta: %s", msg.id, uneval(H.MetaData[msg.id]));
 
           node = H.QRY("INGAME WITH id = " + msg.id).first();
           if (node){
@@ -516,15 +519,12 @@ HANNIBAL = (function(H){
         });
 
         H.Events.on("Advance", function (msg){
-          var node = H.QRY("INGAME WITH id = " + msg.id).first();
-          if (node){self.producers.remove(node.name);}
-          // H.Producers.removeById(msg.id);
+          self.producers.unqueue("research", msg.data.technology);  
         });
 
         H.Events.on("Destroy", function (msg){
-          var node = H.QRY("INGAME WITH id = " + msg.id).first();
-          if (node){self.producers.remove(node.name);}
-          // H.Producers.removeById(msg.id);
+          self.producers.remove(msg.id);
+          // deb("   ECO: got Event destroy for id: %s", msg.id);
         });
 
 
@@ -709,26 +709,17 @@ HANNIBAL = (function(H){
           popcap: (budget.popcap || 0) - (cost.popcap || 0 * amount),
         };
       },
-      diffX: function(cost, budget, amount=1){
-        var c = cost, b = budget, a = amount; // TODO amount 
-        return {
-          food:  ((c.food  || 0) > (b.food  || 0)) ? c.food  - (b.food  || 0) : undefined,
-          wood:  ((c.wood  || 0) > (b.wood  || 0)) ? c.wood  - (b.wood  || 0) : undefined,
-          stone: ((c.stone || 0) > (b.stone || 0)) ? c.stone - (b.stone || 0) : undefined,
-          metal: ((c.metal || 0) > (b.metal || 0)) ? c.metal - (b.metal || 0) : undefined
-        };
-      },
       request: function(order){
 
         var  // debug
           sourcename = H.Objects(order.source).name,  // this is an asset instance
           loc = (order.location === undefined) ? "undefined" : order.location.map(p => p.toFixed(1)),
-          msg = "  EREQ: #%s, %s amount: %s, ccid: %s, loc: %s, from: %s, shared: %s, hcq: %s";
+          msg = "  EREQ: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s";
 
         order.economy = self;
         self.orderqueue.append(order);
 
-        deb(msg, order.id, order.verb, order.amount, order.cc, loc, sourcename, order.shared, order.hcq.slice(0, 30));
+        deb(msg, order.id, order.verb, order.amount, order.cc || "NO CC" , loc, sourcename, order.shared, order.hcq.slice(0, 30));
 
       },
 
@@ -753,7 +744,7 @@ HANNIBAL = (function(H){
             // task = self.genTaskId();
             node.producer.queue.push([task, order]);
             deb(msg, order.id, verb, id, amount, template); 
-            H.Engine.train([id], template, amount, {order: order.id, task: task});
+            H.Engine.train([id], template, amount, {order: order.id, task: task, cc:order.cc});
           break;
 
           case "research" : 
@@ -766,7 +757,7 @@ HANNIBAL = (function(H){
             // needs no queue
             pos = H.Map.findGoodPosition(template, [order.x, order.z]);
             deb(msg, order.id, verb, id, 1, template, order.x.toFixed(0), order.z.toFixed(0)); 
-            H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id});
+            H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
           break;
 
         }

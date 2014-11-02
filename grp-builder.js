@@ -49,9 +49,9 @@ HANNIBAL = (function(H){
 
       listener: {
 
-        onLaunch: function(options /*ccid, building, size, quantity*/){
+        onLaunch: function(options /*cc, building, size, quantity*/){
 
-          // deb("     G: onlaunch %s cc: %s, civ: %s", this, ccid, H.Bot.civ);
+          // deb("     G: onlaunch %s cc: %s, civ: %s", this, cc, H.Bot.civ);
 
           this.options = options;
 
@@ -121,7 +121,7 @@ HANNIBAL = (function(H){
         },
         onAttack: function(asset, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
+          // deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
 
         },
         onBroadcast: function(){},

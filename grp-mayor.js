@@ -43,19 +43,19 @@ HANNIBAL = (function(H){
       position:       null,           // refers to the coords of the group's position/activities
       structure:      [],             // still unkown asset, inits at game start
 
-      builders:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.ccid = <ccid>"],
+      builders:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.cc = <cc>"],
 
       attackLevel:    0,              // increases with every attack, halfs on interval
       needsRepair:   80,              // a health level (per cent)
       needsDefense:  10,              // an attack level
 
       listener: {
-        onLaunch: function(options /*ccid*/){
+        onLaunch: function(options /*cc*/){
 
           deb("     G: launch %s %s", this, uneval(options));
 
           this.options = options;
-          this.ccid = options.ccid;
+          this.cc = options.cc;
           this.register("builders");
 
         },
@@ -73,11 +73,11 @@ HANNIBAL = (function(H){
 
           this.position = asset;
 
-          H.QRY("INGAME WITH metadata.ccid = " + this.ccid).forEach(function(node){
-            node.metadata.ccid = asset.resources[0];
+          H.QRY("INGAME WITH metadata.cc = " + this.cc).forEach(function(node){
+            node.metadata.cc = asset.resources[0];
           });
 
-          this.ccid = asset.resources[0];
+          this.cc = asset.resources[0];
 
           if (asset.isFoundation){
             this.builders.nearest(30).repair(asset);
@@ -93,7 +93,7 @@ HANNIBAL = (function(H){
         },
         onAttack: function(asset, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
+          deb("     G: %s onAttack %s", this, uneval(arguments));
 
           this.attackLevel += 1;
 

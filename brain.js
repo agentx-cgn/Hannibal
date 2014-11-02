@@ -99,8 +99,8 @@ HANNIBAL = (function(H){
       });
 
 
-      H.Events.on("Attack", "*", function (msg){
-        deb(" BRAIN: Attack: damage: %s, type: %s", msg.data.damage, msg.data.type);
+      H.Events.on("Attacked", "*", function (msg){
+        deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
       });
 
       H.Events.on("BroadCast", function (msg){
@@ -133,10 +133,13 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), 
+        tickSort = (a, b) => a[0] < b[0] ? -1 : 1,
         // utilizers = ["Villages", "Economy", "Military", "Brain"],
         utilizers = ["Brain"],
-        necessities, technologies = [], 
-        launches = {"phase.village": [], "phase.town": [], "phase.city": []}
+        necessities, 
+        technologies = [], 
+        launches = {"phase.village": [], "phase.town": [], "phase.city": []},
+        messages = {"phase.village": [], "phase.town": [], "phase.city": []}
         ;
 
       deb();deb();
@@ -151,39 +154,59 @@ HANNIBAL = (function(H){
         H.each(launches, phase => {
           H.pushflat(launches[phase], necessities.launches[phase]);
         });
+        H.each(messages, phase => {
+          H.pushflat(messages[phase], necessities.messages[phase]);
+        });
       });
 
       // [   4 + tck, [1, "g.scouts",     {cc:cc, size: 5}]],
+      H.each(launches, phase => {
+        launches[phase].sort(tickSort);
+        messages[phase].sort(tickSort);
+      });
 
-      launches["phase.village"].sort((a, b) => a[0] < b[0] ? -1 : 1);
-      launches["phase.town"].sort((a, b) => a[0] < b[0] ? -1 : 1);
-      launches["phase.city"].sort((a, b) => a[0] < b[0] ? -1 : 1);
-
-      context.info = {
+      context.info = { // phase : [length, mintick, maxtick]
         launches: {
-          "phase.village": launches["phase.village"].length,
-          "phase.town": launches["phase.town"].length,
-          "phase.city": launches["phase.city"].length,
+          "phase.village": [
+            launches["phase.village"].length,
+            launches["phase.village"].length ? launches["phase.village"][0][0] : 0,
+            launches["phase.village"].length ? launches["phase.village"].slice(-1)[0][0] : 0,
+          ],
+          "phase.town": [
+            launches["phase.town"].length,
+            launches["phase.town"].length ? launches["phase.town"][0][0] : 0,
+            launches["phase.town"].length ? launches["phase.town"].slice(-1)[0][0] : 0,
+          ],
+          "phase.city": [
+            launches["phase.city"].length,
+            launches["phase.city"].length ? launches["phase.city"][0][0] : 0,
+            launches["phase.city"].length ? launches["phase.city"].slice(-1)[0][0] : 0,
+          ],
         },
-        minTicks: {
-          "phase.village": launches["phase.village"].length ? launches["phase.village"].slice(0)[0][0] : 0,
-          "phase.town": launches["phase.town"].length ? launches["phase.town"].slice(0)[0][0] : 0,
-          "phase.city": launches["phase.city"].length ? launches["phase.city"].slice(0)[0][0] : 0,
+        messages: {
+          "phase.village": [
+            messages["phase.village"].length,
+            messages["phase.village"].length ? messages["phase.village"][0][0] : 0,
+            messages["phase.village"].length ? messages["phase.village"].slice(-1)[0][0] : 0,
+          ],
+          "phase.town": [
+            messages["phase.town"].length,
+            messages["phase.town"].length ? messages["phase.town"][0][0] : 0,
+            messages["phase.town"].length ? messages["phase.town"].slice(-1)[0][0] : 0,
+          ],
+          "phase.city": [
+            messages["phase.city"].length,
+            messages["phase.city"].length ? messages["phase.city"][0][0] : 0,
+            messages["phase.city"].length ? messages["phase.city"].slice(-1)[0][0] : 0,
+          ],
         },
-        maxTicks: {
-          "phase.village": launches["phase.village"].length ? launches["phase.village"].slice(-1)[0][0] : 0,
-          "phase.town": launches["phase.town"].length ? launches["phase.town"].slice(-1)[0][0] : 0,
-          "phase.city": launches["phase.city"].length ? launches["phase.city"].slice(-1)[0][0] : 0,
-        }
       };
 
       deb();
-      deb("     B: launches ...");
+      deb("     B: launches/messages ...");
       JSON.stringify(context.info, null, 2).split("\n").forEach(function(line){
         deb("     B: %s", line);
       });
-
-
 
       // H.each(launches, function (phase, launches){
       //   deb("     B: %s %s", phase, launches.length);
@@ -197,6 +220,7 @@ HANNIBAL = (function(H){
       });
 
       context.launches = launches;
+      context.messages = messages;
       context.technologies = H.unique(technologies);
       deb("     B: have %s technologies",  context.technologies.length);
       context.technologies.forEach(t => {
@@ -220,12 +244,18 @@ HANNIBAL = (function(H){
         cc  = context.centre,
 
         technologies = [],
-
+        messages = {
+          "phase.village": [
+            [   3, {name: "BroadCast", data: {group: "g.builder", cc: cc, building: cls("house"), quantity: 4}}]
+          ],
+          "phase.town": [],
+          "phase.city": [],
+        },
         launches = {
           "phase.village": [
           //  tck,  amt,  group,         params
-            [   2,    1, "g.builder",    {cc:cc, size: 3, building: cls("house"), quantity: 4}],
-            [   4,    1, "g.scouts",     {cc:cc, size: 5}],
+            [   2,    1, "g.builder",    {cc:cc, size: 3}],
+            // [   4,    1, "g.scouts",     {cc:cc, size: 5}],
           ],
           "phase.town" :   [
 
@@ -244,7 +274,7 @@ HANNIBAL = (function(H){
     },    
     runPlanner: function(phase){
 
-      var state, goal, phaseName, phaseCost, houseName, housePopu, ress, logops;
+      var state, goal, phaseName, phaseCost, housePopu, ress, logops;
 
       if (phase === "phase.village"){
 
@@ -339,7 +369,7 @@ HANNIBAL = (function(H){
 
       // [quantity, groupname, ccid, [param1, [...] ] ]
 
-      var CC = H.Villages.Centre.id;
+      var cc = H.Villages.Centre.id;
 
 
       if (phase === "phase.village"){
@@ -347,24 +377,24 @@ HANNIBAL = (function(H){
         // TODO: care about Centre
 
         return [
-          [2, "g.harvester", CC, {size: 5}],       // needed for trade?
-          [1, "g.builder",   CC, {size: 2, quantity: 2, building: class2name("farmstead")}],    // depends on building time
-          [1, "g.builder",   CC, {size: 2, quantity: 2, building: class2name("storehouse")}],   // depends on building time
+          [2, "g.harvester", cc, {size: 5}],       // needed for trade?
+          [1, "g.builder",   cc, {size: 2, quantity: 2, building: class2name("farmstead")}],    // depends on building time
+          [1, "g.builder",   cc, {size: 2, quantity: 2, building: class2name("storehouse")}],   // depends on building time
 
         ];
 
         // return [
-        //   [2, "g.harvester", CC,                           5],       // needed for trade?
-        //   // [1, "g.builder",   CC, class2name("house"),      2, 6],    // onLaunch: function(ccid, building, size, quantity){
-        //   [1, "g.builder",   CC, class2name("farmstead"),  4, 2],    // depends on building time
-        //   [1, "g.builder",   CC, class2name("storehouse"), 2, 2],    // depends on building time
-        //   // [1, "g.builder",   CC, class2name("barracks"),   5, 2],    // depends on civ and # enemies
-        //   // [1, "g.builder",   CC, class2name("blacksmith"), 2, 1],    // one is max, check required techs
-        //   // [1, "g.supplier",  CC, "metal",                  1],               // 
-        //   // [1, "g.supplier",  CC, "stone",                  1],
-        //   // [5, "g.supplier",  CC, "wood",                   5],
-        //   // [1, "g.supplier",  CC, "food.fruit",             2],       // availability
-        //   // [1, "g.supplier",  CC, "food.meat",              2],       // availability
+        //   [2, "g.harvester", cc,                           5],       // needed for trade?
+        //   // [1, "g.builder",   cc, class2name("house"),      2, 6],    // onLaunch: function(ccid, building, size, quantity){
+        //   [1, "g.builder",   cc, class2name("farmstead"),  4, 2],    // depends on building time
+        //   [1, "g.builder",   cc, class2name("storehouse"), 2, 2],    // depends on building time
+        //   // [1, "g.builder",   cc, class2name("barracks"),   5, 2],    // depends on civ and # enemies
+        //   // [1, "g.builder",   cc, class2name("blacksmith"), 2, 1],    // one is max, check required techs
+        //   // [1, "g.supplier",  cc, "metal",                  1],               // 
+        //   // [1, "g.supplier",  cc, "stone",                  1],
+        //   // [5, "g.supplier",  cc, "wood",                   5],
+        //   // [1, "g.supplier",  cc, "food.fruit",             2],       // availability
+        //   // [1, "g.supplier",  cc, "food.meat",              2],       // availability
         // ];
 
       } else if (phase === "phase.town"){

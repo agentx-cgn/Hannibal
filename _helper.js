@@ -61,11 +61,7 @@ H.extend(H, {
   clamp:      function (val, min, max){return val < min ? min : val > max ? max : val;}, 
   isInteger:  function (n){return Math.floor(n) === n;},
   pareto:     function (alpha) {return 1.0 / Math.pow((1 - Math.random()), 1.0 / alpha);},
-
-  // function randomIntFromInterval(min,max)
-  // {
-  //     return Math.floor(Math.random()*(max-min+1)+min);
-  // }
+  rndClamp:   function (min, max){return Math.random()*(max-min+1) + min;},
 
   // strings
   replace:    function (s,f,r){return s.replace(new RegExp(H.escapeRex(f), 'g'), r);},
@@ -91,13 +87,22 @@ H.extend(H, {
   // extend:     function (o,e){var a; for(a in e){if(e.hasOwnProperty(a)){o[a]=(e[a]);}} return o;},
   isEmpty:    function (o){var p;for(p in o){if(o.hasOwnProperty(p)){return false;}}return true;},
   prettify:   function (o){return JSON.stringify(o).split('"').join("");},
-  map:        function (o,fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},
+  map:        function (o, fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},
   transform:  function (o, fn){
     var r={}; H.each(o,function(k,v){var [ra,rv]=fn(k,v);r[ra]=rv;});return r;
   },
-  test:       function (o,s){
+  testX:       function (o, s){
     var p = 0, as = s.split("."), l = as.length -1;
     while (( (o = o[as[p]]) !== undefined)) {
+      if(p === l){return o;}
+      p +=1;
+    }
+    return undefined;
+  },
+  test:       function (o, s){
+    var p = 0, as = s.split("."), l = as.length -1;
+    while (o[as[p]] !== undefined) {
+      o = o[as[p]];
       if(p === l){return o;}
       p +=1;
     }

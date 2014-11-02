@@ -37,6 +37,7 @@ HANNIBAL = (function(H){
     },
 
     numerus: {
+      enabled:              true,
       file:                 "/home/noiv/Desktop/0ad/stats.csv",
       resolution:           10       // 10 = 16 secs
     },

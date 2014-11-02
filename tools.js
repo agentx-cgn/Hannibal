@@ -454,13 +454,15 @@ HANNIBAL = (function(H) {
 
     // deb();deb();deb("   PDC: inited for %s", context.parent.name);
 
-    H.extend(this, context, {
-      name: context.parent.name + ":pdc",
-      maxAllocs: H.Config.economy.maxAllocations,
-      tree: context.tree.nodes,
+    H.extend(this, {
+      name:       context.parent.name + ":pdc",
+      tree:       context.tree.nodes,
+      ingames:    context.ingames,
+      nameCentre: context.nameCentre,
+      maxAllocs:  context.config.economy.maxAllocations,
       producers: {},
-    });
-
+    }); 
+    
     // TODO ignore units for build
     this.ingames.forEach(node => this.register(node.name));
 
@@ -494,21 +496,20 @@ HANNIBAL = (function(H) {
     },
     unqueue: function(verb, info){
 
-      var found = null;
+      var found = false;
 
       H.each(this.producers, function (name, producer){
         if(!found && producer.queue && producer.queue.length){
           if (H.delete(producer.queue, task => task[0] === info)){
-            found = producer;
+            found = true;
             producer.allocs -= 1;
+            deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, producer.name);
           }
         }
       });
 
-      if (found) {
-        deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, found.name);
-      } else {
-        deb("   PDC: unqueue: not found in queue: %s, %s", verb, info);
+      if (!found) {
+        deb("   PDC: unqueue: not found in any queue: %s, %s", verb, info);
       }
 
     },
@@ -534,17 +535,24 @@ HANNIBAL = (function(H) {
         // deb("   PDC: reg: %s", uneval(this.producers[nameid]));
       }
     },
-    remove: function(nameid){
-      delete this.producers[nameid];
+    remove: function(nodeOrId){
+      var self = this, id = H.isInteger(nodeOrId) ? nodeOrId : nodeOrId.id;
+      H.each(self.producers, function(nameid, producer){
+        if (producer.id === id){
+          delete self.producers[nameid];
+          deb("   PDC: removed id: %s", id);
+        }        
+      });
     },  
-    allocate: function(product, cc){
+    allocate: function(product, order){
 
       var 
         phase, producer, 
         tree = this.tree,
         verb = this.tree[product].verb, 
         names = H.attribs(this.producers),
-        i = names.length;
+        i = names.length,
+        found = false;
 
       // deb("   PDC: allocate: %s, %s", product, cc || "nocc");
 
@@ -578,25 +586,29 @@ HANNIBAL = (function(H) {
               }
             }
           } else {
-            while ((producer = this.producers[names[--i]])){
-              if (tree[producer.name].products.research[product]){
-                if (producer.allocs < this.maxAllocs){
-                  break;
-                } 
-              } 
+            while (i--){
+              producer = this.producers[names[i]];
+              found = (
+                tree[producer.name].products.research[product] && 
+                producer.allocs < this.maxAllocs
+              );
+              if (found){break;} else {producer = null;}
             }
           }
         break;
         
         case "train":
-          while ((producer = this.producers[names[--i]])){
-            if (tree[producer.name].products.train[product]){
-              if (producer.allocs < this.maxAllocs){
-                if (!cc || H.MetaData[producer.id].cc === cc) {
-                  break;
-                }
-              }
-            }  
+          while (i--){
+            producer = this.producers[names[i]];
+
+            deb("   PDC: allocate: id: %s, meta: %s", producer.id, uneval(H.MetaData[producer.id]));
+
+            found = (
+              tree[producer.name].products.train[product] &&
+              producer.allocs < this.maxAllocs && 
+              !order.cc || H.MetaData[producer.id].cc === order.cc
+            );
+            if (found){break;} else {producer = null;}
           }
         break;
         
@@ -668,21 +680,20 @@ HANNIBAL = (function(H) {
       allGood = H.Economy.fits(allocs, budget);  // get first quote whether all order fit budget
 
       if (processing){
-        deb("    OQ: queue: %s, allGood: %s, wait: %s, allocs: %s", queue.length, allGood, waiting, uneval(allocs));
+        deb("    OQ: queue: %s, allg: %s, waits: %s, allocs: %s", queue.length, allGood, waiting, uneval(allocs));
       }
 
-      // rep
+      // rep / debug
       msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
-      queue
-        .forEach(o => {
-          var 
-            isWaiting = o.remaining === o.processing,
-            exec = o.executable ? "X" : "-",
-            source = H.isInteger(o.source) ? H.Objects(o.source).name : o.source,
-            nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
-          if(!(isWaiting && !logWaiting)){
-            deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
-          }
+      queue.forEach(o => {
+        var 
+          isWaiting = o.remaining === o.processing,
+          exec = o.executable ? "X" : "-",
+          source = H.isInteger(o.source) ? H.Objects(o.source).name : o.source,
+          nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
+        if(!(isWaiting && !logWaiting)){
+          deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
+        }
       });
 
       // choose executables and process

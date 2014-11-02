@@ -141,7 +141,7 @@ HANNIBAL = (function(H){
         // listener: assets, culture, mili?
 
         if (!e.entityObj){
-          deb("WARN : EVT got destroy no entityObj, mats: %s", H.attribs(e));
+          deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
           return;
         }
 
@@ -160,6 +160,8 @@ HANNIBAL = (function(H){
       Attacked: function(e){
 
         // listener: assets, grids, mili?
+
+        // deb("   EVT: got attacked: %s", uneval(e));
 
         if (H.Entities[e.target]){
 
@@ -202,8 +204,8 @@ HANNIBAL = (function(H){
     var listeners = H.unique([].concat(
       dispatcher["*"],
       dispatcher[msg.player]["*"],
-      dispatcher[msg.player][msg.name],
-      dispatcher[msg.player][msg.id]
+      dispatcher[msg.player][msg.name] ? dispatcher[msg.player][msg.name] : [],
+      dispatcher[msg.player][msg.id]   ? dispatcher[msg.player][msg.id] : []
     )).filter(l => typeof l === "function");
 
     // deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
@@ -341,7 +343,7 @@ HANNIBAL = (function(H){
 
         } else {
           deb("ERROR: Events.on is strange: %s", uneval(args));
-          return;
+          return [];
 
         }
 

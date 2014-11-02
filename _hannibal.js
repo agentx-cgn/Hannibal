@@ -35,7 +35,7 @@ var HANNIBAL = (function() {
         .forEach(e => {Object.keys(e)
           .forEach(k => o[k] = e[k]
     );});},
-    throw: function(msg){
+    throw: function(){
       throw "\n" + H.format.apply(null, H.toArray(arguments)) + "\n" + new Error().stack;      
     },
     chat: function(msg){
@@ -51,6 +51,7 @@ var HANNIBAL = (function() {
     H.Bot = this;
 
     H.extend(this, {
+      name:      "H",
       turn:       0,                                  // increments on AI ticks, not bot ticks
       settings:   settings,                           // from user dialog
       id:         settings.player,                    // used within 0 A.D.
@@ -142,16 +143,17 @@ var HANNIBAL = (function() {
     H.Resources.log();
     H.Scout.init();                          // inits scout extension for scout group
     H.Groups.init();                         // registers groups
-    H.Villages.init();
+    H.Villages.init();                       // organize buildings by civic centres
 
-    // prepare planner cache
-    H.Planner = new H.HTN.Planner({
+    
+    H.Planner = new H.HTN.Planner({          // setup default planner
       name:      "eco.planner",
       operators: H.HTN.Economy.operators,
       methods:   H.HTN.Economy.methods,
       verbose:   1
     });
 
+    // backlinks planning domain to default planner
     H.HTN.Economy.initialize(H.Planner, this.tree);
     // H.HTN.Economy.report("startup test");
     // H.HTN.Economy.test({tech: ['phase.town']});
@@ -165,27 +167,34 @@ var HANNIBAL = (function() {
     H.Stats.init();
 
 
-    H.Brain.planPhase({
-      tick:        0,
-      civ:         H.Bot.civ,
-      tree:        H.Bot.tree,
-      source:      this.id,
-      planner:     H.Planner,
-      state:       H.HTN.Economy.getCurState(),
-      curstate:    H.HTN.Economy.getCurState(),
-      phase:      "phase." + H.Player.phase,  // run to this phase until next phase is researchable or (city) run out of actions
-      curphase:   "phase.village", 
-      centre:      H.Villages.Centre.id,
-      nameCentre:  H.class2name("civilcentre"),
-      nameTower:   H.class2name("defensetower"),
-      nameHouse:   H.class2name("house"),
-      popuHouse:   H.QRY(H.class2name("house")).first().costs.population * -1, // ignores civ
-      technologies: [],
-      launches:     {"phase.village": [], "phase.town": [], "phase.city": []},
-      resources:   H.Resources.availability("wood", "food", "metal", "stone", "treasure"),
-    });
+    // H.Brain.planPhase({
+    //   parent:         this,
+    //   config:         H.Config,
+    //   simticks:      50, 
+    //   tick:           0,
+    //   civ:            H.Bot.civ,
+    //   tree:           H.Bot.tree,
+    //   source:         this.id,
+    //   planner:        H.Planner,
+    //   state:          H.HTN.Economy.getCurState(),
+    //   curstate:       H.HTN.Economy.getCurState(),
+    //   phase:         "phase." + H.Player.phase,  // run to this phase until next phase is researchable or (city) run out of actions
+    //   curphase:      "phase.village", 
+    //   centre:         H.Villages.Centre.id,
+    //   nameCentre:     H.class2name("civilcentre"),
+    //   nameTower:      H.class2name("defensetower"),
+    //   nameHouse:      H.class2name("house"),
+    //   popuHouse:      H.QRY(H.class2name("house")).first().costs.population * -1, // ignores civ
+    //   ingames:       [],
+    //   technologies:  [],
+    //   launches:     {"phase.village": [], "phase.town": [], "phase.city": []},
+    //   messages:     {"phase.village": [], "phase.town": [], "phase.city": []},
+    //   resources:      H.Resources.availability("wood", "food", "metal", "stone", "treasure"),
+    // });
+    
+    this.initialized = true;
 
-    H.Config.deb = 0;
+    // H.Config.deb = 0;
 
 
     /*
@@ -397,22 +406,30 @@ var HANNIBAL = (function() {
     // http://trac.wildfiregames.com/wiki/AIEngineAPI
 
     var 
-      t0 = Date.now(),
-      critical = "",
-      self = this, 
-      msgTiming = "",
-      secs = (H.GameState.timeElapsed/1000).toFixed(1),
-      map = TESTERDATA ? TESTERDATA.map : "unkown";
+      t0        = Date.now(),
+      msgTiming = "", 
+      secs      = (H.GameState.timeElapsed/1000).toFixed(1),
+      map       = TESTERDATA ? TESTERDATA.map : "unkown";
 
     // update shortcuts
-    H.Player            = sharedScript.playersData[this.id];
     H.SharedScript      = sharedScript;
     H.TechTemplates     = H.SharedScript._techTemplates;
-    // H.Entities          = H.GameState.entities._entities;
     H.Player            = H.SharedScript.playersData[this.id];
     H.Players           = H.SharedScript.playersData;
     H.MetaData          = H.SharedScript._entityMetadata[this.id];
-    // H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
+
+    if (!this.initialized){
+      if (!this.noInitReported){
+        deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+        deb();deb();
+        deb("ERROR : HANNIBAL IS NOT INITIALIZED !!!");
+        H.chat("HANNIBAL IS NOT INITIALIZED, check configuration/readme.txt");
+        deb();deb();
+        deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+      }
+      this.noInitReported = true;
+      return;      
+    }
 
     if (!this.isTicking){
       deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
@@ -425,10 +442,10 @@ var HANNIBAL = (function() {
     if (this.isFinished){return;}
 
     if (H.Tester.OnUpdate){
-      H.Engine.chat("OnUpdate");
+      H.chat("OnUpdate");
       H.Tester.OnUpdate();
     } else {
-      // H.Engine.chat("no OnUpdate");
+      // H.chat("no OnUpdate");
     }
     
     // save events, even if not processing
@@ -439,13 +456,10 @@ var HANNIBAL = (function() {
 
     // ------------- A C T I O N   S T A R T ----------------------------------
 
-    
     // Run the update every n turns, offset depending on player ID to balance the load
     if ((this.turn + this.player) % 8 === 5) {
 
-      Engine.ProfileStart("Hannibal (player " + this.id +")");
-
-      deb("STATUS: @%sa, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+      deb("STATUS: @%s, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
         this.ticks, this.player, this.civ, secs, 
         H.count(H.Players[this.id].researchedTechs), 
         H.Player.resourceCounts.food,
@@ -456,46 +470,56 @@ var HANNIBAL = (function() {
 
       if (this.ticks === 0){
 
+        // allow processing autoresearch first
+
         // subscribe to messages
         this.culture.activate();
         H.Brain.activate();
         H.Groups.activate();
         H.Villages.activate();
         H.Economy.activate();
+        H.Military.activate();
 
-        // allow processing autoresearch first
         this.timing.all = 0;
-        this.timing.tst = H.Tester.tick(  secs, this.ticks);
-        this.timing.trg = H.Triggers.tick(secs, this.ticks);
-        this.timing.evt = H.Events.tick(  secs, this.ticks);
+        this.timing.tst = H.Tester.tick(   secs, this.ticks);
+        this.timing.trg = H.Triggers.tick( secs, this.ticks);
+        this.timing.evt = H.Events.tick(   secs, this.ticks);
 
       } else {
 
         this.timing.all = 0;
-        this.timing.tst = H.Tester.tick(  secs, this.ticks);
-        this.timing.trg = H.Triggers.tick(secs, this.ticks);
-        this.timing.evt = H.Events.tick(  secs, this.ticks);
-        this.timing.brn = H.Brain.tick(   secs, this.ticks);
-        this.timing.grd = H.Grids.tick(   secs, this.ticks);
-        this.timing.gps = H.Groups.tick(  secs, this.ticks);
-        this.timing.sts = H.Stats.tick(   secs, this.ticks);
-        this.timing.eco = H.Economy.tick( secs, this.ticks);
+        this.timing.tst = H.Tester.tick(   secs, this.ticks);
+        this.timing.trg = H.Triggers.tick( secs, this.ticks);
+        this.timing.evt = H.Events.tick(   secs, this.ticks);
+        this.timing.brn = H.Brain.tick(    secs, this.ticks);
+        this.timing.geo = H.Grids.tick(    secs, this.ticks);
+        this.timing.gps = H.Groups.tick(   secs, this.ticks);
+        this.timing.mil = H.Military.tick( secs, this.ticks);
+        this.timing.sts = H.Stats.tick(    secs, this.ticks);
+        this.timing.eco = H.Economy.tick(  secs, this.ticks);
 
       }
 
-      // prepare deb line
-      H.each(this.timing, function(name, msecs){
+      // deb: collect stats
+      if (H.Config.numerus.enabled){
+        H.Numerus.tick(secs, this.ticks);
+      }
+
+      // deb: prepare line
+      H.each(this.timing, (name, msecs) => {
         if (name !== "all"){
           msgTiming += H.format(", %s: %s", name, msecs);
         }
-        self.timing.all += msecs;
+        this.timing.all += msecs;
       });
-      critical = self.timing.all >= 100 ? "!!!!!!!!" : "";
-      deb("______: @%sb, trigs: %s, timing: %s, all: %s %s", 
-        this.ticks, H.Triggers.info(), msgTiming, this.timing.all, critical
-      );
 
-      H.Numerus.tick(secs, this.ticks);
+      deb("______: @%s, trigs: %s, timing: %s, all: %s %s", 
+        this.ticks, 
+        H.Triggers.info(), 
+        msgTiming, 
+        this.timing.all, 
+        this.timing.all >= 100 ? "!!!!!!!!" : ""
+      );
 
       // // check for winner
       // if (this.frame.name === "whiteflag") {
@@ -522,11 +546,8 @@ var HANNIBAL = (function() {
 
       // ------------- A C T I O N   E N D --------------------------------------
 
-
       deb("  ");
       
-      Engine.ProfileStop();
-
     }
 
     this.turn++;
@@ -593,4 +614,3 @@ var HANNIBAL = (function() {
 
 
 return H;}());
-

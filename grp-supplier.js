@@ -67,7 +67,7 @@ HANNIBAL = (function(H){
 
       listener: {
 
-        onLaunch: function(options /*ccid, resource, size*/){
+        onLaunch: function(options /*cc, resource, size*/){
 
           // deb("     G: onlaunch %s", uneval(arguments));
 
