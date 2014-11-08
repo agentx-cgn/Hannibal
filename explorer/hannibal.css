@@ -244,7 +244,7 @@ li.tabberitem a {
   margin-left: 16px;
 }
 
-#txtTerrain, #txtPass, #txtSimuTerrain {
+#txtTerrain, #txtPass, #txtSimuTerrain, #txtSimuEntity {
   font-size: 10px;  
   padding-left: 4px;
   white-space: nowrap;
@@ -393,9 +393,9 @@ td.nw {
 .imgbtnsimu {
   width:  24px;
   height: 24px;
-  margin: 4px;
+  margin: 2px;
   border: 1px solid transparent;
-  background: white;
+  background: #E4E4E4;
   cursor: pointer;
 }
 

@@ -277,12 +277,15 @@
             <div style="margin-left: 8px; margin-top: 4px">
               <label for="txtSimuTerrain" style="text-align: left;" class="uline">Terrain</label>
               <span id="txtSimuTerrain">[]</span><br />
+              <span id="txtSimuEntity">[]</span><br />
             </div>
 
-            <div>
-              <input type="checkbox" id="chkSimAnim"  checked="checked"><span class="chklabel">Animate</span></input>
-
-
+            <div style="padding-left: 8px; padding-top: 8px;">
+              <img class="imgbtnsimu" src="images/ic_stop_24px.svg" id="" onclick="H.Simulation.stop();" />
+              <img class="imgbtnsimu" src="images/ic_skip_previous_24px.svg" id="" onclick="H.Simulation.reset();" />
+              <img class="imgbtnsimu" src="images/ic_play_arrow_24px.svg" id="" onclick="H.Simulation.play();" />
+              <img class="imgbtnsimu" src="images/ic_pause_24px.svg" id="" onclick="H.Simulation.pause();" />
+              <img class="imgbtnsimu" src="images/ic_redo_24px.svg" id="" onclick="H.Simulation.step();" />
             </div>
 
             <div style="margin-left: 8px">
@@ -303,13 +306,7 @@
               <div id="tabberSimu" >
 
                 <div id="tabSimu" class="divTabber">
-
-                  <div style="padding-left: 8px; padding-top: 8px;">
-                    <img class="imgbtnsimu" src="images/ic_stop_24px.svg" id="" onclick="H.Simulation.stop();" />
-                    <img class="imgbtnsimu" src="images/ic_skip_previous_24px.svg" id="" onclick="H.Simulation.reset();" />
-                    <img class="imgbtnsimu" src="images/ic_play_arrow_24px.svg" id="" onclick="H.Simulation.play();" />
-                    <img class="imgbtnsimu" src="images/ic_pause_24px.svg" id="" onclick="H.Simulation.pause();" />
-                  </div>
+                  Sim stuff here 
 
                 </div>
 
@@ -706,8 +703,9 @@
       <script type="text/javascript" src="browser.js"></script>
       <script type="text/javascript" src="maps.js"></script>
       <script type="text/javascript" src="village.js"></script>
-      <script type="text/javascript" src="sim.js"></script>
+      <script type="text/javascript" src="sims.js"></script>
       <script type="text/javascript" src="simulation.js"></script>
+      <!-- // <script type="text/javascript" src="model.js"></script> -->
       <!-- // <script type="text/javascript" src="c.pretty.js"></script> -->
       
     <!--- Init -->

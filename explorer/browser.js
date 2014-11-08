@@ -110,8 +110,10 @@ HANNIBAL = (function(H){
 
         // SIMU
 
-        $("cvsSim").onclick = H.Simulation.onclick;
+        $("cvsSim").onclick     = H.Simulation.onclick;
         $("cvsSim").onmousemove = H.Simulation.onmousemove;
+        $("cvsSim").onmousedown = H.Simulation.onmousedown;
+        $("cvsSim").onmouseup   = H.Simulation.onmouseup;
 
         H.Display.activateTab("tabberSimu", "tabSimu");
 

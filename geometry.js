@@ -16,6 +16,10 @@
 
 HANNIBAL = (function(H){
 
+  var 
+    PIH = Math.PI / 2,
+    PI2 = Math.PI * 2;
+
   H.Geometry = {};
 
   H.Geometry.Point = function (x, y){
@@ -44,7 +48,7 @@ HANNIBAL = (function(H){
   H.Geometry.Rect.prototype = {
     constructor: H.Geometry.Rect,
     rotate: function(a){
-      this.theta = (this.theta + (a || 0)) % (Math.PI *2);
+      this.theta = (this.theta + (a || 0)) % (PI2);
       this.sin   = Math.sin(this.theta);
       this.cos   = Math.cos(this.theta);
     },
@@ -76,10 +80,10 @@ HANNIBAL = (function(H){
         y = Math.sin(angle) * dist;
       return (x > -this.width/2 && x < this.width/2 && y > -this.height/2 && y < this.height/2);
     },
-    draw: function(ctx, color, width){
+    draw: function(ctx, strokeColor, width, fillColor=""){
       var corners = this.polygon();
       ctx.lineWidth   = width || 1;
-      ctx.strokeStyle = color || "rgba(200, 200, 200, 0.8)";
+      ctx.strokeStyle = strokeColor || "rgba(200, 200, 200, 0.8)";
       ctx.beginPath();
       ctx.moveTo(corners[0].x, corners[0].y);
       ctx.lineTo(corners[1].x, corners[1].y);
@@ -87,6 +91,10 @@ HANNIBAL = (function(H){
       ctx.lineTo(corners[3].x, corners[3].y);
       ctx.lineTo(corners[0].x, corners[0].y);
       ctx.stroke();
+      if (fillColor){
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+      }
       ctx.fillStyle = "rgba(200, 0, 0, 0.8)";
       ctx.fillRect(corners[0].x -1, corners[0].y -1, 2, 2);
     }
@@ -100,7 +108,7 @@ HANNIBAL = (function(H){
   H.Geometry.Circle.prototype = {
     constructor: H.Geometry.Circle,
     polygon: function (n) {
-      var out = [], s = (Math.PI * 2)/n;
+      var out = [], s = (PI2)/n;
       while (n--){
         out.push({
           x: this.x + Math.cos(n * s) * this.radius,

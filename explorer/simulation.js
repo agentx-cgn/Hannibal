@@ -12,18 +12,20 @@
 
 */
 
-var DB, simulation;
+var DB, hotspots, simulation;
 
 HANNIBAL = (function(H){
 
 
   var 
     size = 512, doAnimate = false, doStep = false, cntSteps = 0, reqAnimate, 
+    counter = 0, 
     // simulation, 
     mouse = {active: false}, map = [], graph,
     cvsSim, ctxSim,
-    $msgs, $terr, $animate, 
-    rbFps, fmt, tAnim,
+    $msgs, $terr, $animate, $enty, 
+    rbFps, rbStep, rbDraw,
+    fmt, tAnim,
     field = new Float32Array(size * size);
 
   function msg(){
@@ -68,18 +70,18 @@ HANNIBAL = (function(H){
     },
 
     init: function(){
+
       fmt  = H.format;
       $msgs = $("txtSIM");
       $terr = $("txtSimuTerrain");
+      $enty = $("txtSimuEntity");
       $animate = $("chkSimAnim");
       cvsSim = $("cvsSim"); 
       ctxSim = cvsSim.getContext("2d");
 
-      // $animate.onchange = function(){
-      //   doAnimate = $animate.checked ? true : false;
-      //   if (doAnimate) {H.Simulation.animate();}
-      // };
+      cvsSim.oncontextmenu = function(){return false;};
 
+      hotspots = [];
 
     },
 
@@ -92,14 +94,17 @@ HANNIBAL = (function(H){
         simulation = new H.SIM.Simulation({
           name:    "first",
           buildings: [
-            {x: 100, y: 100, width: 50, height: 50},
-            {x: 300, y: 300, width: 50, height: 50},
+            {name: "stuff", x:  256, y:  50, width: 50, height: 50, color: "rgba(200, 200, 200, 0.8)"},
+            {name: "stuff", x:  256, y: 462, width: 50, height: 50, color: "rgba(200, 200, 200, 0.8)"},
           ],
           armies:  [
             {name: "green", color: "rgba(40, 200, 40, 0.8)",
+              buildings: [
+                {name: "centre", x:  50, y: 256, width: 50, height: 70, range: 100, color: "rgba(200, 200, 200, 0.8)"},
+              ],
               corps:  [
                 {name: "infantry", color: "rgba(40, 100, 40, 0.8)",
-                  x: 50, y: 300,
+                  x: 100, y: 256,
                   units:    5, 
                   speed:   10, 
                   range:   20, 
@@ -109,9 +114,12 @@ HANNIBAL = (function(H){
               ], 
             },
             {name: "red",   color: "rgba(200, 40, 40, 0.8)",
+              buildings: [
+                {name: "centre", x: 462, y: 256, width: 50, height: 70, range: 100, color: "rgba(200, 200, 200, 0.8)"},
+              ],
               corps:  [
                 {name: "infantry", color: "rgba(100, 40, 40, 0.8)",
-                  x: 300, y: 50,
+                  x: 412, y: 256,
                   units:    5, 
                   speed:   10, 
                   range:   20, 
@@ -132,7 +140,9 @@ HANNIBAL = (function(H){
       }
 
       H.Simulation.init();
-      rbFps = H.createRingBuffer(30);
+      rbFps  = H.createRingBuffer(30);
+      rbStep = H.createRingBuffer(30);
+      rbDraw = H.createRingBuffer(30);
       H.Simulation.play();
 
       msg("Sim.loaded '%s'", simulation.name);
@@ -142,30 +152,53 @@ HANNIBAL = (function(H){
     reset: function(){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
       cntSteps = 0;
-      doAnimate = false;
       doStep = false;
+      doAnimate = false;
       H.Simulation.load();
     },
     stop:  function(){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
-      doAnimate = false;
       doStep = false;
+      doAnimate = false;
     },
     play:  function(){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
-      doAnimate = true;
       doStep = true;
+      doAnimate = true;
       H.Simulation.animate();
     },
     pause: function(){
+      if (reqAnimate){cancelAnimationFrame(reqAnimate);}
       doStep = false;
+    },
+    step: function(){
+      if (reqAnimate){cancelAnimationFrame(reqAnimate);}
+      doStep = true;
+      doAnimate = true;
+      H.Simulation.animate();
+      doStep = false;      
     },
 
     keymap: function( /* e */ ){return {};},
-    onclick: function(e){return {};},
+    onclick: function(e){
+    },
+    onmousedown: function(e){},
+    onmouseup:   function(e){
+      if (e.buttons === 1){
+        if (simulation.selected){simulation.selected.selected = false;}
+        simulation.selected = !!mouse.id ? simulation.entities[mouse.id] : null;
+        if (simulation.selected){simulation.selected.selected = true;}
+        console.log("selected: ", simulation.selected);
+        console.log("selected: ", e);
+      } else if (e.buttons === 2){
+        if (simulation.selected){
+          console.log("move: ", simulation.selected.name, mouse.x, mouse.y);
+        }
+      }
+    },
     onmousemove: function(e){
 
-      var x, y, posCanvas = H.Display.findPosXY(this);
+      var x, y, ent, posCanvas = H.Display.findPosXY(this);
 
       mouse.active = true;
       window.focus();
@@ -177,24 +210,29 @@ HANNIBAL = (function(H){
       mouse.y = ~~H.clamp(y, 0, size);
       mouse.i = mouse.y * size + mouse.x;
 
+      if (simulation){
+        if (mouse.id){simulation.entities[mouse.id].hover = false;}
+        mouse.id = (ent = simulation.hit(mouse.x, mouse.y)) ? ent.id : 0;
+        if (mouse.id){simulation.entities[mouse.id].hover = true;}
+      }
 
     },
     updateMouseInfo: function(){
 
-      var cost, t, terrain;
-
-      if (mouse.active){
-
-        $terr.innerHTML = fmt("%s, %s, %s", mouse.x, mouse.y, mouse.i);
-      } else {
-        $terr.innerHTML = fmt("terrain unavailable");
-      }
+      $terr.innerHTML = ( mouse.active ? 
+        fmt("%s, %s, %s", mouse.x, mouse.y, mouse.i) :
+        fmt("terrain unavailable")
+      );
+      $enty.innerHTML = ( mouse.active ? 
+        mouse.id ? simulation.entities[mouse.id].name : "no entity" :
+        "no entity"
+      );
 
     },
     animate: function animate(){
 
       var 
-        tDiff,
+        tDiff, tNow, 
         t0 = Date.now(),
         self = H.Simulation,
         info = "";
@@ -206,16 +244,21 @@ HANNIBAL = (function(H){
       ctxSim.clearRect(0, 0, size, size);
 
       if (doStep){
+        tNow = Date.now();
         simulation.step(t0);
+        rbStep.push(Date.now() - tNow);
         cntSteps += 1;
       }
+
+      tNow = Date.now();
       simulation.paint(ctxSim);
+      rbDraw.push(Date.now() - tNow);
 
       self.updateMouseInfo();
-      self.renderMouse();
+      // self.renderMouse();
 
       ctxSim.fillStyle = "#33F";
-      info = (rbFps.avg()).toFixed(1) + " | " + cntSteps;
+      info = "fps: " + (rbFps.avg()).toFixed(1) + " | s: " + (rbStep.avg()).toFixed(1) + " | d: " + (rbDraw.avg()).toFixed(1) + " | " + cntSteps;
       ctxSim.fillText(info, 4, 12);
 
       if (doAnimate) {reqAnimate = window.requestAnimationFrame(animate);}

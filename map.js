@@ -165,28 +165,29 @@ HANNIBAL = (function(H){
 
   H.Map.createObstructionMap = function(accessIndex, template){
 
-    var gs = H.Bot.gameState, PID = H.Bot.id, 
-        tilePlayer, 
-        x, y, z, pos, i, okay = false,
-        ix1, ix2, ix3, ix4,
-        passabilityMap   = gs.getMap(),
-        pmData           = passabilityMap.data,
-        pmDataLen        = passabilityMap.data.length,
-        maskBldShore     = gs.getPassabilityClassMask("building-shore"),
-        maskDefault      = gs.getPassabilityClassMask("default"),
-        territoryMap     = gs.ai.territoryMap,
-        obstructionTiles = new Uint8Array(pmDataLen),
-        getRegionSizei   = gs.ai.accessibility.getRegionSizei,
-        placementType    = !template ? "land" : template.buildPlacementType(),
-        buildOwn         = !template ? true   : template.hasBuildTerritory("own"),
-        buildAlly        = !template ? true   : template.hasBuildTerritory("ally"),
-        buildNeutral     = !template ? true   : template.hasBuildTerritory("neutral"),
-        buildEnemy       = !template ? false  : template.hasBuildTerritory("enemy"),
-        obstructionMask  = gs.getPassabilityClassMask("foundationObstruction") | gs.getPassabilityClassMask("building-land"),
-        available = 0,
-        radius = 3, xx, yy, id,
-        invalidTerritory, tileAccessible = true,
-        map, minDist, category;
+    var 
+      gs = H.Bot.gameState, PID = H.Bot.id, 
+      tilePlayer, 
+      x, y, z, pos, i, okay = false,
+      ix1, ix2, ix3, ix4,
+      passabilityMap   = gs.getMap(),
+      pmData           = passabilityMap.data,
+      pmDataLen        = passabilityMap.data.length,
+      maskBldShore     = gs.getPassabilityClassMask("building-shore"),
+      maskDefault      = gs.getPassabilityClassMask("default"),
+      territoryMap     = gs.ai.territoryMap,
+      obstructionTiles = new Uint8Array(pmDataLen),
+      getRegionSizei   = gs.ai.accessibility.getRegionSizei,
+      placementType    = !template ? "land" : template.buildPlacementType(),
+      buildOwn         = !template ? true   : template.hasBuildTerritory("own"),
+      buildAlly        = !template ? true   : template.hasBuildTerritory("ally"),
+      buildNeutral     = !template ? true   : template.hasBuildTerritory("neutral"),
+      buildEnemy       = !template ? false  : template.hasBuildTerritory("enemy"),
+      obstructionMask  = gs.getPassabilityClassMask("foundationObstruction") | gs.getPassabilityClassMask("building-land"),
+      available = 0,
+      radius = 3, xx, yy, id,
+      invalidTerritory, tileAccessible = true,
+      map, minDist, category;
 
     
     if (placementType === "shore"){
