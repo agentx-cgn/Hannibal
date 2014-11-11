@@ -140,7 +140,7 @@ HANNIBAL = (function(H){
 
               this.target = this.scanner.next(this.position);
 
-              if (this.target.point && this.target.treasures) {
+              if (this.target.point && this.target.treasures.length) {
                 this.units.first.collect(this.target.treasures);
                 return;
               

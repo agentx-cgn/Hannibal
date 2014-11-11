@@ -97,14 +97,14 @@ HANNIBAL = (function(H){
       });
 
     },
-    sim: function(){
+    sim: function(sim){
 
       TIM.step("Display.sim:");
 
-      H.Simulation.init();
-      H.Simulation.load({}, function(){
-        // H.Display.boxSelect($("slcMaps"), map);
-      });
+      H.Explorer.Simulator.init(sim);
+      // H.Simulation.load({}, function(){
+      //   // H.Display.boxSelect($("slcMaps"), map);
+      // });
 
     },
     query: function(hqc){

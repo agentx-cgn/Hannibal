@@ -518,9 +518,9 @@ HANNIBAL = (function(H){
 
         });
 
-        H.Events.on("Advance", function (msg){
-          self.producers.unqueue("research", msg.data.technology);  
-        });
+        // H.Events.on("Advance", function (msg){
+        //   self.producers.unqueue("research", msg.data.technology);  
+        // });
 
         H.Events.on("Destroy", function (msg){
           self.producers.remove(msg.id);
@@ -744,20 +744,20 @@ HANNIBAL = (function(H){
             // task = self.genTaskId();
             node.producer.queue.push([task, order]);
             deb(msg, order.id, verb, id, amount, template); 
-            H.Engine.train([id], template, amount, {order: order.id, task: task, cc:order.cc});
+            H.Effector.train([id], template, amount, {order: order.id, task: task, cc:order.cc});
           break;
 
           case "research" : 
             node.producer.queue.push([techname, order]);
             deb(msg, order.id, verb, id, 1, template); 
-            H.Engine.research(id, template);
+            H.Effector.research(id, template);
           break;
 
           case "build" : 
             // needs no queue
             pos = H.Map.findGoodPosition(template, [order.x, order.z]);
             deb(msg, order.id, verb, id, 1, template, order.x.toFixed(0), order.z.toFixed(0)); 
-            H.Engine.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
+            H.Effector.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
           break;
 
         }
@@ -780,7 +780,7 @@ HANNIBAL = (function(H){
             t(stock.health, 4), f(flows.health.toFixed(1))
           );
 
-        deb(msg);
+        // deb(msg);
 
       }
 

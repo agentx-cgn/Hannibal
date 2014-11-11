@@ -12,16 +12,14 @@
 
 */
 
-var DB, hotspots, simulation;
+var DB, simulation;
 
 HANNIBAL = (function(H){
 
-
   var 
     size = 512, doAnimate = false, doStep = false, cntSteps = 0, reqAnimate, 
-    counter = 0, 
-    // simulation, 
-    mouse = {active: false}, map = [], graph,
+    mouse = {active: false}, 
+    map, graphUnit, effectors, 
     cvsSim, ctxSim,
     $msgs, $terr, $animate, $enty, 
     rbFps, rbStep, rbDraw,
@@ -56,8 +54,12 @@ HANNIBAL = (function(H){
     },
   });
 
+  H.Explorer = H.Explorer || {};
 
-  H.Simulation = {
+  H.Explorer.Simulator = {
+
+    get sim  () {return simulation;},
+    get map  () {return map;},
 
     tabActivate: function(token){
       mouse.action = token;
@@ -69,7 +71,9 @@ HANNIBAL = (function(H){
       msg(token + " activated");
     },
 
-    init: function(){
+    init: function(sim){
+
+      var i, j, graph;
 
       fmt  = H.format;
       $msgs = $("txtSIM");
@@ -78,24 +82,58 @@ HANNIBAL = (function(H){
       $animate = $("chkSimAnim");
       cvsSim = $("cvsSim"); 
       ctxSim = cvsSim.getContext("2d");
+      rbFps  = H.createRingBuffer(30);
+      rbStep = H.createRingBuffer(30);
+      rbDraw = H.createRingBuffer(30);
 
       cvsSim.oncontextmenu = function(){return false;};
 
-      hotspots = [];
+      H.Map = new H.LIB.Map({width: size, height: size, cellsize: 4, circular: false});
+
+      this.load(sim);
+
+      H.Effector = new H.LIB.Effector({
+        library: "simulator",
+        simulation: simulation,
+      });
+      
+      i = size / map.cellsize;
+      graph = [];
+      while(i--){
+        graph[i] = [];
+        j = size / map.cellsize;
+        while(j--){
+          graph[i][j] = 1;
+        }
+      }
+      graphUnit = new H.AI.Graph(graph);
+
+      this.play();
+
+      setTimeout(() => {
+        effectors.move([12], [ 20, 120]);
+        effectors.move([13], [ 40, 120]);
+        effectors.move([14], [ 60, 120]);
+        effectors.move([15], [ 80, 120]);
+        effectors.move([16], [100, 120]);
+      }, 500);  
+
+      msg("Sim.loaded '%s'", simulation.name);
+      TIM.step("SIM", fmt("loaded %s simulations", DB.simulations ? DB.simulations.length : NaN));
 
     },
 
-    load: function(){
+    load: function(simname){
 
-      if(!DB.simulations){
+      if(!DB.simulations || !simname || simname === "first"){
 
         DB.clear();
 
         simulation = new H.SIM.Simulation({
           name:    "first",
           buildings: [
-            {name: "stuff", x:  256, y:  50, width: 50, height: 50, color: "rgba(200, 200, 200, 0.8)"},
-            {name: "stuff", x:  256, y: 462, width: 50, height: 50, color: "rgba(200, 200, 200, 0.8)"},
+            {name: "stuff", x:  256, y:  50, width: 50, height: 50, angle: Math.PI/4, color: "rgba(200, 200, 200, 0.8)"},
+            {name: "stuff", x:  256, y: 462, width: 50, height: 50, angle: Math.PI/4, color: "rgba(200, 200, 200, 0.8)"},
           ],
           armies:  [
             {name: "green", color: "rgba(40, 200, 40, 0.8)",
@@ -106,7 +144,7 @@ HANNIBAL = (function(H){
                 {name: "infantry", color: "rgba(40, 100, 40, 0.8)",
                   x: 100, y: 256,
                   units:    5, 
-                  speed:   10, 
+                  speed:   100, 
                   range:   20, 
                   vision:  30,
                   health: 100,
@@ -121,7 +159,7 @@ HANNIBAL = (function(H){
                 {name: "infantry", color: "rgba(100, 40, 40, 0.8)",
                   x: 412, y: 256,
                   units:    5, 
-                  speed:   10, 
+                  speed:   100, 
                   range:   20, 
                   vision:  30,
                   health: 100,
@@ -138,23 +176,31 @@ HANNIBAL = (function(H){
       } else {
         simulation = new H.SIM.Simulation(DB.first);
       }
-
-      H.Simulation.init();
-      rbFps  = H.createRingBuffer(30);
-      rbStep = H.createRingBuffer(30);
-      rbDraw = H.createRingBuffer(30);
-      H.Simulation.play();
-
-      msg("Sim.loaded '%s'", simulation.name);
-      TIM.step("SIM", fmt("loaded %s simulations", DB.simulations ? DB.simulations.length : NaN));
     },
+    getUnitPath: function(start, end){
 
+      var 
+        nodeStart = graphUnit.grid[start[0]][start[1]],
+        nodeEnd   = graphUnit.grid[end[0]][end[1]];
+
+      graphUnit.clear();
+
+      return H.AI.AStar.search(graphUnit, nodeStart, nodeEnd, { 
+        closest:   true,
+        heuristic: H.AI.AStar.heuristics.euclidian,
+        algotweak: 3
+      });
+
+    },
     reset: function(){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
       cntSteps = 0;
-      doStep = false;
-      doAnimate = false;
-      H.Simulation.load();
+      this.load(simulation.name);
+      effectors = new H.Effectors({
+        library: "simulator",
+        simulation: simulation,
+      });
+      this.step();
     },
     stop:  function(){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
@@ -165,7 +211,7 @@ HANNIBAL = (function(H){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
       doStep = true;
       doAnimate = true;
-      H.Simulation.animate();
+      this.animate();
     },
     pause: function(){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
@@ -175,7 +221,7 @@ HANNIBAL = (function(H){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
       doStep = true;
       doAnimate = true;
-      H.Simulation.animate();
+      this.animate();
       doStep = false;      
     },
 
@@ -192,7 +238,9 @@ HANNIBAL = (function(H){
         console.log("selected: ", e);
       } else if (e.buttons === 2){
         if (simulation.selected){
-          console.log("move: ", simulation.selected.name, mouse.x, mouse.y);
+          effectors.move([simulation.selected.id], [mouse.x, mouse.y]);
+          // simulation.selected.target = [mouse.x, mouse.y];
+          // console.log("move: ", simulation.selected.name, mouse.x, mouse.y);
         }
       }
     },
@@ -217,8 +265,13 @@ HANNIBAL = (function(H){
       }
 
     },
+    updateRenderInfo: function(){
+      var 
+        info = "fps: " + (rbFps.avg()).toFixed(1) + " | s: " + (rbStep.avg()).toFixed(1) + " | d: " + (rbDraw.avg()).toFixed(1) + " | " + cntSteps;
+      ctxSim.fillStyle = "#33F";
+      ctxSim.fillText(info, 4, 12);
+    },
     updateMouseInfo: function(){
-
       $terr.innerHTML = ( mouse.active ? 
         fmt("%s, %s, %s", mouse.x, mouse.y, mouse.i) :
         fmt("terrain unavailable")
@@ -227,60 +280,44 @@ HANNIBAL = (function(H){
         mouse.id ? simulation.entities[mouse.id].name : "no entity" :
         "no entity"
       );
-
+    },
+    renderMouse: function(){
+      ctxSim.fillStyle = "rgba(255, 255, 255, 0.8)";
+      ctxSim.fillRect(mouse.x -2, mouse.y -2, 5, 5);
     },
     animate: function animate(){
 
       var 
-        tDiff, tNow, 
-        t0 = Date.now(),
-        self = H.Simulation,
-        info = "";
+        tDiff, tNow, t0 = Date.now(),
+        self = H.Explorer.Simulator;
 
       tDiff = t0 - tAnim;
       tAnim = t0;
       rbFps.push(1000/tDiff);
 
       ctxSim.clearRect(0, 0, size, size);
+      ctxSim.strokeStyle = "rgba(100, 0, 0, 0.9)";
+      ctxSim.lineWidth = map.cellsize;
+      ctxSim.strokeRect(0, 0, size, size);
 
       if (doStep){
         tNow = Date.now();
-        simulation.step(t0);
+        simulation.step(1000/60);
         rbStep.push(Date.now() - tNow);
         cntSteps += 1;
       }
 
       tNow = Date.now();
       simulation.paint(ctxSim);
-      rbDraw.push(Date.now() - tNow);
-
       self.updateMouseInfo();
-      // self.renderMouse();
-
-      ctxSim.fillStyle = "#33F";
-      info = "fps: " + (rbFps.avg()).toFixed(1) + " | s: " + (rbStep.avg()).toFixed(1) + " | d: " + (rbDraw.avg()).toFixed(1) + " | " + cntSteps;
-      ctxSim.fillText(info, 4, 12);
+      self.updateRenderInfo();
+      rbDraw.push(Date.now() - tNow);
 
       if (doAnimate) {reqAnimate = window.requestAnimationFrame(animate);}
 
     },
 
-    renderMouse: function(){
-
-      ctxSim.fillStyle = "rgba(255, 255, 255, 0.8)";
-      ctxSim.fillRect(mouse.x -2, mouse.y -2, 5, 5);
-
-
-    }
-
-
-
-
-
-
-
   };
-
 
 return H; }(HANNIBAL));   
 

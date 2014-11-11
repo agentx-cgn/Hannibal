@@ -262,22 +262,25 @@ HANNIBAL = (function(H){
 
         distanceTo: H.Map.distanceTo.bind(null, ids),
 
-        move:     H.Engine.move.bind(null, ids),          
-        format:   H.Engine.format.bind(null, ids),
-        stance:   H.Engine.stance.bind(null, ids),
-        destroy:  H.Engine.destroy.bind(null, ids),
+        move:     H.Effector.move.bind(null, ids),          
+        format:   H.Effector.format.bind(null, ids),
+        stance:   H.Effector.stance.bind(null, ids),
+        destroy:  H.Effector.destroy.bind(null, ids),
 
-        flee:     function(attacker){H.Engine.flee(ids, [attacker.id]);},
-        garrison: function(asset){H.Engine.garrison(ids, asset.resources[0]);},
+        flee:     function(attacker){H.Effector.flee(ids, [attacker.id]);},
+        garrison: function(asset){H.Effector.garrison(ids, asset.resources[0]);},
         gather:   function(asset){
-          H.Engine.gather(ids, asset.resources[0]);
-          // if (asset.resources && asset.resources.length){H.Engine.gather(ids, asset.resources[0]);}
+          H.Effector.gather(ids, asset.resources[0]);
+          // if (asset.resources && asset.resources.length){H.Effector.gather(ids, asset.resources[0]);}
           // else {deb("WARN  : asset %s no resources", asset.name);}
         },
-        repair:   function(asset){H.Engine.repair(ids, asset.resources[0]);},
+        repair:   function(asset){
+          if (!asset.resources.length){H.throw("asset.repair: no resources");}
+          H.Effector.repair(ids, asset.resources[0]);
+        },
         collect:  function(targets){
           // deb("   AST: collect: %s", uneval(targets));
-          H.Engine.collect(ids, targets.map(t => t.resources[0]));
+          H.Effector.collect(ids, targets.map(t => t.resources[0]));
         },
 
       });
@@ -384,12 +387,12 @@ HANNIBAL = (function(H){
         ids = [H.Map.nearest(param, this.resources)];
 
       } else {
-        deb("WARN  : Asset.nearast: got strange param: %s", param);
+        H.throw("WARN  : Asset.nearest: got strange param: %s", param);
+        // deb("WARN  : Asset.nearest: got strange param: %s", param);
 
       }
 
-      // deb("   AST: nearest hcq: %s", hcq);
-      deb("   AST: nearest %s ids: %s, param", this.name, ids, param);
+      // deb("   AST: nearest %s ids: %s, param: %s", this.name, ids, param);
 
       return this.toSelection(ids);
       

@@ -18,7 +18,7 @@ HANNIBAL = (function(H){
   var 
     defs = {
       mapsize:    512, 
-      mapborder:   12, 
+      mapborder:    4, 
       color:        "rgba(200,0,200,1)",
       vision:      60,
       range:       40,
@@ -35,7 +35,12 @@ HANNIBAL = (function(H){
 
   H.SIM.Entity = function (params){
     H.extend(this, {
+
+      map:     H.Explorer.Simulator.map,
+      
       name:    params && params.name   || "unnamed",
+      army:    params && params.army   || "",
+
       x:       params && params.x      || H.rndClamp(defs.mapborder, defs.mapsize - defs.mapborder),
       y:       params && params.y      || H.rndClamp(defs.mapborder, defs.mapsize - defs.mapborder),
       width:   params && params.width  || defs.width,
@@ -43,8 +48,15 @@ HANNIBAL = (function(H){
       color:   params && params.color  || defs.color,
       health:  params && params.health || defs.health,
       speed:   params && params.speed  || defs.speed,
-      army:    params && params.army   || "",
-      velo:    0,
+      vision:  params && params.vision || defs.vision,
+
+      velo:     0,
+      hover:    false,
+      selected: false,
+      target:   null,
+      path:     null,
+      pathPointer: 0,
+
     });
 
     this.w2 = this.width  / 2;
@@ -54,6 +66,11 @@ HANNIBAL = (function(H){
 
   H.SIM.Entity.prototype = {
   	constructor: H.SIM.Entity,
+    position: function(){return [this.x, this.y];},
+    distance: function(x0, y0, x1, y1){
+      var dx = x0 - x1, dy = y0 -y1;
+      return Math.sqrt(dx * dx + dy * dy);
+    },
     hit:  function(x, y){
       return (
         x >= this.x - this.w2 &&
@@ -62,15 +79,8 @@ HANNIBAL = (function(H){
         y <= this.y + this.h2
       );
     },
-    step: function(){
-      if (this instanceof H.SIM.Unit){
-        
-      }
-      if (this instanceof H.SIM.Building){
-        // do nothing
-      }
-    },
-  	
+    step:  function(msecs){}, // overwrite me
+    paint: function(msecs){}, // overwrite me
   };
 
 
@@ -86,6 +96,43 @@ HANNIBAL = (function(H){
     paint: function(){},
   });
     
+  H.SIM.Bullet = function (){
+    H.SIM.Entity.apply(this, H.toArray(arguments));
+    this.fillColor = this.color;
+    this.size   = 10; 
+    this.speed  = 20; 
+    this.totalLength = this.distance(this.source.x, this.source.y, this.target.x, this.target.y);
+    this.time = this.totalLength / this.speed;
+    this.theta  = Math.atan2(this.target.x - this.source.x, this.target.y - this.source.y);
+    this.xDistance = this.target.x - this.source.x;
+    this.yDistance = this.target.y - this.source.y;
+  };
+
+  H.extend(H.SIM.Bullet.prototype, H.SIM.Entity.prototype, {
+    constructor: H.SIM.Unit,
+    step: function(msecs){
+
+      var 
+        xDiff = msecs / 1000 * this.speed * this.xDistance,
+        yDiff = msecs / 1000 * this.speed * this.yDistance;
+
+      this.x += xDiff;
+      this.y += yDiff;
+
+      this.time -= msecs;
+      if (this.time < 0){
+        this.hit = true;
+      }
+
+    },
+    paint: function(ctx){
+      ctx.fillStyle = this.fillColor;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI, false);
+      ctx.fill();
+    }
+  });
+
   /* UNIT */ 
 
   H.SIM.Unit = function (){
@@ -96,10 +143,53 @@ HANNIBAL = (function(H){
 
   H.extend(H.SIM.Unit.prototype, H.SIM.Entity.prototype, {
     constructor: H.SIM.Unit,
-    step: function(){},
+    move: function(msecs){
+
+      var 
+        x, y, distance, 
+        length = msecs / 1000 * this.speed;
+
+      // find closest node, farer than length
+      while (this.pathpointer < this.path.length){
+        x = this.path[this.pathpointer].x * this.map.cellsize;
+        y = this.path[this.pathpointer].y * this.map.cellsize;
+        distance = this.distance(this.x, this.y, x, y);
+        if (distance < length){
+          this.pathpointer += 1;
+        } else {
+          this.x += (x - this.x) * (length/distance);
+          this.y += (y - this.y) * (length/distance);
+          return;
+        }
+      } 
+      // arrived
+      this.x = this.target[0];
+      this.y = this.target[1];
+      this.path   = null;
+      this.target = null;
+
+    },
+    step: function(msecs){
+
+      var posUnit, posTarget, map = H.Explorer.Simulator.map;
+
+      if (this.target && !this.path){
+        posUnit = map.mapPosToGridPos([this.x, this.y]);
+        posTarget = map.mapPosToGridPos(this.target);
+        this.path = H.Explorer.Simulator.getUnitPath(posUnit, posTarget).path;
+        this.pathpointer = 0;
+      } 
+
+      if (this.target && this.path){
+        this.move(msecs);
+      }
+    },
     paint: function(ctx){
-      var strokeColor = this.selected ? "rgba(255, 255, 0, 1.0)" : this.strokeColor;
-      var fillColor   = this.hover    ? "rgba(200, 200, 0, 0.6)" : this.fillColor;
+
+      var 
+        strokeColor = this.selected ? "rgba(255, 255, 0, 1.0)" : this.strokeColor,
+        fillColor   = this.hover    ? "rgba(200, 200, 0, 0.6)" : this.fillColor;
+
       ctx.beginPath();
       ctx.arc(this.x, this.y, 3, 0, 2 * Math.PI, false);
       ctx.fillStyle = fillColor;
@@ -107,25 +197,35 @@ HANNIBAL = (function(H){
       ctx.lineWidth = 1;
       ctx.strokeStyle = strokeColor;
       ctx.stroke();      
+      if (this.drawVision || true){
+        ctx.lineWidth = 0.2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.vision, 0, 2 * Math.PI, false);
+        ctx.strokeStyle = strokeColor;
+        ctx.stroke();      
+      }
     }
   });
     
   /* BUILDING */ 
 
   H.SIM.Building = function (b){
-    H.Geometry.Rect.apply(this, [b.x, b.y, b.width, b.height]);
+    H.Geometry.Rect.apply(this, [b.x, b.y, b.width, b.height, b.angle]);
     H.SIM.Entity.apply(this, H.toArray(arguments));
-    this.fillColor = this.color;
+    this.fillColor   = this.color;
     this.strokeColor = this.army ? this.army.color : "white";
-    this.lineWidth = 2;
+    this.lineWidth   = this.map.cellsize;
   };
 
   H.extend(H.SIM.Building.prototype, H.SIM.Entity.prototype, H.Geometry.Rect.prototype, {
     constructor: H.SIM.Building,
     paint: function(ctx){
-      var corners = this.polygon();
-      var strokeColor = this.selected ? "rgba(255, 255, 0, 1.0)" : this.strokeColor;
-      var fillColor   = this.hover    ? "rgba(200, 200, 0, 0.6)" : this.fillColor;
+
+      var 
+        corners = this.polygon(),
+        strokeColor = this.selected ? "rgba(255, 255, 0, 1.0)" : this.strokeColor,
+        fillColor   = this.hover    ? "rgba(200, 200, 0, 0.6)" : this.fillColor;
+
       ctx.lineWidth   = this.lineWidth;
       ctx.strokeStyle = strokeColor;
       ctx.beginPath();
@@ -137,6 +237,15 @@ HANNIBAL = (function(H){
       ctx.stroke();
       ctx.fillStyle = fillColor;
       ctx.fill();
+
+      if (this.drawVision || true){
+        ctx.lineWidth = 0.2;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.vision, 0, 2 * Math.PI, false);
+        ctx.strokeStyle = strokeColor;
+        ctx.stroke();      
+      }
+
     }
   });
 
@@ -145,8 +254,6 @@ HANNIBAL = (function(H){
   H.SIM.Simulation = function (simulation){
 
     var cntArmy = 1, circle, entity, polygon, counter = 0;
-
-    console.log(simulation);
 
     H.extend(this, simulation, {
       mapsize: simulation.size || defs.mapsize,
@@ -163,6 +270,7 @@ HANNIBAL = (function(H){
       this.entities[entity.id] = entity;
     });
 
+    // buildings
     // armies => groups => units
     //        => buildings
 
@@ -201,7 +309,8 @@ HANNIBAL = (function(H){
 
   H.SIM.Simulation.prototype = {
     constructor: H.SIM.Simulation,
-    hit:  function(x, y){
+    destroy: function(id){delete this.entities[id];},
+    hit:     function(x, y){
       var 
         ent, ents = Object.keys(this.entities),
         i = ents.length;

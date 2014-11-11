@@ -152,7 +152,9 @@ HANNIBAL = (function(H){
           deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
 
           if (this.field.match(asset)){
-            this.units.doing("!repair").repair(asset);
+            if (this.units.doing("!repair").count){
+              this.units.doing("!repair").repair(asset);
+            }
 
           } else if (this.units.match(asset)){
             if (asset.health < 80 && this.shelter.exists()) { 

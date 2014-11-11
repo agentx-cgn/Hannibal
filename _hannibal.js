@@ -30,6 +30,7 @@ var HANNIBAL = (function() {
 
   var H = {
     API: API3,
+    LIB: {},
     extend: function (o){
       Array.prototype.slice.call(arguments, 1)
         .forEach(e => {Object.keys(e)
@@ -129,11 +130,16 @@ var HANNIBAL = (function() {
     this.tree.finalize();                    // caches required techs, producers for entities
     H.Phases.finalize();                     // phases order
 
-    // init map, grids and related services
-    H.Map.width         = H.SharedScript.passabilityMap.width;
-    H.Map.height        = H.SharedScript.passabilityMap.height;
-    H.Map.circular      = H.SharedScript.circularMap;
-    H.Map.cellsize      = H.GameState.cellSize;
+    H.Map = new H.LIB.Map({
+      width:    H.SharedScript.passabilityMap.width, 
+      height:   H.SharedScript.passabilityMap.height, 
+      cellsize: H.GameState.cellSize, 
+      circular: H.SharedScript.circularMap
+    });
+
+    H.Effector = new H.LIB.Effector({
+      connector: "engine"
+    });    
 
     H.Grids.init();                         // inits advanced map analysis
     // H.Grids.dump(map);                      // dumps all grids with map prefix in file name

@@ -281,11 +281,11 @@
             </div>
 
             <div style="padding-left: 8px; padding-top: 8px;">
-              <img class="imgbtnsimu" src="images/ic_stop_24px.svg" id="" onclick="H.Simulation.stop();" />
-              <img class="imgbtnsimu" src="images/ic_skip_previous_24px.svg" id="" onclick="H.Simulation.reset();" />
-              <img class="imgbtnsimu" src="images/ic_play_arrow_24px.svg" id="" onclick="H.Simulation.play();" />
-              <img class="imgbtnsimu" src="images/ic_pause_24px.svg" id="" onclick="H.Simulation.pause();" />
-              <img class="imgbtnsimu" src="images/ic_redo_24px.svg" id="" onclick="H.Simulation.step();" />
+              <img class="imgbtnsimu" src="images/ic_skip_previous_24px.svg"  onclick="H.Explorer.Simulator.reset();" />
+              <img class="imgbtnsimu" src="images/ic_stop_24px.svg"           onclick="H.Explorer.Simulator.stop();" />
+              <img class="imgbtnsimu" src="images/ic_play_arrow_24px.svg"     onclick="H.Explorer.Simulator.play();" />
+              <img class="imgbtnsimu" src="images/ic_pause_24px.svg"          onclick="H.Explorer.Simulator.pause();" />
+              <img class="imgbtnsimu" src="images/ic_redo_24px.svg"           onclick="H.Explorer.Simulator.step();" />
             </div>
 
             <div style="margin-left: 8px">
@@ -689,8 +689,10 @@
       <script type="text/javascript" src="../explorer/htn-tree-operators.js"></script>
       <script type="text/javascript" src="../htn-planner.js"></script>
       <script type="text/javascript" src="../grids.js"></script>
+      <script type="text/javascript" src="../map.js"></script>
       <script type="text/javascript" src="../geometry.js"></script>
       <script type="text/javascript" src="../tools.js"></script>
+      <script type="text/javascript" src="../effectors.js"></script>
       <script type="text/javascript" src="data/structures-json.export"></script>
       <script type="text/javascript" src="data/gaia-json.export"></script>
       <script type="text/javascript" src="data/other-json.export"></script>

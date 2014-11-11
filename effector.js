@@ -1,10 +1,10 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, Engine, deb, uneval */
 
-/*--------------- A S S E T S -------------------------------------------------
+/*--------------- E F F E C T O R S -------------------------------------------
 
-  handles a group's resources like estate, units, techs, buildings.
-  provides the semantics for the DSL used in plugins
+  Interface to the current engine (0AD or simulator)
+
 
 
   V: 0.1, agentx, CGN, Feb, 2014
@@ -14,27 +14,52 @@
 
 HANNIBAL = (function(H){
 
-  function pritArgs(args){
-    return JSON.stringify(H.toArray(args).map(a => a.toString ? a.toString() : a));
-  }
 
   // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
 
-  H.Engine = {
+  H.LIB.Effector = function(config){
 
-    quit:  function(){
-      Engine.PostCommand(H.Bot.id, { type: "quit"});
+    deb("eff: %s", uneval(config));
+
+    H.extend(this, config, H.LIB.Effector[config.connector], {
+
+    });
+
+  };
+
+  H.LIB.Effector.simulator = {
+
+    move: function(who, where){
+      if (who.length && where.length === 2){
+        who.forEach(id => {
+          this.simulation.entities[id].target = where;
+          this.simulation.entities[id].path = null;
+        });
+      } 
     },
+    destroy: function(who){
+      if (who.length){
+        who.forEach(id => this.simulation.destroy(id));
+      }
+    },    
 
+  };
+
+  H.LIB.Effector.engine = {
+
+    execute: function(command){
+      Engine.PostCommand(H.Bot.id, command);
+    },
+    quit:  function(){
+      this.execute({type: "quit"});
+    },
     chat:  function(msg){
-      Engine.PostCommand(H.Bot.id, {type: "chat", 
-        message: msg
-      });
+      this.execute({type: "chat", message: msg});
     },
 
     format: function(who, what){
 
-      deb("   ENG: format: %s", uneval(arguments));
+      deb("   EFF: format: %s", uneval(arguments));
 
       // Scatter, Line Open, Box, passive, standground
 
@@ -46,13 +71,13 @@ HANNIBAL = (function(H){
           queued:   false 
         });
 
-      } else { deb("   ENG: ignored format : %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored format : %s", uneval(arguments)); }
 
     },
 
     stance: function(who, what){
 
-      // deb("   ENG: stance: %s", uneval(arguments));
+      // deb("   EFF: stance: %s", uneval(arguments));
 
       if (who.length && H.contains(H.Data.stances, what)){
 
@@ -62,13 +87,13 @@ HANNIBAL = (function(H){
           queued:   false 
         });
 
-      } else { deb("   ENG: ignored stance: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored stance: %s", uneval(arguments)); }
 
     },
 
     flee: function(who, whom){
 
-      deb("   ENG: flee: %s", uneval(arguments));
+      deb("   EFF: flee: %s", uneval(arguments));
 
       var posWho, posWhom, direction, distance;
 
@@ -88,13 +113,13 @@ HANNIBAL = (function(H){
           queued: false
         });
 
-      } else { deb("   ENG: ignored flee: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored flee: %s", uneval(arguments)); }
 
     },
 
     move: function(who, where){
 
-      // deb("   ENG: move: %s", uneval(arguments));
+      // deb("   EFF: move: %s", uneval(arguments));
 
       if (who.length && where.length === 2){
 
@@ -106,13 +131,13 @@ HANNIBAL = (function(H){
         });
 
       } 
-      // else { deb("   ENG: ignored move %s", uneval(arguments));}
+      // else { deb("   EFF: ignored move %s", uneval(arguments));}
 
     },
 
     destroy: function(who){
 
-      deb("   ENG: destroy: %s", uneval(arguments));
+      deb("   EFF: destroy: %s", uneval(arguments));
 
       if (who.length){
 
@@ -120,13 +145,13 @@ HANNIBAL = (function(H){
           entities: who
         });
 
-      } else { deb("   ENG: ignored destroy who: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored destroy who: %s", uneval(arguments)); }
 
     },
 
     garrison:     function(who, where){
 
-      deb("   ENG: garrison: %s", uneval(arguments));
+      deb("   EFF: garrison: %s", uneval(arguments));
 
       if (who.length && H.isInteger(where)){
 
@@ -136,13 +161,13 @@ HANNIBAL = (function(H){
           queued:   false
         });
 
-      } else { deb("   ENG: ignored garrison: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored garrison: %s", uneval(arguments)); }
 
     },
 
     collect: function (who, what){
 
-      deb("   ENG: collect: %s", uneval(arguments));
+      deb("   EFF: collect: %s", uneval(arguments));
 
       if (what.length && who.length){
 
@@ -163,13 +188,13 @@ HANNIBAL = (function(H){
 
         H.Resources.consume(what);
 
-      } else { deb("   ENG: ignored collect: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored collect: %s", uneval(arguments)); }
 
     },
 
     skim: function (who, what){
 
-      deb("   ENG: skim: %s", uneval(arguments));
+      deb("   EFF: skim: %s", uneval(arguments));
 
       if (who.length, what){
 
@@ -188,7 +213,7 @@ HANNIBAL = (function(H){
 
         });
 
-      } else {deb("   ENG: ignored skim:", uneval(arguments)); }
+      } else {deb("   EFF: ignored skim:", uneval(arguments)); }
 
       // case "gather-near-position":
       //   GetFormationUnitAIs(entities, player).forEach(function(cmpUnitAI) {
@@ -200,7 +225,7 @@ HANNIBAL = (function(H){
 
     gather: function(who, what){
 
-      // deb("   ENG: gather: %s", uneval(arguments));
+      // deb("   EFF: gather: %s", uneval(arguments));
 
       if (who.length && H.isInteger(what)){
 
@@ -210,13 +235,13 @@ HANNIBAL = (function(H){
           queued:   false
         });
 
-      } else { deb("   ENG: ignored gather: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored gather: %s", uneval(arguments)); }
 
     },
 
     repair: function(who, what){
 
-      // deb("   ENG: repair: %s", uneval(arguments));
+      // deb("   EFF: repair: %s", uneval(arguments));
 
       if (who.length && H.isInteger(what)){
 
@@ -227,13 +252,13 @@ HANNIBAL = (function(H){
           queued: false
         });
 
-      } else { deb("   ENG: ignored repair: %s", uneval(arguments));}
+      } else { deb("   EFF: ignored repair: %s, who, what", uneval(arguments));}
 
     },
 
     train: function(who, what, amount, meta){
 
-      deb("   ENG: train: %s", uneval(arguments));
+      deb("   EFF: train: %s", uneval(arguments));
 
       if (who.length && H.Templates[what] && amount){
 
@@ -244,13 +269,13 @@ HANNIBAL = (function(H){
           metadata: meta || {} //{order: order.id}
         }); 
 
-      } else { deb("   ENG: ignored train: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored train: %s", uneval(arguments)); }
 
     },
 
     construct: function(who, what, pos, meta){
 
-      deb("   ENG: construct: %s", uneval(arguments));
+      deb("   EFF: construct: %s", uneval(arguments));
 
       if (who.length && H.isInteger(who[0]) && H.Templates[what] && pos.length >= 2){
 
@@ -266,13 +291,13 @@ HANNIBAL = (function(H){
           metadata:     meta || {} // {order: order.id}
         });  
 
-      } else { deb("   ENG: ignored construct: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored construct: %s", uneval(arguments)); }
 
     },
 
     research: function(who, what){
 
-      deb("   ENG: research: %s", uneval(arguments));
+      deb("   EFF: research: %s", uneval(arguments));
 
       if (H.isInteger(who) && H.TechTemplates[what]){
 
@@ -281,7 +306,7 @@ HANNIBAL = (function(H){
           template: what 
         }); 
 
-      } else { deb("   ENG: ignored research: %s", uneval(arguments)); }
+      } else { deb("   EFF: ignored research: %s", uneval(arguments)); }
 
     },
 

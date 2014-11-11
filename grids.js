@@ -78,7 +78,7 @@ HANNIBAL = (function(H){
     return num.toFixed(1);
   }
 
-  // function gamePosToMapPos(p){return [~~(p[0] / cellsize), ~~(p[1] / cellsize)];}
+  // function mapPosToGridPos(p){return [~~(p[0] / cellsize), ~~(p[1] / cellsize)];}
 
   function gridFromMap(map){
     var grid;
@@ -826,7 +826,7 @@ HANNIBAL = (function(H){
       
     },
     isAccessible: function(position, onLand){
-      var gamePos = H.Map.gamePosToMapPos(position);
+      var gamePos = H.Map.mapPosToGridPos(position);
       return (this.countConnected(gamePos[0] + width * gamePos[1], onLand) >= 2);
     }
 
@@ -869,7 +869,7 @@ HANNIBAL = (function(H){
 
       if (ent.hasClass("ForestPlant")) {
 
-        [x, y] = H.Map.gamePosToMapPos(ent.position());
+        [x, y] = H.Map.mapPosToGridPos(ent.position());
 
         if (obstData[x + y * width] !== 0){obstData[x + y * width] = 40;}
         
@@ -892,7 +892,7 @@ HANNIBAL = (function(H){
       } else if (ent.hasClass("Geology")) {
 
         radius = ~~(ent.obstructionRadius() / 4);
-        [x, y] = this.gamePosToMapPos(ent.position());
+        [x, y] = this.mapPosToGridPos(ent.position());
 
         // Unless it's impassable, mark as 30. This takes precedence over trees.
         obstData[x + y * width] = obstData[x + y * width] === 0 ? 0 : 30; //??
@@ -927,10 +927,10 @@ return H; }(HANNIBAL));
 //   expandInfluences: (function (maximum, map) {"use strict";  var grid = this.map
 //   findBestTile: (function (radius, obstructionTiles){"use strict";  // Find 
 //   findLowestNeighbor: (function (x,y) {"use strict";  var lowestPt = [0,0];  var l
-//   gamePosToMapPos: (function (p){"use strict";  return [Math.floor(p[0]/this.ce
+//   mapPosToGridPos: (function (p){"use strict";  return [Math.floor(p[0]/this.ce
 //   multiply: (function (map, onlyBetter, divider, maxMultiplier){"use str
 //   multiplyInfluence: (function (cx, cy, maxDist, strength, type) {"use strict";  
-//   point: (function (p){"use strict";  var q = this.gamePosToMapPos(p)
+//   point: (function (p){"use strict";  var q = this.mapPosToGridPos(p)
 //   setInfluence: (function (cx, cy, maxDist, value) {"use strict";  value = v
 //   setMaxVal: (function (val){"use strict";  this.maxVal = val; })
 //   sumInfluence: (function (cx, cy, radius){"use strict";  var x0 = Math.max(

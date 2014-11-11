@@ -310,7 +310,7 @@ HANNIBAL = (function(H){
         delete this.store.nodes[node.name];
 
       } else {
-        deb("WARN  : removeById failed on id: %s, tpl: %s", id, tpln);
+        deb("WARN  : culture.removeById failed on id: %s, tpl: %s", id, tpln);
         H.QRY("INGAME SORT < id").execute("metadata", 5, 50, "removeById: ingames with metadata");
 
       }

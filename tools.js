@@ -540,7 +540,7 @@ HANNIBAL = (function(H) {
       H.each(self.producers, function(nameid, producer){
         if (producer.id === id){
           delete self.producers[nameid];
-          deb("   PDC: removed id: %s", id);
+          deb("   PDC: removed id: %s, tpl: %s", id, H.Entities[id] ? H.Entities[id]._templateName : "unknown");
         }        
       });
     },  
@@ -644,7 +644,7 @@ HANNIBAL = (function(H) {
     delete: function(fn){return H.delete(this.queue, fn);},
     log:    function(){
       var r = this.report;
-      deb("    OQ: %s queue: %s, %s msecs, rem: %s, ign: %s, exe: %s", this.name, this.queue.length, this.tP, r.rem, r.ign, r.exe);
+      // deb("    OQ: name: %s, queue.length: %s, %s msecs, rem: %s, ign: %s, exe: %s", this.name, this.queue.length, this.tP, r.rem, r.ign, r.exe);
     },      
     process: function(isSimulation=false, logWaiting=false){
 

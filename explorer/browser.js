@@ -39,7 +39,7 @@ HANNIBAL = (function(H){
 
     switch (context){
       case "MAPS" : map = H.Maps.keymap(); break;
-      case "SIMU" : map = H.Simulation.keymap(); break;
+      case "SIMU" : map = H.Explorer.Simulator.keymap(); break;
       default:
     }
 
@@ -110,10 +110,10 @@ HANNIBAL = (function(H){
 
         // SIMU
 
-        $("cvsSim").onclick     = H.Simulation.onclick;
-        $("cvsSim").onmousemove = H.Simulation.onmousemove;
-        $("cvsSim").onmousedown = H.Simulation.onmousedown;
-        $("cvsSim").onmouseup   = H.Simulation.onmouseup;
+        $("cvsSim").onclick     = H.Explorer.Simulator.onclick;
+        $("cvsSim").onmousemove = H.Explorer.Simulator.onmousemove;
+        $("cvsSim").onmousedown = H.Explorer.Simulator.onmousedown;
+        $("cvsSim").onmouseup   = H.Explorer.Simulator.onmouseup;
 
         H.Display.activateTab("tabberSimu", "tabSimu");
 

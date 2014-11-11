@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, Engine, deb, logObject */
+/*globals HANNIBAL, deb, uneval */
 
 /*--------------- A S S E T S -------------------------------------------------
 
@@ -119,7 +119,7 @@ HANNIBAL = (function(H){
 
         var 
           ent = H.Entities[selection.resources[0]],
-          [cx, cy] = H.Map.gamePosToMapPos(ent.position()),
+          [cx, cy] = H.Map.mapPosToGridPos(ent.position()),
           radius = ~~(ent.visionRange() / cellsize),
           dataObst  = H.Grids.obstruction.data,
           x0 = ~~Math.max(0, cx - radius),
@@ -160,6 +160,7 @@ HANNIBAL = (function(H){
         var 
           data = grid.data, 
           ent = H.Entities[asset.resources[0]],
+          posStart = ent.position(),
           rng = ~~ent.visionRange() * 0.9,
           corners = [[-rng,-rng],[-rng,rng],[rng,rng],[rng,-rng]],
 
@@ -169,30 +170,50 @@ HANNIBAL = (function(H){
           terrain = "land",
 
           pushUnique  = H.HTN.Helper.pushUnique,
-          pos2pointer = (pos) => {
+
+          pos2Index = pos => {
             var [x, y] = [~~(pos[0]/cellsize), ~~(pos[1]/cellsize)];
             return x >= 0 && y >= 0 ? x + y * width : null;
+          },
+          isInvalid   = pos => {
+            var [x, y] = [~~(pos[0]/cellsize), ~~(pos[1]/cellsize)];
+            return x < 0 || y < 0 || x >= grid.width || y >= grid.height;
           },
           isHostile = index => {
             return (data[index] & mHostile) !== 0;
           },
           isUnknown  = pos => {
+            // unknown means a) valid and b) at least 1 corner unknown
             return corners.some(sq => {
               var test = [~~(pos[0] + sq[0] * 0.7), ~~(pos[1] + sq[1] * 0.7)]; // with 1/sqrt2
-              deb("   SCT: isUnknown test: %s, tile: %s", test, data[pos2pointer(test)]);
-              return data[pos2pointer(test)] && data[pos2pointer(test)] === 0;
+              if (isInvalid(test)){
+                // deb("   SCT: isUnknown: %s, invalid", test);
+                return false;
+              } else if (data[pos2Index(test)] === undefined){
+                // deb("   SCT: isUnknown: %s, undefined", test);
+                return false;
+              } else if (data[pos2Index(test)] !== 0) {
+                // deb("   SCT: isUnknown: %s, known", test);
+                return false;
+              } else {
+                // deb("   SCT: isUnknown: %s, !! unknown", test);
+                return true;
+              }
             });
           };
 
 
-        queueNow.push(ent.position());
+        deb(" SCOUT: Scanner: pos: %s, rng: %s, ent: %s", posStart, rng, ent._templateName);
+
+
+        queueNow.push(posStart);
 
         return {
 
           next: function(pos){
 
             var 
-              t0 = Date.now(), sq, value, posTest, posNext, index,
+              t0 = Date.now(), sq, value, posTest, posNext, index, out, 
               test = H.Resources.nearest(pos, "treasure"),
               treasures = test ? [test] : [];
 
@@ -214,8 +235,8 @@ HANNIBAL = (function(H){
             for (sq of corners) {
 
               posTest = [~~(pos[0] + sq[0]), ~~(pos[1] + sq[1])];
-              index   = pos2pointer(posTest);
-              value   = data[pos2pointer(posTest)];
+              index   = pos2Index(posTest);
+              value   = data[pos2Index(posTest)];
 
               if (H.contains(recentTiles, index)){
                 continue;
@@ -243,22 +264,23 @@ HANNIBAL = (function(H){
             while (queueNow.length){
 
               posNext = queueNow.pop();
+              index   = pos2Index(posNext);
 
-              deb("   SCT: posNext: %s, len: %s", posNext, data.length);
+              // deb(" SCOUT: posNext: %s, index: %s", posNext, index);
 
-              index   = pos2pointer(posNext);
-
-              deb("   SCT: posNext: %s, index: %s", posNext, index);
-
-              if (
-                posNext[0] < 0 || posNext[0] / cellsize > width || 
-                posNext[1] < 0 || posNext[1] / cellsize > height
-                ){
-                deb(" SCOUT: ignored outside tile %s, x: %s, y: %s", index, posNext[0], posNext[1]); 
-                continue;}
+              // if (
+              //   posNext[0] < 0 || posNext[0] / cellsize > width || 
+              //   posNext[1] < 0 || posNext[1] / cellsize > height
+              //   ){
+              //   deb(" SCOUT: ignored outside tile %s, x: %s, y: %s", index, posNext[0], posNext[1]); 
+              //   continue;}
 
               if (H.contains(recentTiles, index)){
                 deb(" SCOUT: ignored recent tile %s", index);
+                continue;}
+
+              if (isInvalid(posNext)){
+                deb(" SCOUT: ignored invalid pos %s", posNext); 
                 continue;}
 
               if (isHostile(index)){
@@ -266,14 +288,14 @@ HANNIBAL = (function(H){
                 continue;}
 
               if (isUnknown(posNext)){
+                // scout to investigate!
                 recentTiles.push(index);
                 recentTiles = recentTiles.slice(-40);
                 // deb(" SCOUT: next: %s msecs", Date.now() - t0); < 0 msecs
 
-                return ( !treasures.length ? 
-                  {point: posNext, terrain: terrain} :
-                  {point: posNext, terrain: terrain, treasures: treasures}
-                );
+                out = {point: posNext, terrain: terrain, treasures: treasures};
+                deb(" SCOUT: next: %s", uneval(out));
+                return out;
                 
               } else {
                 // deb(" SCOUT: ignored known tile %s", index); 
