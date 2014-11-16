@@ -1,0 +1,1 @@
+var TESTERDATA = {"map": "Arcadia 02"};

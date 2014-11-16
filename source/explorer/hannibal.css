@@ -155,7 +155,21 @@ div.container {
   font-size: 10px;
 }
 
+.imgbtnsimu {
+  width:  24px;
+  height: 24px;
+  margin: 2px;
+  border: 1px solid transparent;
+  background: #E4E4E4;
+  cursor: pointer;
+}
 
+.imgbtnsimu:hover {
+  border: 1px solid black;
+}
+
+#cvsSim {  z-index: 0; position: relative; top: 0; left: 0;}
+#cvsObs {  z-index: 1; position: relative; top: 0; left: 0;}
 
 /*Mtabber*/
 
@@ -390,15 +404,3 @@ td.nw {
   overflow:hidden;
 }
 
-.imgbtnsimu {
-  width:  24px;
-  height: 24px;
-  margin: 2px;
-  border: 1px solid transparent;
-  background: #E4E4E4;
-  cursor: pointer;
-}
-
-.imgbtnsimu:hover {
-  border: 1px solid black;
-}

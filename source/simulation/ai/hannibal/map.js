@@ -103,15 +103,16 @@ HANNIBAL = (function(H){
 
     },
     getSpread: function(ids){
-      var poss = ids.map(id => H.Entities[id].position()),
-          xs = poss.map(pos => pos[0]),
-          zs = poss.map(pos => pos[1]),
-          minx = Math.max.apply(Math, xs),
-          minz = Math.max.apply(Math, zs),
-          maxx = Math.max.apply(Math, xs),
-          maxz = Math.max.apply(Math, zs),
-          disx = maxx - minx,
-          disz = maxz - minz;
+      var 
+        poss = ids.map(id => H.Entities[id].position()),
+        xs = poss.map(pos => pos[0]),
+        zs = poss.map(pos => pos[1]),
+        minx = Math.max.apply(Math, xs),
+        minz = Math.max.apply(Math, zs),
+        maxx = Math.max.apply(Math, xs),
+        maxz = Math.max.apply(Math, zs),
+        disx = maxx - minx,
+        disz = maxz - minz;
       return Math.max(disx, disz);
     },
     centerOf: function(poss){
@@ -132,7 +133,8 @@ HANNIBAL = (function(H){
       // deb("   MAP: getCenter: %s", H.prettify(ids));
 
       if (!ids || ids.length === 0){
-        throw new Error(H.format("getCenter with unusable param: '%s'", uneval(ids)));}
+        H.throw(H.format("Map.getCenter with unusable param: '%s'", uneval(ids)));
+      }
 
       return this.centerOf( ids
         .filter(id => !!H.Entities[id])

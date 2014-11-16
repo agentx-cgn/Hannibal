@@ -36,8 +36,6 @@ HANNIBAL = (function(H){
   H.SIM.Entity = function (params){
     H.extend(this, {
 
-      map:     H.Explorer.Simulator.map,
-      
       name:    params && params.name   || "unnamed",
       army:    params && params.army   || "",
 
@@ -151,8 +149,8 @@ HANNIBAL = (function(H){
 
       // find closest node, farer than length
       while (this.pathpointer < this.path.length){
-        x = this.path[this.pathpointer].x * this.map.cellsize;
-        y = this.path[this.pathpointer].y * this.map.cellsize;
+        x = this.path[this.pathpointer].x * H.Map.cellsize;
+        y = this.path[this.pathpointer].y * H.Map.cellsize;
         distance = this.distance(this.x, this.y, x, y);
         if (distance < length){
           this.pathpointer += 1;
@@ -171,11 +169,11 @@ HANNIBAL = (function(H){
     },
     step: function(msecs){
 
-      var posUnit, posTarget, map = H.Explorer.Simulator.map;
+      var posUnit, posTarget;
 
       if (this.target && !this.path){
-        posUnit = map.mapPosToGridPos([this.x, this.y]);
-        posTarget = map.mapPosToGridPos(this.target);
+        posUnit = H.Map.mapPosToGridPos([this.x, this.y]);
+        posTarget = H.Map.mapPosToGridPos(this.target);
         this.path = H.Explorer.Simulator.getUnitPath(posUnit, posTarget).path;
         this.pathpointer = 0;
       } 
@@ -214,11 +212,14 @@ HANNIBAL = (function(H){
     H.SIM.Entity.apply(this, H.toArray(arguments));
     this.fillColor   = this.color;
     this.strokeColor = this.army ? this.army.color : "white";
-    this.lineWidth   = this.map.cellsize;
+    this.lineWidth   = H.Map.cellsize;
   };
 
   H.extend(H.SIM.Building.prototype, H.SIM.Entity.prototype, H.Geometry.Rect.prototype, {
     constructor: H.SIM.Building,
+    hit: function(x, y){
+      return this.contains({x: x, y: y});
+    },
     paint: function(ctx){
 
       var 

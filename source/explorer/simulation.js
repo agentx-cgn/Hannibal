@@ -19,7 +19,7 @@ HANNIBAL = (function(H){
   var 
     size = 512, doAnimate = false, doStep = false, cntSteps = 0, reqAnimate, 
     mouse = {active: false}, 
-    map, graphUnit, effectors, 
+    graphUnit, 
     cvsSim, ctxSim,
     $msgs, $terr, $animate, $enty, 
     rbFps, rbStep, rbDraw,
@@ -59,7 +59,6 @@ HANNIBAL = (function(H){
   H.Explorer.Simulator = {
 
     get sim  () {return simulation;},
-    get map  () {return map;},
 
     tabActivate: function(token){
       mouse.action = token;
@@ -80,8 +79,10 @@ HANNIBAL = (function(H){
       $terr = $("txtSimuTerrain");
       $enty = $("txtSimuEntity");
       $animate = $("chkSimAnim");
-      cvsSim = $("cvsSim"); 
-      ctxSim = cvsSim.getContext("2d");
+
+      cvsSim = $("cvsSim"); ctxSim = cvsSim.getContext("2d");
+      cvsSim = $("cvsSim"); ctxSim = cvsSim.getContext("2d");
+      
       rbFps  = H.createRingBuffer(30);
       rbStep = H.createRingBuffer(30);
       rbDraw = H.createRingBuffer(30);
@@ -93,15 +94,15 @@ HANNIBAL = (function(H){
       this.load(sim);
 
       H.Effector = new H.LIB.Effector({
-        library: "simulator",
+        connector: "simulator",
         simulation: simulation,
       });
       
-      i = size / map.cellsize;
+      i = size / H.Map.cellsize;
       graph = [];
       while(i--){
         graph[i] = [];
-        j = size / map.cellsize;
+        j = size / H.Map.cellsize;
         while(j--){
           graph[i][j] = 1;
         }
@@ -111,11 +112,11 @@ HANNIBAL = (function(H){
       this.play();
 
       setTimeout(() => {
-        effectors.move([12], [ 20, 120]);
-        effectors.move([13], [ 40, 120]);
-        effectors.move([14], [ 60, 120]);
-        effectors.move([15], [ 80, 120]);
-        effectors.move([16], [100, 120]);
+        H.Effector.move([12], [ 20, 120]);
+        H.Effector.move([13], [ 40, 120]);
+        H.Effector.move([14], [ 60, 120]);
+        H.Effector.move([15], [ 80, 120]);
+        H.Effector.move([16], [100, 120]);
       }, 500);  
 
       msg("Sim.loaded '%s'", simulation.name);
@@ -196,8 +197,8 @@ HANNIBAL = (function(H){
       if (reqAnimate){cancelAnimationFrame(reqAnimate);}
       cntSteps = 0;
       this.load(simulation.name);
-      effectors = new H.Effectors({
-        library: "simulator",
+      H.Effector = new H.LIB.Effector({
+        connector: "simulator",
         simulation: simulation,
       });
       this.step();
@@ -238,7 +239,7 @@ HANNIBAL = (function(H){
         console.log("selected: ", e);
       } else if (e.buttons === 2){
         if (simulation.selected){
-          effectors.move([simulation.selected.id], [mouse.x, mouse.y]);
+          H.Effector.move([simulation.selected.id], [mouse.x, mouse.y]);
           // simulation.selected.target = [mouse.x, mouse.y];
           // console.log("move: ", simulation.selected.name, mouse.x, mouse.y);
         }
@@ -257,12 +258,6 @@ HANNIBAL = (function(H){
       mouse.x = ~~H.clamp(x, 0, size);
       mouse.y = ~~H.clamp(y, 0, size);
       mouse.i = mouse.y * size + mouse.x;
-
-      if (simulation){
-        if (mouse.id){simulation.entities[mouse.id].hover = false;}
-        mouse.id = (ent = simulation.hit(mouse.x, mouse.y)) ? ent.id : 0;
-        if (mouse.id){simulation.entities[mouse.id].hover = true;}
-      }
 
     },
     updateRenderInfo: function(){
@@ -289,29 +284,47 @@ HANNIBAL = (function(H){
 
       var 
         tDiff, tNow, t0 = Date.now(),
+        ent,
         self = H.Explorer.Simulator;
 
       tDiff = t0 - tAnim;
       tAnim = t0;
       rbFps.push(1000/tDiff);
 
-      ctxSim.clearRect(0, 0, size, size);
-      ctxSim.strokeStyle = "rgba(100, 0, 0, 0.9)";
-      ctxSim.lineWidth = map.cellsize;
-      ctxSim.strokeRect(0, 0, size, size);
+      tNow = Date.now();
+
+      // stepping
 
       if (doStep){
-        tNow = Date.now();
-        simulation.step(1000/60);
-        rbStep.push(Date.now() - tNow);
+
+        if (simulation){
+          if (mouse.id){simulation.entities[mouse.id].hover = false;}
+          mouse.id = (ent = simulation.hit(mouse.x, mouse.y)) ? ent.id : 0;
+          if (mouse.id){simulation.entities[mouse.id].hover = true;}
+        }
+
+        simulation.step(1000/60); //nominal 60 fps
         cntSteps += 1;
       }
 
+      rbStep.push(Date.now() - tNow);
+
+      // drawing
+
       tNow = Date.now();
+
+      ctxSim.clearRect(0, 0, size, size);
+      ctxSim.strokeStyle = "rgba(100, 0, 0, 0.9)";
+      ctxSim.lineWidth = H.Map.cellsize;
+      ctxSim.strokeRect(0, 0, size, size);
+
       simulation.paint(ctxSim);
       self.updateMouseInfo();
       self.updateRenderInfo();
+
       rbDraw.push(Date.now() - tNow);
+
+      // prolog
 
       if (doAnimate) {reqAnimate = window.requestAnimationFrame(animate);}
 

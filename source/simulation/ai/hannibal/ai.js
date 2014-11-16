@@ -23,10 +23,6 @@ HANNIBAL = (function(H){
 
   H.AI.KMeans = (function () {
 
-    var reduce = function(t,c) {
-        var u,v; 
-        for (var i = (v=t[0],1); i < t.length;) v = c(v,t[i],i++,t); i<2 & u && u(); return v;};
-
     /** Constructor */
 
     var kmeans = function () {
@@ -115,22 +111,17 @@ HANNIBAL = (function(H){
 
     kmeans.prototype.iterate = function () {
 
-      var i, l = this.points.length, sums = [], 
-          distances, centroid, point,
-          sortByDistance = function(a, b){
-            var da = (a.x - point.x) * (a.x - point.x) + (a.z - point.z) * (a.z - point.z),
-                db = (b.x - point.x) * (b.x - point.x) + (b.z - point.z) * (b.z - point.z);
-            return da - db;
-          };
+      var 
+        i, l = this.points.length, sums = [], 
+        centroid, point,
+        sortByDistance = function(a, b){
+          var da, db;
+          da = (a.x - point.x) * (a.x - point.x) + (a.z - point.z) * (a.z - point.z):
+          db = (b.x - point.x) * (b.x - point.x) + (b.z - point.z) * (b.z - point.z);
+          return da - db;
+        };
 
       /** When the result doesn't change anymore, the final result has been found. */
-
-      // if (this.converged === true) {
-      //   return;
-      // }
-
-      // this.converged = true;
-      // this.iterations += 1;
 
       /** Prepares the array of the  */
 
@@ -142,9 +133,11 @@ HANNIBAL = (function(H){
 
       for (i = 0; i < l; ++i) {
 
-        point = this.points[i];
-        distances = this.centroids.sort(sortByDistance);
-        centroid = distances[0].centroid;
+        point    = this.points[i];
+
+        /** index of nearest centroid */
+
+        centroid = this.centroids.sort(sortByDistance)[0].centroid;
 
         /**
          * When the point is not attached to a centroid or the point was
@@ -156,12 +149,6 @@ HANNIBAL = (function(H){
           typeof point.centroid !== 'number' || point.centroid !== centroid  ? 
           false : this.converged
         );
-
-        // if (this.converged) {
-        //   if (typeof point.centroid  !== 'number' || point.centroid !== centroid) {
-        //     this.converged = false;
-        //   }
-        // }
 
         /** Attach the point to the centroid */
 
@@ -189,9 +176,14 @@ HANNIBAL = (function(H){
     };
 
     kmeans.prototype.initCentroids = function () {
+
       var i, k,cmp1, cmp2;
 
       var addIterator = function (x,y) { return x+y; };
+
+      var reduce = function(t,c) {
+          var u,v; 
+          for (var i = (v=t[0],1); i < t.length;) v = c(v,t[i],i++,t); i<2 & u && u(); return v;};
 
       /**
        * When k-means++ is disabled, choose random centroids.
@@ -290,11 +282,25 @@ HANNIBAL = (function(H){
   })();
 
   /**
-  * A graph memory structure
+  * A graph memory structure used fo path finding
   * @param {Array} gridIn 2D array of input weights
   * @param {Object} [options]
   */
-  H.AI.Graph = function Graph(data, options) {
+
+  H.AI.GraphNode = function (x, y, weight) {
+    this.x = x;
+    this.y = y;
+    this.weight = weight;
+    this.f = 0;
+    this.g = 0;
+    this.h = 0;
+    this.index   = 0;
+    this.visited = false;
+    this.closed  = false;
+    this.parent  = null;
+  }
+
+  H.AI.Graph = function (data, options) {
 
     options = options || {};
     
@@ -317,15 +323,16 @@ HANNIBAL = (function(H){
         row = this.data[x];
         y = this.size; 
         while(y--) {
-          node = new GridNode(x, y, row[y]);
+          node = new H.AI.GraphNode(x, y, row[y]);
           this.grid[x][y] = node;
           this.nodes.push(node);
         }
       }
     },
     clear: function() {
-      var i = this.nodes.length, node;
-      while ((node = this.nodes[--i])) {
+      var i, l = this.nodes.length, node;
+      for (i=0; i<l; i++){
+        node = this.nodes[i];
         node.f = 0;
         node.g = 0;
         node.h = 0;
@@ -336,12 +343,8 @@ HANNIBAL = (function(H){
       }      
     },
     setNeighbors: function(neighbors, node) {
-      // TODO: game has always borders == walls....
-      var 
-        x = node.x,
-        y = node.y,
-        Z = this.size,
-        grid = this.grid;
+
+      var x = node.x, y = node.y, grid = this.grid;
 
       neighbors[0] = grid[x-1][y];
       neighbors[1] = grid[x+1][y];
@@ -353,26 +356,9 @@ HANNIBAL = (function(H){
       neighbors[6] = grid[x-1][y+1];
       neighbors[7] = grid[x+1][y+1];
 
-
-      // neighbors[0] = (x - 1 >= 0) ? grid[x-1][y] : null;
-      // neighbors[1] = (x + 1  < Z) ? grid[x+1][y] : null;
-      // neighbors[2] = (y - 1 >= 0) ? grid[x][y-1] : null;
-      // neighbors[3] = (y + 1  < Z) ? grid[x][y+1] : null;
-
-      // neighbors[4] = (y - 1 >= 0 && x - 1 >= 0) ? grid[x-1][y-1] : null;
-      // neighbors[5] = (y + 1  < Z && x - 1 >= 0) ? grid[x+1][y-1] : null;
-      // neighbors[6] = (y - 1 >= 0 && x + 1  < Z) ? grid[x-1][y+1] : null;
-      // neighbors[7] = (y + 1  < Z && x + 1  < Z) ? grid[x+1][y+1] : null;
-
     }
 
   };
-
-  function GridNode(x, y, weight) {
-    this.x = x;
-    this.y = y;
-    this.weight = weight;
-  }
 
   function pathTo(node){
     var curr = node, path = [];
@@ -383,23 +369,18 @@ HANNIBAL = (function(H){
     return path.reverse();
   }
 
-  // TODO: avoid array.push/pop
-  function BinaryHeap(){
+  // has hard coded pathfinder optimizations
+  H.AI.BinaryHeap = function(){
     this.content = [];
     this.length  = 0;
   }
   
-  BinaryHeap.prototype = {
+  H.AI.BinaryHeap.prototype = {
     constructor: BinaryHeap,
-    // rescoreElement: function(node) {
-    //   this.sinkDown(node.index);
-    // },
     push: function(element) {
-      // element.index = this.content.length;       
-      // this.content.push(element);                // Add the new element to the end of the array.
-      element.index = this.length;       
-      this.content[this.length] = element;                // Add the new element to the end of the array.
-      this.length += 1;
+      element.index = this.length;               // is last
+      this.content[this.length] = element;       // Add the new element to the end of the array.
+      this.length += 1;                          // prep fo next
       this.sinkDown(element.index);              // Allow it to sink down.
     },
     pop: function() {
@@ -407,15 +388,13 @@ HANNIBAL = (function(H){
       var 
         content = this.content,
         result  = content[0],                    // Store the first element so we can return it later.
-        // end     = content.pop();                 // Get the element at the end of the array.
-        end     = content[this.length -1]; //.pop();                 // Get the element at the end of the array.
+        end     = content[this.length -1];       // Get the element at the end of the array.
 
-      this.length -= 1;
+      // this.length -= 1;
 
-      // if (content.length) {                      // If there are any elements left, put the end element 
-      if (this.length) {                      // If there are any elements left, put the end element 
-        content[0] = end;                        // at the start, and let it bubble up.
-        this.bubbleUp(0);
+      if (--this.length) {                       // If there are any elements left, 
+        content[0] = end;                        // put the end element at the start, 
+        this.bubbleUp(0);                        // and let it bubble up.
       }
 
       return result;
@@ -426,12 +405,10 @@ HANNIBAL = (function(H){
       var 
         i = node.index,                  
         content = this.content,
-        // end = content.pop();             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
-        end = content[this.length -1];             // When it is found, the process seen in 'pop' is repeated to fill up the hole.
+        end = content[this.length -1];           // When it is found, the process seen in 'pop' is repeated to fill up the hole.
 
       this.length -= 1;
 
-      // if (i !== content.length - 1) {
       if (i !== this.length - 1) {
         content[i] = end;
         if (end.f < node.f) {
@@ -446,25 +423,26 @@ HANNIBAL = (function(H){
 
       var 
         content = this.content,
-        element = content[n],               // Fetch the element that has to be sunk.
+        element = content[n],                    // Fetch the element that has to be sunk.
         parentN = 0, parent = null;
 
-      while (n) {                           // When at 0, an element can not sink any further.
+      while (n) {                                // When at 0, an element can not sink any further.
 
-        parentN = ((n + 1) >> 1) - 1;       // Compute the parent element's index, and fetch it.
+        parentN = ((n + 1) >> 1) - 1;            // Compute the parent element's index, and fetch it.
         parent  = content[parentN];
         
         if (element.f < parent.f) {
 
-          content[parentN] = element;       // Swap the elements if the parent is greater.
+          content[parentN] = element;            // Swap the elements if the parent is greater.
           content[n] = parent;
 
           element.index = parentN;          
           parent.index  = n;                 
 
-          n = parentN;                      // Update 'n' to continue at the new position.
+          n = parentN;                           // Update 'n' to continue at the new position.
 
-        } else { break; }                   // Found a parent that is less, no need to sink any further.
+        } else { break; }                        // Found a parent that is less, no need to sink any further.
+
       }
 
     },
@@ -473,7 +451,6 @@ HANNIBAL = (function(H){
       var 
         child2N, child1N, swap, child1Score,
         content   = this.content,
-        // length    = content.length,
         length    = this.length,
         element   = content[n],
         elemScore = element.f;
@@ -517,33 +494,26 @@ HANNIBAL = (function(H){
     // See list of heuristics: http://theory.stanford.edu/~amitp/GameProgramming/Heuristics.html
     heuristics: {
       ignore: function() {
-        // return 1.4142135623730951;
-        return 1;
+        return 1; // cost always 1, water, land straight, diagonal
       },
       manhattan: function(pos0, pos1) {
-        // var d1 = Math.abs(pos1.x - pos0.x),
-        //     d2 = Math.abs(pos1.y - pos0.y);
-        // return d1 + d2;
         return Math.abs(pos1.x - pos0.x) + Math.abs(pos1.y - pos0.y);
       },
       diagonal: function(pos0, pos1) {
-        var D  = 1,
-            D2 = 1.4142135623730951, //Math.sqrt(2);
+        var D  = 1, D2 = 1.4142135623730951, //Math.sqrt(2);
             d1 = Math.abs(pos1.x - pos0.x),
             d2 = Math.abs(pos1.y - pos0.y);
         return (D * (d1 + d2)) + ((D2 - (2 * D)) * Math.min(d1, d2));
       },
       square: function(pos0, pos1) {
-        var D = 1, 
-            dx = Math.abs(pos0.x - pos1.x),
+        var dx = Math.abs(pos0.x - pos1.x),
             dy = Math.abs(pos0.y - pos1.y);
-        return D * (dx * dx + dy * dy);
+        return (dx * dx + dy * dy);
       },
       euclidian: function(pos0, pos1) {
-        var D = 1, 
-            dx = Math.abs(pos0.x - pos1.x),
+        var dx = Math.abs(pos0.x - pos1.x),
             dy = Math.abs(pos0.y - pos1.y);
-        return D * Math.sqrt(dx * dx + dy * dy);
+        return Math.sqrt(dx * dx + dy * dy);
       }
     },
 
@@ -564,11 +534,12 @@ HANNIBAL = (function(H){
 
       var 
         i, currentNode, neighbor, gScore, beenVisited,
-        openHeap    = new BinaryHeap(),
+        openHeap    = new H.AI.BinaryHeap(),
         heuristic   = options.heuristic || H.AI.AStar.heuristics.manhattan,
         closest     = options.closest || false,
         closestNode = start,
         visited     = [], 
+        keepVisited = options.keepVisited || false,
         tweak       = options.algotweak || 3,
         neighbors   = [null, null, null, null, null, null, null, null];
 
@@ -595,11 +566,12 @@ HANNIBAL = (function(H){
 
       openHeap.push(start);
 
-      // while(openHeap.content.length) {
       while(openHeap.length) {
         
         currentNode = openHeap.pop();            // Grab the lowest f(x) to process next.  Heap keeps this sorted for us.
-        visited.push(currentNode);               // debug
+        if (keepVisited) {                       // visual debug
+          visited.push(currentNode);
+        }               
 
         // End case -- result has been found, return the traced path.
 
@@ -615,9 +587,7 @@ HANNIBAL = (function(H){
           neighbor = neighbors[i];
 
           // if not a valid node to process, skip to next neighbor.
-          // if (neighbor.closed || neighbor.isWall()) {continue;}
 
-          // if (!neighbor || neighbor.closed || neighbor.weight === 0) {continue;}
           if (neighbor.closed || neighbor.weight === 0) {continue;}
 
           // The g score is the shortest distance from start to current node.
@@ -655,7 +625,6 @@ HANNIBAL = (function(H){
 
             // Already seen the node, but since it has been rescored we need to reorder it in the heap
             } else {
-              // openHeap.rescoreElement(neighbor);
               openHeap.sinkDown(neighbor.index);
 
             }
@@ -665,16 +634,13 @@ HANNIBAL = (function(H){
         }
       }
 
-      return (
-        closest ? {path: pathTo(closestNode), success: false, nodes: visited} :
-          {path: [], success: false, nodes: visited}
+      return ( closest ? 
+        {path: pathTo(closestNode), success: false, nodes: visited} :
+        {path: [], success: false, nodes: visited}
       );
 
     }
 
   };
 
-
 return H; }(HANNIBAL));
-
-

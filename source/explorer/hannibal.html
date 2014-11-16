@@ -268,6 +268,7 @@
           <label for="cvsSim" style="vertical-align: top">Map</label>
           <div class="" style="position:relative; width: 512px; float:left">
             <canvas id="cvsSim" width="512" height="512"></canvas>
+            <canvas id="cvsObs" width="512" height="512"></canvas>
           </div>
 
           <div class="" style="position:relative; width: 220px; overflow:hidden; padding-left: 4px;">
@@ -660,7 +661,7 @@
         var $  = document.getElementById.bind(document),
             $$ = function(selector){return H.toArray(document.querySelectorAll(selector));},
             // fake bot environment 
-            HANNIBAL = {},
+            HANNIBAL = {LIB: {}},
             H = HANNIBAL,
             deb = function(){
               var args = arguments;
@@ -692,7 +693,7 @@
       <script type="text/javascript" src="../map.js"></script>
       <script type="text/javascript" src="../geometry.js"></script>
       <script type="text/javascript" src="../tools.js"></script>
-      <script type="text/javascript" src="../effectors.js"></script>
+      <script type="text/javascript" src="../effector.js"></script>
       <script type="text/javascript" src="data/structures-json.export"></script>
       <script type="text/javascript" src="data/gaia-json.export"></script>
       <script type="text/javascript" src="data/other-json.export"></script>

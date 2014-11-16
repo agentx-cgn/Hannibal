@@ -88,7 +88,7 @@ HANNIBAL = (function(H){
       claim:       definition[1],
       verb:        !dynamic ? getAssetVerb(definition) : "dynamic",  // dynamics are not ordered
       users:       [],
-      handler:     asset.listenerNT.bind(asset)
+      // handler:     asset.listener.bind(asset)
     });    
 
     asset.initActions(resources);
@@ -138,17 +138,17 @@ HANNIBAL = (function(H){
       H.Events.on("Destroy", this.handler);
 
     },
-    listenerNT: function(msg){
+    listener: function(msg){
 
       var resource, tpln, ent, maxRanges, attacker, id = msg.id;
 
-      // deb("   AST: - listenerNT: %s, res: %s, %s", this.name, this.resources, uneval(msg));
+      // deb("   AST: - listener: %s, res: %s, %s", this.name, this.resources, uneval(msg));
 
       if (msg.name === "OrderReady"){
 
         if (msg.data.source === this.id){
 
-          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
 
           resource = this.toSelection([id]);
           tpln = H.Entities[id]._templateName;
@@ -187,9 +187,9 @@ HANNIBAL = (function(H){
 
         if (msg.name === "Destroy") {
 
-          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+          deb("   AST: listener Destroy: %s, %s", this.name, uneval(msg));
 
-          // no need to tell group about foundations
+          // no need to tell group about succesful foundations
           if (!msg.data.foundation){
             resource = this.toSelection([id]);
             this.instance.listener.onDestroy(resource);
@@ -201,7 +201,7 @@ HANNIBAL = (function(H){
 
         } else if (msg.name === "Attacked") {
 
-          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
 
           ent = H.Entities[msg.id2];
           resource = this.toSelection([id]);
@@ -218,7 +218,7 @@ HANNIBAL = (function(H){
 
         } else if (msg.name === "EntityRenamed") {
 
-          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
 
           H.remove(this.resources, id);
           this.resources.push(msg.id2);
@@ -229,7 +229,7 @@ HANNIBAL = (function(H){
 
         } else if (msg.name === "ConstructionFinished") {
 
-          // deb("   AST: X listenerNT: %s, %s", this.name, uneval(msg));
+          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
 
           // H.remove(this.resources, msg.id2);
           this.isFoundation = false;
@@ -434,7 +434,7 @@ HANNIBAL = (function(H){
       return loc;
 
     },    
-    // listener: function(msg, id, evt){
+    // listenerXX: function(msg, id, evt){
 
     //   var 
     //     tpln, attacker, ent, maxRanges, resource, fnListener, 

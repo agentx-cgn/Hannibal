@@ -1,0 +1,9 @@
+{
+  "name": "Hannibal",
+  "label": "0 A.D. Bot/AI",
+  "url": "https://github.com/agentx-cgn/Hannibal",
+  "description": "Adaptive Bot ",
+  "dependencies": ["0ad"],
+  "type": "bot addon",
+  "version": "0.0.17"
+}

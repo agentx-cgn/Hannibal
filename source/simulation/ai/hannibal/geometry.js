@@ -37,20 +37,24 @@ HANNIBAL = (function(H){
   };
 
   H.Geometry.Rect = function (x, y, w, h, a){
-    this.x      = x !== undefined ? x : 20; // center
-    this.y      = y !== undefined ? y : 30;
-    this.center = new H.Geometry.Point(this.x, this.y);
-    this.width  = w !== undefined ? w : 150;
-    this.height = h !== undefined ? h : 100;
-    this.theta  = a !== undefined ? a : 0;
+    this.corners = null;
+    this.x       = x !== undefined ? x : 20; // center
+    this.y       = y !== undefined ? y : 30;
+    this.center  = new H.Geometry.Point(this.x, this.y);
+    this.theta   = a !== undefined ? a : 0;
+    this.width   = w !== undefined ? w : 150;
+    this.height  = h !== undefined ? h : 100;
+    this.w2 = this.width  / 2;
+    this.h2 = this.height / 2;
     this.rotate();
   };
   H.Geometry.Rect.prototype = {
     constructor: H.Geometry.Rect,
-    rotate: function(a){
-      this.theta = (this.theta + (a || 0)) % (PI2);
-      this.sin   = Math.sin(this.theta);
-      this.cos   = Math.cos(this.theta);
+    polygon: function () {
+      return this.corners;
+    },
+    intersects: function(rect){
+      return H.Geometry.doPolygonsIntersect(this.polygon(), rect.polygon());
     },
     rotatePoint: function(x, y){
       return {
@@ -58,7 +62,14 @@ HANNIBAL = (function(H){
         y: this.sin * (x-this.x) + this.cos * (y-this.y) + this.y
       };
     },
-    polygon: function(){
+    rotate: function(a){
+      this.theta   = (this.theta + (a || 0)) % (PI2);
+      this.sin     = Math.sin(this.theta);
+      this.cos     = Math.cos(this.theta);
+      this.corners = this.points();
+      this.cornersplus = this.corners.concat(this.corners[0]);
+    },
+    points: function(){
       var w2 = this.width/2, h2 = this.height/2, x = this.x, y = this.y;
       return [
         this.rotatePoint(x + w2, y + h2),
@@ -66,9 +77,6 @@ HANNIBAL = (function(H){
         this.rotatePoint(x - w2, y - h2),
         this.rotatePoint(x - w2, y + h2),
       ];
-    },
-    intersects: function(rect){
-      return H.Geometry.doPolygonsIntersect(this.polygon(), rect.polygon());
     },
     contains: function(point){
       var 
@@ -78,10 +86,23 @@ HANNIBAL = (function(H){
         angle = Math.atan2(dy, dx) - this.theta,
         x = Math.cos(angle) * dist,
         y = Math.sin(angle) * dist;
-      return (x > -this.width/2 && x < this.width/2 && y > -this.height/2 && y < this.height/2);
+      return (x > -this.w2 && x < this.w2 && y > -this.h2 && y < this.h2);
+    },
+
+    containsX: function(p0){
+      // http://mathforum.org/library/drmath/view/54386.html
+      var i, p1, p2, v = 0, hit = true, d = [];
+      for (i=0; i<4; i++){
+        p1 = this.cornersplus[i];
+        p2 = this.cornersplus[i +1];
+        v = ( p0.y - p1.y - ( p2.y - p1.y ) / ( p2.x - p1.x ) ) * ( p0.x - p1.x );
+        d.push(v);
+        hit = hit && v < 0 ? true : false;
+      }
+      return hit;
     },
     draw: function(ctx, strokeColor, width, fillColor=""){
-      var corners = this.polygon();
+      var corners = this.corners;
       ctx.lineWidth   = width || 1;
       ctx.strokeStyle = strokeColor || "rgba(200, 200, 200, 0.8)";
       ctx.beginPath();

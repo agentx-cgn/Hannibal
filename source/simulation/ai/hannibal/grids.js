@@ -548,6 +548,8 @@ HANNIBAL = (function(H){
     },
     render: function (cvs, alpha=255, nozero=true){
 
+      // greyscales grid in imagedata of canvas
+
       var
         i, p, c, image, target, source,
         len = width * width,
@@ -569,6 +571,7 @@ HANNIBAL = (function(H){
       ctx.putImageData(image, 0, 0);
 
     },
+    mark: function(){},
     blur: function (radius){
 
       // http://blog.ivank.net/fastest-gaussian-blur.html

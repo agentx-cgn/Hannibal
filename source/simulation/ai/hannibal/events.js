@@ -139,17 +139,24 @@ HANNIBAL = (function(H){
       Destroy: function(e){
 
         // listener: assets, culture, mili?
+        // TODO are foundations removed from triple store by Renamed?
 
         if (!e.entityObj){
           deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
           return;
         }
 
+        if (!!e.SuccessfulFoundation){
+          // deb("   EVT: foundation ready");
+          return;
+        }
+
+        // dont't do this it crashes
+        // data:   {entity: e.entityObj, foundation: !!e.SuccessfulFoundation},
+
         var msg = self.fire("Destroy", {
           player: e.entityObj.owner(),
           id:     e.entity,
-          // dont't do this it crashes !!! data:   {entity: e.entityObj, foundation: !!e.SuccessfulFoundation},
-          data:   {foundation: !!e.SuccessfulFoundation},
         });
 
         if (dispatcher[msg.player][msg.id]){

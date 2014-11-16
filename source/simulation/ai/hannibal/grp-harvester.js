@@ -86,8 +86,6 @@ HANNIBAL = (function(H){
         // a request was succesful
         onAssign: function(asset){
 
-          // logObject(asset, "onAssign: " + this.name);
-
           // deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
           if (this.dropsite.match(asset)){
@@ -102,7 +100,6 @@ HANNIBAL = (function(H){
           } else if (this.units.match(asset)){
 
             if (!this.field.isRequested){ 
-              // this.economy.request(4, this.units);
               this.economy.request(1, this.field, this.dropsite);
 
             } else if (this.field.isFoundation){
@@ -206,7 +203,9 @@ HANNIBAL = (function(H){
             // deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
 
             if (this.field.isFoundation){
-              this.units.doing("!repair").repair(this.field);
+              if (this.units.doing("!repair").count){
+                this.units.doing("!repair").repair(this.field);
+              }
 
             } else if (this.field.health < 80){
               this.units.doing("!repair").repair(this.field);

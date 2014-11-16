@@ -141,15 +141,16 @@ HANNIBAL = (function(H){
 
       // check whether ingame producer exists
       this.nodes.forEach(function(node){
-        // deb("simulate: %s", node.name);
-        var producer = self.economy.producers.allocate(node.name, self);
-        if (producer){
+
+        var producer;
+
+        if ((producer = self.economy.producers.allocate(node.name, self))){
           node.producer  = producer;
         } else {
           node.qualifies = false;
-          node.info += !producer ? "no producer, " : "";
-          // deb("    OE: no producer: %s", node.name);
+          node.info += "no producer, ";
         }
+
       });
 
       // any unmet techs
@@ -246,12 +247,11 @@ HANNIBAL = (function(H){
         }
       });
 
-
-      //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-      //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-
       // any unmet techs
       this.nodes.forEach(function(node){
+
+        //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+        //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
 
         var 
           req = H.Bot.tree.nodes[node.name].requires,
@@ -766,10 +766,9 @@ HANNIBAL = (function(H){
       logTick: function(){
 
         var 
-          t = H.tab,
           stock = H.Stats.stock, 
           flows = H.Stats.flows,
-          f = function(n){return n>0?"+"+n:n===0?" 0":n;},
+          t = H.tab, f = n => n > 0 ? "+" + n : n === 0 ? " 0": n,
           msg = H.format("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
             t(stock.food,   6), f(flows.food.toFixed(1)),
             t(stock.wood,   6), f(flows.wood.toFixed(1)),
