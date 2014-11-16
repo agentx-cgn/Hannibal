@@ -1,0 +1,38 @@
+  H.LIB.XXXXXX = function(context){
+
+    this.name = "XXXXXX";
+    this.context = context;
+    this.imports = [
+      ""
+    ];
+
+    H.extend(this, {},
+      context.saved[this.name]
+    );
+
+  };
+
+  H.LIB.XXXXXX.prototype = {
+    constructor: H.LIB.XXXXXX,
+    log: function(){},
+    initialize: function(){},
+    clone: function(context){
+      return new H.LIB.XXXXXX(context);
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    deserialize: function(){
+      return {};
+    },
+    activate: function(){},
+    tick: function(tick, secs){
+
+      var t0 = Date.now();
+
+
+      return Date.now() - t0;
+
+    },
+
+  };

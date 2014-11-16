@@ -16,6 +16,7 @@ HANNIBAL = (function(H){
 
   H.LIB.Villages = function(context){
 
+    this.name = "villages";
     this.context = context;
 
     H.extend(this, {
@@ -23,7 +24,7 @@ HANNIBAL = (function(H){
       centres: [],
       buildings: [],
     },
-    context.villages);
+    context.saved.villages);
 
   };
 
@@ -40,8 +41,9 @@ HANNIBAL = (function(H){
       this.entities = this.context.entities;
       this.metadata = this.context.metadata;
     },
-    clone: function(){
-      return new H.LIB.Villages(this.serialize());
+    clone: function(context){
+      H.extend(context.saved, {villages: this.serialize()});
+      return new H.LIB.Villages(context);
     },
     serialize: function(){
       return {

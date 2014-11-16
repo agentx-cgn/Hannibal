@@ -28,65 +28,101 @@ HANNIBAL = (function(H){
     return out.join(",");
   }
 
+  H.LIB.Stats = function(context){
+
+    var 
+      bufferLength = context.config.lengthStatsBuffer,
+      ress = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0};
+
+    this.context = context;
+    this.imports = [
+      "player"
+    ];
+
+    H.extend(this, {
+      stock: H.deepcopy(ress), 
+      // totals gathered, difference per tick, flow = avg over diff
+      suply: H.deepcopy(ress), 
+      diffs: H.map(ress, H.createRingBuffer.bind(null, bufferLength)),
+      flows: H.deepcopy(ress), 
+      alloc: H.deepcopy(ress), // allocated per queue
+      forec: H.deepcopy(ress), // ???
+      trend: H.deepcopy(ress), // as per suply
+      stack: H.map(ress, H.createRingBuffer.bind(null, bufferLength)), // last x stock vals
+    }, 
+    context.saved.stats);
+
+  };
+
+  H.LIB.Stats.prototype = {
+    constructor: H.LIB.Stats,
+    log: function(){},
+    initialize: function(){
+      this.tick();
+    },
+    clone: function(context){
+      H.extend(context.saved, {stats: this.serialize()});
+      return new H.LIB.Stats(context);
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    deserialize: function(){
+      return {
+        stock: H.deepcopy(this.stock), 
+        suply: H.deepcopy(this.suply), 
+        diffs: H.deepcopy(this.diffs),
+        flows: H.deepcopy(this.flows), 
+        alloc: H.deepcopy(this.alloc),
+        forec: H.deepcopy(this.forec), 
+        trend: H.deepcopy(this.trend), 
+        stack: H.deepcopy(this.stack),
+      };
+    },
+    activate: function(){},
+    tick: function(tick, secs){
+
+      var 
+        t0 = Date.now(), curHits = 1, maxHits = 1, 
+        gathered  = this.player.statistics.resourcesGathered,
+        available = this.player.resourceCounts;
+          
+      // gather diffs
+      gatherables.forEach(function(prop){ 
+        this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
+        this.suply[prop]   = gathered[prop];                 // totals
+        this.stock[prop]   = available[prop];                // available
+      });
+      
+      // other data
+      this.stock.pops   = this.player.popCount;
+      this.stock.area   = this.player.statistics.percentMapExplored;
+      this.stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
+
+      // buffers
+      H.attribs(ress).forEach(function(prop){ 
+        this.stack[prop].push(this.suply[prop]);      // buffers
+        this.trend[prop] = this.stack[prop].trend();  // trend
+        this.flows[prop] = this.diffs[prop].avg();    // 
+      });
+
+      return Date.now() - t0;
+
+    },
+
+  };
+
+
+
+
   H.Stats = {
 
-    // ress currently available via API
-    stock: H.deepcopy(ress), 
-
-    // totals gathered, difference per tick, flow = avg over diff
-    suply: H.deepcopy(ress), 
-    diffs: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)),
-    flows: H.deepcopy(ress), 
-
-    alloc: H.deepcopy(ress), // allocated per queue
-    forec: H.deepcopy(ress), // ???
-    trend: H.deepcopy(ress), // as per suply
-    stack: H.map(ress, H.createRingBuffer.bind(null, config.lengthStatsBuffer)), // last x stock vals
     // availability: availability,
     init: function(){
       H.Stats.tick();
     },
     tick: function(){
 
-      var 
-        t0 = Date.now(), curHits = 1, maxHits = 1, 
-        stock   = H.Stats.stock, 
-        suply   = H.Stats.suply, 
-        stack   = H.Stats.stack, 
-        trend   = H.Stats.trend,
-        diffs   = H.Stats.diffs,
-        flows   = H.Stats.flows,
-        gathered  = H.Player.statistics.resourcesGathered,
-        available = H.Player.resourceCounts;
-          
-      // ctx.lstUnits.forEach(function(unit){
-      //   curHits += unit.hitpoints();
-      //   maxHits += unit.maxHitpoints();
-      // });    
-
-      // gather diffs
-      gatherables.forEach(function(prop){ 
-        diffs[prop].push(gathered[prop] - suply[prop]); // prep flows
-        suply[prop]   = gathered[prop];                 // totals
-        stock[prop]   = available[prop];                // available
-      });
-      
-      // // sort availability by stock
-      // availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
-
-      // other data
-      stock.pops   = H.Player.popCount;
-      stock.area   = H.Player.statistics.percentMapExplored;
-      stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
-
-      // buffers
-      H.attribs(ress).forEach(function(prop){ 
-        stack[prop].push(suply[prop]);      // buffers
-        trend[prop] = stack[prop].trend();  // trend
-        flows[prop] = diffs[prop].avg();    // 
-      });
-
-      return Date.now() - t0;
 
     },
     sortGatherables: function(){

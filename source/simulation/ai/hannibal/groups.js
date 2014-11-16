@@ -14,6 +14,43 @@
 
 HANNIBAL = (function(H){
 
+
+  H.LIB.Groups = function(context){
+
+    this.name = "groups";
+    this.context = context;
+    this.imports = [];
+
+    H.extend(this, {},
+      context.saved.groups
+    );
+
+  };
+
+  H.LIB.Groups.prototype = {
+    constructor: H.LIB.Groups,
+    log: function(){},
+    clone: function(context){
+      return new H.LIB.Groups(context);
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    deserialize: function(){
+      return {};
+    },
+    activate: function(){},
+    tick: function(tick, secs){
+
+      var t0 = Date.now();
+
+
+      return Date.now() - t0;
+
+    },
+
+  };  
+
   H.Groups = (function(){
 
     // Singleton

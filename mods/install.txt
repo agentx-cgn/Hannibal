@@ -1,0 +1,8 @@
+Extract the hannibal folder into the mods folder of your 0 A.D. installation or 
+- better - in your user data path. Check out this page:
+ http://trac.wildfiregames.com/wiki/GameDataPaths for Linux, Windows and Macs.
+
+In case of problems, just explain it at the forum or 
+- better - create a ticket at github: https://github.com/agentx-cgn/Hannibal/issues
+
+The latest release is always here: https://github.com/agentx-cgn/Hannibal/releases

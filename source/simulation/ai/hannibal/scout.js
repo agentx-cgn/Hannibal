@@ -41,6 +41,53 @@ HANNIBAL = (function(H){
 
   */
 
+
+  H.LIB.Scout = function(context){
+
+    this.name = "scout";
+    this.context = context;
+    this.imports = [
+      "width",
+      "height",
+      "circular",
+    ];
+
+    H.extend(this, {},
+      context.saved.scout
+    );
+
+  };
+
+  H.LIB.Scout.prototype = {
+    constructor: H.LIB.Scout,
+    log: function(){},
+    clone: function(context){
+      return new H.LIB.Scout(context);
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    deserialize: function(){
+      return {};
+    },
+    activate: function(){},
+    tick: function(tick, secs){
+
+      var t0 = Date.now();
+
+
+      return Date.now() - t0;
+
+    },
+
+  };
+
+
+
+
+
+
+
   H.Scout = (function(){
 
     var 

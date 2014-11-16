@@ -40,10 +40,10 @@ HANNIBAL = (function(H){
 
     Technologies: function(technologies){
       var mapper = {};
-      H.each(H.SharedScript._techTemplates, function(key){
+      H.each(technologies, function(key){
         mapper[H.saniTemplateName(key)] = key;
       });
-      return new Proxy(H.SharedScript._techTemplates, {
+      return Proxy.create({  
         get: function(proxy, attr){
           var tpln = mapper[attr] || undefined;
           return (

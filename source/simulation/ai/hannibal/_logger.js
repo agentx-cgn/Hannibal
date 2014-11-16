@@ -1,26 +1,19 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Hannibal, H, deb, getAttribType, warn, error, print */
+/*globals HANNIBAL, H, TESTERDATA, warn, error, print */
 
 /*--------------- D E B U G  --------------------------------------------------
 
   global functions for debugging, mainly to output to STD/dbgView
   http://trac.wildfiregames.com/wiki/Logging
 
-  
-  V: 0.1, agentx, CGN, Feb, 2014
-
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, NOV, 2014
 
 */
-
-// var H = HANNIBAL;
 
 // caller not allowed :( http://trac.wildfiregames.com/ticket/487
 // var debC = new Function("print ('> ' + debC.caller.name); 
 // print(H.format.apply(H, H.toArray(arguments)));");
-
-
-
-
 
 // used in JSON Export
 function logg(){
@@ -146,7 +139,6 @@ var getAttribType = function(name, value){
     case "undefined":
     case "boolean":
       return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
-    break;
     case "object":
       if (Array.isArray(value)){
         return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
@@ -158,7 +150,6 @@ var getAttribType = function(name, value){
     break;
     case "function":
       return H.format("  %s: %s", name, value.toSource().split("\n").join("").slice(0, 60));
-    break;
   }
   return "WTF";
 };
@@ -170,14 +161,14 @@ var debTemplates = function(templates){
 
   deb(" TEMPL: %s ----------------------", H.attribs(templates).length);
 
-  function getAttr(o){
-    if (o["Armour"] && o["Armour"]["Hack"] && ~~o["Armour"]["Hack"] > 7){
-      return(H.format("Armour.Hack: %s", o["Armour"]["Hack"]));
-    } else {
-      return false;
-    }
+  // function getAttr(o){
+  //   if (o["Armour"] && o["Armour"]["Hack"] && ~~o["Armour"]["Hack"] > 7){
+  //     return(H.format("Armour.Hack: %s", o["Armour"]["Hack"]));
+  //   } else {
+  //     return false;
+  //   }
 
-  }
+  // }
 
   // logObject(templates, "templates");
 
@@ -209,7 +200,7 @@ var debTemplates = function(templates){
         props[attr]  += 1;        
       }
 
-    })
+    });
 
 
 
@@ -218,12 +209,12 @@ var debTemplates = function(templates){
   var sorted = H.attribs(props).sort(function(a, b){return props[b] > props[a]; });
 
   sorted.forEach(function(attr){
-    deb("  %s: %s", attr, props[attr])
+    deb("  %s: %s", attr, props[attr]);
   });
 
   deb(" TEMPL: ----------------------");
 
-}
+};
 
 
 
@@ -237,11 +228,11 @@ var debTemplates = function(templates){
 // };
 
 
-var logStart = function(ss, ss, id, settings){
+var logStart = function(ss, gs, settings){
 
-  var H = HANNIBAL, id = settings.player
+  var H = HANNIBAL, id = settings.player;
 
-  deb("------: HANNIBAL.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
+  deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
   deb();
   deb("     A:    map from tester:  %s", TESTERDATA ? TESTERDATA.map : "unkown");
   deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
@@ -313,3 +304,84 @@ var logPlayers = function(players){
   //   typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
 
 };
+
+
+// keep that 
+// logObject(API3, "API3");
+// logObject(HANNIBAL, "HANNIBAL");
+// logObject(gameState, "gameState");
+// logObject(global, "global");
+// logObject(Map, "Map");
+// logObject(global.Engine, "Engine");
+// logObject(this.entities, "entities");
+
+
+// logObject(ss.resourceMaps['food'].map, "ss.resourceMaps['food'].map");
+// logObject(ss.resourceMaps['food'], "ss.resourceMaps['food']");
+
+// logObject(H.Bot.gameState.ai.territoryMap, "H.Bot.gameState.ai.territoryMap");
+
+// logObject(ss._techTemplates['phase_city'], "phase_city");
+// logObject(ss._techTemplates['phase_town_athen'], "phase_town_athen");
+// logObject(ss._techTemplates['pair_gather_01'], "pair_gather_01");
+// logObject(ss._techTemplates['heal_range'], "heal_range");
+// logObject(ss._techTemplates['heal_temple'], "heal_temple");
+
+ // logObject(H.Templates["units/athen_support_female_citizen"], "units/athen_support_female_citizen");
+
+// logObject(ss._techTemplates, "ss._techTemplates");
+// logObject(sharedScript, "sharedScript");
+// logObject(sharedScript.gameState, "sharedScript.gameState");
+// logObject(sharedScript.events, "events");
+// logObject(sharedScript.playersData, "playersData");
+// logObject(sharedScript.playersData[this.id], "playersData(me)");
+// logObject(sharedScript.playersData[this.id], "Hannibal");
+// logObject(sharedScript.playersData[this.id].statistics, "Statistics");
+// logObject(EntityCollection, "EntityCollection"); // that's strange
+// logObject(new Entity(sharedScript, entity), "EntityTemplate");
+// logObject(sharedScript.passabilityClasses, "sharedScript.passabilityClasses");
+// logObject(sharedScript.passabilityMap, "sharedScript.passabilityMap");
+// logObject(sharedScript.territoryMap, "sharedScript.territoryMap");
+
+
+// H.QRY("PAIR DISTINCT").execute("metadata", 5, 10, "paired techs");
+// H.QRY("TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
+
+// H.QRY("gather.lumbering.ironaxes").execute("metadata", 5, 10, "check");
+
+// new H.HCQ(ts, "INGAME WITH metadata.opname = 'none'").execute("metadata", 5, 10, "all ingame entities");
+// new H.HCQ(ts, "INGAME WITH id = 44").execute("metadata", 5, 10, "entity with id");
+// new H.HCQ(ts, "INGAME").execute("position", 5, 10, "ingames with position");
+
+// new H.HCQ(ts, "INGAME SORT < id").execute("metadata", 5, 80, "ingames with metadata");
+
+// new H.HCQ(ts, "TECHINGAME").execute("metadata", 5, 20, "ingame techs with metadata");
+// new H.HCQ(ts, "stone ACCEPTEDBY INGAME").execute("metadata", 5, 20, "stone drop");
+
+// new H.HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food MEMBER DISTINCT HOLDBY INGAME").execute("json", 5, 10, "optional update test");
+
+// new H.HCQ(ts, "civilcentre CONTAIN").execute("node", 5, 10, "civilcentre via class");
+// new H.HCQ(ts, "food.grain PROVIDEDBY").execute("node", 5, 10, "civilcentre via class");
+// new H.HCQ(ts, "food.grain PROVIDEDBY").execute("node", 5, 10, "civilcentre via class");
+
+// new H.HCQ(ts, "structures.athen.civil.centre MEMBER").execute("node", 5, 10, "classes of civilcentre");
+
+// new H.HCQ(ts, "food.grain PROVIDEDBY").execute("costs", 5, 10, "entities providing food.grain");
+// new HCQ(ts, "HOLD CONTAIN").execute("node", 5, 10, "all garissonable entities");
+// new HCQ(ts, "infantry HOLDBY").execute("node", 5, 10, "entities holding infantry");
+// new HCQ(ts, "support, infantry HOLDBY").execute("node", 5, 10, "entities holding infantry, support");
+// new HCQ(ts, "healer, hero").execute("", 5, 10, "classes: healer, hero");
+// new HCQ(ts, "healer, hero CONTAIN").execute("costs", 5, 10, "entities from classes: healer, hero");
+// new HCQ(ts, "healer, hero CONTAIN SORT > costs.metal").execute("costs", 5, 10, "entities from classes: healer, hero");
+// new HCQ(ts, "infantry CONTAIN SORT > costs.metal").execute("costs", 5, 20, "entities from classes: healer, hero, sorted by metal");
+// new HCQ(ts, "support, infantery HOLDBY SORT > capacity").execute("capacity", 5, 10, "entities holding: healer, hero, sorted by metal");
+// new HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.wood = 0").execute("costs", 5, 20, "entities holding: healer, hero, sorted by metal");
+// new HCQ(ts, "food.grain PROVIDEDBY WITH civ = athen").execute("costs", 5, 20, "entities holding: healer, hero, sorted by metal");
+// new HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.wood = 0 MEMBER HOLDBY").execute("costs", 5, 20, "entities holding: healer, hero, sorted by metal");
+// new HCQ(ts, "units.athen.support.female.citizen.house REQUIRE", 2).execute("node", 5, 10, "testing for required tech");
+// new HCQ(ts, "DESCRIBEDBY").execute("node", 5, 10, "trainer for");
+// new HCQ(ts, "INGAME").execute("node", 5, 10, "trainer for");
+// new HCQ(ts, "units.athen.infantry.spearman.b TRAINEDBY").execute("node", 5, 10, "trainer for");
+// new HCQ(ts, "units.athen.infantry.spearman.b TRAINEDBY INGAME").execute("node", 5, 10, "in game trainer for");
+// new HCQ(ts, "units.athen.infantry.spearman.b TRAINEDBY DESCRIBEDBY").execute("node", 5, 10, "in game trainer for");
+// new HCQ(ts, "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food").execute("costs", 5, 10, "in game trainer for");

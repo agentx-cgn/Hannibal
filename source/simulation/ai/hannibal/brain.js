@@ -29,7 +29,6 @@
 HANNIBAL = (function(H){
 
   var 
-    planner,
     parameters = {
 
     // Dimensions
@@ -66,6 +65,73 @@ HANNIBAL = (function(H){
 
   function class2name (klass) {return H.QRY(klass + " CONTAIN").first().name;}
 
+
+  H.LIB.Brain = function(context){
+
+    this.name = "brain";
+    this.context = context;
+    this.imports = [
+      "events",
+      "phases",
+      "economy",
+      "query",
+      "villages",
+    ];
+
+    H.extend(this, {},
+      context.saved.brain
+    );
+
+  };
+
+  H.LIB.Brain.prototype = {
+    constructor: H.LIB.Brain,
+    log: function(){},
+    clone: function(context){
+      return new H.LIB.Brain(context);
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    deserialize: function(){
+      return {};
+    },
+    activate: function(){
+
+      this.events.on("Advance", function (msg){
+
+        if ((phase = this.phases.find(msg.data.key))){
+          H.Phases.current = phase.abbr;
+          deb(" BRAIN: onAdvance: set new phase %s", this.phases.current);
+          return;
+        }
+        deb(" BRAIN: onAdvance: %s", msg.data.technology);
+
+      });
+
+
+      this.events.on("Attacked", "*", function (msg){
+        deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
+      });
+
+      this.events.on("BroadCast", function (msg){
+        deb(" BRAIN: BroadCast: %s", uneval(msg));
+      });
+
+    },
+    tick: function(tick, secs){
+
+      var t0 = Date.now();
+
+
+      return Date.now() - t0;
+
+    },
+
+  };
+
+
+
   H.Brain = {
     id:   null,
     name: "brain",
@@ -87,25 +153,6 @@ HANNIBAL = (function(H){
 
       var phase;
 
-      H.Events.on("Advance", function (msg){
-
-        if ((phase = H.Phases.find(msg.data.key))){
-          H.Phases.current = phase.abbr;
-          deb(" BRAIN: onAdvance: set new phase %s", H.Phases.current);
-          return;
-        }
-        deb(" BRAIN: onAdvance: %s", msg.data.technology);
-
-      });
-
-
-      H.Events.on("Attacked", "*", function (msg){
-        deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
-      });
-
-      H.Events.on("BroadCast", function (msg){
-        deb(" BRAIN: BroadCast: %s", uneval(msg));
-      });
 
     },
     tick: function(secs, ticks){

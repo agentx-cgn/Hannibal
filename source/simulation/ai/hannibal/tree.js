@@ -22,52 +22,6 @@
 
 HANNIBAL = (function(H){
 
-  var phases = H.Phases = {
-      "1" : {idx: 1, abbr: "vill", next: "", generic: "phase_village", alternates: ["vill", "phase_village"]},
-      "2" : {idx: 2, abbr: "town", next: "", generic: "phase_town",    alternates: ["town", "phase_town"]},
-      "3" : {idx: 3, abbr: "city", next: "", generic: "phase_city",    alternates: ["city", "phase_city"]},
-      current: "",
-      find: function(phase){
-        for (var i=1; i<=3; i++) {
-          if (H.contains(phases[i].alternates, phase)){
-            return phases[i];
-          }
-        } 
-        return undefined; //H.throw("phases.find: '%s' unknown", phase);
-      },
-      prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];},
-      init: function(){
-        var test;
-        function extract(str){
-          if (str && str.contains("phase")){
-            if (str.contains("village")){phases["1"].alternates.push(str);}
-            if (str.contains("town")){phases["2"].alternates.push(str);}
-            if (str.contains("city")){phases["3"].alternates.push(str);}
-          }
-        }
-        function check(key, tpl){
-          if ((test = H.test(tpl, "Identity.RequiredTechnology"))){extract(test);}
-          if ((test = H.test(tpl, "requirements.tech"))){extract(test);}
-          if ((test = H.test(tpl, "requirements.any"))){test.filter(t => !!t.tech).forEach(t => extract(t.tech));}
-        }
-        H.each(H.Templates, check); 
-        H.each(H.TechTemplates, check); 
-        phases["1"].alternates = H.unique(phases["1"].alternates);
-        phases["2"].alternates = H.unique(phases["2"].alternates);
-        phases["3"].alternates = H.unique(phases["3"].alternates);
-      },
-      finalize: function(){
-        H.QRY(H.class2name("civilcentre") + " RESEARCH").forEach(node => {
-          if (node.name.contains("town")){phases["1"].next = node.name;}
-          if (node.name.contains("city")){phases["2"].next = node.name;}
-        });
-        deb("     T: phases: 1 next: %s, %s", phases["1"].next, uneval(phases["1"].alternates));
-        deb("     T: phases: 2 next: %s, %s", phases["2"].next, uneval(phases["2"].alternates));
-        deb("     T: phases: 3 %s", uneval(phases["3"].alternates));
-      },
-    };
-
-
   H.TechTree = function (idplayer) {
 
     deb();deb();
