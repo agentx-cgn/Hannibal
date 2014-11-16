@@ -97,16 +97,16 @@ var debTable = function (header, table, sort){
   // }
 
 
-function debug(){
-  if (HANNIBAL.Config.debug){
-    warn(H.format.apply(H, H.toArray(arguments)));
-  }
-}
-function debugE(){
-  if (HANNIBAL.Config.debug){
-    error(H.format.apply(H, H.toArray(arguments)));
-  }
-}
+// function debug(){
+//   if (HANNIBAL.Config.debug){
+//     warn(H.format.apply(H, H.toArray(arguments)));
+//   }
+// }
+// function debugE(){
+//   if (HANNIBAL.Config.debug){
+//     error(H.format.apply(H, H.toArray(arguments)));
+//   }
+// }
 
 var logObject = function(o, msg){
   var inst = "unidentified";
@@ -227,12 +227,89 @@ var debTemplates = function(templates){
 
 
 
-var logError = function(e, msg){
-  // used in try/catch
-  deb("  ");
-  deb(" Error: %s | %s", msg||"", e.message);
-  deb("      : %s [%s]", e.fileName, e.lineNumber);
-  deb("  ");
+// var logError = function(e, msg){
+//   // used in try/catch
+//   deb("  ");
+//   deb(" Error: %s | %s", msg||"", e.message);
+//   deb("      : %s [%s]", e.fileName, e.lineNumber);
+//   deb("  ");
+
+// };
+
+
+var logStart = function(ss, ss, id, settings){
+
+  var H = HANNIBAL, id = settings.player
+
+  deb("------: HANNIBAL.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
+  deb();
+  deb("     A:    map from tester:  %s", TESTERDATA ? TESTERDATA.map : "unkown");
+  deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
+  deb("     A:          _entities: %s [  ]", H.count(ss._entities));
+  deb("     A:         _templates: %s [  ]", H.count(ss._templates));
+  deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
+  deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
+  deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
+  deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
+  deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
+  deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
 
 };
 
+var logPlayers = function(players){
+
+  var H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
+      fmtAEN = function(item){return item.map(function(b){return b ? "1" : "0";}).join("");};
+
+  deb("**");deb("**");
+
+  head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut".split(", ");
+  props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral".split(", ");
+  tabs   = [  10,    6,   8,    10,        5,      6,       6,         6];
+  format = {
+    isAlly:    fmtAEN,
+    isEnemy:   fmtAEN,
+    isNeutral: fmtAEN
+  };
+
+  H.zip(head, tabs, function(h, t){msg += tab(h, t);});
+  deb("PLAYER: " + msg);
+
+  H.each(players, function(id, player){
+    msg = "";
+    H.zip(props, tabs, function(p, t){
+      msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
+    });    
+    deb("     %s: %s", id, msg);
+  });
+
+  // Object: playersData(me)  ---------------
+  //   cheatsEnabled: BOOLEAN (false)
+  //   civ: STRING (athen)
+  //   classCounts: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
+  //   colour: OBJECT (r, g, b, a, ...)[4]
+  //   entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+  //   entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+  //   heroes: ARRAY (, ...)[0]
+  //   isAlly: ARRAY (false, true, false, ...)[3]
+  //   isEnemy: ARRAY (true, false, true, ...)[3]
+  //   isMutualAlly: ARRAY (false, true, false, ...)[3]
+  //   isNeutral: ARRAY (false, false, false, ...)[3]
+  //   name: STRING (Player 1)
+  //   phase: STRING (village)
+  //   popCount: NUMBER (17)
+  //   popLimit: NUMBER (20)
+  //   popMax: NUMBER (300)
+  //   researchQueued: OBJECT (, ...)[0]
+  //   researchStarted: OBJECT (, ...)[0]
+  //   researchedTechs: OBJECT (phase_village, ...)[1]
+  //   resourceCounts: OBJECT (food, wood, metal, stone, ...)[4]
+  //   state: STRING (active)
+  //   statistics: OBJECT (unitsTrained, unitsLost, unitsLostValue, enemyUnitsKilled, enemyUnitsKilledValue, ...)[21]
+  //   team: NUMBER (-1)
+  //   teamsLocked: BOOLEAN (false)
+  //   techModifications: OBJECT (, ...)[0]
+  //   trainingBlocked: BOOLEAN (false)
+  //   typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
+
+};

@@ -116,7 +116,7 @@ HANNIBAL = (function(H){
         centroid, point,
         sortByDistance = function(a, b){
           var da, db;
-          da = (a.x - point.x) * (a.x - point.x) + (a.z - point.z) * (a.z - point.z):
+          da = (a.x - point.x) * (a.x - point.x) + (a.z - point.z) * (a.z - point.z);
           db = (b.x - point.x) * (b.x - point.x) + (b.z - point.z) * (b.z - point.z);
           return da - db;
         };
@@ -376,7 +376,7 @@ HANNIBAL = (function(H){
   }
   
   H.AI.BinaryHeap.prototype = {
-    constructor: BinaryHeap,
+    constructor: H.AI.BinaryHeap,
     push: function(element) {
       element.index = this.length;               // is last
       this.content[this.length] = element;       // Add the new element to the end of the array.

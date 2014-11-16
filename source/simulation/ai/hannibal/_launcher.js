@@ -1,9 +1,9 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, debTable, print, logObject, logError, TESTERDATA, uneval */
+/*globals Engine, API3, deb, debTable, print, logObject, logError, TESTERDATA, uneval, logPlayers, logStart */
 
-/*--------------- H A N N I B A L  --------------------------------------------
+/*--------------- L A U N C H E R   -------------------------------------------
 
-  An AI/Bot for 0 A.D.
+  Launches the AI/Bot for 0 A.D.
   Home: https://github.com/noiv/Hannibal/blob/master/README.md
 
   tested with 0 A.D. Alpha 15 Osiris
@@ -45,78 +45,148 @@ var HANNIBAL = (function() {
   };
 
   // constructor
-  H.Hannibal = function(settings) {
+  H.Launcher = function(settings) {
 
     API3.BaseAI.call(this, settings);
 
-    H.Bot = this;
+    H.Launch = this;
 
     H.extend(this, {
-      name:      "H",
-      turn:       0,                                  // increments on AI ticks, not bot ticks
-      settings:   settings,                           // from user dialog
-      id:         settings.player,                    // used within 0 A.D.
-      config:     H.Config.get(settings.difficulty),  // 
+      settings:     settings,                           // from user dialog
+      isTicking:    false,                              // toggles after first OnUpdate
+      initialized:  false,                              // did that happen well?
+      isFinished:   false,                              // there is still no winner
+      timing:       {all: 0},                           // used to identify perf. sinks in OnUpdate
+      context:      {
+        turn:         0,                                  // increments on AI ticks, not bot ticks
+        ticks:        0,
+        id:           settings.player,                    // used within 0 A.D.
+        config:       H.Config.get(settings.difficulty),  // Sandbox or nightmare or ....
+        difficulty:   settings.difficulty,
+      }
     });
 
     deb();
-    deb("------: HANNIBAL.constructor.out");
+    deb("------: Launcher.constructor.out");
 
   };
 
-  H.Hannibal.prototype = new H.API.BaseAI();
-  H.Hannibal.prototype.CustomInit = function(gameState, sharedScript) {
+  H.Launcher.prototype = new H.API.BaseAI();
+  H.Launcher.prototype.Serialize = function(){
 
-    var 
-      SIM_UPDATES = 0,
-      self = this, 
-      ts, ss = sharedScript, gs = gameState, 
-      map = TESTERDATA ? TESTERDATA.map : "unkown";
+    return {
+
+      time:       (new Date()).toString(),
+
+      id:         this.settings.id,
+      civ:        this.civ,
+      turn:       this.turn,
+      ticks:      this.ticks,
+      difficulty: this.settings.difficulty,
+      config:     this.config.serialize(),
+
+      brain:      this.bot.brain.serialize(),
+      events:     this.bot.events.serialize(),
+      economy:    this.bot.economy.serialize(),
+      map:        this.bot.map.serialize(),
+      military:   this.bot.military.serialize(),
+      resources:  this.bot.resources.serialize(),
+      scout:      this.bot.scout.serialize(),
+      store:      this.bot.store.serialize(),
+      tree:       this.bot.tree.serialize(),
+      villages:   this.bot.villages.events.serialize(),
+
+    };
+
+  };
+  H.Launcher.prototype.Deserialize = function(data, sharedScript){
+    H.extend(this.context, data);
+  };
+  H.Launcher.prototype.CustomInit = function(gameState, sharedScript) {
+
+    var ss = sharedScript, gs = gameState;
 
     deb();deb();
-    deb("------: HANNIBAL.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), this.id, this.settings.difficulty);
-    deb();
-    deb("     A:    map from tester:  %s", map);
-    deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
-    deb("     A:          _entities: %s [  ]", H.count(ss._entities));
-    deb("     A:         _templates: %s [  ]", H.count(ss._templates));
-    deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
-    deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[this.id]), H.attribs(ss._techModifications[this.id]));
-    deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[this.id].researchQueued));
-    deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[this.id].researchStarted));
-    deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[this.id].researchedTechs), H.attribs(ss.playersData[this.id].researchedTechs).join(", "));
-    deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
-
-    this.logPlayers(ss.playersData);
+    logStart(ss, gs, this.settings);
+    logPlayers(ss.playersData);
 
     // Shortcuts
-    H.QRY               = function(hcq, debug){return new H.Store.Query(H.Bot.culture.store, hcq, debug);};
-    H.GameState         = gameState;
-    H.SharedScript      = sharedScript;
-    H.Templates         = this.settings.templates;
-    H.TechTemplates     = H.SharedScript._techTemplates;
-    H.Entities          = H.GameState.entities._entities;
-    H.Player            = H.SharedScript.playersData[this.id]; // http://trac.wildfiregames.com/browser/ps/trunk/binaries/data/mods/public/simulation/components/GuiInterface.js
-    H.Players           = H.SharedScript.playersData;
-    H.States            = H.Proxies.States();
-    H.MetaData          = H.Proxies.MetaData();
-    H.Technologies      = H.Proxies.Technologies(); //sharedScript._techTemplates;
+
+    this.ticks = this.context.ticks || 0;        // increases if bot steps
+
+    H.extend(this.context, {
+
+      connector:          "engine",
+
+      id:                  this.context.id         || this.settings.id,
+      civ:                 this.context.civ        || this.civ,
+      turn:                this.context.turn       || this.turn,
+      ticks:               this.context.ticks      || this.ticks,
+      difficulty:          this.context.difficulty || this.settings.difficulty,
+      config:              this.context.config     || this.config.serialize(),
+
+      width:               sharedScript.passabilityMap.width, 
+      height:              sharedScript.passabilityMap.height, 
+      cellsize:            gameState.cellSize, 
+      circular:            sharedScript.circularMap,
+
+      // gamestate:           gameState,
+      // sharedscript:        sharedScript,
+
+      player:              sharedScript.playersData[this.id], // http://trac.wildfiregames.com/browser/ps/trunk/binaries/data/mods/public/simulation/components/GuiInterface.js
+      players:             sharedScript.playersData,
+
+      states:              H.Proxies.States(gameState.entities._entities),
+      metadata:            H.Proxies.MetaData(sharedScript._entityMetadata[this.id]),
+      entities:            H.Proxies.Entities(gameState.entities._entities),
+      templates:           H.Proxies.Templates(this.settings.templates),
+      technologies:        H.Proxies.Technologies(sharedScript._techTemplates), 
+      techtemplates:       H.Proxies.TechTemplates(sharedScript._techTemplates), 
+
+      objects:             H.LIB.Objects(), // not a constructor
+
+      map:                 new H.LIB.Map(this.context),
+      effector:            new H.LIB.Effector(this.context),    
+      resources:           new H.LIB.Resources(this.context),
+      villages:            new H.LIB.Villages(this.context),
+
+      query:               function(hcq, debug){
+        return new H.Store.Query(this.context.culture.store, hcq, debug);
+      },
+
+      planner:              new H.HTN.Planner(H.extend({          // setup default planner
+        name:      "eco.planner",
+        operators: H.HTN.Economy.operators,
+        methods:   H.HTN.Economy.methods,
+        verbose:   1
+      }, this.context),
+
+    });
+
+
+
+    // build a context the bot works in
+
+    H.Each(this.context, function (name, item) {
+      (item.import     && item.import());
+      (item.initialize && item.initialize());
+    });
+
+    H.Bot = new H.LIB.Bot(this.context);
+
+
+
 
     // deb(uneval(H.SharedScript.passabilityClasses));
     // pathfinderObstruction:1, foundationObstruction:2, 'building-land':4, 'building-shore':8, default:16, ship:32, unrestricted:64
 
-    this.ticks          = 0;                // increases if bot steps
-    this.isTicking      = false;            // toggles after first OnUpdate
-    this.initialized    = false;            // did that happen well?
-    this.isFinished     = false;            // there is still no winner
-    this.timing         = {all: 0};         // used to identify perf. sinks in OnUpdate
 
     // determine own, game's
-    this.civ            = H.Players[this.id].civ; 
-    this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
+    // this.civ            = H.Players[this.id].civ; 
+    // this.civs           = H.unique(H.attribs(H.Players).map(function(id){return H.Players[id].civ;})); // in game civi
     
     // launch the stats extension
-    H.Numerus.init();                       
+    // H.Numerus.init();                       
 
     H.Phases.init();                         // acquire all phase names
     this.tree    = new H.TechTree(this.id);  // analyse templates of bot's civ
@@ -130,26 +200,17 @@ var HANNIBAL = (function() {
     this.tree.finalize();                    // caches required techs, producers for entities
     H.Phases.finalize();                     // phases order
 
-    H.Map = new H.LIB.Map({
-      width:    H.SharedScript.passabilityMap.width, 
-      height:   H.SharedScript.passabilityMap.height, 
-      cellsize: H.GameState.cellSize, 
-      circular: H.SharedScript.circularMap
-    });
 
-    H.Effector = new H.LIB.Effector({
-      connector: "engine"
-    });    
 
-    H.Grids.init();                         // inits advanced map analysis
+// H.Grids.init();                         // inits advanced map analysis
     // H.Grids.dump(map);                      // dumps all grids with map prefix in file name
     // H.Grids.pass.log();
 
-    H.Resources.init();                      // extracts resources from all entities
-    H.Resources.log();
+    // H.Resources.init();                      // extracts resources from all entities
+    // H.Resources.log();
     H.Scout.init();                          // inits scout extension for scout group
     H.Groups.init();                         // registers groups
-    H.Villages.init();                       // organize buildings by civic centres
+    // H.Villages.init();                       // organize buildings by civic centres
 
     
     H.Planner = new H.HTN.Planner({          // setup default planner
@@ -389,25 +450,12 @@ var HANNIBAL = (function() {
     } catch(e){logError(e, "playfield");} 
     // end playfield
 
-
-    // speed up debugging
-    (function simTick(){
-      if (SIM_UPDATES--){
-        try {
-          deb("  TICK: #%s", SIM_UPDATES);
-          self.turn = 20;
-          self.OnUpdate();
-          simTick();
-        } catch(e){logError(e); self.isFinished = true;}
-      }
-    }());
-
     deb();
     deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
 
   };
 
-  H.Hannibal.prototype.OnUpdate = function(sharedScript) {
+  H.Launcher.prototype.OnUpdate = function(sharedScript) {
 
     // http://trac.wildfiregames.com/wiki/AIEngineAPI
 
@@ -557,64 +605,6 @@ var HANNIBAL = (function() {
     }
 
     this.turn++;
-
-  };
-
-  H.Hannibal.prototype.logPlayers = function(players){
-
-    var tab = H.tab, msg = "", head, props, format, tabs,
-        fmtAEN = function(item){return item.map(function(b){return b ? "1" : "0";}).join("");};
-
-    deb("**");deb("**");
-
-    head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut".split(", ");
-    props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral".split(", ");
-    tabs   = [  10,    6,   8,    10,        5,      6,       6,         6];
-    format = {
-      isAlly:    fmtAEN,
-      isEnemy:   fmtAEN,
-      isNeutral: fmtAEN
-    };
-
-    H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-    deb("PLAYER: " + msg);
-
-    H.each(players, function(id, player){
-      msg = "";
-      H.zip(props, tabs, function(p, t){
-        msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
-      });    
-      deb("     %s: %s", id, msg);
-    });
-
-    // Object: playersData(me)  ---------------
-    //   cheatsEnabled: BOOLEAN (false)
-    //   civ: STRING (athen)
-    //   classCounts: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
-    //   colour: OBJECT (r, g, b, a, ...)[4]
-    //   entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-    //   entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-    //   heroes: ARRAY (, ...)[0]
-    //   isAlly: ARRAY (false, true, false, ...)[3]
-    //   isEnemy: ARRAY (true, false, true, ...)[3]
-    //   isMutualAlly: ARRAY (false, true, false, ...)[3]
-    //   isNeutral: ARRAY (false, false, false, ...)[3]
-    //   name: STRING (Player 1)
-    //   phase: STRING (village)
-    //   popCount: NUMBER (17)
-    //   popLimit: NUMBER (20)
-    //   popMax: NUMBER (300)
-    //   researchQueued: OBJECT (, ...)[0]
-    //   researchStarted: OBJECT (, ...)[0]
-    //   researchedTechs: OBJECT (phase_village, ...)[1]
-    //   resourceCounts: OBJECT (food, wood, metal, stone, ...)[4]
-    //   state: STRING (active)
-    //   statistics: OBJECT (unitsTrained, unitsLost, unitsLostValue, enemyUnitsKilled, enemyUnitsKilledValue, ...)[21]
-    //   team: NUMBER (-1)
-    //   teamsLocked: BOOLEAN (false)
-    //   techModifications: OBJECT (, ...)[0]
-    //   trainingBlocked: BOOLEAN (false)
-    //   typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
 
   };
 

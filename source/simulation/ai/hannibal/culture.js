@@ -37,7 +37,7 @@ HANNIBAL = (function(H){
   };
 
   H.Culture.prototype = {
-    constructor: H.Hannibal.Culture,
+    constructor: H.Culture,
     activate: function(){
 
       // is first listener, removes are postponed one tick

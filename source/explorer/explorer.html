@@ -3,7 +3,7 @@
   <head>
     <title>HSE</title>
     <meta http-equiv="Content-Type" content="application/xml+xhtml; charset=UTF-8" />
-    <meta name="description" content="HANNIBAL - Store Explorer" />
+    <meta name="description" content="Explorer" />
     <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
     
     <script type="text/javascript">
@@ -50,7 +50,7 @@
     </script>
 
     <link rel="shortcut icon"  href="favicon.ico" />
-    <link rel="stylesheet" href="hannibal.css" type="text/css" />
+    <link rel="stylesheet" href="explorer.css" type="text/css" />
 
   </head>
 
@@ -674,31 +674,31 @@
 
       </script>
 
-    <!-- simulates alphabetic loading sequence -->
-      <script type="text/javascript" src="mousetrap.js"></script>
-      <script type="text/javascript" src="../_helper.js"></script>
-      <!-- // <script type="text/javascript" src="../asm.js"></script> -->
-      <script type="text/javascript" src="../config.js"></script>
-      <script type="text/javascript" src="../data.js"></script>
-      <script type="text/javascript" src="../ai.js"></script>
-      <script type="text/javascript" src="../economy.js"></script>
-      <script type="text/javascript" src="../store.js"></script>
-      <script type="text/javascript" src="../htn-helper.js"></script>
-      <script type="text/javascript" src="../htn-eco-methods.js"></script>
-      <script type="text/javascript" src="../htn-eco-operators.js"></script>
-      <script type="text/javascript" src="../explorer/htn-tree-methods.js"></script>
-      <script type="text/javascript" src="../explorer/htn-tree-operators.js"></script>
-      <script type="text/javascript" src="../htn-planner.js"></script>
-      <script type="text/javascript" src="../grids.js"></script>
-      <script type="text/javascript" src="../map.js"></script>
-      <script type="text/javascript" src="../geometry.js"></script>
-      <script type="text/javascript" src="../tools.js"></script>
-      <script type="text/javascript" src="../effector.js"></script>
+      <script type="text/javascript" src="libs/mousetrap.js"></script>
       <script type="text/javascript" src="data/structures-json.export"></script>
       <script type="text/javascript" src="data/gaia-json.export"></script>
       <script type="text/javascript" src="data/other-json.export"></script>
       <script type="text/javascript" src="data/store-json.export"></script>
       <script type="text/javascript" src="data/techs-json.export"></script>
+    <!-- simulates 0AD's alphabetic loading sequence -->
+      <script type="text/javascript" src="../simulation/ai/hannibal/_helper.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/config.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/data.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/ai.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/economy.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/store.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/htn-helper.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/htn-eco-methods.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/htn-eco-operators.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/explorer/htn-tree-methods.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/explorer/htn-tree-operators.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/htn-planner.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/grids.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/map.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/geometry.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/tools.js"></script>
+      <script type="text/javascript" src="../simulation/ai/hannibal/effector.js"></script>
+    <!-- end of alphabetic loading sequence -->
       <script type="text/javascript" src="htn-eco-examples.js"></script>
       <script type="text/javascript" src="htn-tree-examples.js"></script>
       <script type="text/javascript" src="htn-blocks.js"></script>
@@ -708,8 +708,6 @@
       <script type="text/javascript" src="village.js"></script>
       <script type="text/javascript" src="sims.js"></script>
       <script type="text/javascript" src="simulation.js"></script>
-      <!-- // <script type="text/javascript" src="model.js"></script> -->
-      <!-- // <script type="text/javascript" src="c.pretty.js"></script> -->
       
     <!--- Init -->
       <script>

@@ -106,50 +106,7 @@ HANNIBAL = (function(H) {
       .reduce(reduceFlow, {food:0,wood:0,stone:0,metal:0});
   };
 
-  H.Proxies = {
 
-    Technologies: function(){
-      var mapper = {};
-      H.each(H.SharedScript._techTemplates, function(key){
-        mapper[H.saniTemplateName(key)] = key;
-      });
-      return new Proxy(H.SharedScript._techTemplates, {
-        get: function(proxy, attr){
-          var tpln = mapper[attr] || undefined;
-          return (
-            proxy[attr] !== undefined ? proxy[attr] : 
-            proxy[tpln] !== undefined ? proxy[tpln] : 
-            attr === "available"      ? function (techs){
-              // deb("  HPT: checking %s against %s", techs, H.attribs(H.Player.researchedTechs));
-              return techs.map(t => mapper[t]).every(t => !!H.Player.researchedTechs[t]); } :
-            undefined
-          );
-        }
-      });
-    },
-    MetaData: function(){
-      // H.MetaData          = H.SharedScript._entityMetadata[this.id];
-      return new Proxy({}, {
-        get: function(proxy, id){
-          var meta = H.SharedScript._entityMetadata[H.Bot.id];
-          if (!meta[id]){meta[id] = {};}
-          // deb("META  : %s %s", id, uneval(meta[id]));
-          return meta[id];
-        }
-      });
-    },
-    States : function(){
-      return Proxy.create({  // sanitize UnitAI state
-        get: function (proxy, id) {
-          return (
-            H.Entities[id] && H.Entities[id]._entity.unitAIState ? 
-              H.replace(H.Entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
-              undefined
-          ); 
-        }
-      });  
-    }
-  };
 
 
   // H.States = Proxy.create({  // sanitize UnitAI state
@@ -203,7 +160,7 @@ HANNIBAL = (function(H) {
     };
   }());
 
-  H.Objects = (function(){
+  H.LIB.Objects = function(){
 
     // keeps track of objects and their IDs
     
@@ -213,7 +170,7 @@ HANNIBAL = (function(H) {
       if (typeof x === "object") {p += 1; o[p] = x; return p;}
       return o[x];
     };
-  }());
+  };
 
   H.Triggers = (function(){
 

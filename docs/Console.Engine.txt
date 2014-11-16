@@ -1,0 +1,694 @@
+AddPlaylistItem:function AddPlaylistItem()
+AssignNetworkPlayer:function AssignNetworkPlayer()
+AtlasIsAvailable:function AtlasIsAvailable()
+BuildDirEntList:function BuildDirEntList()
+CameraFollow:function CameraFollow()
+CameraFollowFPS:function CameraFollowFPS()
+CameraGetX:function CameraGetX()
+CameraGetZ:function CameraGetZ()
+CameraMoveTo:function CameraMoveTo()
+ClearAllPlayerReady:function ClearAllPlayerReady()
+ClearPlaylist:function ClearPlaylist()
+ConfigDB_CreateValue:function ConfigDB_CreateValue()
+ConfigDB_GetValue:function ConfigDB_GetValue()
+ConfigDB_Reload:function ConfigDB_Reload()
+ConfigDB_SetFile:function ConfigDB_SetFile()
+ConfigDB_WriteFile:function ConfigDB_WriteFile()
+ConnectXmppClient:function ConnectXmppClient()
+Console_GetVisibleEnabled:function Console_GetVisibleEnabled()
+Console_SetVisibleEnabled:function Console_SetVisibleEnabled()
+Console_Write:function Console_Write()
+Crash:function Crash()
+DebugWarn:function DebugWarn()
+DeleteSavedGame:function DeleteSavedGame()
+DisconnectNetworkGame:function DisconnectNetworkGame()
+DisconnectXmppClient:function DisconnectXmppClient()
+DisplayErrorDialog:function DisplayErrorDialog()
+DumpSimState:function DumpSimState()
+DumpTerrainMipmap:function DumpTerrainMipmap()
+EnableTimeWarpRecording:function EnableTimeWarpRecording()
+EncryptPassword:function EncryptPassword()
+EndGame:function EndGame()
+Exit:function Exit()
+FileExists:function FileExists()
+ForceGC:function ForceGC()
+FormatDecimalNumberIntoString:function FormatDecimalNumberIntoString()
+FormatMillisecondsIntoDateString:function FormatMillisecondsIntoDateString()
+GameView_GetConstrainCameraEnabled:function GameView_GetConstrainCameraEnabled()
+GameView_GetCullingEnabled:function GameView_GetCullingEnabled()
+GameView_GetLockCullCameraEnabled:function GameView_GetLockCullCameraEnabled()
+GameView_SetConstrainCameraEnabled:function GameView_SetConstrainCameraEnabled()
+GameView_SetCullingEnabled:function GameView_SetCullingEnabled()
+GameView_SetLockCullCameraEnabled:function GameView_SetLockCullCameraEnabled()
+GetAIs:function GetAIs()
+GetAllLocales:function GetAllLocales()
+GetBoardList:function GetBoardList()
+GetBuildTimestamp:function GetBuildTimestamp()
+GetCurrentLocale:function GetCurrentLocale()
+GetDictionariesForLocale:function GetDictionariesForLocale()
+GetDictionaryLocale:function GetDictionaryLocale()
+GetEngineInfo:function GetEngineInfo()
+GetFallbackToAvailableDictLocale:function GetFallbackToAvailableDictLocale()
+GetFileMTime:function GetFileMTime()
+GetFileSize:function GetFileSize()
+GetFollowedEntity:function GetFollowedEntity()
+GetFPS:function GetFPS()
+GetGameList:function GetGameList()
+GetGUIObjectByName:function GetGUIObjectByName()
+GetLocaleBaseName:function GetLocaleBaseName()
+GetLocaleCountry:function GetLocaleCountry()
+GetLocaleLanguage:function GetLocaleLanguage()
+GetLocaleScript:function GetLocaleScript()
+GetMapSettings:function GetMapSettings()
+GetMatchID:function GetMatchID()
+GetPlayerID:function GetPlayerID()
+GetPlayerList:function GetPlayerList()
+GetProfilerState:function GetProfilerState()
+GetSavedGames:function GetSavedGames()
+GetSimRate:function GetSimRate()
+GetSupportedLocaleBaseNames:function GetSupportedLocaleBaseNames()
+GetSupportedLocaleDisplayNames:function GetSupportedLocaleDisplayNames()
+GetTerrainAtScreenPoint:function GetTerrainAtScreenPoint()
+GetUserReportStatus:function GetUserReportStatus()
+GuiInterfaceCall:function GuiInterfaceCall()
+HasXmppClient:function HasXmppClient()
+HotkeyIsPressed:function HotkeyIsPressed()
+IsAtlasRunning:function IsAtlasRunning()
+IsPaused:function IsPaused()
+IsRankedGame:function IsRankedGame()
+IsUserReportEnabled:function IsUserReportEnabled()
+LoadMapSettings:function LoadMapSettings()
+LobbyBan:function LobbyBan()
+LobbyGetNick:function LobbyGetNick()
+LobbyGetPlayerPresence:function LobbyGetPlayerPresence()
+LobbyGetPlayerRole:function LobbyGetPlayerRole()
+LobbyGetRoomSubject:function LobbyGetRoomSubject()
+LobbyGuiPollMessage:function LobbyGuiPollMessage()
+LobbyKick:function LobbyKick()
+LobbySendMessage:function LobbySendMessage()
+LobbySetNick:function LobbySetNick()
+LobbySetPlayerPresence:function LobbySetPlayerPresence()
+MusicPlaying:function MusicPlaying()
+OpenURL:function OpenURL()
+PickEntitiesAtPoint:function PickEntitiesAtPoint()
+PickFriendlyEntitiesInRect:function PickFriendlyEntitiesInRect()
+PickFriendlyEntitiesOnScreen:function PickFriendlyEntitiesOnScreen()
+PickSimilarFriendlyEntities:function PickSimilarFriendlyEntities()
+PlayAmbientSound:function PlayAmbientSound()
+PlayMusic:function PlayMusic()
+PlayUISound:function PlayUISound()
+PollNetworkClient:function PollNetworkClient()
+PopGuiPage:function PopGuiPage()
+PopGuiPageCB:function PopGuiPageCB()
+PostNetworkCommand:function PostNetworkCommand()
+ProfileStart:function ProfileStart()
+ProfileStop:function ProfileStop()
+PushGuiPage:function PushGuiPage()
+QuickLoad:function QuickLoad()
+QuickSave:function QuickSave()
+ReadFile:function ReadFile()
+ReadFileLines:function ReadFileLines()
+ReevaluateCurrentLocaleAndReload:function ReevaluateCurrentLocaleAndReload()
+Renderer_GetDisplayFrustumEnabled:function Renderer_GetDisplayFrustumEnabled()
+Renderer_GetGenTangentsEnabled:function Renderer_GetGenTangentsEnabled()
+Renderer_GetParticlesEnabled:function Renderer_GetParticlesEnabled()
+Renderer_GetPostprocEnabled:function Renderer_GetPostprocEnabled()
+Renderer_GetPreferGLSLEnabled:function Renderer_GetPreferGLSLEnabled()
+Renderer_GetRenderPath:function Renderer_GetRenderPath()
+Renderer_GetShadowPCFEnabled:function Renderer_GetShadowPCFEnabled()
+Renderer_GetShadowsEnabled:function Renderer_GetShadowsEnabled()
+Renderer_GetShowSkyEnabled:function Renderer_GetShowSkyEnabled()
+Renderer_GetSilhouettesEnabled:function Renderer_GetSilhouettesEnabled()
+Renderer_GetSmoothLOSEnabled:function Renderer_GetSmoothLOSEnabled()
+Renderer_GetWaterCoastalWavesEnabled:function Renderer_GetWaterCoastalWavesEnabled()
+Renderer_GetWaterFoamEnabled:function Renderer_GetWaterFoamEnabled()
+Renderer_GetWaterNormalEnabled:function Renderer_GetWaterNormalEnabled()
+Renderer_GetWaterRealDepthEnabled:function Renderer_GetWaterRealDepthEnabled()
+Renderer_GetWaterReflectionEnabled:function Renderer_GetWaterReflectionEnabled()
+Renderer_GetWaterRefractionEnabled:function Renderer_GetWaterRefractionEnabled()
+Renderer_GetWaterShadowEnabled:function Renderer_GetWaterShadowEnabled()
+Renderer_SetDisplayFrustumEnabled:function Renderer_SetDisplayFrustumEnabled()
+Renderer_SetGenTangentsEnabled:function Renderer_SetGenTangentsEnabled()
+Renderer_SetParticlesEnabled:function Renderer_SetParticlesEnabled()
+Renderer_SetPostprocEnabled:function Renderer_SetPostprocEnabled()
+Renderer_SetPreferGLSLEnabled:function Renderer_SetPreferGLSLEnabled()
+Renderer_SetRenderPath:function Renderer_SetRenderPath()
+Renderer_SetShadowPCFEnabled:function Renderer_SetShadowPCFEnabled()
+Renderer_SetShadowsEnabled:function Renderer_SetShadowsEnabled()
+Renderer_SetShowSkyEnabled:function Renderer_SetShowSkyEnabled()
+Renderer_SetSilhouettesEnabled:function Renderer_SetSilhouettesEnabled()
+Renderer_SetSmoothLOSEnabled:function Renderer_SetSmoothLOSEnabled()
+Renderer_SetWaterCoastalWavesEnabled:function Renderer_SetWaterCoastalWavesEnabled()
+Renderer_SetWaterFoamEnabled:function Renderer_SetWaterFoamEnabled()
+Renderer_SetWaterNormalEnabled:function Renderer_SetWaterNormalEnabled()
+Renderer_SetWaterRealDepthEnabled:function Renderer_SetWaterRealDepthEnabled()
+Renderer_SetWaterReflectionEnabled:function Renderer_SetWaterReflectionEnabled()
+Renderer_SetWaterRefractionEnabled:function Renderer_SetWaterRefractionEnabled()
+Renderer_SetWaterShadowEnabled:function Renderer_SetWaterShadowEnabled()
+RestartInAtlas:function RestartInAtlas()
+RewindTimeWarp:function RewindTimeWarp()
+SaveGame:function SaveGame()
+SaveGamePrefix:function SaveGamePrefix()
+SaveLocale:function SaveLocale()
+SendChangeStateGame:function SendChangeStateGame()
+SendGameReport:function SendGameReport()
+SendGetBoardList:function SendGetBoardList()
+SendGetGameList:function SendGetGameList()
+SendGetRatingList:function SendGetRatingList()
+SendNetworkChat:function SendNetworkChat()
+SendNetworkReady:function SendNetworkReady()
+SendRegisterGame:function SendRegisterGame()
+SendUnregisterGame:function SendUnregisterGame()
+SetActionGain:function SetActionGain()
+SetAmbientGain:function SetAmbientGain()
+SetBoundingBoxDebugOverlay:function SetBoundingBoxDebugOverlay()
+SetCameraData:function SetCameraData()
+SetCameraTarget:function SetCameraTarget()
+SetCursor:function SetCursor()
+SetMasterGain:function SetMasterGain()
+SetMusicGain:function SetMusicGain()
+SetNetworkGameAttributes:function SetNetworkGameAttributes()
+SetNetworkPlayerStatus:function SetNetworkPlayerStatus()
+SetPaused:function SetPaused()
+SetPlayerID:function SetPlayerID()
+SetRankedGame:function SetRankedGame()
+SetSimRate:function SetSimRate()
+SetTurnLength:function SetTurnLength()
+SetUIGain:function SetUIGain()
+SetUserReportEnabled:function SetUserReportEnabled()
+StartGame:function StartGame()
+StartMusic:function StartMusic()
+StartNetworkGame:function StartNetworkGame()
+StartNetworkHost:function StartNetworkHost()
+StartNetworkJoin:function StartNetworkJoin()
+StartPlaylist:function StartPlaylist()
+StartRegisterXmppClient:function StartRegisterXmppClient()
+StartSavedGame:function StartSavedGame()
+StartXmppClient:function StartXmppClient()
+StartXTimer:function StartXTimer()
+StopMusic:function StopMusic()
+StopXmppClient:function StopXmppClient()
+StopXTimer:function StopXTimer()
+SubmitUserReport:function SubmitUserReport()
+SwitchGuiPage:function SwitchGuiPage()
+Translate:function Translate()
+TranslateArray:function TranslateArray()
+TranslateLines:function TranslateLines()
+TranslatePlural:function TranslatePlural()
+TranslatePluralWithContext:function TranslatePluralWithContext()
+TranslateWithContext:function TranslateWithContext()
+UseLongStrings:function UseLongStrings()
+ValidateLocale:function ValidateLocale()
+
+
+__eventhandler0 (tick)
+__eventhandler1 (simulationupdate)
+__eventhandler10 (press)
+__eventhandler11 (press)
+__eventhandler12 (press)
+__eventhandler13 (press)
+__eventhandler14 (press)
+__eventhandler15 (press)
+__eventhandler16 (press)
+__eventhandler17 (press)
+__eventhandler18 (press)
+__eventhandler19 (press)
+__eventhandler2 (press)
+__eventhandler20 (press)
+__eventhandler21 (press)
+__eventhandler22 (press)
+__eventhandler23 (press)
+__eventhandler24 (press)
+__eventhandler25 (press)
+__eventhandler26 (press)
+__eventhandler27 (press)
+__eventhandler28 (press)
+__eventhandler29 (press)
+__eventhandler3 (press)
+__eventhandler30 (press)
+__eventhandler31 (press)
+__eventhandler32 (press)
+__eventhandler33 (press)
+__eventhandler34 (press)
+__eventhandler35 (press)
+__eventhandler36 (press)
+__eventhandler37 (press)
+__eventhandler38 (press)
+__eventhandler39 (press)
+__eventhandler4 (press)
+__eventhandler40 (press)
+__eventhandler41 (press)
+__eventhandler42 (press)
+__eventhandler43 (press)
+__eventhandler44 (press)
+__eventhandler45 (tick)
+__eventhandler46 (press)
+__eventhandler47 (press)
+__eventhandler48 (press)
+__eventhandler49 (press)
+__eventhandler5 (press)
+__eventhandler50 (press)
+__eventhandler51 (press)
+__eventhandler52 (press)
+__eventhandler53 (press)
+__eventhandler54 (load)
+__eventhandler55 (press)
+__eventhandler56 (press)
+__eventhandler57 (press)
+__eventhandler58 (press)
+__eventhandler59 (press)
+__eventhandler6 (press)
+__eventhandler60 (press)
+__eventhandler61 (press)
+__eventhandler62 (press)
+__eventhandler63 (press)
+__eventhandler64 (press)
+__eventhandler65 (selectionchange)
+__eventhandler66 (load)
+__eventhandler67 (press)
+__eventhandler68 (press)
+__eventhandler69 (press)
+__eventhandler7 (press)
+__eventhandler70 (press)
+__eventhandler71 (press)
+__eventhandler72 (press)
+__eventhandler73 (press)
+__eventhandler74 (press)
+__eventhandler75 (press)
+__eventhandler76 (press)
+__eventhandler77 (press)
+__eventhandler78 (press)
+__eventhandler79 (mouseenter)
+__eventhandler8 (press)
+__eventhandler80 (mouseleave)
+__eventhandler81 (mouseleftpress)
+__eventhandler82 (mouseleftrelease)
+__eventhandler83 (worldclick)
+__eventhandler84 (press)
+__eventhandler85 (tick)
+__eventhandler86 (press)
+__eventhandler87 (press)
+__eventhandler9 (press)
+_playSound
+_setHighlight
+_setMotionOverlay
+_setStatusBars
+ACTION_GARRISON
+ACTION_GUARD
+ACTION_NONE
+ACTION_REPAIR
+addChatMessage
+addResearchToQueue
+addTrainingByPosition
+addTrainingToQueue
+AMBIENT_TEMPERATE
+armorLevelToPercentageString
+armorTypeDetails
+armorTypesToText
+attackRateDetails
+backToWork
+BARTER_ACTIONS
+BARTER_BUNCH_MULTIPLIER
+BARTER_RESOURCE_AMOUNT_TO_SELL
+BARTER_RESOURCES
+batchIncrementSize
+batchTrainingCount
+batchTrainingEntities
+batchTrainingEntityAllowedCount
+batchTrainingType
+BUTTON_HEIGHT
+cancelPackUnit
+canMoveSelectionIntoFormation
+changeGameSpeed
+changePrimarySelectionGroup
+CHAT_TIMEOUT
+chatMenuButton
+chatMessages
+chatTimers
+cheats
+checkPlayerState
+clearSelection
+clearTimeout
+closeChat
+closeDiplomacy
+closeMenu
+closeOpenDialogs
+closeTrade
+colorFade_attackUnit
+COMMAND
+COMMANDS_PANEL_WIDTH
+CONSTRUCTION
+COST_DISPLAY_NAMES
+currentAmbient
+currIdleClass
+damageTypeDetails
+damageTypesToText
+damageValues
+deepcopy
+DEFAULT_POPULATION_COLOR
+determineAction
+diplomacyMenuButton
+displayMultiple
+displayNotifications
+displaySingle
+doAction
+DoesModificationApply
+doubleClicked
+doubleClickTime
+doubleClickTimer
+doublePressTime
+doublePressTimer
+dragStart
+END_MENU_POSITION
+endOfAlert
+Engine
+EntityGroups
+EntityGroupsContainer
+EntitySelection
+error
+escapeText
+exchangeResources
+exitMenuButton
+fadeColorTick
+FAUNA
+findGatherType
+findGuidForPlayerID
+findIdleUnit
+FLORA
+flushTrainingBatch
+flushTributing
+formatBatchTrainingString
+FORMATION
+formatLimitString
+formatTributeTooltip
+g_AdditionalHighlight
+g_allBuildableEntities
+g_allTrainableEntities
+g_barterSell
+g_CachedLastStates
+g_canMoveIntoFormation
+g_CivData
+g_colorFade
+g_CurrentSpeed
+g_DevSettings
+g_Disconnected
+g_EntityStates
+g_fadeAttackUnit
+g_GameEnded
+g_GameSpeeds
+g_Groups
+g_IsController
+g_IsNetworked
+g_IsObserver
+g_IsTrainingBlocked
+g_MatchID
+g_messageBoxBtnFunctions
+g_messageBoxCallbackArgs
+g_messageBoxCallbackFunction
+g_PlayerAssignments
+g_Players
+g_pluralTranslations
+g_pluralTranslationsWithContext
+g_previousHeroHitPoints
+g_Selection
+g_ShowAllStatusBars
+g_ShowGuarded
+g_ShowGuarding
+g_SimState
+g_TechnologyData
+g_TemplateData
+g_TemplateDataWithoutLocalization
+g_Time
+g_TimerID
+g_Timers
+g_translations
+g_translationsWithContext
+g_unitPanelButtons
+g_unitPanels
+GARRISON
+GATE
+GATE_ACTIONS
+GEOLOGY
+getActionInfo
+getAllBuildableEntities
+getAllBuildableEntitiesFromSelection
+getAllTrainableEntities
+getAllTrainableEntitiesFromSelection
+getAttackTypeLabel
+getBuildingsWhichCanTrainEntity
+getBuildString
+getCheatsData
+getCostComponentDisplayName
+getEntityAttack
+getEntityCommandsList
+getEntityCostComponentsTooltipString
+getEntityCostTooltip
+getEntityLimitAndCount
+getEntityNames
+getEntityNamesFormatted
+getEntityOrHolder
+getEntityRankedName
+getEntitySpeed
+GetEntityState
+GetExtendedEntityState
+getHotloadData
+getInitColorFadeRGB
+getJSONFileList
+getLocalizedResourceName
+getMilitaryEntities
+getNeededResourcesTooltip
+getPlayerData
+getPopulationBonusTooltip
+getPreferredEntities
+getRandom
+getRankIconSprite
+getResourceTypeDisplayName
+getSavedGameData
+GetSimState
+getStanceDisplayName
+GetTechModifiedProperty
+GetTechnologyData
+GetTemplateData
+GetTemplateDataWithoutLocalization
+getTradingTooltip
+getTrainingBatchStatus
+getUsernameAndColor
+getWallGateTemplate
+getWallPieceTooltip
+getXMLFileList
+global
+handleInputAfterGui
+handleInputBeforeGui
+handleMinimapEvent
+handleNetMessage
+handleNotifications
+hasClass
+hideUnitCommands
+HIGHLIGHTED_ALPHA
+iColorToString
+increaseAlertLevel
+init
+initGameSpeeds
+INITIAL_MENU_POSITION
+initMapSizes
+initMenuPosition
+initMusic
+initPlayerDefaults
+INPUT_BANDBOXING
+INPUT_BATCHTRAINING
+INPUT_BUILDING_CLICK
+INPUT_BUILDING_DRAG
+INPUT_BUILDING_PLACEMENT
+INPUT_BUILDING_WALL_CLICK
+INPUT_BUILDING_WALL_PATHING
+INPUT_MASSTRIBUTING
+INPUT_NORMAL
+INPUT_PRESELECTEDACTION
+INPUT_SELECTING
+inputState
+isColorFadeRunning
+isDiplomacyOpen
+isMenuOpen
+isNonEmptyString
+isTradeOpen
+jumpCamera
+jumpCameraLast
+jumpCameraPositions
+lastIdleType
+lastIdleUnit
+lastTickTime
+lastXmppClientPoll
+layoutButtonRow
+layoutButtonRowCentered
+layoutRow
+layoutSelectionMultiple
+layoutSelectionSingle
+leaveGame
+loadCivData
+lockGate
+log
+MARGIN
+markForTranslation
+markForTranslationWithContext
+MAX_NUM_CHAT_LINES
+MAX_NUM_NOTIFICATION_LINES
+MAX_SELECTION_SIZE
+maxDragDelta
+menu
+MENU_BOTTOM
+MENU_SPEED
+MENU_TOP
+messageBox
+mouseIsOverObject
+mouseX
+mouseY
+multiplyEntityCosts
+Music
+networkReturnQuestion
+NOTIFICATION_TIMEOUT
+notifications
+notificationsTimers
+NUM_BUTTONS
+onSelectionChange
+onSimulationUpdate
+onTick
+openChat
+openDeleteDialog
+openDiplomacy
+openManual
+openMenu
+openSave
+openSettings
+openTrade
+openURL
+PACK
+packUnit
+parseChatCommands
+parseJSONData
+parseJSONFromDataFile
+PAUSE
+pauseGame
+pauseMenuButton
+performCommand
+performFormation
+performGroup
+performStance
+PlacementSupport
+placementSupport
+playRandomAmbient
+POPULATION_ALERT_COLOR
+preSelectedAction
+prevClickedEntity
+prevHotkey
+print
+QUEUE
+recalculateStatusBarDisplay
+removeDupes
+removeFromProductionQueue
+removeGuard
+removeOldChatMessages
+removeOldNotifications
+reportGame
+reportPerformance
+RESEARCH
+resetIdleUnit
+resignGame
+resignMenuButton
+RESOURCES
+restartColorFade
+restoreSavedGameData
+RESUME
+resumeGame
+sanitizePlayerName
+SDL_BUTTON_LEFT
+SDL_BUTTON_MIDDLE
+SDL_BUTTON_RIGHT
+SDLK_LALT
+SDLK_LCTRL
+SDLK_LEFTBRACKET
+SDLK_LSHIFT
+SDLK_RALT
+SDLK_RCTRL
+SDLK_RIGHTBRACKET
+SDLK_RSHIFT
+selectAndMoveTo
+SELECTION
+SELECTION_SEARCH_RADIUS
+selectRequiredGoods
+selectViewPlayer
+setCameraFollow
+setDiplomacy
+setJumpCamera
+setNewTimerFunction
+setOverlay
+setTimeout
+settingsMenuButton
+setupUnitBarterPanel
+setupUnitPanel
+setupUnitTradingPanel
+showTimeWarpMessageBox
+shuffleArray
+smoothColorFadeRestart_attackUnit
+sortNameIgnoreCase
+SPECIAL
+sprintf
+STANCE
+startBuildingPlacement
+startColorFade
+STEP
+stopAmbient
+stopColorFade
+stopUnits
+submitChatDirectly
+submitChatInput
+timeToString
+toggleChatWindow
+toggleDeveloperOverlay
+toggleDiplomacy
+toggleGameSpeed
+toggleMenu
+togglePause
+toggleTrade
+toTitleCase
+TRADING
+TRADING_RESOURCES
+TRAINING
+transformWallToGate
+translate
+translateMessageObject
+translateObjectKeys
+translatePlural
+translatePluralWithContext
+translateWithContext
+tributeResource
+tryPlaceBuilding
+tryPlaceWall
+UNIT_PANEL_BASE
+UNIT_PANEL_HEIGHT
+unload
+unloadAll
+unloadTemplate
+updateAdditionalHighlight
+updateBuildingPlacementPreview
+updateCursorAndTooltip
+updateDebug
+updateFPS
+updateGroups
+updateGUIStatusBar
+updateHero
+updateMenuPosition
+updatePlayerDataAdd
+updatePlayerDataRemove
+updatePlayerDisplay
+updateResearchDisplay
+updateSelectionDetails
+updateTimeElapsedCounter
+updateTimeNotifications
+updateTimers
+updateUnitCommands
+Vector2D
+Vector2Dprototype
+Vector3D
+Vector3Dprototype
+vsprintf
+warn

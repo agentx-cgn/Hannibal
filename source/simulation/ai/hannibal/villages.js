@@ -3,243 +3,255 @@
 
 /*--------------- V I L L A G E S ---------------------------------------------
 
-  Organizes structures and units around civic centres
-  
+  Organizes structures around civic centres,
+  appoints mayor and custodians
 
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
 
 */
 
 
 HANNIBAL = (function(H){
 
-  function isShared (ent){
-    var klasses = ent.classes().map(String.toLowerCase);
-    return H.Config.data.sharedBuildingClasses.some(function(klass){
-      return H.contains(klasses, klass);
-    });
-  }
+  H.LIB.Villages = function(context){
 
-  H.Villages = (function(){
+    this.context = context;
 
-    var self, groups;
+    H.extend(this, {
+      centre: {id: 0},
+      centres: [],
+      buildings: [],
+    },
+    context.villages);
 
-    return {
-      Centre: {
-        id: null
-      },
-      log:  function(){},
-      boot: function(){self = this; return this;},
-      init: function(){
-        self.organizeVillage();
-        self.prepareMeta();
-        self.appointOperators();        
-      },
-      tick: function(){},
-      activate: function(){
+  };
 
-        H.Events.on("ConstructionFinished", function (msg){
+  H.LIB.Villages.prototype = {
+    contructor: H.LIB.Villages,
+    import: function(){
+      this.id       = this.context.id;
+      this.map      = this.context.map;
+      this.query    = this.context.query;
+      this.events   = this.context.events;
+      this.groups   = this.context.groups;
+      this.config   = this.context.config;
+      this.objects  = this.context.objects;
+      this.entities = this.context.entities;
+      this.metadata = this.context.metadata;
+    },
+    clone: function(){
+      return new H.LIB.Villages(this.serialize());
+    },
+    serialize: function(){
+      return {
+        centre:    H.deepcopy(this.centre),
+        centres:   H.deepcopy(this.centres),
+        buildings: H.deepcopy(this.buildings),
+      };
+    },
+    log: function(){},
+    initialize: function(){
+      this.organizeVillage();
+      this.prepareMeta();
+      this.appointOperators();        
+    },
+    activate: function(){
 
-          var order = H.Objects(H.MetaData[msg.id].order);
+      this.events.on("ConstructionFinished", function (msg){
 
-          if (order.cc){
-            H.MetaData[msg.id].cc = order.cc;
-            // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
-          }
+        var order = this.objects(this.metadata[msg.id].order);
 
-        });
+        if (order.cc){
+          this.metadata[msg.id].cc = order.cc;
+          // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
+        }
 
-        H.Events.on("BroadCast", function (msg){
+      });
 
-          if (msg.data.group === "g.builder"){
+      this.events.on("BroadCast", function (msg){
 
-          }
+        if (msg.data.group === "g.builder"){
 
-        });
+        }
 
+      });
 
-      },
-      getPhaseNecessities: function(options){ // phase, centre, tick
-        
-        var 
-          cls = H.class2name,
-          cc  = options.centre,
-          housePopu = H.QRY(cls("house")).first().costs.population * -1,
+    },
+    isShared: function (ent){
+      var klasses = ent.classes().map(String.toLowerCase);
+      return this.config.data.sharedBuildingClasses.some(function(klass){
+        return H.contains(klasses, klass);
+      });
+    },
+    getPhaseNecessities: function(options){ // phase, centre, tick
+      
+      var 
+        cls = H.class2name,
+        cc  = options.centre,
+        housePopu = this.query(cls("house")).first().costs.population * -1,
 
-          technologies = [],
-          launches = {
+        messages = [],
+        technologies = [],
+        launches = {
 
-            "phase.village": [
+          "phase.village": [
 
-               //  tck, amount,       group,        params
-               [  3, [1, "g.mayor",       {cc: cc, size: 0}]],
-               [  3, [1, "g.custodian",   {cc: cc, size: 0}]],
+             //  tck, amount,       group,        params
+             [  3, [1, "g.mayor",       {cc: cc, size: 0}]],
+             [  3, [1, "g.custodian",   {cc: cc, size: 0}]],
 
-            ],
-            "phase.town" :   [],
-            "phase.city" :   [],
-          };
-
-        return {
-          launches: launches,
-          technologies: technologies,
-          messages: messages,
+          ],
+          "phase.town" :   [],
+          "phase.city" :   [],
         };
 
-      },      
-      organizeVillage: function (){
+      return {
+        launches: launches,
+        technologies: technologies,
+        messages: messages,
+      };
 
-        var cics = {}, nodesCics, main;
+    },      
 
-        function getMain(){
-          var max = 0, cic;
-          H.each(cics, function(id, amount){
-            if (amount > max){cic = id; max = amount;}
-          });
-          return ~~cic;
-        }
+    organizeVillage: function (){
 
-        // new H.HCQ(H.Bot.culture.store, "civcentre CONTAIN INGAME").execute("metadata", 5, 20, "ingame cc at init");
-        // new H.HCQ(H.Bot.culture.store, "INGAME").execute("metadata", 5, 40, "ingame cc at init");
+      var cics = {}, nodesCics, main;
 
-        nodesCics = H.QRY("civcentre CONTAIN INGAME").forEach(function(node){
-          cics[node.id] = 0;
-        });
-
-        if (!nodesCics.length){
-          deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
-        }
-
-        deb();deb();
-        deb("  VILL: organize villages for %s civic centres [%s]", nodesCics.length, nodesCics.map(function(c){return c.id;}).join(", "));
-        
-        H.QRY("INGAME").forEach(function(node){
-
-          var name = node.name.split("#")[0],
-              posNode = node.position,
-              posCic, dis, distance = 1e7;
-
-          H.MetaData[node.id] = H.MetaData[node.id] || {};
-
-          // the path for non CC
-          if (H.QRY(name + " MEMBER WITH name = 'civcentre'").execute().length === 0){
-
-            nodesCics.forEach(function(cic){
-              posCic = cic.position;
-              dis = H.Map.distance(posCic, posNode);
-              if (dis < distance){
-                H.MetaData[node.id].cc = cic.id;
-                distance = dis;
-              }
-            });
-
-            // deb("     I: chosing cc: %s at %s for [%s %s] at %s", 
-            //   H.MetaData[node.id].cc, H.toFixed(posCic), name, node.id, H.toFixed(posNode));
-
-            cics[H.MetaData[node.id].cc] += 1;
-
-
-          // CCs have themself as cc
-          } else {
-            H.MetaData[node.id].cc = node.id;
-
-          }
-
-        });
-
-        main = getMain();
-
+      function getMain(){
+        var max = 0, cic;
         H.each(cics, function(id, amount){
-          deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === main ? "X" : ""));
+          if (amount > max){cic = id; max = amount;}
         });
-
-        H.Villages.Centre.id = main;
-
-      },    
-      prepareMeta: function (){
-
-        deb("     V: setting operators for shared buildings and Main CC in metadata");
-
-        //TODO: test for multiple villages
-
-        H.each(H.Entities, function(id, ent){
-
-          if (ent.owner() === H.Bot.id){
-
-            if (ent.hasClass("Unit")){
-              H.MetaData[id].opname = "none";
-              // ent.setMetadata(H.Bot.id, "opname", "none");
-              // deb("     V: set opname to 'none' %s", ent);
-
-            } else if (ent.hasClass("Structure")){
-
-              if (ent.id() === H.Villages.Centre.id){
-                H.MetaData[id].opname = "g.mayor";
-                // ent.setMetadata(H.Bot.id, "opname", "g.mayor");
-                deb("     V: set opname to 'g.mayor' for %s", ent);
-
-              } else if (isShared(ent)){
-                H.MetaData[id].opname = "g.custodian";
-                // ent.setMetadata(H.Bot.id, "opname", "g.custodian");
-                deb("     V: set opname to 'g.custodian' for %s", ent);
-              
-
-              } else {
-                H.MetaData[id].opname = "none";
-                // ent.setMetadata(H.Bot.id, "opname", "none");
-                // deb("     V: set opname to 'none' for %s", ent);
-              
-              }
-
-            } else {
-              deb("WARN  : prepareMeta unhandled entity: %s classes: %s", ent, ent.classes());
-
-            }
-
-          }
-
-        });
-
-
-      },
-      appointOperators: function (){
-
-        var opname;
-
-        deb("     V: appointing operators for structures");
-
-        H.QRY("INGAME").forEach(function(node){
-
-          opname = node.metadata.opname;
-
-          // deb("     V: 1 %s %s", node.name, uneval(node.metadata));
-          
-          if (opname === 'none'){
-            // deb("     V: 2 %s %s", node.name, opname);
-            // do nothing, is unit
-
-          } else if (opname === "g.custodian"){
-            deb("     V: 2 %s %s", node.name, opname);
-            H.Groups.appoint(node.id, {name: "g.custodian", cc: H.MetaData[node.id].cc});
-
-          } else if (opname === "g.mayor"){
-            deb("     V: 2 %s %s", node.name, opname);
-            H.Groups.appoint(node.id, {name: "g.mayor", cc: H.MetaData[node.id].cc});
-            // H.Groups.appoint("g.mayor", node.id, {});
-
-          } else {
-            H.throw("huhu");
-            deb("ERROR : appointOperators: don't know to handle %s as operator for %s", opname, node.name);
-
-          }
-
-        });
-
+        return ~~cic;
       }
 
-    };
+      nodesCics = this.query("civcentre CONTAIN INGAME").forEach( node => {
+        cics[node.id] = 0;
+      });
 
-  }()).boot();
+      if (!nodesCics.length){
+        deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
+      }
+
+      deb();deb();
+      deb("  VILL: organize villages for %s civic centres [%s]", nodesCics.length, nodesCics.map(c => c.id).join(", "));
+      
+      this.query("INGAME").forEach(function(node){
+
+        var 
+          name = node.name.split("#")[0],
+          posNode = node.position,
+          posCic, dis, distance = 1e7;
+
+        if (this.query(name + " MEMBER WITH name = 'civcentre'").execute().length === 0){
+
+          // find nearest CC
+          nodesCics.forEach( cic => {
+            posCic = cic.position;
+            dis = this.map.distance(posCic, posNode);
+            if (dis < distance){
+              this.metadata[node.id].cc = cic.id;
+              distance = dis;
+            }
+          });
+
+          cics[this.metadata[node.id].cc] += 1;
+
+        } else {
+          // CCs have themself as cc
+          this.metadata[node.id].cc = node.id;
+
+        }
+
+      });
+
+      main = getMain();
+
+      H.each(cics, function(id, amount){
+        deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === main ? "X" : ""));
+      });
+
+      this.centre.id = main;
+
+    },    
+
+    prepareMeta: function (){
+
+      deb("     V: setting operators for shared buildings and Main CC in metadata");
+
+      //TODO: test for multiple villages
+
+      H.each(this.entities, function(id, ent){
+
+        if (ent.owner() === this.id){
+
+          if (ent.hasClass("Unit")){
+            this.metadata[id].opname = "none";
+            // deb("     V: set opname to 'none' %s", ent);
+
+          } else if (ent.hasClass("Structure")){
+
+            if (ent.id() === this.centre.id){
+              this.metadata[id].opname = "g.mayor";
+              // deb("     V: set opname to 'g.mayor' for %s", ent);
+
+            } else if (this.isShared(ent)){
+              this.metadata[id].opname = "g.custodian";
+              // deb("     V: set opname to 'g.custodian' for %s", ent);
+
+            } else {
+              this.metadata[id].opname = "none";
+              // deb("     V: set opname to 'none' for %s", ent);
+            
+            }
+
+          } else {
+            deb("WARN  : prepareMeta unhandled entity: %s classes: %s", ent, ent.classes());
+
+          }
+
+        }
+
+      });
+
+
+    },
+
+    appointOperators: function (){
+
+      var opname;
+
+      deb("     V: appointing operators for structures");
+
+      this.query("INGAME").forEach(function(node){
+
+        opname = node.metadata.opname;
+
+        // deb("     V: 1 %s %s", node.name, uneval(node.metadata));
+        
+        if (opname === "none"){
+          // do nothing, is unit
+
+        } else if (opname === "g.custodian"){
+          deb("     V: 2 %s %s", node.name, opname);
+          this.groups.appoint(node.id, {name: "g.custodian", cc: this.metadata[node.id].cc});
+
+        } else if (opname === "g.mayor"){
+          deb("     V: 2 %s %s", node.name, opname);
+          this.groups.appoint(node.id, {name: "g.mayor", cc: this.metadata[node.id].cc});
+          // H.Groups.appoint("g.mayor", node.id, {});
+
+        } else {
+          H.throw("huhu");
+          deb("ERROR : appointOperators: don't know to handle %s as operator for %s", opname, node.name);
+
+        }
+
+      });
+
+    }
+
+  };
 
 return H; }(HANNIBAL));  

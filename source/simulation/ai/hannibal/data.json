@@ -2,6 +2,6 @@
   "name": "Hannibal",
   "description": "Advanced 0 A.D AI/Bot",
   "moduleName" : "HANNIBAL",
-  "constructor": "Hannibal",
+  "constructor": "Launcher",
   "useShared": true
 }
