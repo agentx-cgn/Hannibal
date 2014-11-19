@@ -6,70 +6,146 @@
   Models features of 0 A.D. civilisations as mesh network based on a triple store.
   
 
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, NOV, 2014
 
 */
 
 
 HANNIBAL = (function(H){
 
-  H.Culture = function(tree, debug){
+  H.LIB.Culture = function(context){
 
-    deb();deb();deb("  CULT: build culture/store for player id: %s, %s", tree.id, tree.civ);
+    H.extend(this, {
 
-    this.debug = debug || 0;
+      name:    "culture",
+      context: context,
+      imports: [
+        "players",
+        "entities",
+        "events",
+        "templates",
+        "techtemplates",
+      ],
 
-    this.civ  = tree.civ;
-    this.tree = tree;
-    this.tree.culture = this;
+      civ :   "",
+      tree:   null,
+      store:  null,
+      phases: null,
 
-    this.verbs = H.Data.verbs;
-    this.store = new H.Store(tree.civ);
-    this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
+      verbs: H.Data.verbs,
 
-    // stores nodes found in templates
-    this.classes = [];
-    this.technologies = [];
-    this.resources = [];
-    this.resourcetypes = [];
+      // stores nodes found in templates
+      classes:       [],
+      technologies:  [],
+      resources:     [],
+      resourcetypes: [],
+
+    });
 
   };
 
-  H.Culture.prototype = {
-    constructor: H.Culture,
-    activate: function(){
+  // H.Culture = function(tree, debug){
 
-      // is first listener, removes are postponed one tick
+  //   deb();deb();deb("  CULT: build culture/store for player id: %s, %s", tree.id, tree.civ);
+
+  //   this.debug = debug || 0;
+
+  //   this.civ  = tree.civ;
+  //   this.tree = tree;
+  //   this.tree.culture = this;
+
+  //   this.verbs = H.Data.verbs;
+  //   this.store = new H.LIB.Store(tree.civ);
+  //   this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
+
+  //   // stores nodes found in templates
+  //   this.classes = [];
+  //   this.technologies = [];
+  //   this.resources = [];
+  //   this.resourcetypes = [];
+
+  // };
+
+  H.LIB.Culture.prototype = {
+    constructor: H.Culture,
+    import: function (){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    clone: function (context){
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
+    },
+    serialize: function (){
+
+      var data = {};
+
+      data.tree  = this.tree.serialize();
+      data.store = this.store.serialize();
+
+      return data;
+
+    },
+    deserialize: function (){
+
+      if (this.context.data.culture !== null){
+
+        this.civ = this.players[this.context.id].civ; 
+
+      }
+
+    },
+    initialize: function (){
+
+      if (this.context.data.culture !== null){
+
+        this.civ = this.players[this.context.id].civ; 
+
+        this.phases = new H.LIB.Phases(this.context);
+
+        this.store = new H.LIB.Store(this.context);
+        this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
+
+        this.tree = new H.LIB.Tree(this.context);
+
+        this.searchTemplates();          // extrcact classes, resources, etc from templates
+        this.loadNodes();                // turn templates to nodes
+        this.loadEdges();                // add edges
+        this.loadEntities();             // from game to triple store
+        this.loadTechnologies();         // from game to triple store
+
+      }
+
+    },
+    activate: function (){
 
       var self = this;
 
-      H.Events.on("TrainingFinished", this.tree.id, function (msg){
+      this.events.on("TrainingFinished", function (msg){
         self.loadById(msg.id);
       });
 
-      H.Events.on("EntityRenamed", this.tree.id, function (msg){
+      this.events.on("EntityRenamed", function (msg){
         self.loadById(msg.id2);
         H.Triggers.add(-1, self.removeById.bind(self, msg.id));
         // self.removeById(msg.id);
       });
 
-      H.Events.on("AIMetadata", this.tree.id, function (msg){
+      this.events.on("AIMetadata", function (msg){
         self.loadById(msg.id);
       });
 
-      H.Events.on("Destroy", this.tree.id, function (msg){
+      this.events.on("Destroy", function (msg){
         if (!msg.data.foundation){
           self.removeById(msg.id);
         }
       });
 
-      H.Events.on("Advance", this.tree.id, function (msg){
+      this.events.on("Advance", this.tree.id, function (msg){
         // self.loadByName(msg.data.technology);
       });
-
-
     },
+
     finalize: function(){
 
       // remove some attributes from nodes

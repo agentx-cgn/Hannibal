@@ -16,23 +16,23 @@ HANNIBAL = (function(H){
 
   H.LIB.Phases = function(context){
 
-    this.name = "phases";
-    this.context = context;
-    this.imports = [
-      "query",
-      "culture",
-      "templates",
-      "techtemplates",
-    ];
-
     H.extend(this, {
+
+      name:     "phases",
+      context:  context,
+      imports:  [
+        "query",
+        "culture",
+        "templates",
+        "techtemplates",
+      ],
+
       "1" : {idx: 1, abbr: "vill", next: "", generic: "phase_village", alternates: ["vill", "phase_village"]},
       "2" : {idx: 2, abbr: "town", next: "", generic: "phase_town",    alternates: ["town", "phase_town"]},
       "3" : {idx: 3, abbr: "city", next: "", generic: "phase_city",    alternates: ["city", "phase_city"]},
       current: "",
-    },
-      context.saved[this.name]
-    );
+
+    });
 
   };
 

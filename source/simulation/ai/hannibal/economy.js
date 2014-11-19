@@ -31,15 +31,17 @@ HANNIBAL = (function(H){
   H.LIB.Stats = function(context){
 
     var 
-      bufferLength = context.config.lengthStatsBuffer,
+      bufferLength = context.config.stats.lengthStatsBuffer,
       ress = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0};
 
-    this.context = context;
-    this.imports = [
-      "player"
-    ];
-
     H.extend(this, {
+
+      name:     "stats",
+      context:  context,
+      imports:  [
+        "player"
+      ],
+
       stock: H.deepcopy(ress), 
       // totals gathered, difference per tick, flow = avg over diff
       suply: H.deepcopy(ress), 
@@ -49,8 +51,8 @@ HANNIBAL = (function(H){
       forec: H.deepcopy(ress), // ???
       trend: H.deepcopy(ress), // as per suply
       stack: H.map(ress, H.createRingBuffer.bind(null, bufferLength)), // last x stock vals
-    }, 
-    context.saved.stats);
+
+    });
 
   };
 

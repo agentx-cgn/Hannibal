@@ -16,34 +16,38 @@ HANNIBAL = (function(H){
 
   H.LIB.Villages = function(context){
 
-    this.name = "villages";
-    this.context = context;
-
     H.extend(this, {
+
+      name:  "villages",
+      context:  context,
+      imports:  [
+        "id",
+        "map",
+        "query",
+        "events",
+        "groups",
+        "config",
+        "objects",
+        "entities",
+        "metadata",
+      ],
+
       centre: {id: 0},
       centres: [],
       buildings: [],
-    },
-    context.saved.villages);
+      
+   });
 
   };
 
   H.LIB.Villages.prototype = {
     contructor: H.LIB.Villages,
     import: function(){
-      this.id       = this.context.id;
-      this.map      = this.context.map;
-      this.query    = this.context.query;
-      this.events   = this.context.events;
-      this.groups   = this.context.groups;
-      this.config   = this.context.config;
-      this.objects  = this.context.objects;
-      this.entities = this.context.entities;
-      this.metadata = this.context.metadata;
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
     },
     clone: function(context){
-      H.extend(context.saved, {villages: this.serialize()});
-      return new H.LIB.Villages(context);
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
       return {

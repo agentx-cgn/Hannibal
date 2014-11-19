@@ -208,7 +208,7 @@ HANNIBAL = (function(H) {
 
     // a statistics extension, interacts with launcher.py
 
-    var ss, key = 0, resolution = 10;
+    var ss, gs, key = 0, resolution = 10;
 
     function out (data) {print(data + "\n");}
     function append (data){out("#! append 1 :" + data);}
@@ -231,7 +231,7 @@ HANNIBAL = (function(H) {
 
       data = {
         key:        key,
-        secs:       (H.GameState.timeElapsed/1000).toFixed(1),
+        secs:       (gs.timeElapsed/1000).toFixed(1),
         pid:        id,
         phase:      pd.phase,
         food:       pd.resourceCounts.food,
@@ -249,7 +249,7 @@ HANNIBAL = (function(H) {
         popmax:     pd.popMax,
         explored:   st.percentMapExplored,
         techs:      Object.keys(pd.researchedTechs).length,
-        msecs:      H.Bot.timing.all,
+        // msecs:      H.Launcher.timing.all,
       };
 
       key += 1;
@@ -262,8 +262,9 @@ HANNIBAL = (function(H) {
     } 
 
     return {
-      init: function(){
-        ss = H.SharedScript;
+      init: function(sharedscript, gamestate){
+        ss = sharedscript;
+        gs = gamestate;
         resolution = H.Config.numerus.resolution;
         deb();deb();deb(" STATS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
         out("#! open 1 " + H.Config.numerus.file);

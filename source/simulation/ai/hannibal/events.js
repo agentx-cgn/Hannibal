@@ -1,202 +1,26 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, deb, uneval, logFn, logDispatcher */
 
 /*--------------- E V E N T S -------------------------------------------------
 
   Collects, processes and dispatches incoming events.
 
 
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, NOV, 2014
 
 */
 
 
 HANNIBAL = (function(H){
 
-  var self,
-
-    // collects events packs per turn
-    packs = [],
-
-    // log line
-    msgTick = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s",
-
-    // helps to ignore events
-    createEvents    = {},
-    destroyEvents   = {},
-
-    //  see AIInterfaces.js
-    orderedEvents = [
-      "Create", 
-      "EntityRenamed",
-      "TrainingFinished",
-      "ConstructionFinished",
-      "AIMetadata",
-      "Destroy",
-      "Attacked",
-      "OwnershipChanged",
-      "Garrison",
-      "UnGarrison",
-      "RangeUpdate",
-      "PlayerDefeated",
-    ],
-
-    internalEvents = [
-      "OrderReady",
-      "BroadCast",
-    ], 
-
-    // saves the listeners
-    dispatcher = {
-      "*": {"*": []},
-      "0": {"*": []},
-      "1": {"*": []},
-      "2": {"*": []},
-      "3": {"*": []},
-      "4": {"*": []},
-      "5": {"*": []},
-      "6": {"*": []},
-      "7": {"*": []},
-      "8": {"*": []},
-    },
-
-    // list of techs per player
-    researchedTechs = {
-      "0": [],
-      "1": [],
-      "2": [],
-      "3": [],
-      "4": [],
-      "5": [],
-      "6": [],
-      "7": [],
-      "8": [],
-    },
-
-    // converts 0AD events to Hannibal messages
-    handler = {
-      Create: function(e){}, 
-      OwnershipChanged: function(e){},
-      Garrison: function(e){},
-      UnGarrison: function(e){},
-      RangeUpdate: function(e){},
-      PlayerDefeated: function(e){},
-      EntityRenamed: function(e){
-
-        // listener: assets, culture, producers
-
-        var msg = self.fire("EntityRenamed", {
-          player: H.Entities[e.newentity].owner(),
-          id:     e.entity,
-          id2:    e.newentity,
-        });
-
-        moveAllListener(msg);
-
-        destroyEvents[e.entity] = e; //????
-
-      },
-      TrainingFinished: function(e){
-
-        // listener: assets, villages, producers
-
-        e.entities.forEach(function(id){
-
-          self.fire("TrainingFinished", {
-            player: e.owner,
-            id:     id,
-            data:   e.metadata,
-          });
-
-        });
-
-      },
-      ConstructionFinished: function(e){
-
-        // listener: assets, culture, groups
-
-        var msg = self.fire("ConstructionFinished", {
-          player: H.Entities[e.newentity].owner(),
-          id:     e.newentity,
-          // id2:    e.newentity,
-        });
-
-        moveAllListener(msg);
-
-      },
-      AIMetadata: function(e){
-
-        // listener: assets, culture, groups
-
-        self.fire("AIMetadata", {
-          player: e.owner,
-          id:     e.id,
-          data:   e.metadata,
-        });
-
-      },
-      Destroy: function(e){
-
-        // listener: assets, culture, mili?
-        // TODO are foundations removed from triple store by Renamed?
-
-        if (!e.entityObj){
-          deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
-          return;
-        }
-
-        if (!!e.SuccessfulFoundation){
-          // deb("   EVT: foundation ready");
-          return;
-        }
-
-        // dont't do this it crashes
-        // data:   {entity: e.entityObj, foundation: !!e.SuccessfulFoundation},
-
-        var msg = self.fire("Destroy", {
-          player: e.entityObj.owner(),
-          id:     e.entity,
-        });
-
-        if (dispatcher[msg.player][msg.id]){
-          // delete(dispatcher[msg.player][msg.id]);
-        }
-
-      },
-      Attacked: function(e){
-
-        // listener: assets, grids, mili?
-
-        // deb("   EVT: got attacked: %s", uneval(e));
-
-        if (H.Entities[e.target]){
-
-          self.fire("Attacked", {
-            player: H.Entities[e.target].owner(),
-            id:     e.target,
-            id2:    e.attacker,
-            data:   {damage: e.damage, type: e.type},
-          });
-
-        }
-
-      },
-    };
-
-  // loggable functions
-  function logFn(fn){return fn.toString().split("\n").join("").slice(0, 80);}
-
-  function logDispatcher(){
-    deb("  "); deb("      : Dispatcher");
-    H.each(H.Dispatcher, function(id, ar){
-      var tpl = H.Entities[id] ? H.Entities[id]._templateName : "???";
-      deb("  %s: len: %s, tpl: %s", H.tab(id, 4), ar.length, tpl);
-    });
-    deb("  "); 
-  }
+  // log line
+  var msgTick = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s";
 
   function Message (name, msg) {
+
+    // this is send around, has the mandatory default attributes
+
     H.extend(this, {
       player:  null,
       name:    name,
@@ -204,185 +28,500 @@ HANNIBAL = (function(H){
       id2:        0,
       data:      {},
     }, msg);
-  }
-  
-  function dispatchMessage (msg) {
-
-    var listeners = H.unique([].concat(
-      dispatcher["*"],
-      dispatcher[msg.player]["*"],
-      dispatcher[msg.player][msg.name] ? dispatcher[msg.player][msg.name] : [],
-      dispatcher[msg.player][msg.id]   ? dispatcher[msg.player][msg.id] : []
-    )).filter(l => typeof l === "function");
-
-    // deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
-
-    listeners.forEach(l => l(msg));
-
-    return msg;
 
   }
-
-  // puts a single listener into the dispatcher
-  function registerListener(player, type, listener){
-
-    if (dispatcher[player][type] === undefined){
-      dispatcher[player][type] = [listener];
       
-    } else if (!H.contains(dispatcher[player][type], listener)){
-      dispatcher[player][type].push(listener);
 
-    } else {
-      deb("WARN  : duplicate listener: %s %s, %s", player, type, logFn(listener));
+  H.LIB.Events = function(context){
 
-    }
+    H.extend(this, {
 
-  }
+      name: "events",
+      context: context,
+      imports: [
+        "players",
+        "entities", // owner
+      ],
 
-  // remove single listener
-  function removeListener (player, type, listener){
+      // events from other turns
+      savedEvents: null,
 
-    if (dispatcher[player][type]){
-      H.delete(dispatcher[player][type], l => l === listener);
-      if (dispatcher[player][type].length === 0){
-        delete(dispatcher[player][type]);
-      }
-    }
+      // helps to ignore events
+      createEvents:     {},
+      destroyEvents:    {},
 
-  }
+      //  see AIInterfaces.js
+      orderedEvents:  [
+        "Create", 
+        "EntityRenamed",
+        "TrainingFinished",
+        "ConstructionFinished",
+        "AIMetadata",
+        "Destroy",
+        "Attacked",
+        "OwnershipChanged",
+        "Garrison",
+        "UnGarrison",
+        "RangeUpdate",
+        "PlayerDefeated",
+      ],
 
-  function moveAllListener(msg){
+      internalEvents:  [
+        "OrderReady",
+        "BroadCast",
+      ],
 
-    // move from msg.id to msg.id2
+      // saves the listeners
+      dispatcher:  {
+        "*": {"*": []},
+        "0": {"*": []},
+        "1": {"*": []},
+        "2": {"*": []},
+        "3": {"*": []},
+        "4": {"*": []},
+        "5": {"*": []},
+        "6": {"*": []},
+        "7": {"*": []},
+        "8": {"*": []},
+      },
 
-    var id1 = msg.id, id2 = msg.id2;
+      // list of researched techs per player
+      researchedTechs:  {
+        "0": [],
+        "1": [],
+        "2": [],
+        "3": [],
+        "4": [],
+        "5": [],
+        "6": [],
+        "7": [],
+        "8": [],
+      },
 
-    if (dispatcher[msg.player][id2]){
-      dispatcher[msg.player][id2].forEach(listener => registerListener(msg.player, id1, listener));
-      delete(dispatcher[msg.player][id2]);
-    }
-
-  }
-
-  // detects new techs and fires "Advance"
-  function processTechs () {
-
-    H.each(H.Players, function (id, player) {
-      H.each(player.researchedTechs, function (key) {
-        if (!H.contains(researchedTechs[id], key)){
-
-          self.fire("Advance", {
-            player: id,
-            data:   {technology: H.saniTemplateName(key), key: key}
-          });
-
-          researchedTechs[id].push(key);
-
-        }
-      });
     });
 
-  }
+  };
 
-  // public interface
-  H.Events = (function(){
+  H.LIB.Events.prototype = {
+    constructor: H.LIB.Events,
+    log: function(){},
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    clone: function(context){
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
+    },
+    serialize: function(){
+      // the listeners have to be re-created somewhere else
+      return H.deepcopy(this.savedEvents);
+    },
+    deserialize: function(){
+      if (this.context.data.events){
+        this.savedEvents = this.context.data.events;
+      }
+    },
+    initialize: function(){
+      // ???
+    },
+    tick: function(tick, secs){
 
-    var t0;
+      // dispatches new techs and finally fifo processes 
+      // collected saved event and then single events in order defined above
 
-    return {
-      boot:    function(){self = this; return self;},
-      collect: function(newEvents){packs.push(newEvents);},
-      logTick: function(events){
-        var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
-            sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
-        if (sum){
-          deb.apply(null, [msgTick].concat(lengths));
+      var t0 = Date.now();
+
+      this.processTechs();
+
+      this.savedEvents.forEach(events => {
+        this.logTick(events);
+        this.orderedEvents.forEach(type => {
+          if (events[type]){
+            events[type].forEach(event => {
+              this[type](event);
+            });
+          }
+        });
+      });
+
+      this.savedEvents = [];
+      this.createEvents = {};
+      this.destroyEvents = {};
+
+      return Date.now() - t0;
+
+    },
+    logTick: function(events){
+
+      var 
+        lengths = orderedEvents
+          .map(type => events[type] ? events[type].length : 0),
+        sum = lengths
+          .reduce((a, b) => a + b, 0);
+      
+      if (sum){
+        deb.apply(null, [msgTick].concat(lengths));
+      }
+
+    },
+    collect: function(newEvents){
+      // saves events from all turns
+      this.savedEvents.push(newEvents);
+    },
+    fire: function(name, msg){
+      return this.dispatchMessage(new Message(name, msg));
+    },
+    readArgs: function (type /* [player, ] listener */) {
+
+      var player, listener, args = H.toArray(arguments);
+
+      if (args.length === 1 && typeof args[0] === "function"){
+        type     = "*";
+        player   = "*";
+        listener = args[0];
+
+      } else if (args.length === 2 && typeof args[1] === "function"){
+        type     = args[0];
+        player   = H.Bot.id;
+        listener = args[1];
+
+      } else if (args.length === 3 && typeof args[2] === "function"){
+        type     = args[0];
+        player   = args[1];
+        listener = args[2];
+
+      } else {
+        deb("ERROR: Events.on is strange: %s", uneval(args));
+        return [];
+
+      }
+
+      return [type, player, listener, "unknown"];
+
+    },
+    off: function (/* [type, [player, ]] listener */) {
+
+      var 
+        dispatcher = this.dispatcher,
+        [type, player, listener] = this.readArgs.apply(null, H.toArray(arguments));
+
+      H.delete(dispatcher["*"]["*"],     l => l === listener);
+      H.delete(dispatcher[player]["*"],  l => l === listener);
+      H.delete(dispatcher[player][type], l => l === listener);
+
+    },
+    on: function (/* [type, [player, ]] listener */) {
+
+      var [type, player, listener] = this.readArgs.apply(null, H.toArray(arguments));
+
+      this.registerListener(player, type, listener);
+
+      // allows to add/sub type afterwards
+      return {
+        add : function(type){this.registerListener(player, type, listener);},
+        sub : function(type){this.removeListener(player, type, listener);}
+      };
+
+    },
+    processTechs: function  () {
+
+      // detects new techs and fires "Advance"
+  
+      H.each(this.players, (id, player) => {
+        H.each(player.researchedTechs, key => {
+          if (!H.contains(this.researchedTechs[id], key)){
+
+            this.fire("Advance", {
+              player: id,
+              data:   {technology: H.saniTemplateName(key), key: key}
+            });
+
+            this.researchedTechs[id].push(key);
+
+          }
+        });
+      });
+
+    },
+    dispatchMessage: function (msg) {
+
+      // sends message to all listeners specified by messagetype or entity id or bot id or '*'
+
+      var 
+        dispatcher = this.dispatcher,
+        listeners = H.unique([].concat(
+          dispatcher["*"],
+          dispatcher[msg.player]["*"],
+          dispatcher[msg.player][msg.name] ? dispatcher[msg.player][msg.name] : [],
+          dispatcher[msg.player][msg.id]   ? dispatcher[msg.player][msg.id] : []
+        )).filter(l => typeof l === "function");
+
+      // deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
+
+      listeners.forEach(l => l(msg));
+
+      return msg;
+
+    },
+    registerListener: function (player, type, listener){
+
+      // puts listener in the specified dispatcher array
+
+      var dispatcher = this.dispatcher;
+
+      if (dispatcher[player][type] === undefined){
+        dispatcher[player][type] = [listener];
+        
+      } else if (!H.contains(dispatcher[player][type], listener)){
+        dispatcher[player][type].push(listener);
+
+      } else {
+        deb("WARN  : duplicate listener: %s %s, %s", player, type, logFn(listener));
+
+      }
+
+    },
+    removeListener: function  (player, type, listener){
+
+      // deletes listener from the specified dispatcher array
+
+      var dispatcher = this.dispatcher;
+
+      if (dispatcher[player][type]){
+        H.delete(dispatcher[player][type], l => l === listener);
+        if (dispatcher[player][type].length === 0){
+          delete(dispatcher[player][type]);
         }
-      },
-      tick:    function(){
+      }
 
-        // dispatches new techs and finally fifo processes 
-        // collected event packs and then single events in order defined above
+    },
+    moveAllListener: function (msg){
 
-        t0 = Date.now();
+      // moves from msg.id to msg.id2
 
-        processTechs();
+      var dispatcher = this.dispatcher, id1 = msg.id, id2 = msg.id2;
 
-        packs.forEach(function(events){
-          self.logTick(events);
-          orderedEvents.forEach(function(type){
-            if (events[type]){
-              events[type].forEach(function(event){
-                handler[type](event);
-              });
-            }
-          });
+      if (dispatcher[msg.player][id2]){
+        dispatcher[msg.player][id2].forEach(listener => {
+          this.registerListener(msg.player, id1, listener);
+        });
+        delete(dispatcher[msg.player][id2]);
+      }
+
+    },
+
+    /* Handler for API Events */
+
+    Create: function(e){}, 
+    OwnershipChanged: function(e){},
+    Garrison: function(e){},
+    UnGarrison: function(e){},
+    RangeUpdate: function(e){},
+    PlayerDefeated: function(e){},
+    EntityRenamed: function(e){
+
+      // listener: assets, culture, producers
+
+      var msg = this.fire("EntityRenamed", {
+        player: this.entities[e.newentity].owner(),
+        id:     e.entity,
+        id2:    e.newentity,
+      });
+
+      this.moveAllListener(msg);
+
+      this.destroyEvents[e.entity] = e; //????
+
+    },
+    TrainingFinished: function(e){
+
+      // listener: assets, villages, producers
+
+      e.entities.forEach( id => {
+
+        this.fire("TrainingFinished", {
+          player: e.owner,
+          id:     id,
+          data:   e.metadata,
         });
 
-        packs = [];
-        createEvents = {};
-        destroyEvents = {};
+      });
 
-        return Date.now() - t0;
+    },
+    ConstructionFinished: function(e){
 
-      },
-      fire: function(name, msg){
-        return dispatchMessage(new Message(name, msg));
-      },
-      readArgs: function (type /* [player, ] listener */) {
+      // listener: assets, culture, groups
 
-        var player, listener, callsign, args = H.toArray(arguments);
+      var msg = this.fire("ConstructionFinished", {
+            player: this.entities[e.newentity].owner(),
+            id:     e.newentity,
+            // id2:    e.newentity,
+          });
 
-        if (args.length === 1 && typeof args[0] === "function"){
-          type     = "*";
-          player   = "*";
-          listener = args[0];
+      this.moveAllListener(msg);
 
-        } else if (args.length === 2 && typeof args[1] === "function"){
-          type     = args[0];
-          player   = H.Bot.id;
-          listener = args[1];
+    },
+    AIMetadata: function(e){
 
-        } else if (args.length === 3 && typeof args[2] === "function"){
-          type     = args[0];
-          player   = args[1];
-          listener = args[2];
+      // listener: assets, culture, groups
 
-        } else {
-          deb("ERROR: Events.on is strange: %s", uneval(args));
-          return [];
+      this.fire("AIMetadata", {
+        player: e.owner,
+        id:     e.id,
+        data:   e.metadata,
+      });
 
-        }
+    },
+    Destroy: function(e){
 
-        return [type, player, listener, "unknown"];
+      // listener: assets, culture, mili?
+      // TODO are foundations removed from triple store by Renamed?
 
-      },
-      off: function (/* [type, [player, ]] listener */) {
+      var msg;
 
-        var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+      if (!e.entityObj){
+        deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
+        return;
+      }
 
-        H.delete(dispatcher["*"]["*"],     l => l === listener);
-        H.delete(dispatcher[player]["*"],  l => l === listener);
-        H.delete(dispatcher[player][type], l => l === listener);
+      if (!!e.SuccessfulFoundation){
+        // deb("   EVT: foundation ready");
+        return;
+      }
 
-      },
-      on: function (/* [type, [player, ]] listener */) {
+      // dont't do this it crashes
+      // data:   {entity: e.entityObj, foundation: !!e.SuccessfulFoundation},
 
-        var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+      msg = this.fire("Destroy", {
+        player: e.entityObj.owner(),
+        id:     e.entity,
+      });
 
-        registerListener(player, type, listener);
+      if (this.dispatcher[msg.player][msg.id]){
+        // delete(dispatcher[msg.player][msg.id]);
+      }
 
-        // allows to add/sub type afterwards
-        return {
-          add : function(type){registerListener(player, type, listener);},
-          sub : function(type){removeListener(player, type, listener);}
-        };
+    },
+    Attacked: function(e){
 
-      },
+      // listener: assets, grids, mili?
 
-    };
+      // deb("   EVT: got attacked: %s", uneval(e));
 
-  }()).boot();
+      if (this.entities[e.target]){
+
+        this.fire("Attacked", {
+          player: this.entities[e.target].owner(),
+          id:     e.target,
+          id2:    e.attacker,
+          data:   {damage: e.damage, type: e.type},
+        });
+
+      }
+
+    },
+
+  };
+
+  // // public interface
+  // H.Events = (function(){
+
+  //   var t0;
+
+  //   return {
+  //     boot:    function(){self = this; return self;},
+  //     collect: function(newEvents){packs.push(newEvents);},
+  //     logTick: function(events){
+  //       var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
+  //           sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
+  //       if (sum){
+  //         deb.apply(null, [msgTick].concat(lengths));
+  //       }
+  //     },
+  //     tick:    function(){
+
+  //       // dispatches new techs and finally fifo processes 
+  //       // collected event packs and then single events in order defined above
+
+  //       t0 = Date.now();
+
+  //       processTechs();
+
+  //       packs.forEach(function(events){
+  //         self.logTick(events);
+  //         orderedEvents.forEach(function(type){
+  //           if (events[type]){
+  //             events[type].forEach(function(event){
+  //               handler[type](event);
+  //             });
+  //           }
+  //         });
+  //       });
+
+  //       packs = [];
+  //       createEvents = {};
+  //       destroyEvents = {};
+
+  //       return Date.now() - t0;
+
+  //     },
+  //     fire: function(name, msg){
+  //       return dispatchMessage(new Message(name, msg));
+  //     },
+  //     readArgs: function (type /* [player, ] listener */) {
+
+  //       var player, listener, callsign, args = H.toArray(arguments);
+
+  //       if (args.length === 1 && typeof args[0] === "function"){
+  //         type     = "*";
+  //         player   = "*";
+  //         listener = args[0];
+
+  //       } else if (args.length === 2 && typeof args[1] === "function"){
+  //         type     = args[0];
+  //         player   = H.Bot.id;
+  //         listener = args[1];
+
+  //       } else if (args.length === 3 && typeof args[2] === "function"){
+  //         type     = args[0];
+  //         player   = args[1];
+  //         listener = args[2];
+
+  //       } else {
+  //         deb("ERROR: Events.on is strange: %s", uneval(args));
+  //         return [];
+
+  //       }
+
+  //       return [type, player, listener, "unknown"];
+
+  //     },
+  //     off: function (/* [type, [player, ]] listener */) {
+
+  //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+
+  //       H.delete(dispatcher["*"]["*"],     l => l === listener);
+  //       H.delete(dispatcher[player]["*"],  l => l === listener);
+  //       H.delete(dispatcher[player][type], l => l === listener);
+
+  //     },
+  //     on: function (/* [type, [player, ]] listener */) {
+
+  //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+
+  //       registerListener(player, type, listener);
+
+  //       // allows to add/sub type afterwards
+  //       return {
+  //         add : function(type){registerListener(player, type, listener);},
+  //         sub : function(type){removeListener(player, type, listener);}
+  //       };
+
+  //     },
+
+  //   };
+
+  // }()).boot();
 
 return H; }(HANNIBAL));
 

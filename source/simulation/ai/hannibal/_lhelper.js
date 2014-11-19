@@ -74,7 +74,8 @@ H.extend(H, {
   tab:        function (s,l){l=l||8;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);},
   replaceAll: function (find, replace, str) {return str.replace(new RegExp(H.escapeRex(find), 'g'), replace);},
   endsWith:   function (str, end){var l0=str.length,l1=end.length; return str.slice(l0-l1,l0) === end;},
-
+  noun:       function (s){var o=s.toLowerCase();return o[0].toUpperCase()+o.slice(1);},
+  
   // objects
   // each:       function (o,fn){var a;for(a in o){if(o.hasOwnProperty(a)){fn(a,o[a]);}}},
   clone:      function (o){var e,n={};for(e in o){n[e]=o[e];}return n;},

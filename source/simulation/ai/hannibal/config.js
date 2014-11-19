@@ -32,7 +32,12 @@ HANNIBAL = (function(H){
     attackRelax:             2,     
 
     data:                    {
-      sharedBuildingClasses: ['civilcentre', 'blacksmith', 'farmstead'],
+      sharedBuildingClasses: [
+                            'civilcentre', 
+                            'blacksmith', 
+                            'farmstead',
+                            'storehouse',
+                             ],
       prey:                  ["chicken", "sheep", "pig", "goat"], // possible food resources
     },
 
@@ -42,8 +47,11 @@ HANNIBAL = (function(H){
       resolution:           10       // 10 = 16 secs
     },
 
-    economy: {
+    stats: {
       lengthStatsBuffer:    40, // approx 1 minute
+    },
+
+    economy: {
       intervalMonitorGoals: 10,
       maxAllocations:        5, // for producers
     },

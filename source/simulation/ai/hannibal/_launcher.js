@@ -6,8 +6,8 @@
   Launches the AI/Bot for 0 A.D.
   Home: https://github.com/noiv/Hannibal/blob/master/README.md
 
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
 
   Credits:
 
@@ -49,41 +49,41 @@ var HANNIBAL = (function() {
 
     API3.BaseAI.call(this, settings);
 
-    // stateful objects, ordered
+    // stateful support objects, ordered
     this.serializers = [
-      "brain", 
+      "culture", 
       "events", 
+      "villages", 
+      "map", 
+      "resources", 
+      "scanner", 
       "stats", 
       "economy", 
-      "map", 
-      "military", 
-      "resources", 
-      "scout", 
-      "store", 
-      "villages", 
       "groups", 
-      "culture", 
-      "tree", 
-      "phases", 
+      "military", 
+      "brain", 
     ];
 
     H.extend(this, {
-      settings:       settings,                            // from user dialog
+      settings:       settings,                            // from ai config dialog
       isInitialized:  false,                               // did that happen well?
       isTicking:      false,                               // toggles after first OnUpdate
       isFinished:     false,                               // there is still no winner
       timing:         {all: 0},                            // used to identify perf. sinks in OnUpdate
       context:        {
-        turn:           0,                                  // increments on AI ticks, not bot ticks
-        tick:           0,                                  // bot ticks
-        id:             settings.player,                    // used within 0 A.D.
-        config:         H.Config.get(settings.difficulty),  // Sandbox or nightmare or ....
-        difficulty:     settings.difficulty,
-        saved:          {},
+        time:           Date.now(),                        // time game created/saved 
+        idgen:          1,                                 // seed for unique object ids
+        id:             settings.player,                   // bot id, used within 0 A.D.
+        turn:           0,                                 // increments on API ticks
+        tick:           0,                                 // increments on BOT ticks
+        difficulty:     settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
+        config:         H.Config,                          // 
+        data:           {},                                // serialized data
       }
     });
 
-    this.serializers.forEach(s => this.context.saved[s] = {});
+    // initialize container for serialized data
+    this.serializers.forEach(s => this.context.data[s] = null);
 
     deb();
     deb("------: Launcher.constructor.out");
@@ -92,24 +92,24 @@ var HANNIBAL = (function() {
 
   H.Launcher.prototype = new H.API.BaseAI();
   H.Launcher.prototype.Deserialize = function(data, sharedScript){
-    H.extend(this.context.saved, data);
+    H.extend(this.context.data, data);
   };
   H.Launcher.prototype.Serialize = function(){
 
-    var data = {
-      time:       (new Date()).toString(),
+    var context = {
+      time:       Date.now(),
+      idgen:      this.idgen,
       id:         this.settings.player,
-      civ:        this.civ,
       turn:       this.turn,
       tick:       this.tick,
       difficulty: this.settings.difficulty,
-      config:     this.config.serialize(),
-      saved: {}
+      config:     H.Config,                          // 
+      data:       {}
     };
 
-    this.serializers.forEach(s => data.saved[s] = this.bot[s].serialize());
+    this.serializers.forEach(s => context.data[s] = this.bot[s].serialize());
 
-    return data;
+    return context;
 
   };
   H.Launcher.prototype.CustomInit = function(gameState, sharedScript) {
@@ -120,7 +120,15 @@ var HANNIBAL = (function() {
     logStart(ss, gs, this.settings);
     logPlayers(ss.playersData);
 
+    // launch the stats extension
+    if (H.Config.numerus.enabled){
+      H.Numerus.init(ss, gs);          
+    }             
+
+    // enhance the context
     H.extend(this.context, {
+
+      launcher:            this,
 
       connector:          "engine",
 
@@ -129,14 +137,8 @@ var HANNIBAL = (function() {
       cellsize:            gameState.cellSize, 
       circular:            sharedScript.circularMap,
 
-      launcher:            this,
-
-      player:              sharedScript.playersData[this.context.id], // http://trac.wildfiregames.com/browser/ps/trunk/binaries/data/mods/public/simulation/components/GuiInterface.js
-      players:             sharedScript.playersData,
-
       // API read/write
       metadata:            H.Proxies.MetaData(sharedScript._entityMetadata[this.context.id]),
-      entities:            H.Proxies.Entities(gameState.entities._entities),
 
       // API read only, static
       templates:           H.Proxies.Templates(this.settings.templates),
@@ -144,24 +146,15 @@ var HANNIBAL = (function() {
 
       // API read only, dynamic
       states:              H.Proxies.States(gameState.entities._entities),
+      entities:            H.Proxies.Entities(gameState.entities._entities),
       technologies:        H.Proxies.Technologies(sharedScript._techTemplates), 
+      player:              sharedScript.playersData[this.context.id], // http://trac.wildfiregames.com/browser/ps/trunk/binaries/data/mods/public/simulation/components/GuiInterface.js
+      players:             sharedScript.playersData,
+      techmodifications:   sharedScript._techModifications[this.context.id],
 
       objects:             H.LIB.Objects(), // not a constructor, yet
       operators:           H.HTN.Economy.operators,
       methods:             H.HTN.Economy.methods,
-
-      map:                 new H.LIB.Map(this.context),
-      stats:               new H.LIB.Stats(this.context),
-      brain:               new H.LIB.Brain(this.context),
-      scout:               new H.LIB.Scout(this.context),
-      groups:              new H.LIB.Groups(this.context),
-      phases:              new H.LIB.Phases(this.context),
-      economy:             new H.LIB.Economy(this.context),
-      culture:             new H.LIB.Culture(this.context),
-      effector:            new H.LIB.Effector(this.context),    
-      military:            new H.LIB.Military(this.context),
-      villages:            new H.LIB.Villages(this.context),
-      resources:           new H.LIB.Resources(this.context),
 
       query:               function(hcq, debug){
         return new H.Store.Query(this.context.culture.store, hcq, debug);
@@ -174,21 +167,24 @@ var HANNIBAL = (function() {
 
     });
 
-    // launch the stats extension
-    if (H.Config.numerus.enabled){
-      H.Numerus.init();          
-    }             
-
-    // build a context the bot works in
-
-    H.Each(this.context, function (name, item) {
-      (item.import     && item.import());
-      (item.initialize && item.initialize());
-      (item.finalize   && item.finalize());
-      (item.activate   && item.activate());
-      (item.log        && item.log());
+    // launch the support objects
+    this.serializers.forEach(s => {
+      deb("new: %s", s);
+      this.context[s] = new H.LIB[H.noun(s)](this.context);
     });
 
+    // prepare the support objects
+    this.serializers.forEach(s => {
+      var o = this.context[s];
+      ( o.import      && o.import() );
+      ( o.deserialize && o.deserialize() );
+      ( o.initialize  && o.initialize() );
+      ( o.finalize    && o.finalize() );
+      ( o.activate    && o.activate() );
+      ( o.log         && o.log() );
+    });
+
+    // This bot faces the user
     H.Bot = new H.LIB.Bot(this.context);
 
     // H.Phases.init();                         // acquire all phase names

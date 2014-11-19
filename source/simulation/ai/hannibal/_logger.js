@@ -28,7 +28,7 @@ function deb(){
     H = HANNIBAL,
     args = arguments, al = args.length,
     msg = (
-      (al === 0) ? "**" :
+      (al === 0) ? "**\n**\n" :
       (al === 1) ? args[0] :
         H.format.apply(H, args)
       ) + "\n",
@@ -226,6 +226,20 @@ var debTemplates = function(templates){
 //   deb("  ");
 
 // };
+
+// loggable functions
+function logFn(fn){return fn.toString().split("\n").join("").slice(0, 80);}
+
+// from events
+var logDispatcher = function (){
+  deb("  "); deb("      : Dispatcher");
+  H.each(H.Dispatcher, function(id, ar){
+    var tpl = H.Entities[id] ? H.Entities[id]._templateName : "???";
+    deb("  %s: len: %s, tpl: %s", H.tab(id, 4), ar.length, tpl);
+  });
+  deb("  "); 
+}
+
 
 
 var logStart = function(ss, gs, settings){

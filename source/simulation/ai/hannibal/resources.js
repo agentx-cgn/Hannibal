@@ -49,11 +49,12 @@ HANNIBAL = (function(H){
 
   Resource.prototype = {
     constructor: Resource,
-    clone: function(){return new this.constructor(this.serialize());},
+    clone: function(context){
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
+    },
     import: function(){
-      this.map      = this.context.map;
-      this.config   = this.context.config;
-      this.entities = this.context.entities;
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
     },
     serialize: function(){
       return {
@@ -100,48 +101,55 @@ HANNIBAL = (function(H){
 
     var stats = {entities: 0, found: 0, available: 0, total: 0, consumed: 0, depleted: 0};
 
-    this.context = context;
-
     H.extend(this, {
-        resources: {
-          food:  {
-            meat:  {stats: H.deepcopy(stats)},
-            grain: {stats: H.deepcopy(stats)},
-            fruit: {stats: H.deepcopy(stats)},
-            fish:  {stats: H.deepcopy(stats)},
-            whale: {stats: H.deepcopy(stats)},
-          },
-          wood:  {
-            tree:  {stats: H.deepcopy(stats)},
-            ruins: {stats: H.deepcopy(stats)},
-          },
-          metal: {
-            ore:   {stats: H.deepcopy(stats)},
-          },
-          stone: {
-            ruins: {stats: H.deepcopy(stats)},
-            rock:  {stats: H.deepcopy(stats)},
-          },
-          treasure: {
-            food:  {stats: H.deepcopy(stats)},
-            wood:  {stats: H.deepcopy(stats)},
-            stone: {stats: H.deepcopy(stats)},
-            metal: {stats: H.deepcopy(stats)},
-          },
+
+      name:  "resources",
+      context:  context,
+      imports:  [
+        "map",
+        "config",
+        "entities",
+      ],
+
+      resources: {
+        food:  {
+          meat:  {stats: H.deepcopy(stats)},
+          grain: {stats: H.deepcopy(stats)},
+          fruit: {stats: H.deepcopy(stats)},
+          fish:  {stats: H.deepcopy(stats)},
+          whale: {stats: H.deepcopy(stats)},
         },
-      }, 
-      context.saved.resources
-    );
+        wood:  {
+          tree:  {stats: H.deepcopy(stats)},
+          ruins: {stats: H.deepcopy(stats)},
+        },
+        metal: {
+          ore:   {stats: H.deepcopy(stats)},
+        },
+        stone: {
+          ruins: {stats: H.deepcopy(stats)},
+          rock:  {stats: H.deepcopy(stats)},
+        },
+        treasure: {
+          food:  {stats: H.deepcopy(stats)},
+          wood:  {stats: H.deepcopy(stats)},
+          stone: {stats: H.deepcopy(stats)},
+          metal: {stats: H.deepcopy(stats)},
+        },
+      },
+    
+    }); 
 
   };
 
   H.LIB.Resources.prototype = {
     constructor: H.LIB.Resources,
-    clone:  function(){return new H.LIB.Resources(this.serialize());},
     import: function(){
-      this.map = this.context.map;
-      this.entities = this.context.entities;
-      this.config = this.context.config;
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    clone: function(context){
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
       return {
