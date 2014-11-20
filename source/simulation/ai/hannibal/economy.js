@@ -115,126 +115,69 @@ HANNIBAL = (function(H){
   };
 
 
+  H.LIB.Order = function(context){
 
+    H.extend(this, {
 
-  H.Stats = {
+      name: "order",
+      context: context,
+      imports: [
+        "economy",
+        "query",
+        "culture",
+        "technologies",
+        "events",
+      ],
 
-    // availability: availability,
-    init: function(){
-      H.Stats.tick();
-    },
-    tick: function(){
-
-
-    },
-    sortGatherables: function(){
-
-      // return highest first
-
-
-    }
-
-  }; 
-
-
-  H.Order = function(options){
-
-    H.extend(this, options, {
-      id:         H.Objects(this),
-      remaining:  options.amount,
-      processing: 0,
-      executable: false,
-      x: options.location && options.location.length ? options.location[0] : undefined,
-      z: options.location && options.location.length ? options.location[1] : undefined
     });
 
     //TODO: make units move to order.position
 
   };
 
-  H.Order.prototype = {
-    constructor: H.Order,
-    simulate: function(allocs){
-
-      var 
-        self = this,
-        availability = this.economy.availability;
-
-      this.executable = false; // ready to send
-      if(this.remaining - this.processing < 1){
-        // nothing to do, 
-        return;
-      }
-
-      this.nodes = H.QRY(this.hcq).map(function(node){
-        return {
-          name:      node.name,
-          key:       node.key,
-          costs:     node.costs,
-          qualifies: true,
-          producer:  null,
-          info:      ""
-        };
+  H.LIB.Order.prototype = {
+    constructor: H.LIB.Order,
+    log: function(){},
+    initialize: function(config){
+      H.extend(this, config, {
+        verb:       config.verb, 
+        hcq:        config.hcq, 
+        source:     config.source, 
+        shared:     config.shared,
+        id:         config.id         || this.context.idgen,
+        x:          config.location ? config.location[0] : undefined,
+        z:          config.location ? config.location[1] : undefined,
+        remaining:  config.remaining  || config.amount,
+        processing: config.processing || 0,
+        executable: config.executable || false,
       });
-
-      // check whether ingame producer exists
-      this.nodes.forEach(function(node){
-
-        var producer;
-
-        if ((producer = self.economy.producers.allocate(node.name, self))){
-          node.producer  = producer;
-        } else {
-          node.qualifies = false;
-          node.info += "no producer, ";
-        }
-
-      });
-
-      // any unmet techs
-      this.nodes.forEach(function(node){
-
-        // var 
-        //   req = H.Bot.tree.nodes[node.name].requires,
-        //   phase = H.Bot.tree.nodes[node.name].phase;
-        
-        // if (H.Phases.find(phase).idx > H.Phases.find(H.Phases.current).idx){
-        //   node.qualifies = false; node.info = "needs phase " + phase; return;
-        // }
-        // if (req && !H.Technologies.available([req])){
-        //   node.qualifies = false; node.info = "needs req " + req; return;
-        // }
-
-      });        
-
-      // remove disqualified nodes
-      H.delete(this.nodes, node => !node.qualifies);
-
-      if (this.nodes.length){
-
-        this.executable = true;
-
-        // sort by availability, SM sorts stable
-        this.nodes
-          .sort((a, b) => a.costs[availability[0]] < b.costs[availability[0]] ? 1 : -1 )
-          .sort((a, b) => a.costs[availability[1]] < b.costs[availability[1]] ? 1 : -1 )
-          .sort((a, b) => a.costs[availability[2]] < b.costs[availability[2]] ? 1 : -1 )
-          .sort((a, b) => a.costs[availability[3]] < b.costs[availability[3]] ? 1 : -1 );
-
-        // write costs for first into allocs
-        allocs.food  += this.nodes[0].costs.food  * this.remaining;
-        allocs.wood  += this.nodes[0].costs.wood  * this.remaining;
-        allocs.stone += this.nodes[0].costs.stone * this.remaining;
-        allocs.metal += this.nodes[0].costs.metal * this.remaining;
-
-      }
-
+      return this;
     },
+    clone: function(context){
+      return new H.LIB[H.noun(this.name)](context).initialize(this.serialize());
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    serialize: function(){
+      return {
+        id:         this.id,
+        x:          this.x,
+        z:          this.z,
+        remaining:  this.amount,
+        processing: this.processing,
+        executable: this.executable,
+        verb:       this.verb, 
+        hcq:        this.hcq, 
+        source:     this.source, 
+        shared:     this.shared,
+      };
+    },
+
     evaluate: function(allocs){
 
-      var 
-        self = this,
-        availability = this.economy.availability;
+      var availability = this.economy.availability;
 
       this.executable = false; // ready to send
 
@@ -246,7 +189,7 @@ HANNIBAL = (function(H){
         return;
       }
 
-      this.nodes = H.QRY(this.hcq).map(function(node){
+      this.nodes = this.query(this.hcq).map(function(node){
         return {
           name:      node.name,
           key:       node.key,
@@ -273,9 +216,9 @@ HANNIBAL = (function(H){
       // });
 
       // check whether ingame producer exists
-      this.nodes.forEach(function(node){
+      this.nodes.forEach( node => {
         // deb("evaluate: %s node: ", self.id, node.name);
-        var producer = self.economy.producers.allocate(node.name, self);
+        var producer = this.economy.producers.allocate(node.name, this);
         if (producer){
           node.producer = producer;
           // deb("evaluate: %s prod for %s #%s %s", self.id, node.name, producer.id, producer.name);
@@ -292,13 +235,14 @@ HANNIBAL = (function(H){
         //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
 
         var 
-          req = H.Bot.tree.nodes[node.name].requires,
-          phase = H.Bot.tree.nodes[node.name].phase;
+          req    = this.culture.tree.nodes[node.name].requires,
+          phase  = this.culture.tree.nodes[node.name].phase,
+          phases = this.culture.phases;
         
-        if (H.Phases.find(phase).idx > H.Phases.find(H.Phases.current).idx){
+        if (phases.find(phase).idx > phases.find(phases.current).idx){
           node.qualifies = false; node.info = "needs phase " + phase; return;
         }
-        if (req && !H.Technologies.available([req])){
+        if (req && !this.technologies.available([req])){
           node.qualifies = false; node.info = "needs req " + req; return;
         }
 
@@ -372,7 +316,7 @@ HANNIBAL = (function(H){
         // } else {deb("    OE: assignExisting not avail. %s", hcq);}
 
       } else {
-        H.QRY(hcq).execute()
+        this.query(hcq).execute()
           .slice(0, self.remaining - self.processing)
           .forEach(function(node){
 
@@ -380,8 +324,8 @@ HANNIBAL = (function(H){
 
             self.remaining -= 1; 
 
-             H.Events.fire("OrderReady", {
-              player: H.Bot.id,
+             self.events.fire("OrderReady", {
+              player: self.context.id,
               id:     node.id,
               data:   {order: self.id, source: self.source}
             });
@@ -574,7 +518,6 @@ HANNIBAL = (function(H){
         
         var 
           cls = H.class2name,
-          tck = context.tick,
           cc  = context.centre,
           housePopu = H.QRY(cls("house")).first().costs.population * -1,
           

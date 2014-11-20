@@ -1,4 +1,6 @@
+/*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*global define:false */
+
 /**
  * Copyright 2013 Craig Campbell
  *
@@ -950,4 +952,4 @@
     if (typeof define === 'function' && define.amd) {
         define(Mousetrap);
     }
-}) (window, document);
+} (window, document) );

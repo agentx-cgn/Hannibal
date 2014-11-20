@@ -76,6 +76,98 @@ var debTable = function (header, table, sort){
 
 };
 
+function exportObject (obj, filename){
+
+  var 
+    H = HANNIBAL,
+    file = H.format("/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/%s.export", filename);
+
+  function logg(){
+    print ( arguments.length === 0 ? 
+      "#! append 0 ://\n" : 
+      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+    );
+  }    
+
+  deb();
+  deb("EXPORT: ", filename);
+  deb("EXPORT: %s", file);
+
+  print(H.format("#! open 0 %s\n", file));
+  logg("// EXPORTED %s at %s", filename, new Date());
+  JSON.stringify(obj, null, "  ")
+    .split("\n")
+    .forEach(line => {
+      logg(line);
+    });
+  logg("// Export end of %s", filename);
+  print("#! close 0\n");
+  deb("EXPORT: Done");
+
+}
+
+
+
+function exportTemplates (tpls){
+
+  var 
+    H = HANNIBAL,
+    filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/templates-json.export";
+
+  function logg(){
+    print ( arguments.length === 0 ? 
+      "#! append 0 ://\n" : 
+      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+    );
+  }    
+
+  deb();
+  deb("EXPORT: templates");
+  deb("EXPORT: %s", filePattern);
+
+  print(H.format("#! open 0 %s\n", filePattern));
+  logg("// EXPORTED templates at %s", new Date());
+  JSON.stringify(tpls, null, "  ")
+    .split("\n")
+    .forEach(line => {
+      logg(line);
+    });
+  logg("// Export end of templates");
+  print("#! close 0\n");
+  deb("EXPORT: Done");
+
+}
+
+function exportTechTemplates (tpls){
+
+  var 
+    H = HANNIBAL,
+    filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/techtemplates-json.export";
+
+  function logg(){
+    print ( arguments.length === 0 ? 
+      "#! append 0 ://\n" : 
+      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+    );
+  }    
+
+  deb();
+  deb("EXPORT: techtemplates");
+  deb("EXPORT: %s", filePattern);
+
+  print(H.format("#! open 0 %s\n", filePattern));
+  logg("// EXPORTED techtemplates at %s", new Date());
+  JSON.stringify(tpls, null, "  ")
+    .split("\n")
+    .forEach(line => {
+      logg(line);
+    });
+  logg("// Export end of techtemplates");
+  print("#! close 0\n");
+  deb("EXPORT: Done");
+
+}
+
 
   // if (head === "ERROR :" && level > 0){
   //   print(msg);
@@ -238,7 +330,7 @@ var logDispatcher = function (){
     deb("  %s: len: %s, tpl: %s", H.tab(id, 4), ar.length, tpl);
   });
   deb("  "); 
-}
+};
 
 
 

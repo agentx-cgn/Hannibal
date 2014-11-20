@@ -17,7 +17,7 @@
 
 */
 
-// very first line, enjoy
+// very first line, enjoy the rest
 var TIMESTART = Date.now();
 
 print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### --- " + new Date() + "\n");
@@ -91,7 +91,7 @@ var HANNIBAL = (function() {
   };
 
   H.Launcher.prototype = new H.API.BaseAI();
-  H.Launcher.prototype.Deserialize = function(data, sharedScript){
+  H.Launcher.prototype.Deserialize = function(data /*, sharedScript */ ){
     H.extend(this.context.data, data);
   };
   H.Launcher.prototype.Serialize = function(){
@@ -115,6 +115,17 @@ var HANNIBAL = (function() {
   H.Launcher.prototype.CustomInit = function(gameState, sharedScript) {
 
     var ss = sharedScript, gs = gameState;
+
+    // exportObject(gameState, "gameState");       // ERROR cyclic object value
+    // exportObject(sharedScript, "sharedScript"); // ERROR cyclic object value
+
+    // exportObject(this.settings.templates, "templates");
+    // exportObject(ss._techTemplates, "techtemplates")
+    // exportObject(sharedScript.playersData, "players");
+    // exportObject(sharedScript._entityMetadata, "metadata");
+    // exportObject(sharedScript.passabilityMap, "passabilityMap"); 
+    // exportObject(sharedScript.territoryMap, "territoryMap"); 
+    exportObject(sharedScript.passabilityClasses, "passabilityClasses"); 
 
     deb();deb();
     logStart(ss, gs, this.settings);
@@ -148,18 +159,16 @@ var HANNIBAL = (function() {
       states:              H.Proxies.States(gameState.entities._entities),
       entities:            H.Proxies.Entities(gameState.entities._entities),
       technologies:        H.Proxies.Technologies(sharedScript._techTemplates), 
-      player:              sharedScript.playersData[this.context.id], // http://trac.wildfiregames.com/browser/ps/trunk/binaries/data/mods/public/simulation/components/GuiInterface.js
-      players:             sharedScript.playersData,
-      techmodifications:   sharedScript._techModifications[this.context.id],
-
-      objects:             H.LIB.Objects(), // not a constructor, yet
-      operators:           H.HTN.Economy.operators,
-      methods:             H.HTN.Economy.methods,
+      techmodifications:   H.Proxies.TechModifications(sharedScript._techModifications),
+      player:              H.Proxies.Player(sharedScript.playersData[this.context.id]),
+      players:             H.Proxies.Players(sharedScript.playersData),
 
       query:               function(hcq, debug){
         return new H.Store.Query(this.context.culture.store, hcq, debug);
       },
 
+      operators:           H.HTN.Economy.operators,
+      methods:             H.HTN.Economy.methods,
       planner:             new H.HTN.Planner(this.context, {
         name:      "eco.planner",
         verbose:   1
@@ -372,8 +381,6 @@ var HANNIBAL = (function() {
 
   H.Launcher.prototype.OnUpdate = function(sharedScript) {
 
-    // http://trac.wildfiregames.com/wiki/AIEngineAPI
-
     var 
       t0        = Date.now(),
       msgTiming = "", 
@@ -392,7 +399,7 @@ var HANNIBAL = (function() {
         deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
         deb();deb();
         deb("ERROR : HANNIBAL IS NOT INITIALIZED !!!");
-        H.chat("HANNIBAL IS NOT INITIALIZED, check configuration/readme.txt");
+        H.chat("HANNIBAL IS NOT INITIALIZED, check install.txt");
         deb();deb();
         deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
       }

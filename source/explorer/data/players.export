@@ -1,0 +1,816 @@
+// EXPORTED players at Thu Nov 20 2014 13:05:18 GMT+0100 (CET)
+[
+  {
+    "name": "Gaia",
+    "civ": "gaia",
+    "colour": {
+      "r": 1,
+      "g": 1,
+      "b": 1,
+      "a": 1
+    },
+    "popCount": 0,
+    "popLimit": 0,
+    "popMax": 300,
+    "heroes": [],
+    "resourceCounts": {
+      "food": 300,
+      "wood": 300,
+      "metal": 300,
+      "stone": 300
+    },
+    "trainingBlocked": false,
+    "state": "active",
+    "team": -1,
+    "teamsLocked": false,
+    "cheatsEnabled": false,
+    "phase": "village",
+    "isAlly": [
+      true,
+      false,
+      false
+    ],
+    "isMutualAlly": [
+      true,
+      false,
+      false
+    ],
+    "isNeutral": [
+      false,
+      false,
+      false
+    ],
+    "isEnemy": [
+      false,
+      true,
+      true
+    ],
+    "entityLimits": {
+      "Apadana": 1,
+      "Council": 1,
+      "DefenseTower": 30,
+      "Embassy": 2,
+      "Fortress": 10,
+      "Hero": 1,
+      "Juggernaut": 1,
+      "Library": 1,
+      "Lighthouse": 1,
+      "Monument": 5,
+      "Pillar": 0,
+      "Theater": 1,
+      "WarDog": 0,
+      "Wonder": 1
+    },
+    "entityCounts": {
+      "Apadana": 0,
+      "Council": 0,
+      "DefenseTower": 0,
+      "Embassy": 0,
+      "Fortress": 0,
+      "Hero": 0,
+      "Juggernaut": 0,
+      "Library": 0,
+      "Lighthouse": 0,
+      "Monument": 0,
+      "Pillar": 0,
+      "Theater": 0,
+      "WarDog": 0,
+      "Wonder": 0
+    },
+    "entityLimitChangers": {
+      "Juggernaut": {
+        "PtolemyIV": 4
+      },
+      "Pillar": {
+        "Ashoka": 5
+      },
+      "WarDog": {
+        "Kennel": 10
+      }
+    },
+    "disabledTemplates": {},
+    "researchQueued": {},
+    "researchStarted": {},
+    "researchedTechs": {
+      "phase_village": {
+        "genericName": "Village Phase",
+        "autoResearch": true
+      }
+    },
+    "classCounts": {
+      "ForestPlant": 59,
+      "Unit": 8,
+      "Animal": 8,
+      "Organic": 8,
+      "Domestic": 6
+    },
+    "typeCountsByClass": {
+      "ForestPlant": {
+        "gaia/flora_tree_cypress": 39,
+        "gaia/flora_bush_berry": 16,
+        "gaia/flora_tree_apple": 4
+      },
+      "Unit": {
+        "gaia/fauna_sheep": 6,
+        "gaia/fauna_tiger": 2
+      },
+      "Animal": {
+        "gaia/fauna_sheep": 6,
+        "gaia/fauna_tiger": 2
+      },
+      "Organic": {
+        "gaia/fauna_sheep": 6,
+        "gaia/fauna_tiger": 2
+      },
+      "Domestic": {
+        "gaia/fauna_sheep": 6
+      }
+    },
+    "statistics": {
+      "unitsTrained": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "unitsLost": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "unitsLostValue": 0,
+      "enemyUnitsKilled": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "enemyUnitsKilledValue": 0,
+      "buildingsConstructed": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "buildingsLost": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "buildingsLostValue": 0,
+      "enemyBuildingsDestroyed": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "enemyBuildingsDestroyedValue": 0,
+      "resourcesGathered": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0,
+        "vegetarianFood": 0
+      },
+      "resourcesUsed": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "resourcesSold": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "resourcesBought": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "tributesSent": 0,
+      "tributesReceived": 0,
+      "tradeIncome": 0,
+      "treasuresCollected": 0,
+      "percentMapExplored": 0
+    }
+  },
+  {
+    "name": "Player 1",
+    "civ": "athen",
+    "colour": {
+      "r": 0.1803921568627451,
+      "g": 0.1803921568627451,
+      "b": 0.7843137254901961,
+      "a": 1
+    },
+    "popCount": 10,
+    "popLimit": 20,
+    "popMax": 300,
+    "heroes": [],
+    "resourceCounts": {
+      "food": 10000,
+      "wood": 1000,
+      "metal": 2000,
+      "stone": 2000
+    },
+    "trainingBlocked": false,
+    "state": "active",
+    "team": -1,
+    "teamsLocked": false,
+    "cheatsEnabled": false,
+    "phase": "village",
+    "isAlly": [
+      false,
+      true,
+      false
+    ],
+    "isMutualAlly": [
+      false,
+      true,
+      false
+    ],
+    "isNeutral": [
+      false,
+      false,
+      false
+    ],
+    "isEnemy": [
+      true,
+      false,
+      true
+    ],
+    "entityLimits": {
+      "Apadana": 1,
+      "Council": 1,
+      "DefenseTower": 30,
+      "Embassy": 2,
+      "Fortress": 10,
+      "Hero": 1,
+      "Juggernaut": 1,
+      "Library": 1,
+      "Lighthouse": 1,
+      "Monument": 5,
+      "Pillar": 0,
+      "Theater": 1,
+      "WarDog": 0,
+      "Wonder": 1
+    },
+    "entityCounts": {
+      "Apadana": 0,
+      "Council": 0,
+      "DefenseTower": 0,
+      "Embassy": 0,
+      "Fortress": 0,
+      "Hero": 0,
+      "Juggernaut": 0,
+      "Library": 0,
+      "Lighthouse": 0,
+      "Monument": 0,
+      "Pillar": 0,
+      "Theater": 0,
+      "WarDog": 0,
+      "Wonder": 0
+    },
+    "entityLimitChangers": {
+      "Juggernaut": {
+        "PtolemyIV": 4
+      },
+      "Pillar": {
+        "Ashoka": 5
+      },
+      "WarDog": {
+        "Kennel": 10
+      }
+    },
+    "disabledTemplates": {},
+    "researchQueued": {},
+    "researchStarted": {},
+    "researchedTechs": {
+      "phase_village": {
+        "genericName": "Village Phase",
+        "autoResearch": true
+      }
+    },
+    "classCounts": {
+      "Structure": 1,
+      "ConquestCritical": 11,
+      "Defensive": 1,
+      "CivCentre": 1,
+      "Civic": 1,
+      "CivilCentre": 1,
+      "Unit": 10,
+      "Support": 4,
+      "Organic": 10,
+      "Worker": 8,
+      "Female": 4,
+      "Citizen": 10,
+      "CitizenSoldier": 6,
+      "Cavalry": 2,
+      "Soldier": 6,
+      "Ranged": 6,
+      "Javelin": 2,
+      "Basic": 6,
+      "Infantry": 4,
+      "Sling": 4
+    },
+    "typeCountsByClass": {
+      "Structure": {
+        "structures/athen_civil_centre": 1
+      },
+      "ConquestCritical": {
+        "structures/athen_civil_centre": 1,
+        "units/athen_support_female_citizen": 4,
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Defensive": {
+        "structures/athen_civil_centre": 1
+      },
+      "CivCentre": {
+        "structures/athen_civil_centre": 1
+      },
+      "Civic": {
+        "structures/athen_civil_centre": 1
+      },
+      "CivilCentre": {
+        "structures/athen_civil_centre": 1
+      },
+      "Unit": {
+        "units/athen_support_female_citizen": 4,
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Support": {
+        "units/athen_support_female_citizen": 4
+      },
+      "Organic": {
+        "units/athen_support_female_citizen": 4,
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Worker": {
+        "units/athen_support_female_citizen": 4,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Female": {
+        "units/athen_support_female_citizen": 4
+      },
+      "Citizen": {
+        "units/athen_support_female_citizen": 4,
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "CitizenSoldier": {
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Cavalry": {
+        "units/athen_cavalry_javelinist_b": 2
+      },
+      "Soldier": {
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Ranged": {
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Javelin": {
+        "units/athen_cavalry_javelinist_b": 2
+      },
+      "Basic": {
+        "units/athen_cavalry_javelinist_b": 2,
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Infantry": {
+        "units/athen_infantry_slinger_b": 4
+      },
+      "Sling": {
+        "units/athen_infantry_slinger_b": 4
+      }
+    },
+    "statistics": {
+      "unitsTrained": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "unitsLost": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "unitsLostValue": 0,
+      "enemyUnitsKilled": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "enemyUnitsKilledValue": 0,
+      "buildingsConstructed": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "buildingsLost": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "buildingsLostValue": 0,
+      "enemyBuildingsDestroyed": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "enemyBuildingsDestroyedValue": 0,
+      "resourcesGathered": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0,
+        "vegetarianFood": 0
+      },
+      "resourcesUsed": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "resourcesSold": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "resourcesBought": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "tributesSent": 0,
+      "tributesReceived": 0,
+      "tradeIncome": 0,
+      "treasuresCollected": 0,
+      "percentMapExplored": 6
+    }
+  },
+  {
+    "name": "Player 2",
+    "civ": "cart",
+    "colour": {
+      "r": 0.5882352941176471,
+      "g": 0.0784313725490196,
+      "b": 0.0784313725490196,
+      "a": 1
+    },
+    "popCount": 10,
+    "popLimit": 20,
+    "popMax": 300,
+    "heroes": [],
+    "resourceCounts": {
+      "food": 10000,
+      "wood": 1000,
+      "metal": 2000,
+      "stone": 2000
+    },
+    "trainingBlocked": false,
+    "state": "active",
+    "team": -1,
+    "teamsLocked": false,
+    "cheatsEnabled": false,
+    "phase": "village",
+    "isAlly": [
+      false,
+      false,
+      true
+    ],
+    "isMutualAlly": [
+      false,
+      false,
+      true
+    ],
+    "isNeutral": [
+      false,
+      false,
+      false
+    ],
+    "isEnemy": [
+      true,
+      true,
+      false
+    ],
+    "entityLimits": {
+      "Apadana": 1,
+      "Council": 1,
+      "DefenseTower": 30,
+      "Embassy": 2,
+      "Fortress": 10,
+      "Hero": 1,
+      "Juggernaut": 1,
+      "Library": 1,
+      "Lighthouse": 1,
+      "Monument": 5,
+      "Pillar": 0,
+      "Theater": 1,
+      "WarDog": 0,
+      "Wonder": 1
+    },
+    "entityCounts": {
+      "Apadana": 0,
+      "Council": 0,
+      "DefenseTower": 0,
+      "Embassy": 0,
+      "Fortress": 0,
+      "Hero": 0,
+      "Juggernaut": 0,
+      "Library": 0,
+      "Lighthouse": 0,
+      "Monument": 0,
+      "Pillar": 0,
+      "Theater": 0,
+      "WarDog": 0,
+      "Wonder": 0
+    },
+    "entityLimitChangers": {
+      "Juggernaut": {
+        "PtolemyIV": 4
+      },
+      "Pillar": {
+        "Ashoka": 5
+      },
+      "WarDog": {
+        "Kennel": 10
+      }
+    },
+    "disabledTemplates": {},
+    "researchQueued": {},
+    "researchStarted": {},
+    "researchedTechs": {
+      "phase_village": {
+        "genericName": "Village Phase",
+        "autoResearch": true
+      }
+    },
+    "classCounts": {
+      "Structure": 1,
+      "ConquestCritical": 11,
+      "Defensive": 1,
+      "CivCentre": 1,
+      "Civic": 1,
+      "CivilCentre": 1,
+      "Unit": 10,
+      "Support": 4,
+      "Organic": 10,
+      "Worker": 8,
+      "Female": 4,
+      "Citizen": 10,
+      "CitizenSoldier": 6,
+      "Cavalry": 2,
+      "Soldier": 6,
+      "Ranged": 6,
+      "Javelin": 6,
+      "Basic": 6,
+      "Iberian": 4,
+      "Mercenary": 4,
+      "Infantry": 4
+    },
+    "typeCountsByClass": {
+      "Structure": {
+        "structures/cart_civil_centre": 1
+      },
+      "ConquestCritical": {
+        "structures/cart_civil_centre": 1,
+        "units/cart_support_female_citizen": 4,
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Defensive": {
+        "structures/cart_civil_centre": 1
+      },
+      "CivCentre": {
+        "structures/cart_civil_centre": 1
+      },
+      "Civic": {
+        "structures/cart_civil_centre": 1
+      },
+      "CivilCentre": {
+        "structures/cart_civil_centre": 1
+      },
+      "Unit": {
+        "units/cart_support_female_citizen": 4,
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Support": {
+        "units/cart_support_female_citizen": 4
+      },
+      "Organic": {
+        "units/cart_support_female_citizen": 4,
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Worker": {
+        "units/cart_support_female_citizen": 4,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Female": {
+        "units/cart_support_female_citizen": 4
+      },
+      "Citizen": {
+        "units/cart_support_female_citizen": 4,
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "CitizenSoldier": {
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Cavalry": {
+        "units/cart_cavalry_javelinist_b": 2
+      },
+      "Soldier": {
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Ranged": {
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Javelin": {
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Basic": {
+        "units/cart_cavalry_javelinist_b": 2,
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Iberian": {
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Mercenary": {
+        "units/cart_infantry_javelinist_b": 4
+      },
+      "Infantry": {
+        "units/cart_infantry_javelinist_b": 4
+      }
+    },
+    "statistics": {
+      "unitsTrained": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "unitsLost": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "unitsLostValue": 0,
+      "enemyUnitsKilled": {
+        "Infantry": 0,
+        "Worker": 0,
+        "Female": 0,
+        "Cavalry": 0,
+        "Champion": 0,
+        "Hero": 0,
+        "Ship": 0,
+        "total": 0
+      },
+      "enemyUnitsKilledValue": 0,
+      "buildingsConstructed": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "buildingsLost": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "buildingsLostValue": 0,
+      "enemyBuildingsDestroyed": {
+        "House": 0,
+        "Economic": 0,
+        "Outpost": 0,
+        "Military": 0,
+        "Fortress": 0,
+        "CivCentre": 0,
+        "Wonder": 0,
+        "total": 0
+      },
+      "enemyBuildingsDestroyedValue": 0,
+      "resourcesGathered": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0,
+        "vegetarianFood": 0
+      },
+      "resourcesUsed": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "resourcesSold": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "resourcesBought": {
+        "food": 0,
+        "wood": 0,
+        "metal": 0,
+        "stone": 0
+      },
+      "tributesSent": 0,
+      "tributesReceived": 0,
+      "tradeIncome": 0,
+      "treasuresCollected": 0,
+      "percentMapExplored": 6
+    }
+  }
+]
+// Export end of players

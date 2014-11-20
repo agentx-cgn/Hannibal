@@ -1,0 +1,11 @@
+// EXPORTED passabilityClasses at Thu Nov 20 2014 13:35:06 GMT+0100 (CET)
+{
+  "pathfinderObstruction": 1,
+  "foundationObstruction": 2,
+  "building-land": 4,
+  "building-shore": 8,
+  "default": 16,
+  "ship": 32,
+  "unrestricted": 64
+}
+// Export end of passabilityClasses

@@ -5,6 +5,49 @@
     <meta http-equiv="Content-Type" content="application/xml+xhtml; charset=UTF-8" />
     <meta name="description" content="Explorer" />
     <meta name="viewport" content="width=device-width, maximum-scale=1.0" />
+
+    <script type="text/javascript">
+
+      var SCRIPTS = [
+        "libs/mousetrap.js",
+        "data/templates-json.export",
+        "data/techtemplates-json.export",
+        "data/structures-json.export",
+        "data/gaia-json.export",
+        "data/other-json.export",
+        "data/store-json.export",
+        "data/techs-json.export",
+        // simulates 0AD's alphabetic loading sequence -->
+        "../simulation/ai/hannibal/_lhelper.js",
+        "../simulation/ai/hannibal/config.js",
+        "../simulation/ai/hannibal/data.js",
+        "../simulation/ai/hannibal/ai.js",
+        "../simulation/ai/hannibal/economy.js",
+        "../simulation/ai/hannibal/store.js",
+        "../simulation/ai/hannibal/htn-helper.js",
+        "../simulation/ai/hannibal/htn-eco-methods.js",
+        "../simulation/ai/hannibal/htn-eco-operators.js",
+        "../simulation/ai/hannibal/htn-planner.js",
+        "../simulation/ai/hannibal/grids.js",
+        "../simulation/ai/hannibal/map.js",
+        "../simulation/ai/hannibal/geometry.js",
+        "../simulation/ai/hannibal/tools.js",
+        "../simulation/ai/hannibal/effector.js",
+        //end of alphabetic loading sequence -->
+        "htn-eco-examples.js",
+        "htn-tree-methods.js",
+        "htn-tree-operators.js",
+        "htn-tree-examples.js",
+        "htn-blocks.js",
+        "display.js",
+        "browser.js",
+        "maps.js",
+        "village.js",
+        "sims.js",
+        "simulation.js",
+      ];
+
+    </script>
     
     <script type="text/javascript">
 
@@ -634,106 +677,105 @@
 
   <!-- Scripts -->
     <div>
+      
       <script type="text/javascript" >
 
-        var errors = 0, bInitializes = true;
+        var 
+          errors = 0, 
+          bInitializes = true,
+          $ = document.getElementById.bind(document),
+          $$ = function(selector){return H.toArray(document.querySelectorAll(selector));},
+
+          // fake bot environment 
+          H = HANNIBAL = {LIB: {}, Data: {}},
+          deb = function(){
+            var args = arguments, al = args.length;
+            if (al === 0) {args = ["**"];}
+            if (al === 1) {args = ["%s", args[0]];}
+            console.log(H.format.apply(null, args));
+          };
 
         window.onerror = function(e, f, l){
+
           var error = "";
+
           if (bInitializes){
             error += "Browser not supported. Try this one ";
             error += "<a href='http://www.mozilla.org/en-US/firefox/channel/#aurora'>Firefox</a>, ";
             error += "<a href='https://developer.mozilla.org/en-US/Firefox/Releases/30'>why</a> ";
             error += "and come back soon, thx.<br />";
-            error += "<span style='font-weight: 400;'>[" + e + "]<span>";
-            document.getElementById("cError").innerHTML = error;
+            error += "<span style='font-weight: 400;'>[" + f + ":" + l + "]<span><br />";
+            error += "<span style='font-weight: 400;'>[" + e + "]<span><br />";
+            $("cError").innerHTML = error;
           } else {
             error += "Error occured.<br />";
-            error += "<span style='font-weight: 400;'>[" + e + "]<span><br />";
             error += "<span style='font-weight: 400;'>[" + f + ":" + l + "]<span><br />";
-            // document.getElementById("cError").innerHTML += error;
-            H.Browser.error(error);
+            error += "<span style='font-weight: 400;'>[" + e + "]<span><br />";
+            $("cError").innerHTML = error;
+            $("cError").style.display = "block";
+            // H.Browser.error(error);
           }
           console.log(e, f, l);
           errors += 1;
+
         }
 
-        var $  = document.getElementById.bind(document),
-            $$ = function(selector){return H.toArray(document.querySelectorAll(selector));},
-            // fake bot environment 
-            HANNIBAL = {LIB: {}},
-            H = HANNIBAL,
-            deb = function(){
-              var args = arguments;
-              if (args.length === 0) {args = ["**"];}
-              if (args.length === 1) {args = ["%s", args[0]];}
-              console.log(H.format.apply(H, args));
-            };
-
-        H.Bot = {ticks: false};
-
-      </script>
-
-      <script type="text/javascript" src="libs/mousetrap.js"></script>
-      <script type="text/javascript" src="data/structures-json.export"></script>
-      <script type="text/javascript" src="data/gaia-json.export"></script>
-      <script type="text/javascript" src="data/other-json.export"></script>
-      <script type="text/javascript" src="data/store-json.export"></script>
-      <script type="text/javascript" src="data/techs-json.export"></script>
-    <!-- simulates 0AD's alphabetic loading sequence -->
-      <script type="text/javascript" src="../simulation/ai/hannibal/_helper.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/config.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/data.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/ai.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/economy.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/store.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/htn-helper.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/htn-eco-methods.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/htn-eco-operators.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/explorer/htn-tree-methods.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/explorer/htn-tree-operators.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/htn-planner.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/grids.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/map.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/geometry.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/tools.js"></script>
-      <script type="text/javascript" src="../simulation/ai/hannibal/effector.js"></script>
-    <!-- end of alphabetic loading sequence -->
-      <script type="text/javascript" src="htn-eco-examples.js"></script>
-      <script type="text/javascript" src="htn-tree-examples.js"></script>
-      <script type="text/javascript" src="htn-blocks.js"></script>
-      <script type="text/javascript" src="display.js"></script>
-      <script type="text/javascript" src="browser.js"></script>
-      <script type="text/javascript" src="maps.js"></script>
-      <script type="text/javascript" src="village.js"></script>
-      <script type="text/javascript" src="sims.js"></script>
-      <script type="text/javascript" src="simulation.js"></script>
-      
-    <!--- Init -->
-      <script>
-
-        bInitializes = false;
-
-          H.HCQ = H.Store.Query;
-          H.QRY = function(hcq, debug){return new H.HCQ(H.store, hcq, debug);};
-
         window.onload = function(){
-          var error = "", res ;
 
-          TIM.step("Hash", location.hash);
+          var error = "", res, pointer = 0 ;
 
-          H.Browser.init("#!0;athen;HCQ");
+          (function scriptLoader () {
 
-          if (!location.hash.contains("#!")){
-            H.Browser.do();
-          } else {
-            H.Browser.execute(location.hash);
-          }  
+            if (SCRIPTS[pointer]){
 
-          if (!errors){H.Browser.error("");}
-          TIM.step("ONLOAD");
+              var 
+                el = document.createElement('script'),
+                scr = SCRIPTS[pointer];
+
+              document.body.appendChild(el);
+
+              el.onload = () => {
+                // TIM.step("load", scr);
+                pointer += 1;
+                scriptLoader();
+              };
+              el.onerror = () => {
+                TIM.step("ERROR", scr);
+                pointer += 1;
+                scriptLoader();
+              };
+              el.src = scr;
+
+            } else {
+
+              TIM.step("SCRIPTS", "loaded");
+
+              bInitializes = false;
+
+              H.Bot = {ticks: false};
+              H.HCQ = H.Store.Query;
+              H.QRY = function(hcq, debug){return new H.HCQ(H.store, hcq, debug);};
+
+              TIM.step("HASH", location.hash);
+
+              H.Browser.init("#!0;athen;HCQ");
+
+              if (!location.hash.contains("#!")){
+                H.Browser.do();
+              } else {
+                H.Browser.execute(location.hash);
+              }  
+
+              if (!errors){H.Browser.error("");}
+
+              TIM.step("LOADED");
+
+            }
+
+          }());
+
         };
-        
+
       </script>
 
     </div>

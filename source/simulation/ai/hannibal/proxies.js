@@ -14,6 +14,22 @@ HANNIBAL = (function(H){
 
   H.Proxies = {
 
+    Player : function(player){
+      return Proxy.create({
+        get: function(proxy, id){
+          return player[id];
+        }
+      });
+    },
+
+    Players : function(players){
+      return Proxy.create({
+        get: function(proxy, id){
+          return players[id];
+        }
+      });
+    },
+
     Entities : function(entities){
       return Proxy.create({
         get: function(proxy, id){
@@ -34,6 +50,14 @@ HANNIBAL = (function(H){
       return Proxy.create({
         get: function(proxy, id){
           return techtemplates[id];
+        }
+      });
+    },
+
+    TechModifications : function(techmodifications){
+      return Proxy.create({
+        get: function(proxy, id){
+          return techmodifications[id];
         }
       });
     },

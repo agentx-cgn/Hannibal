@@ -169,6 +169,26 @@ H.extend(H, {
     );
   },
 
+  // graphics
+  fillCircle: function(a, w, h, x, y, r, v){
+    // fills a circle into 1 dimensional array, ints only
+    var yy=0, xx=0, i=0, al = a.length|0;
+    w=w|0;h=h|0;x=x|0;y=y|0;r=r|0;v=v|0;
+    for(yy =-r; yy<=r; yy++){
+      for(xx=-r; xx<=r; xx++){
+        if(xx*xx+yy*yy <= r*r){
+          i = (x + xx) * h + y + yy;
+          if (i >= 0 && i < al){
+            a[i] = v;
+    }}}}
+  },
+  // http://stackoverflow.com/questions/17136084/checking-if-a-point-is-inside-a-rotated-rectangle?rq=1
+  // https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection
+  //   Separating Axis Theorem (SAT) explanation
+
+
+
+
   // ES6 Suite
   unique:     function (a){return [...Set(a)];},
   attribs:    function (o){return Object.keys(o);},
