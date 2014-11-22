@@ -85,7 +85,6 @@ var HANNIBAL = (function() {
     // initialize container for serialized data
     this.serializers.forEach(s => this.context.data[s] = null);
 
-    deb();
     deb("------: Launcher.constructor.out");
 
   };
@@ -125,11 +124,12 @@ var HANNIBAL = (function() {
     // exportObject(sharedScript._entityMetadata, "metadata");
     // exportObject(sharedScript.passabilityMap, "passabilityMap"); 
     // exportObject(sharedScript.territoryMap, "territoryMap"); 
-    exportObject(sharedScript.passabilityClasses, "passabilityClasses"); 
+    // exportObject(sharedScript.passabilityClasses, "passabilityClasses"); 
 
-    deb();deb();
     logStart(ss, gs, this.settings);
     logPlayers(ss.playersData);
+
+    H.APP = this;
 
     // launch the stats extension
     if (H.Config.numerus.enabled){
@@ -152,19 +152,23 @@ var HANNIBAL = (function() {
       metadata:            H.Proxies.MetaData(sharedScript._entityMetadata[this.context.id]),
 
       // API read only, static
-      templates:           H.Proxies.Templates(this.settings.templates),
-      techtemplates:       H.Proxies.TechTemplates(sharedScript._techTemplates), 
+      // templates:           H.Proxies.Templates(this.settings.templates),
+      templates:           this.settings.templates,
+      // techtemplates:       H.Proxies.TechTemplates(sharedScript._techTemplates), 
+      techtemplates:       sharedScript._techTemplates, 
 
       // API read only, dynamic
       states:              H.Proxies.States(gameState.entities._entities),
-      entities:            H.Proxies.Entities(gameState.entities._entities),
-      technologies:        H.Proxies.Technologies(sharedScript._techTemplates), 
+      // entities:            H.Proxies.Entities(gameState.entities._entities),
+      entities:            gameState.entities._entities,
+      // technologies:        H.Proxies.Technologies(sharedScript._techTemplates), 
+      technologies:        sharedScript._techTemplates, 
       techmodifications:   H.Proxies.TechModifications(sharedScript._techModifications),
       player:              H.Proxies.Player(sharedScript.playersData[this.context.id]),
       players:             H.Proxies.Players(sharedScript.playersData),
 
       query:               function(hcq, debug){
-        return new H.Store.Query(this.context.culture.store, hcq, debug);
+        return new H.LIB.Query(this.context.culture.store, hcq, debug);
       },
 
       operators:           H.HTN.Economy.operators,
@@ -178,19 +182,26 @@ var HANNIBAL = (function() {
 
     // launch the support objects
     this.serializers.forEach(s => {
-      deb("new: %s", s);
+      // deb("new: %s", s);
       this.context[s] = new H.LIB[H.noun(s)](this.context);
     });
 
-    // prepare the support objects
-    this.serializers.forEach(s => {
-      var o = this.context[s];
-      ( o.import      && o.import() );
-      ( o.deserialize && o.deserialize() );
-      ( o.initialize  && o.initialize() );
-      ( o.finalize    && o.finalize() );
-      ( o.activate    && o.activate() );
-      ( o.log         && o.log() );
+    // initialize the support objects
+    ["import", "deserialize", "initialize", "finalize", "activate", "log"].forEach(action => {
+
+      var o, ss;
+
+      // try {
+
+        this.serializers.forEach( s => {
+          ss = s;
+          o = this.context[s];
+          deb("try: %s : %s", s, action);
+            ( o[action]  && o[action]() );
+        });
+
+      // } catch(e){H.throw("serializer '%s' failed on '%s' e:", ss, action, uneval(e));}
+
     });
 
     // This bot faces the user

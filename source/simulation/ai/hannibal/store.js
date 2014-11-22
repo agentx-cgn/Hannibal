@@ -6,30 +6,83 @@
   A triple store with verbs, edges, nodes and a query language
 
 
-  V: 0.1, agentx, CGN, Feb, 2014, initial
-     0.3  agentx, CGN, Mar, 2014, optimized (cache, reduceByVerb)
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
 
 */
 
 
 HANNIBAL = (function(H){
 
-  H.Store = function(name){
-    this.name  = name;
-    this.verbs = [];
-    this.nodes = {};
-    this.edges = [];
-    this.cntNodes = 0;
-    this.cntQueries = 0;
-    this.cache = {};
-    this.cacheHit   =   0;
-    this.cacheMiss  =   0;
-    this.cacheSlots = 100;
+  H.LIB.Store = function(context){
+
+    H.extend(this, {
+
+      name:    "store",
+      context: context,
+      imports: [
+        "culture"
+      ],
+
+      verbs:  null,
+      nodes:  null,
+      edges:  null,
+
+      cntNodes:    0,
+      cntQueries:  0,
+      cache:      {},
+      cacheHit:    0,
+      cacheMiss:   0,
+      cacheSlots:  100,
+
+    });
+
   };
 
-  H.Store.prototype = {
-    addVerb: function(verb){
-      this.verbs.push(verb);
+  H.LIB.Store.prototype = {
+    constructor: H.LIB.Store,
+    log: function(){},
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    clone: function(context){
+      return (
+        new H.LIB[H.noun(this.name)](context)
+          .import()
+          .initialize(this.serialize())
+      );
+    },
+    initialize: function(data){
+      this.verbs = this.culture.verbs;
+      if (data){
+        this.nodes = H.deepcopy(data.nodes);
+        this.edges = this.importEdges(data.edges);
+        this.cntNodes = H.count(this.nodes);
+      } else {
+        this.nodes = {};
+        this.edges = [];
+        this.cntNodes = 0;
+      }
+      return this;
+    },
+    serialize: function(){
+      return {
+        verbs: H.deepcopy(this.verbs),
+        nodes: H.deepcopy(this.nodes),
+        edges: this.exportEdges(this.edges),
+      };
+    },
+    importEdges: function(json){
+      var src, tgt;
+      json.edges.forEach(edge => {
+        src = this.nodes[edge[0]];
+        tgt = this.nodes[edge[2]];
+        this.addEdge(src, edge[1], tgt);
+      });
+    },
+    exportEdges: function(){
+      return this.edges.map(edge => [edge[0].name, edge[1], edge[2].name]);
     },
     addNode: function(node){
       if (!this.nodes[node.name]){
@@ -40,7 +93,6 @@ HANNIBAL = (function(H){
       }
     },
     addEdge: function(source, verb, target){
-
       if (!source)                      {deb("ERROR : addEdge: source not valid: %s", source);} 
       else if (!target)                 {deb("ERROR : addEdge: target not valid: %s", target);} 
       else if (!this.nodes[source.name]){deb("ERROR : addEdge: no source node for %s", source.name);}
@@ -49,96 +101,147 @@ HANNIBAL = (function(H){
       else {
         this.edges.push([source, verb, target]);
       }
-
-      // if (source && this.nodes[source.name] && this.nodes[target.name] && this.verbs.indexOf(verb) !== -1){
-      //   this.edges.push([source, verb, target]);
-      // } else {
-      //   if (!source){}
-      //   else if (!this.nodes[source.name]){deb("ERROR: addEdge: no source node for %s", source.name);}
-      //   else {deb("ERROR : edge not valid: verb: %s, source: %s, target: %s", verb, source.name, target.name);}
-      // }
     },
     delNode: function(name){  // TODO: speed up
 
-      var idx, dels = [], self = this;
-      
-      this.edges.forEach(function(edge){
-        if (edge[0].name === name || edge[2].name === name){
-          dels.push(edge);
-        }
-      });
-      
-      dels.forEach(function(edge){
-        idx = self.edges.indexOf(edge);
-        if (idx !== -1){
-          this.cntNodes -= 1;
-          self.edge.splice(idx, 1);
-        }
-      });
+      if (this.nodes[name]){
+        H.delete(this.edges, edge => edge[0].name === name || edge[2].name === name);
+        delete this.nodes[name];
+        this.cntNodes -= 1;
 
-      this.cntNodes -= 1;
-      delete this.nodes[name];
+      } else {
+        deb("WARN  : store.delNode: can't delete '%s' unknown", name);
+      }
 
     },
-    importFromJSON: function(json){
-      var self = this;
-      this.verbs = json.verbs;
-      this.nodes = json.nodes;
-      this.cntNodes = H.count(this.nodes);
-      json.edges.forEach(function(edge){
-        var src = self.nodes[edge[0]],
-            tgt = self.nodes[edge[2]];
-        self.addEdge(src, edge[1], tgt);
-      });
-    },
-    export: function(civs){
-
-      // log history > 3,000 per civ, athens~2500, CRs not enforced.
-
-      var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
-
-      function logg(){
-        print ( arguments.length === 0 ? 
-          "#! append 0 ://\n" : 
-          "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-        );
-      }    
-
-      deb();deb();deb("EXPORT: %s", civs);
-
-      civs.forEach(function(civ){
-        print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
-        logg("// EXPORTED culture '%s' at %s", civ, new Date());
-        var culture = new H.Culture(civ), store = culture.store;
-        culture.loadDataNodes();           // from data to triple store
-        culture.readTemplates();           // from templates to culture
-        culture.loadTechTemplates();       // from templates to triple store
-        culture.loadTemplates();           // from templates to triple store
-        culture.finalize();                // clear up
-        logg("var store_%s = {", civ);
-          logg("  verbs: %s,", JSON.stringify(store.verbs));
-          logg("  nodes: {");
-          H.each(store.nodes, function(name, value){
-            delete value.template;
-            logg("    '%s': %s,", name, JSON.stringify(value));
-          });
-          logg("  },");
-          logg("  edges: [");
-          store.edges.forEach(function(edge){
-            logg("    ['%s', '%s', '%s'],", edge[0].name, edge[1], edge[2].name);
-          });
-          logg("  ],");
-        logg("};");
-        logg("// Export end of culture %s", civ);
-        print("#! close 0\n");
-      });
-
-
-    }
 
   };
 
-  H.Store.Query = function(store, query, debug){
+  // H.Store = function(name){
+  //   this.name  = name;
+  //   this.verbs = [];
+  //   this.nodes = {};
+  //   this.edges = [];
+  //   this.cntNodes = 0;
+  //   this.cntQueries = 0;
+  //   this.cache = {};
+  //   this.cacheHit   =   0;
+  //   this.cacheMiss  =   0;
+  //   this.cacheSlots = 100;
+  // };
+
+  // H.Store.prototype = {
+  //   addVerb: function(verb){
+  //     this.verbs.push(verb);
+  //   },
+  //   addNode: function(node){
+  //     if (!this.nodes[node.name]){
+  //       this.nodes[node.name] = node;
+  //       this.cntNodes += 1;
+  //     } else {
+  //       deb("ERROR : node already exists in store: %s, %s ", this.name, node.name);
+  //     }
+  //   },
+  //   addEdge: function(source, verb, target){
+
+  //     if (!source)                      {deb("ERROR : addEdge: source not valid: %s", source);} 
+  //     else if (!target)                 {deb("ERROR : addEdge: target not valid: %s", target);} 
+  //     else if (!this.nodes[source.name]){deb("ERROR : addEdge: no source node for %s", source.name);}
+  //     else if (!this.nodes[target.name]){deb("ERROR : addEdge: no target node for %s", target.name);}
+  //     else if (this.verbs.indexOf(verb) === -1){deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
+  //     else {
+  //       this.edges.push([source, verb, target]);
+  //     }
+
+  //     // if (source && this.nodes[source.name] && this.nodes[target.name] && this.verbs.indexOf(verb) !== -1){
+  //     //   this.edges.push([source, verb, target]);
+  //     // } else {
+  //     //   if (!source){}
+  //     //   else if (!this.nodes[source.name]){deb("ERROR: addEdge: no source node for %s", source.name);}
+  //     //   else {deb("ERROR : edge not valid: verb: %s, source: %s, target: %s", verb, source.name, target.name);}
+  //     // }
+  //   },
+  //   delNode: function(name){  // TODO: speed up
+
+  //     var idx, dels = [], self = this;
+      
+  //     this.edges.forEach(function(edge){
+  //       if (edge[0].name === name || edge[2].name === name){
+  //         dels.push(edge);
+  //       }
+  //     });
+      
+  //     dels.forEach(function(edge){
+  //       idx = self.edges.indexOf(edge);
+  //       if (idx !== -1){
+  //         this.cntNodes -= 1;
+  //         self.edge.splice(idx, 1);
+  //       }
+  //     });
+
+  //     this.cntNodes -= 1;
+  //     delete this.nodes[name];
+
+  //   },
+  //   importFromJSON: function(json){
+  //     var self = this;
+  //     this.verbs = json.verbs;
+  //     this.nodes = json.nodes;
+  //     this.cntNodes = H.count(this.nodes);
+  //     json.edges.forEach(function(edge){
+  //       var src = self.nodes[edge[0]],
+  //           tgt = self.nodes[edge[2]];
+  //       self.addEdge(src, edge[1], tgt);
+  //     });
+  //   },
+  //   export: function(civs){
+
+  //     // log history > 3,000 per civ, athens~2500, CRs not enforced.
+
+  //     var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
+
+  //     function logg(){
+  //       print ( arguments.length === 0 ? 
+  //         "#! append 0 ://\n" : 
+  //         "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+  //       );
+  //     }    
+
+  //     deb();deb();deb("EXPORT: %s", civs);
+
+  //     civs.forEach(function(civ){
+  //       print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
+  //       logg("// EXPORTED culture '%s' at %s", civ, new Date());
+  //       var culture = new H.Culture(civ), store = culture.store;
+  //       culture.loadDataNodes();           // from data to triple store
+  //       culture.readTemplates();           // from templates to culture
+  //       culture.loadTechTemplates();       // from templates to triple store
+  //       culture.loadTemplates();           // from templates to triple store
+  //       culture.finalize();                // clear up
+  //       logg("var store_%s = {", civ);
+  //         logg("  verbs: %s,", JSON.stringify(store.verbs));
+  //         logg("  nodes: {");
+  //         H.each(store.nodes, function(name, value){
+  //           delete value.template;
+  //           logg("    '%s': %s,", name, JSON.stringify(value));
+  //         });
+  //         logg("  },");
+  //         logg("  edges: [");
+  //         store.edges.forEach(function(edge){
+  //           logg("    ['%s', '%s', '%s'],", edge[0].name, edge[1], edge[2].name);
+  //         });
+  //         logg("  ],");
+  //       logg("};");
+  //       logg("// Export end of culture %s", civ);
+  //       print("#! close 0\n");
+  //     });
+
+
+  //   }
+
+  // };
+
+  H.LIB.Query = function(store, query, debug){
 
     this.debug = debug || 0;
 
@@ -161,8 +264,8 @@ HANNIBAL = (function(H){
 
   };
 
-  H.Store.Query.prototype = {
-    constructor: H.Store.Query,
+  H.LIB.Query.prototype = {
+    constructor: H.LIB.Query,
     checkCache: function(){
 
       var result, 
@@ -340,7 +443,7 @@ HANNIBAL = (function(H){
             params = !!rest ? rest.split(" ") : undefined, 
             attr, oper, filters;
 
-        if (!H.Bot.isTicking && self.debug > 0){
+        if (!H.APP.isTicking && self.debug > 0){
           deb("      : i: ops: %s, nodes: %s, c: %s", H.tab(ops, 4), H.tab(results.length, 4), JSON.stringify(clause));
         }
 
@@ -473,7 +576,7 @@ HANNIBAL = (function(H){
       var e = 0|0, out = [], r = result.length|0, eLen = edges.length|0;
 
       while(r--){
-        e = eLen|0;
+        e = eLen;
         while(e--){
           if (edges[e][0] === result[r] && edges[e][1] === verb){
             ops++; 
@@ -487,7 +590,7 @@ HANNIBAL = (function(H){
     },
     logResult: function (result, format, debmax){
 
-      var i, meta, json, id, node, c, p, t = H.tab;
+      var i, meta, node, c, p, t = H.tab;
 
       function saniJson(node){
         node = H.deepcopy(node);

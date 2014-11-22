@@ -74,32 +74,22 @@ H.extend(H, {
   tab:        function (s,l){l=l||8;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);},
   replaceAll: function (find, replace, str) {return str.replace(new RegExp(H.escapeRex(find), 'g'), replace);},
   endsWith:   function (str, end){var l0=str.length,l1=end.length; return str.slice(l0-l1,l0) === end;},
-  noun:       function (s){var o=s.toLowerCase();return o[0].toUpperCase()+o.slice(1);},
+  noun:       function (s){return s[0].toUpperCase()+s.slice(1).toLowerCase();},
   
   // objects
   // each:       function (o,fn){var a;for(a in o){if(o.hasOwnProperty(a)){fn(a,o[a]);}}},
-  clone:      function (o){var e,n={};for(e in o){n[e]=o[e];}return n;},
   // attribs:    function (o){var a,n=[];for(a in o){if(o.hasOwnProperty(a)){n.push(a);}}return n;},
-  firstAttr:  function (o){var attr; for (attr in o) {if (o.hasOwnProperty(attr)) {return attr;} } return undefined;},
-  countAttrs: function (o){var a,c=0;for(a in o){if(o.hasOwnProperty(a)){c+=1;}}return c;},
   // count:      function (o){var attr,cnt=0;for(attr in o){if (o.hasOwnProperty(attr)){cnt+=1;}}return cnt;},
-  deepcopy:   function (obj){return JSON.parse(JSON.stringify(obj));},
   // extend:     function (o,e){var a; for(a in e){if(e.hasOwnProperty(a)){o[a]=H.deepcopy(e[a]);}}return o;},
   // extend:     function (o,e){var a; for(a in e){if(e.hasOwnProperty(a)){o[a]=(e[a]);}} return o;},
+  clone:      function (o){var e,n={};for(e in o){n[e]=o[e];}return n;},
+  firstAttr:  function (o){var attr; for (attr in o) {if (o.hasOwnProperty(attr)) {return attr;} } return undefined;},
+  countAttrs: function (o){var a,c=0;for(a in o){if(o.hasOwnProperty(a)){c+=1;}}return c;},
+  deepcopy:   function (obj){return JSON.parse(JSON.stringify(obj));},
   isEmpty:    function (o){var p;for(p in o){if(o.hasOwnProperty(p)){return false;}}return true;},
   prettify:   function (o){return JSON.stringify(o).split('"').join("");},
   map:        function (o, fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},
-  transform:  function (o, fn){
-    var r={}; H.each(o,function(k,v){var [ra,rv]=fn(k,v);r[ra]=rv;});return r;
-  },
-  testX:       function (o, s){
-    var p = 0, as = s.split("."), l = as.length -1;
-    while (( (o = o[as[p]]) !== undefined)) {
-      if(p === l){return o;}
-      p +=1;
-    }
-    return undefined;
-  },
+  transform:  function (o, fn){var r={}; H.each(o,function(k,v){var [ra,rv]=fn(k,v);r[ra]=rv;});return r;},
   test:       function (o, s){
     var p = 0, as = s.split("."), l = as.length -1;
     while (o[as[p]] !== undefined) {
@@ -192,9 +182,10 @@ H.extend(H, {
   // ES6 Suite
   unique:     function (a){return [...Set(a)];},
   attribs:    function (o){return Object.keys(o);},
-  each:       function (o,fn){Object.keys(o).forEach(a => fn(a, o[a]));},
+  each:       function (o,fn){Object.keys(o).forEach(k => fn(k, o[k]));},
   count:      function (o){return Object.keys(o).length;},
-  values:     function (o){return Object.keys(o).map(function(k){return o[k];});}
+  values:     function (o){return Object.keys(o).map(function(k){return o[k];});},
+  // each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, a[k]);}},
 
 });
 

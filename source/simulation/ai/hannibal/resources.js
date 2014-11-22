@@ -7,10 +7,10 @@
   provides the semantics for the DSL used in plugins
 
 
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
 
 */
-
 
 HANNIBAL = (function(H){
 
@@ -35,9 +35,7 @@ HANNIBAL = (function(H){
 
     //TODO remove API access, owner, template.Identity, resourceSupplyMax
 
-    this.context = data.context;
-
-    H.extend(this, {
+    H.extend(this, data, {
       id:       data.id,
       found:    false,
       consumed: false,
@@ -65,20 +63,21 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
 
-      var tpl, ent = this.entities[this.id];
+      var tpl, name, ent = this.entities[this.id];
 
       if (ent){
 
-        tpl = ent._template;
+        tpl  = ent._template;
+        name = (tpl.Identity && tpl.Identity.SpecificName) ? tpl.Identity.SpecificName.toLowerCase() : "unknown";
 
         H.extend(this, {
+          name:      name,
           owner:     ent.owner(),
-          resources: [this.id],   // make asset gatherable
-          name:      (tpl.Identity && tpl.Identity.SpecificName) ? tpl.Identity.SpecificName.toLowerCase() : "unknown",
-          isPrey:    this.config.data.prey.indexOf(this.name) !== -1,
-          maxSupply: ent.resourceSupplyMax(),
           position:  ent.position(),
-          found:     this.found ? true : this.map.isOwnTerritory(this.position) ? true : false,
+          resources: [this.id],   // make asset gatherable
+          isPrey:    this.config.data.prey.indexOf(name) !== -1,
+          maxSupply: ent.resourceSupplyMax(),
+          found:     this.found ? true : this.map.isOwnTerritory(ent.position()) ? true : false,
           supply:    ent.resourceSupplyAmount(),
         });
 
@@ -193,10 +192,13 @@ HANNIBAL = (function(H){
           if (this.resources[type.generic][type.specific]){
             counter += 1;
             res = this.resources[type.generic][type.specific][ent.id()] = new Resource({
-              id: id, 
-              context: this.context,
-              generic: type.generic,
+              id:       id, 
+              map:      this.map,
+              config:   this.config,
+              context:  this.context,
+              generic:  type.generic,
               specific: type.specific,
+              entities: this.entities,
             });
           } else {
             deb("ERROR : unknown resource type %s %s %s", type.generic, type.specific, ent._templateName);
@@ -213,7 +215,7 @@ HANNIBAL = (function(H){
           stats.found     += res.found ? 1 : 0;
           stats.available += res.found ? res.supply : 0;
           stats.total     += res.supply;
-        } else if (!H.Entities[id] && !res.consumed){
+        } else if (!this.entities[id] && !res.consumed){
           res.consumed   = true;
           stats.consumed += res.supply;
           stats.depleted += 1;

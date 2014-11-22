@@ -40,12 +40,12 @@ HANNIBAL = (function(H){
     constructor: H.LIB.Phases,
     log: function(){},
     initialize: function(){
-      var test;
+      var test, self = this;
       function extract(str){
         if (str && str.contains("phase")){
-          if (str.contains("village")){this["1"].alternates.push(str);}
-          if (str.contains("town")){this["2"].alternates.push(str);}
-          if (str.contains("city")){this["3"].alternates.push(str);}
+          if (str.contains("village")){self["1"].alternates.push(str);}
+          if (str.contains("town")){self["2"].alternates.push(str);}
+          if (str.contains("city")){self["3"].alternates.push(str);}
         }
       }
       function check(key, tpl){
@@ -54,16 +54,18 @@ HANNIBAL = (function(H){
         if ((test = H.test(tpl, "requirements.any"))){test.filter(t => !!t.tech).forEach(t => extract(t.tech));}
       }
       H.each(this.templates, check); 
-      H.each(this.techTemplates, check); 
+      H.each(this.techtemplates, check); 
       this["1"].alternates = H.unique(this["1"].alternates);
       this["2"].alternates = H.unique(this["2"].alternates);
       this["3"].alternates = H.unique(this["3"].alternates);
+      return this;
     },
     clone: function(context){
       return new H.LIB.Phases(context);
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     deserialize: function(){
       return {};
@@ -86,6 +88,7 @@ HANNIBAL = (function(H){
       return Date.now() - t0;
 
     },
+    prev: function(phase){return this[(this.find(phase).idx - 1) || 1];},
     find: function(phase){
       for (var i=1; i<=3; i++) {
         if (H.contains(this[i].alternates, phase)){
@@ -97,14 +100,14 @@ HANNIBAL = (function(H){
 
   };
 
-  var phases = H.Phases = {
-      "1" : {idx: 1, abbr: "vill", next: "", generic: "phase_village", alternates: ["vill", "phase_village"]},
-      "2" : {idx: 2, abbr: "town", next: "", generic: "phase_town",    alternates: ["town", "phase_town"]},
-      "3" : {idx: 3, abbr: "city", next: "", generic: "phase_city",    alternates: ["city", "phase_city"]},
-      current: "",
-      prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];},
-      init: function(){
-      },
-    };
+  // var phases = H.Phases = {
+  //     "1" : {idx: 1, abbr: "vill", next: "", generic: "phase_village", alternates: ["vill", "phase_village"]},
+  //     "2" : {idx: 2, abbr: "town", next: "", generic: "phase_town",    alternates: ["town", "phase_town"]},
+  //     "3" : {idx: 3, abbr: "city", next: "", generic: "phase_city",    alternates: ["city", "phase_city"]},
+  //     current: "",
+  //     prev: function(phase){return phases[(phases.find(phase).idx - 1) || 1];},
+  //     init: function(){
+  //     },
+  //   };
 
 return H; }(HANNIBAL));

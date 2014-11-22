@@ -14,6 +14,335 @@
 
 HANNIBAL = (function(H){
 
+  H.LIB.Tree = function(context){
+
+    H.extend(this, {
+
+      name:  "tree",
+      context:  context,
+      imports:  [
+        "id",
+        "player",
+        "techmodifications",
+        "culture",
+        "query",
+        "entities",
+        "templates",
+        "techtemplates",
+      ],
+
+      nodes:   null,
+      sources: null,
+      names:   null,
+      keys:    null,
+
+    });
+
+  };
+
+  H.LIB.Tree.prototype = {
+    constructor: H.LIB.Tree,
+    log: function(){},
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    clone: function(context){
+      return (
+        new H.LIB[H.noun(this.name)](context)
+          .import()
+          .initialize(this.serialize())
+      );
+    },
+    serialize: function(){
+      return H.deepcopy(this.nodes);
+    },
+    deserialize: function(config){
+      if (config.tree){
+        this.nodes = H.deepcopy(config.nodes);
+      }
+    },
+    initialize: function(){
+
+      this.civ = this.player.civ;
+
+      if (this.nodes === null){
+
+        this.nodes = {};
+
+        this.sources = [].concat(
+          H.attribs(this.player.researchedTechs), 
+          H.attribs(this.techmodifications[this.id]),
+          H.attribs(this.entities)
+            .filter(id => this.entities[id].owner() === this.id)
+            .map(id => this.entities[id]._templateName)
+        );    
+        this.sources = H.unique(this.sources).map(src => [0, src]);
+
+        deb("  TREE: expanding %s sources for id: %s with civ: %s", H.count(this.sources), this.id, this.civ);
+        
+        this.build();
+        this.names = H.attribs(this.nodes);
+        this.keys  = H.attribs(this.nodes).map(t => this.nodes[t].key);
+
+        deb("     T: found %s nodes", this.names.length);
+
+      }
+
+      return this;
+
+    },
+    finalize: function(){
+
+      // called after culture was loaded
+
+      var 
+        tech, name, producers, nodes = this.nodes, t0 = Date.now(),
+        phases = this.culture.phases,
+        operMapper = {
+          "BUILDBY":       "build_structures",
+          "TRAINEDBY":     "train_units",
+          "RESEARCHEDBY":  "research_tech"
+        },
+        verbMapper = {
+          "BUILD":    "BUILDBY",
+          "TRAIN":    "TRAINEDBY",
+          "RESEARCH": "RESEARCHEDBY"
+        };
+
+      this.query("ENABLE DISTINCT").forEach(node => {
+        tech = this.query(node.name + " REQUIRE").first().name;
+        nodes[node.name].requires = tech;
+      });
+
+      // uplink info, producer
+
+      "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
+        this.query(verb + " DISTINCT").forEach(ent => {
+          this.query(ent.name + " " + verbMapper[verb]).forEach(p => {
+            nodes[ent.name].producers[p.name] = p;
+          });
+          nodes[ent.name].verb = verb.toLowerCase();
+          nodes[ent.name].operator = this.operators[operMapper[verbMapper[verb]]];
+        });
+      });  
+
+      this.query("PAIR DISTINCT").forEach(tech => {  
+        this.query(tech.name + " PAIREDBY RESEARCHEDBY").forEach(p => {
+          nodes[tech.name].producers[p.name] = p;
+        });
+        nodes[tech.name].verb = "research";
+        nodes[tech.name].operator = this.operators.research_tech;
+      });          
+
+      this.query("SUPERSEDE DISTINCT").forEach(tech => {  
+        this.query(tech.name + " SUPERSEDEDBY RESEARCHEDBY").forEach(p => {
+          nodes[tech.name].producers[p.name] = p;
+        });
+        nodes[tech.name].verb = "research";
+        nodes[tech.name].operator = this.operators.research_tech;
+      });          
+
+      // downlink info, products
+
+      H.each(nodes, function(name /*, node */){
+        "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
+          this.query(name + " " + verb).forEach(p => {
+            nodes[name].products.count += 1;
+            nodes[name].products[verb.toLowerCase()][p.name] = p;
+          });
+        });
+      });
+
+      this.query("RESEARCHEDBY DISTINCT").forEach(researcher => {  
+        this.query(researcher.name + " RESEARCH PAIR").forEach(p => {
+          nodes[researcher.name].products.research[p.name] = p;
+          nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
+        });
+      });          
+
+      this.query("RESEARCHEDBY DISTINCT").forEach(researcher => {  
+        this.query(researcher.name + " RESEARCH SUPERSED").forEach(p => {
+          nodes[researcher.name].products.research[p.name] = p;
+          nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
+        });
+      });          
+
+
+      // setting research as verb for all phase alternatives
+
+      // H.range(1, 4).forEach(n => {
+      H.loop(3, n => {
+        phases[n].alternates.forEach(a => {
+          name = H.saniTemplateName(a);
+          if (nodes[name] && !nodes[name].verb){
+            nodes[name].verb = "research";
+          }
+        });
+      });
+
+      // setting producers for all phase alternatives
+
+      H.loop(3, n => {
+        producers = null;
+        phases[n].alternates.forEach(a => {
+          name = H.saniTemplateName(a);
+          if (nodes[name] && H.count(nodes[name].producers)){
+            producers = nodes[name].producers;
+          }
+        });
+        // deb("  TREE: phase: %s, producers: %s", phases[n].abbr, uneval(producers));
+        phases[n].alternates.forEach(a => {
+          name = H.saniTemplateName(a);
+          if (nodes[name] && !H.count(nodes[name].producers)){
+            nodes[name].producers = H.deepcopy(producers);
+            // deb("tree: set %s", name);
+          }
+        });
+      });
+
+      // setting max resource flow for all trainer
+
+      H.each(nodes, function(name, node){
+        node.flow = ( H.count(node.products.train) ?
+          H.getFlowFromTrainer(name) :
+          null
+        );
+      });
+
+      deb();deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
+
+    },
+    getType: function(tpln){
+
+      return (
+        this.techtemplates[tpln]      ? "tech" :
+        tpln.contains("units/")       ? "unit" :
+        tpln.contains("structures/")  ? "stuc" :
+        tpln.contains("other/")       ? "othr" :
+        tpln.contains("gaia/")        ? "gaia" :
+        tpln.contains("pair_/")       ? "pair" :
+          "XXXX"
+      );
+
+    },
+    getPhase: function(tpln, space){
+
+      var 
+        test, 
+        phases = this.culture.phases,
+        phase = "phase_village", tpl = this.templates[tpln] || this.techtemplates[tpln];
+
+      space = space || ""; // deb
+
+      if ((test = H.test(tpl, "Identity.RequiredTechnology"))){
+        phase = test;
+      } else if ((test = H.test(tpl, "requirements.any"))){
+        phase = test[0].tech;
+      } else if ((test = H.test(tpl, "requirements.tech"))){
+        phase = test;
+      } else if (phases.find(tpln)){
+        phase = phases.prev(tpln).generic;
+      } else if (tpl.top) {
+        return this.getPhase(tpl.top, space + "  ");
+      }
+
+      // deb("     P:%s %s -> %s", space, tpln, phase);
+
+      if (!phases.find(phase)){
+        return this.getPhase(phase, space + "  ");
+      } else {
+        return phase;
+      }
+
+
+    },
+    build: function (){
+
+      // picks from sources, analyzes, and appends branches to sources
+      // thus traversing the tree
+
+      var 
+        tpln, key, tpl, name, src, test, depth = 0,
+        phases = this.culture.phases,
+        push = item => this.sources.push([depth, item]);
+
+      H.consume(this.sources, src => {
+
+        tpln = src[1];
+        key  = tpln.replace(/\{civ\}/g, this.civ);
+        tpl  = this.templates[key] || this.techtemplates[key];
+        name = H.saniTemplateName(key);
+
+        if (!this.nodes[name]){
+
+          this.nodes[name] = {
+            name:          name,     // sanitized API template name
+            key:            key,     // API template name
+            type:            "",     // tech, unit, stuc
+            template:       tpl,     // API template
+            depth:       src[0],     // local depth
+            operations:       0,     // planning depth, set in HTN.Economy
+            order:            0,     // execution order, set in HTN.Economy
+            phase:           "",     // vill, town, city
+            requires:        "",     // sanitized tech template name
+            producers:       {},     // {name: node, }
+            verb:            "",     // train, build, research // uplink
+            products: {              // downlink
+              count:          0,     // amount of products
+              train:         {},     // {name: node, }
+              build:         {}, 
+              research:      {}
+            }, 
+            operator:      null,    // planner.operator
+          };
+
+          // unit promotion
+          if(key.slice(-2) === "_b"){
+            push(key.slice(0, -2) + "_e");
+            push(key.slice(0, -2) + "_a");
+          }
+
+          // can research tech
+          if ((test = H.test(tpl, "ProductionQueue.Technologies._string"))){
+            test.split(" ").forEach(push);
+          }
+
+          // can train ents
+          if ((test = H.test(tpl, "ProductionQueue.Entities._string"))){
+            test.split(" ").forEach(push);
+          }
+
+          // can build structs
+          if ((test = H.test(tpl, "Builder.Entities._string"))){
+            test.split(" ").forEach(push);
+          }
+
+          // needs tech
+          if ((test = H.test(tpl, "Identity.RequiredTechnology"))){
+            push(test);
+          }
+
+          // is tech
+          if (tpl.supersedes){push(tpl.supersedes);}
+          if (tpl.bottom){push(tpl.bottom);}
+          if (tpl.top){push(tpl.top);}
+
+          depth += 1;
+
+        }
+
+      });
+
+      H.each(this.nodes, (name, node) => {
+        node.type  = this.getType(node.key);
+        node.phase = phases.find(this.getPhase(node.key)).abbr;
+      });
+
+    },
+
+  };    
+
   H.LIB.Culture = function(context){
 
     H.extend(this, {
@@ -21,11 +350,16 @@ HANNIBAL = (function(H){
       name:    "culture",
       context: context,
       imports: [
-        "players",
+        "player",
         "entities",
         "events",
         "templates",
         "techtemplates",
+      ],
+      childs: [
+        "store",
+        "phases",
+        "tree",
       ],
 
       civ :   "",
@@ -45,30 +379,12 @@ HANNIBAL = (function(H){
 
   };
 
-  // H.Culture = function(tree, debug){
-
-  //   deb();deb();deb("  CULT: build culture/store for player id: %s, %s", tree.id, tree.civ);
-
-  //   this.debug = debug || 0;
-
-  //   this.civ  = tree.civ;
-  //   this.tree = tree;
-  //   this.tree.culture = this;
-
-  //   this.verbs = H.Data.verbs;
-  //   this.store = new H.LIB.Store(tree.civ);
-  //   this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
-
-  //   // stores nodes found in templates
-  //   this.classes = [];
-  //   this.technologies = [];
-  //   this.resources = [];
-  //   this.resourcetypes = [];
-
-  // };
-
   H.LIB.Culture.prototype = {
     constructor: H.Culture,
+    log: function (){
+      deb("     C: loaded [%s], verbs: %s, nodes: %s, edges: %s", 
+        this.civ, this.verbs.length, H.count(this.store.nodes), this.store.edges.length);
+    },
     import: function (){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
     },
@@ -76,37 +392,68 @@ HANNIBAL = (function(H){
       context.data[this.name] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
     },
-    serialize: function (){
-
-      var data = {};
-
-      data.tree  = this.tree.serialize();
-      data.store = this.store.serialize();
-
-      return data;
-
-    },
-    deserialize: function (){
-
-      if (this.context.data.culture !== null){
-
-        this.civ = this.players[this.context.id].civ; 
-
+    deserialize: function(){
+      if (this.context.data[this.name]){
+        this.childs.forEach( child => {
+          if (this.context.data[this.name][child]){
+            this[child] = new H.LIB[H.noun(child)](this.context)
+              .import()
+              .initialize(this.context.data[this.name][child]);
+          }
+        });
       }
+    },
+    initializeX: function(){
+      this.childs.forEach( child => {
+        if (!this[child]){
+          deb("child: %s", child);
+          this[child] = new H.LIB[H.noun(child)](this.context)
+            .import()
+            .initialize();
+        }
+      });
+    },
+    serialize: function(){
+      return {
+        tree:   this.tree.serialize(),
+        store:  this.store.serialize(),
+        phases: this.phases.serialize(),
+      };
+    },
+    finalize: function (){
+
+      Object.keys(this.store.nodes).forEach( name => {
+        delete this.store.nodes[name].template;
+        delete this.store.nodes[name].classes;
+      });
+
+      this.childs.forEach( child => {
+        if (this[child].finalize){
+          this[child].finalize();
+        }
+      });
 
     },
     initialize: function (){
 
-      if (this.context.data.culture !== null){
+      this.civ = this.player.civ; 
 
-        this.civ = this.players[this.context.id].civ; 
+      if (!this.phases){
+        this.phases = new H.LIB.Phases(this.context)
+          .import()
+          .initialize();
+      }
 
-        this.phases = new H.LIB.Phases(this.context);
+      if (!this.tree){
+        this.tree = new H.LIB.Tree(this.context)
+          .import()
+          .initialize();
+      }
 
-        this.store = new H.LIB.Store(this.context);
-        this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
-
-        this.tree = new H.LIB.Tree(this.context);
+      if (!this.store){
+        this.store = new H.LIB.Store(this.context)
+          .import()
+          .initialize();
 
         this.searchTemplates();          // extrcact classes, resources, etc from templates
         this.loadNodes();                // turn templates to nodes
@@ -119,47 +466,32 @@ HANNIBAL = (function(H){
     },
     activate: function (){
 
-      var self = this;
-
-      this.events.on("TrainingFinished", function (msg){
-        self.loadById(msg.id);
+      this.events.on("TrainingFinished", msg => {
+        this.loadById(msg.id);
       });
 
-      this.events.on("EntityRenamed", function (msg){
-        self.loadById(msg.id2);
-        H.Triggers.add(-1, self.removeById.bind(self, msg.id));
-        // self.removeById(msg.id);
+      this.events.on("EntityRenamed", msg => {
+        this.loadById(msg.id2);
+        H.Triggers.add(-1, this.removeById.bind(this, msg.id));
+        // this.removeById(msg.id);
       });
 
-      this.events.on("AIMetadata", function (msg){
-        self.loadById(msg.id);
+      this.events.on("AIMetadata", msg => {
+        this.loadById(msg.id);
       });
 
-      this.events.on("Destroy", function (msg){
+      this.events.on("Destroy", msg => {
         if (!msg.data.foundation){
-          self.removeById(msg.id);
+          this.removeById(msg.id);
         }
       });
 
-      this.events.on("Advance", this.tree.id, function (msg){
-        // self.loadByName(msg.data.technology);
-      });
-    },
-
-    finalize: function(){
-
-      // remove some attributes from nodes
-      
-      var store = this.store;
-      Object.keys(store.nodes).forEach(function(name){
-        delete store.nodes[name].template;
-        delete store.nodes[name].classes;
+      this.events.on("Advance", this.tree.id, msg => {
+        // this.loadByName(msg.data.technology);
       });
 
-      deb("     C: loaded [%s], verbs: %s, nodes: %s, edges: %s", 
-        this.civ, this.verbs.length, H.count(this.store.nodes), this.store.edges.length);
-
     },
+
     loadNodes: function(){
 
       var 
@@ -274,27 +606,26 @@ HANNIBAL = (function(H){
     loadEntities: function(){
 
       var 
-        self = this, 
         targetNodes = [], 
         cntNodes = 0, cntEdges = 0, key, name, 
         nodeSource, nodeSourceName, 
         sani = H.saniTemplateName;
 
-      deb();deb("     C: loadEntities from game: %s total", H.count(H.Entities));
+      deb();deb("     C: loadEntities from game: %s total", H.count(this.entities));
 
-      H.each(H.Entities, function(id, ent){
+      H.each(this.entities, (id, ent) => {
 
         key  = ent._templateName;
         name = sani(key) + "#" + id;
 
-        if (ent.owner() === H.Bot.id){
-          targetNodes.push(self.addNode(name, key, ent._template, +id));
+        if (ent.owner() === this.id){
+          targetNodes.push(this.addNode(name, key, ent._template, +id));
           cntNodes += 1;
         }
 
       });
 
-      targetNodes.forEach(function(nodeTarget){
+      targetNodes.forEach( nodeTarget => {
 
         nodeSourceName = nodeTarget.name.split("#")[0];
         nodeSource = H.Bot.culture.store.nodes[nodeSourceName];
@@ -302,8 +633,8 @@ HANNIBAL = (function(H){
         if (!nodeSource){deb("ERROR : loadEntities nodeSource: %s", nodeSourceName);}
         if (!nodeTarget){deb("ERROR : loadEntities nodeTarget: %s", nodeTarget.name);}
 
-        self.store.addEdge(nodeSource, "ingame",      nodeTarget);
-        self.store.addEdge(nodeTarget, "describedby", nodeSource);
+        this.store.addEdge(nodeSource, "ingame",      nodeTarget);
+        this.store.addEdge(nodeTarget, "describedby", nodeSource);
 
         cntEdges += 2;
 
@@ -316,14 +647,14 @@ HANNIBAL = (function(H){
     loadTechnologies: function(){
 
       var 
-        self = this, store = this.store, 
-        techs = H.Player.researchedTechs,
+        store = this.store, 
+        techs = this.player.researchedTechs,
         sani  = H.saniTemplateName,
         counter = 0, nameSource, nameTarget, nodeSource, nodeTarget, names = [];
 
       // TODO: Can tech be INGAME ???
 
-      H.each(techs, function(key, tech){
+      H.each(techs, (key, tech) => {
 
         nameTarget = sani(key);
 
@@ -331,7 +662,7 @@ HANNIBAL = (function(H){
         names.push(nameTarget);
 
         nodeTarget = store.nodes[nameTarget];
-        nodeSource = self.addNode(nameSource, key, tech);
+        nodeSource = this.addNode(nameSource, key, tech);
         
         store.addEdge(nodeSource, "techdescribedby", nodeTarget);
         store.addEdge(nodeTarget, "techingame",      nodeSource);
@@ -359,12 +690,12 @@ HANNIBAL = (function(H){
           }
           return name;
         },
-        ent  = H.Entities[id],
+        ent  = this.entities[id],
         key  = ent._templateName,
         nameSource = sani(ent._templateName),
         nameTarget = nameSource + "#" + id,
         nodeTarget = this.addNode(nameTarget, key, ent._template, id),
-        nodeSource = H.Bot.culture.store.nodes[nameSource];
+        nodeSource = this.store.nodes[nameSource];
 
       this.store.addEdge(nodeSource, "ingame",      nodeTarget);
       this.store.addEdge(nodeTarget, "describedby", nodeSource);
@@ -375,8 +706,8 @@ HANNIBAL = (function(H){
     removeById: function(id){
       
       var 
-        node = H.QRY("INGAME WITH id = " + id).first(), 
-        ent = H.Entities[id],
+        node = this.query("INGAME WITH id = " + id).first(), 
+        ent  = this.entities[id],
         tpln = ent ? ent._templateName : "unknown";
 
       if (node){
@@ -395,6 +726,7 @@ HANNIBAL = (function(H){
     addNode: function(name, key, template, id){
 
       var 
+        entities = this.entities,
         node = {
           name      : name,
           key       : key,
@@ -429,30 +761,30 @@ HANNIBAL = (function(H){
 
       if (id){
         Object.defineProperties(node, {
-          'position': {enumerable: true, get: function(){
-            var pos = H.Entities[id].position();
+          "position": {enumerable: true, get: function(){
+            var pos = entities[id].position();
             return pos;
           }},
-          'metadata': {enumerable: true, get: function(){
+          "metadata": {enumerable: true, get: function(){
             var meta = H.MetaData[id];
             return (meta === Object(meta)) ? meta : {};
           }},
-          'slots': {enumerable: true, get: function(){
+          "slots": {enumerable: true, get: function(){
 
             if (!node.capacity){
-              deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, H.Entities[id].templateName() || "???");
+              deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, entities[id].templateName() || "???");
               return undefined;
             }
 
-            var freeSlots = node.capacity - H.Entities[id].garrisoned.length;
+            var freeSlots = node.capacity - entities[id].garrisoned.length;
             return freeSlots;
           }},          
-          'state': {enumerable: true, get: function(){
-            var state = H.Entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
+          "state": {enumerable: true, get: function(){
+            var state = entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
             return state;
           }},
-          'health': {enumerable: true, get: function(){
-            var ent = H.Entities[id];
+          "health": {enumerable: true, get: function(){
+            var ent = entities[id];
             return Math.round(ent.hitpoints() / ent.maxHitpoints()); // propbably slow
           }}
         });
@@ -973,5 +1305,27 @@ HANNIBAL = (function(H){
     }    
 
   };
+
+  // H.Culture = function(tree, debug){
+
+  //   deb();deb();deb("  CULT: build culture/store for player id: %s, %s", tree.id, tree.civ);
+
+  //   this.debug = debug || 0;
+
+  //   this.civ  = tree.civ;
+  //   this.tree = tree;
+  //   this.tree.culture = this;
+
+  //   this.verbs = H.Data.verbs;
+  //   this.store = new H.LIB.Store(tree.civ);
+  //   this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
+
+  //   // stores nodes found in templates
+  //   this.classes = [];
+  //   this.technologies = [];
+  //   this.resources = [];
+  //   this.resourcetypes = [];
+
+  // };
 
 return H; }(HANNIBAL));

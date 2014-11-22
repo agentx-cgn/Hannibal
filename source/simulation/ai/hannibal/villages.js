@@ -12,9 +12,9 @@
 */
 
 
-HANNIBAL = (function(H){
+HANNIBAL = (function (H){
 
-  H.LIB.Villages = function(context){
+  H.LIB.Villages = function (context){
 
     H.extend(this, {
 
@@ -32,7 +32,7 @@ HANNIBAL = (function(H){
         "metadata",
       ],
 
-      centre: {id: 0},
+      main: {id: 0},
       centres: [],
       buildings: [],
       
@@ -42,27 +42,29 @@ HANNIBAL = (function(H){
 
   H.LIB.Villages.prototype = {
     contructor: H.LIB.Villages,
-    import: function(){
+    log: function () {},
+    import: function () {
       this.imports.forEach(imp => this[imp] = this.context[imp]);
     },
-    clone: function(context){
+    clone: function (context){
       context.data[this.name] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
     },
-    serialize: function(){
+    serialize: function () {
       return {
-        centre:    H.deepcopy(this.centre),
+        main:      H.deepcopy(this.main),
         centres:   H.deepcopy(this.centres),
         buildings: H.deepcopy(this.buildings),
       };
     },
-    log: function(){},
-    initialize: function(){
-      this.organizeVillage();
+    initialize: function () {
+      if (this.main === null){
+        this.organizeVillage();
+      }
       this.prepareMeta();
       this.appointOperators();        
     },
-    activate: function(){
+    activate: function () {
 
       this.events.on("ConstructionFinished", function (msg){
 
@@ -86,11 +88,11 @@ HANNIBAL = (function(H){
     },
     isShared: function (ent){
       var klasses = ent.classes().map(String.toLowerCase);
-      return this.config.data.sharedBuildingClasses.some(function(klass){
+      return this.config.data.sharedBuildingClasses.some(function (klass){
         return H.contains(klasses, klass);
       });
     },
-    getPhaseNecessities: function(options){ // phase, centre, tick
+    getPhaseNecessities: function (options){ // phase, centre, tick
       
       var 
         cls = H.class2name,
@@ -120,13 +122,13 @@ HANNIBAL = (function(H){
 
     },      
 
-    organizeVillage: function (){
+    organizeVillage: function () {
 
       var cics = {}, nodesCics, main;
 
-      function getMain(){
+      function getMain() {
         var max = 0, cic;
-        H.each(cics, function(id, amount){
+        H.each(cics, (id, amount) => {
           if (amount > max){cic = id; max = amount;}
         });
         return ~~cic;
@@ -140,10 +142,10 @@ HANNIBAL = (function(H){
         deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
       }
 
-      deb();deb();
+      deb();
       deb("  VILL: organize villages for %s civic centres [%s]", nodesCics.length, nodesCics.map(c => c.id).join(", "));
       
-      this.query("INGAME").forEach(function(node){
+      this.query("INGAME").forEach( node => {
 
         var 
           name = node.name.split("#")[0],
@@ -172,23 +174,23 @@ HANNIBAL = (function(H){
 
       });
 
-      main = getMain();
+      this.main = getMain();
 
-      H.each(cics, function(id, amount){
-        deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === main ? "X" : ""));
+      H.each(cics, function (id, amount){
+        deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === this.main ? "X" : ""));
       });
 
-      this.centre.id = main;
+      this.main.id = main;
 
     },    
 
-    prepareMeta: function (){
+    prepareMeta: function () {
 
       deb("     V: setting operators for shared buildings and Main CC in metadata");
 
       //TODO: test for multiple villages
 
-      H.each(this.entities, function(id, ent){
+      H.each(this.entities, (id, ent) => {
 
         if (ent.owner() === this.id){
 
@@ -198,7 +200,7 @@ HANNIBAL = (function(H){
 
           } else if (ent.hasClass("Structure")){
 
-            if (ent.id() === this.centre.id){
+            if (ent.id() === this.main.id){
               this.metadata[id].opname = "g.mayor";
               // deb("     V: set opname to 'g.mayor' for %s", ent);
 
@@ -207,7 +209,7 @@ HANNIBAL = (function(H){
               // deb("     V: set opname to 'g.custodian' for %s", ent);
 
             } else {
-              this.metadata[id].opname = "none";
+              this.metadata[id].opname = "none"; // there is a group for that
               // deb("     V: set opname to 'none' for %s", ent);
             
             }
@@ -224,13 +226,13 @@ HANNIBAL = (function(H){
 
     },
 
-    appointOperators: function (){
+    appointOperators: function () {
 
       var opname;
 
       deb("     V: appointing operators for structures");
 
-      this.query("INGAME").forEach(function(node){
+      this.query("INGAME").forEach(node => {
 
         opname = node.metadata.opname;
 
@@ -249,7 +251,6 @@ HANNIBAL = (function(H){
           // H.Groups.appoint("g.mayor", node.id, {});
 
         } else {
-          H.throw("huhu");
           deb("ERROR : appointOperators: don't know to handle %s as operator for %s", opname, node.name);
 
         }

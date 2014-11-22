@@ -28,7 +28,7 @@ function deb(){
     H = HANNIBAL,
     args = arguments, al = args.length,
     msg = (
-      (al === 0) ? "**\n**\n" :
+      (al === 0) ? "**\n**" :
       (al === 1) ? args[0] :
         H.format.apply(H, args)
       ) + "\n",
@@ -168,6 +168,107 @@ function exportTechTemplates (tpls){
 
 }
 
+function exportTree (tree) {
+
+  var 
+    t, procs, prods,
+    tt = this.nodes, tpls = H.attribs(this.nodes),
+    filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
+
+  function logg(){
+    print ( arguments.length === 0 ? 
+      "#! append 0 ://\n" : 
+      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+    );
+  }   
+
+  deb("  TREE: Export start ...");
+  print(H.format("#! open 0 %s\n", H.format(filePattern, this.civ)));
+  logg("// EXPORTED tree '%s' at %s", this.civ, new Date());
+
+  tpls.sort((a, b) => tt[a].order - tt[b].order);
+
+  tpls.forEach(function(tpln){
+
+    t = tt[tpln];
+
+    logg("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
+    logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
+    logg("     T:        %s", t.key);
+    logg("     T:        reqs: %s", t.requires || "none");
+    logg("     T:        flow: %s", t.flow ? JSON.stringify(t.flow) : "none");
+
+    logg("     T:        verb: %s", t.verb || "none");
+    prods = H.attribs(t.producers);
+    if (prods.length){
+      prods.forEach(p => logg("     T:          %s", p));
+    } else {
+      logg("     T:        NO PRODUCER");
+    }
+
+    logg("     T:        products: %s", t.products.count);
+    if (t.products.count){
+      ["train", "build", "research"].forEach(verb => {
+        procs = H.attribs(t.products[verb]);
+        if (procs.length){
+          logg("     T:          %s", verb);
+          procs.forEach(p => logg("     T:            %s", p));
+        }
+      });
+    }
+
+  });
+
+  print("#! close 0\n");
+  deb("  TREE: Export Done ...");
+
+}
+
+
+function exportStore(civs){
+
+  // log history > 3,000 per civ, athens~2500, CRs not enforced.
+
+  var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
+
+  function logg(){
+    print ( arguments.length === 0 ? 
+      "#! append 0 ://\n" : 
+      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+    );
+  }    
+
+  deb();deb();deb("EXPORT: %s", civs);
+
+  civs.forEach(function(civ){
+    print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
+    logg("// EXPORTED culture '%s' at %s", civ, new Date());
+    var culture = new H.Culture(civ), store = culture.store;
+    culture.loadDataNodes();           // from data to triple store
+    culture.readTemplates();           // from templates to culture
+    culture.loadTechTemplates();       // from templates to triple store
+    culture.loadTemplates();           // from templates to triple store
+    culture.finalize();                // clear up
+    logg("var store_%s = {", civ);
+      logg("  verbs: %s,", JSON.stringify(store.verbs));
+      logg("  nodes: {");
+      H.each(store.nodes, function(name, value){
+        delete value.template;
+        logg("    '%s': %s,", name, JSON.stringify(value));
+      });
+      logg("  },");
+      logg("  edges: [");
+      store.edges.forEach(function(edge){
+        logg("    ['%s', '%s', '%s'],", edge[0].name, edge[1], edge[2].name);
+      });
+      logg("  ],");
+    logg("};");
+    logg("// Export end of culture %s", civ);
+    print("#! close 0\n");
+  });
+
+
+}
 
   // if (head === "ERROR :" && level > 0){
   //   print(msg);
@@ -355,10 +456,11 @@ var logStart = function(ss, gs, settings){
 
 var logPlayers = function(players){
 
-  var H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
-      fmtAEN = function(item){return item.map(function(b){return b ? "1" : "0";}).join("");};
+  var 
+    H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
+    fmtAEN = item => item.map(b => b ? "1" : "0").join("");
 
-  deb("**");deb("**");
+  deb();
 
   head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut".split(", ");
   props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral".split(", ");
@@ -380,36 +482,36 @@ var logPlayers = function(players){
     deb("     %s: %s", id, msg);
   });
 
-  // Object: playersData(me)  ---------------
-  //   cheatsEnabled: BOOLEAN (false)
-  //   civ: STRING (athen)
-  //   classCounts: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
-  //   colour: OBJECT (r, g, b, a, ...)[4]
-  //   entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-  //   entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-  //   heroes: ARRAY (, ...)[0]
-  //   isAlly: ARRAY (false, true, false, ...)[3]
-  //   isEnemy: ARRAY (true, false, true, ...)[3]
-  //   isMutualAlly: ARRAY (false, true, false, ...)[3]
-  //   isNeutral: ARRAY (false, false, false, ...)[3]
-  //   name: STRING (Player 1)
-  //   phase: STRING (village)
-  //   popCount: NUMBER (17)
-  //   popLimit: NUMBER (20)
-  //   popMax: NUMBER (300)
-  //   researchQueued: OBJECT (, ...)[0]
-  //   researchStarted: OBJECT (, ...)[0]
-  //   researchedTechs: OBJECT (phase_village, ...)[1]
-  //   resourceCounts: OBJECT (food, wood, metal, stone, ...)[4]
-  //   state: STRING (active)
-  //   statistics: OBJECT (unitsTrained, unitsLost, unitsLostValue, enemyUnitsKilled, enemyUnitsKilledValue, ...)[21]
-  //   team: NUMBER (-1)
-  //   teamsLocked: BOOLEAN (false)
-  //   techModifications: OBJECT (, ...)[0]
-  //   trainingBlocked: BOOLEAN (false)
-  //   typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
-
 };
+
+// Object: playersData(me)  ---------------
+//   cheatsEnabled: BOOLEAN (false)
+//   civ: STRING (athen)
+//   classCounts: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
+//   colour: OBJECT (r, g, b, a, ...)[4]
+//   entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+//   entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+//   heroes: ARRAY (, ...)[0]
+//   isAlly: ARRAY (false, true, false, ...)[3]
+//   isEnemy: ARRAY (true, false, true, ...)[3]
+//   isMutualAlly: ARRAY (false, true, false, ...)[3]
+//   isNeutral: ARRAY (false, false, false, ...)[3]
+//   name: STRING (Player 1)
+//   phase: STRING (village)
+//   popCount: NUMBER (17)
+//   popLimit: NUMBER (20)
+//   popMax: NUMBER (300)
+//   researchQueued: OBJECT (, ...)[0]
+//   researchStarted: OBJECT (, ...)[0]
+//   researchedTechs: OBJECT (phase_village, ...)[1]
+//   resourceCounts: OBJECT (food, wood, metal, stone, ...)[4]
+//   state: STRING (active)
+//   statistics: OBJECT (unitsTrained, unitsLost, unitsLostValue, enemyUnitsKilled, enemyUnitsKilledValue, ...)[21]
+//   team: NUMBER (-1)
+//   teamsLocked: BOOLEAN (false)
+//   techModifications: OBJECT (, ...)[0]
+//   trainingBlocked: BOOLEAN (false)
+//   typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
 
 
 // keep that 

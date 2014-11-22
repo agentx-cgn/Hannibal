@@ -3,11 +3,12 @@
 
 /*--------------- M A P S -----------------------------------------------------
 
-  Deals with map aspects in coordinates + 
+  Deals with map aspects in coordinates, grids + 
   cosmetic rewite offindGoodPosition, createObstructionsmap from Aegis
 
 
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
 
 */
 

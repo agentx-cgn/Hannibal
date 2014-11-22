@@ -6,79 +6,120 @@
   knows about buildings and attack plans
   
 
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Oct, 2014
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
 
 */
 
 
 HANNIBAL = (function(H){
 
-  var self;
 
-  H.Military = (function(){
+  H.LIB.Military = function(context){
 
-    return {
-      log:  function(){},
-      boot: function(){self = this; return this;},
-      init: function(){
-      },
-      tick: function(){return 0;},
-      activate: function(){
+    H.extend(this, {
 
-        H.Events.on("Attacked", "*", function (msg){
+      name:    "military",
+      context: context,
+      imports: [
+        "events",
+      ],
 
-        });
+      childs: [
+      ],
 
-      },
-      getPhaseNecessities: function(options){ // phase, centre, tick
-        
-        var 
-          cls = H.class2name,
-          cc = options.centre,
+    });
 
-          technologies = [],
-          messages = {
-            "phase.village": [
-              [  20, {name: "BroadCast", data: {group: "g.builder", cc: cc, size: 5, building: cls("baracks"), quantity: 2}}],
-            ],
-            "phase.town" :   [
+  };
 
-            ],
-            "phase.city" :   [
+  H.LIB.Military.prototype = {
+    constructor: H.LIB.Military,
+    log: function(){},
+    initialize: function(){
+      this.childs.forEach( child => {
+        if (!this[child]){
+          this[child] = new H.LIB[H.noun(child)](this.context)
+            .import()
+            .initialize();
+        }
+      });
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+    },
+    deserialize: function(){
+      this.childs.forEach( child => {
+        if (this.context.data.economy[child]){
+          this.orderqueue = new H.LIB[H.noun(child)](this.context)
+            .import()
+            .initialize(this.context.data.economy[child]);
+        }
+      });
+    },
+    clone: function(context){
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
+    },
+    activate: function(){
 
-            ],
-          },
-          launches = {
+      this.events.on("Attacked", "*", function (msg){
 
-            "phase.village": [
-            //   tck,                  act, params
-              [  16, 1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}],
-            ],
+      });
 
-            "phase.town" :   [
-              [  20, 1, "g.builder",    {cc: cc, size: 5, building: cls("temple"), quantity: 1}],
-              // [  20, [1, "g.tower",      {cc: cc, size: 5, quantity: 1}]],
+    },
+    tick: function(tick, secs){
 
-            ],
+      var t0 = Date.now();
 
-            "phase.city" :   [
 
-            ],
+      return Date.now() - t0;
 
-          };
+    },
+    getPhaseNecessities: function(options){ // phase, centre, tick
+      
+      var 
+        cls = H.class2name,
+        cc = options.centre,
 
-        return {
-          launches: launches,
-          technologies: technologies,
-          messages: messages,
+        technologies = [],
+        messages = {
+          "phase.village": [
+            [  20, {name: "BroadCast", data: {group: "g.builder", cc: cc, size: 5, building: cls("baracks"), quantity: 2}}],
+          ],
+          "phase.town" :   [
+
+          ],
+          "phase.city" :   [
+
+          ],
+        },
+        launches = {
+
+          "phase.village": [
+          //   tck,                  act, params
+            [  16, 1, "g.builder",    {cc: cc, size: 5, building: cls("barracks"), quantity: 1}],
+          ],
+
+          "phase.town" :   [
+            [  20, 1, "g.builder",    {cc: cc, size: 5, building: cls("temple"), quantity: 1}],
+            // [  20, [1, "g.tower",      {cc: cc, size: 5, quantity: 1}]],
+
+          ],
+
+          "phase.city" :   [
+
+          ],
+
         };
 
-      },
+      return {
+        launches: launches,
+        technologies: technologies,
+        messages: messages,
+      };
 
+    },
 
-    };
-
-  }()).boot();
+  };
 
 return H; }(HANNIBAL));  

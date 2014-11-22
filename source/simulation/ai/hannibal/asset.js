@@ -54,12 +54,15 @@ HANNIBAL = (function(H){
     log: function(){
       deb(" ASSET: %s %s res: %s", this.instance.name, this.property, this.resources.length);
       this.resources.forEach( id => {
-        deb("     A: %s", this.entities[id]._templateName);
+        deb("     A: %s, %s", this.id, this.entities[id]._templateName);
       });
     },
     clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
+      return (
+        new H.LIB[H.noun(this.name)](context)
+          .import()
+          .initialize(this.serialize())
+      );
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);

@@ -3,7 +3,7 @@
 
 /*--------------- P R O X I E S -----------------------------------------------
 
-  simplyfies API access
+  simplyfies accesing and switching API
 
   tested with 0 A.D. Alpha 17 Quercus
   V: 0.1, agentx, CGN, NOV, 2014
@@ -14,48 +14,54 @@ HANNIBAL = (function(H){
 
   H.Proxies = {
 
-    Player : function(player){
-      return Proxy.create({
+    Player : function(source){
+      return new Proxy(source, {
+        ownKeys: function () {return Object.keys(source)},
         get: function(proxy, id){
-          return player[id];
+          return source[id];
+        },
+      });
+    },
+
+    Players : function(source){
+      return new Proxy(source, {
+        ownKeys: function () {return Object.keys(source)},
+        get: function(proxy, id){
+          return source[id];
         }
       });
     },
 
-    Players : function(players){
-      return Proxy.create({
+    Entities : function(source){
+      return new Proxy(source, {
+        ownKeys: function () {return Object.keys(source)},
         get: function(proxy, id){
-          return players[id];
+          return source[id];
         }
       });
     },
 
-    Entities : function(entities){
-      return Proxy.create({
+    Templates : function(source){
+      return new Proxy(source, {
+        ownKeys: function (target) {return Object.keys(target)},
         get: function(proxy, id){
-          return entities[id];
+          return source[id];
         }
       });
     },
 
-    Templates : function(templates){
-      return Proxy.create({
-        get: function(proxy, id){
-          return templates[id];
-        }
-      });
-    },
-
-    TechTemplates : function(techtemplates){
-      return Proxy.create({
-        get: function(proxy, id){
-          return techtemplates[id];
-        }
-      });
-    },
+    // TechTemplates : function(source){
+    //   return new Proxy(source, {
+    //     ownKeys: function () {return Object.keys(source)},
+    //     get: function(proxy, id){
+    //       return source[id];
+    //     }
+    //   });
+    // },
 
     TechModifications : function(techmodifications){
-      return Proxy.create({
+      return new Proxy(techmodifications, {
+        ownKeys: function () {return Object.keys(techmodifications)},
         get: function(proxy, id){
           return techmodifications[id];
         }
@@ -67,7 +73,8 @@ HANNIBAL = (function(H){
       H.each(technologies, function(key){
         mapper[H.saniTemplateName(key)] = key;
       });
-      return Proxy.create({  
+      return new Proxy(technologies, {
+        ownKeys: function () {return Object.keys(technologies)},
         get: function(proxy, attr){
           var tpln = mapper[attr] || undefined;
           return (
