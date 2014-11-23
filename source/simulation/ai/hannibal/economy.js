@@ -28,6 +28,7 @@ HANNIBAL = (function(H){
         "player"
       ],
 
+      ress:        ress,
       gatherables: ["food", "wood", "stone", "metal"],
 
       stock: H.deepcopy(ress), 
@@ -49,6 +50,7 @@ HANNIBAL = (function(H){
     log: function(){},
     initialize: function(){
       this.tick();
+      return this;
     },
     clone: function(context){
       return (
@@ -59,6 +61,7 @@ HANNIBAL = (function(H){
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     deserialize: function(){
       return {
@@ -80,7 +83,7 @@ HANNIBAL = (function(H){
         available = this.player.resourceCounts;
           
       // gather diffs
-      this.gatherables.forEach(function(prop){ 
+      this.gatherables.forEach( prop => { 
         this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
         this.suply[prop]   = gathered[prop];                 // totals
         this.stock[prop]   = available[prop];                // available
@@ -92,7 +95,7 @@ HANNIBAL = (function(H){
       this.stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
 
       // buffers
-      H.attribs(this.ress).forEach(function(prop){ 
+      H.attribs(this.ress).forEach( prop => { 
         this.stack[prop].push(this.suply[prop]);      // buffers
         this.trend[prop] = this.stack[prop].trend();  // trend
         this.flows[prop] = this.diffs[prop].avg();    // 
@@ -111,6 +114,7 @@ HANNIBAL = (function(H){
       name:    "producers",
       context: context,
       imports: [
+        "query",
         "culture",
         "config",
         "entities",
@@ -141,6 +145,7 @@ HANNIBAL = (function(H){
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     clone: function(context){
       return (
@@ -160,6 +165,7 @@ HANNIBAL = (function(H){
       } else {
         this.producers = H.deepcopy(producers);
       }
+      return this;
     },
     isProducer: function(name){
       return (this.culture.tree[name] && this.culture.tree[name].products.count);
@@ -313,176 +319,6 @@ HANNIBAL = (function(H){
 
   };
 
-  // H.Producers = function(context){
-
-  //   // deb();deb();deb("   PDC: inited for %s", context.parent.name);
-
-  //   H.extend(this, {
-  //     name:       context.parent.name + ":pdc",
-  //     tree:       context.tree.nodes,
-  //     ingames:    context.ingames,
-  //     nameCentre: context.nameCentre,
-  //     maxAllocs:  context.config.economy.maxAllocations,
-  //     producers: {},
-  //   }); 
-    
-  //   // TODO ignore units for build
-  //   this.ingames.forEach(node => this.register(node.name));
-
-  //   // deb("   PDC: registered %s producers", H.count(this.producers));
-
-  // };
-
-  // H.Producers.prototype = {
-  //   constructor: H.Producers,
-  //   log: function(){
-  //     var self = this;
-  //     H.each(this.producers, function(nameid, data){
-  //       var [name, id] = nameid.split("#");
-  //       deb("   PDC: %s %s info: %s", id, name, self.infoProducer(name));
-  //     });
-  //   },
-  //   isProducer: function(name){
-  //     return (this.tree[name] && this.tree[name].products.count);
-  //   },
-  //   infoProducer: function(name){
-  //     var 
-  //       train    = H.count(this.tree[name].products.train),
-  //       build    = H.count(this.tree[name].products.build),
-  //       research = H.count(this.tree[name].products.research);
-  //     return H.format("procucer: %s trains: %s, builds: %s, researches: %s", name, train, build, research);
-  //   },
-  //   resetAllocs: function(){
-  //     H.each(this.producers, function (name, producer){
-  //       producer.allocs = producer.queue.length;
-  //     });      
-  //   },
-  //   unqueue: function(verb, info){
-
-  //     var found = false;
-
-  //     H.each(this.producers, function (name, producer){
-  //       if(!found && producer.queue && producer.queue.length){
-  //         if (H.delete(producer.queue, task => task[0] === info)){
-  //           found = true;
-  //           producer.allocs -= 1;
-  //           deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, producer.name);
-  //         }
-  //       }
-  //     });
-
-  //     if (!found) {
-  //       deb("   PDC: unqueue: not found in any queue: %s, %s", verb, info);
-  //     }
-
-  //   },
-  //   findCentre: function(name){
-  //     var producer, names = H.attribs(this.producers), i = names.length;
-  //     while ((producer = this.producers[names[--i]])){
-  //       if (producer.name === this.nameCentre){
-  //         return producer;
-  //       }
-  //     }      
-  //     return null;
-  //   },
-  //   register: function(nameid){
-  //     var parts = nameid.split("#"), name = parts[0], id = parts[1];
-  //     if (this.isProducer(name) && !this.producers[nameid]){
-  //       this.producers[nameid] = {
-  //         id:     ~~id,
-  //         name:   name, 
-  //         queue:    [],   // taskids or techs
-  //         simqueue: [],   // simulates engine's queue for simulations
-  //         allocs:    0,   // per orderqueue cycle
-  //       };
-  //       // deb("   PDC: reg: %s", uneval(this.producers[nameid]));
-  //     }
-  //   },
-  //   remove: function(nodeOrId){
-  //     var self = this, id = H.isInteger(nodeOrId) ? nodeOrId : nodeOrId.id;
-  //     H.each(self.producers, function(nameid, producer){
-  //       if (producer.id === id){
-  //         delete self.producers[nameid];
-  //         deb("   PDC: removed id: %s, tpl: %s", id, H.Entities[id] ? H.Entities[id]._templateName : "unknown");
-  //       }        
-  //     });
-  //   },  
-  //   allocate: function(product, order){
-
-  //     var 
-  //       phase, producer, 
-  //       tree = this.tree,
-  //       verb = this.tree[product].verb, 
-  //       names = H.attribs(this.producers),
-  //       i = names.length,
-  //       found = false;
-
-  //     // deb("   PDC: allocate: %s, %s", product, cc || "nocc");
-
-  //     // has no producer
-  //     if(!verb){
-  //       // deb("ERROR : PDC.allocate: no verb for %s", product);
-  //       return null;
-  //     }
-
-  //     switch (verb){
-
-  //       case "build":
-  //         // can ignore cc and allocations
-  //         while ((producer = this.producers[names[--i]])){
-
-  //           // deb("   PDC testing %s %s %s", !!tree[producer.name].products.build[product], producer.name, product);
-
-  //           if (tree[producer.name].products.build[product]){
-  //             break;  
-  //           }        
-  //         }
-  //       break;
-
-  //       case "research":
-  //         // can ignore cc
-  //         if (product.contains("phase")){
-  //           if ((producer = this.findCentre())){ // TODO: search over all centres
-  //             if (producer.allocs >= this.maxAllocs){
-  //               // deb("   PDC: max: %s", uneval(producer));
-  //               producer = null;
-  //             }
-  //           }
-  //         } else {
-  //           while (i--){
-  //             producer = this.producers[names[i]];
-  //             found = (
-  //               tree[producer.name].products.research[product] && 
-  //               producer.allocs < this.maxAllocs
-  //             );
-  //             if (found){break;} else {producer = null;}
-  //           }
-  //         }
-  //       break;
-        
-  //       case "train":
-  //         while (i--){
-  //           producer = this.producers[names[i]];
-
-  //           deb("   PDC: allocate: id: %s, meta: %s", producer.id, uneval(H.MetaData[producer.id]));
-
-  //           found = (
-  //             tree[producer.name].products.train[product] &&
-  //             producer.allocs < this.maxAllocs && 
-  //             !order.cc || H.MetaData[producer.id].cc === order.cc
-  //           );
-  //           if (found){break;} else {producer = null;}
-  //         }
-  //       break;
-        
-  //     }
-
-  //     if(producer){producer.allocs += 1;}
-
-  //     return producer;
-
-  //   },
-  // };
 
   H.LIB.Orderqueue = function(context){
 
@@ -511,6 +347,7 @@ HANNIBAL = (function(H){
     log: function(){},
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     clone: function(context){
       return (
@@ -520,13 +357,16 @@ HANNIBAL = (function(H){
       );
     },
     initialize: function(data){
-      data.forEach( order => {
-        this.queue.push(
-          new H.LIB.Order(this.context)
-            .import()
-            .initialize(order)
-        );
-      });
+      if (data){
+        data.forEach( order => {
+          this.queue.push(
+            new H.LIB.Order(this.context)
+              .import()
+              .initialize(order)
+          );
+        });
+      }
+      return this;
     },
     serialize: function(tick, secs){
       var data = [];
@@ -535,6 +375,7 @@ HANNIBAL = (function(H){
       });
       return data;
     },
+    delete: function(fn){return H.delete(this.queue, fn);},
     process: function(logWaiting=false){
 
       var 
@@ -656,149 +497,6 @@ HANNIBAL = (function(H){
     }   
   };
 
-  // H.OrderQueue = function (options){
-
-  //   // options: parent, executor (do, prioverbs, stats)
-
-  //   H.extend(this, options, {
-  //     name:   options.parent.name + ":queue",
-  //     queue:  [],
-  //     report: {rem: [], exe: [], ign: []},
-  //     tP:    0,
-  //   });
-
-  // };
-
-  // H.OrderQueue.prototype = {
-  //   constructor: H.OrderQueue,
-  //   get length  () {return this.queue.length;},
-  //   get waiting () {return this.queue.filter(o => o.remaining === o.processing).length;},
-  //   get processing () {return this.queue.length - this.waiting;},
-  //   append: function(item){this.queue.push(item);},
-  //   remove: function(item){H.remove(this.queue, item);},
-  //   delete: function(fn){return H.delete(this.queue, fn);},
-  //   log:    function(){
-  //     var r = this.report;
-  //     // deb("    OQ: name: %s, queue.length: %s, %s msecs, rem: %s, ign: %s, exe: %s", this.name, this.queue.length, this.tP, r.rem, r.ign, r.exe);
-  //   },      
-  //   process: function(isSimulation=false, logWaiting=false){
-
-  //     var 
-  //       self = this, t0 = Date.now(), amount, node, msg, t = H.tab, 
-  //       processing    = 0,
-  //       waiting    = 0,
-  //       allGood    = false, 
-  //       hasBuild   = false, // only one construction per tick
-  //       rep        = this.report,
-  //       queue      = this.queue,
-  //       allocs     = H.deepcopy(this.economy.allocations),
-  //       budget     = H.deepcopy(this.economy.stats.stock),
-  //       prioVerbs  = this.economy.prioVerbs;
-        
-  //     // reset logging array
-  //     rep.rem.length = 0; rep.ign.length = 0; rep.exe.length = 0;
-
-  //     // queue empty -> exit
-  //     if (!queue.length){this.tP = 0; return;}
-
-  //     // clear allocs from last tick
-  //     this.economy.producers.resetAllocs();
-
-  //     // sort by (source, verbs) and evaluate
-  //     queue
-  //       .sort((a, b) => prioVerbs.indexOf(a.verb) < prioVerbs.indexOf(b.verb) ? -1 : 1)
-  //       .forEach(order => isSimulation ? order.simulate(allocs) : order.evaluate(allocs));
-
-  //     // info
-  //     waiting = this.waiting;
-  //     processing = this.processing;
-  //     allGood = H.Economy.fits(allocs, budget);  // get first quote whether all order fit budget
-
-  //     if (processing){
-  //       deb("    OQ: queue: %s, allg: %s, waits: %s, allocs: %s", queue.length, allGood, waiting, uneval(allocs));
-  //     }
-
-  //     // rep / debug
-  //     msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
-  //     queue.forEach(o => {
-  //       var 
-  //         isWaiting = o.remaining === o.processing,
-  //         exec = o.executable ? "X" : "-",
-  //         source = H.isInteger(o.source) ? H.Objects(o.source).name : o.source,
-  //         nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
-  //       if(!(isWaiting && !logWaiting)){
-  //         deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
-  //       }
-  //     });
-
-  //     // choose executables and process
-  //     queue
-  //       .filter(order => order.executable)
-  //       .forEach(function(order){
-
-  //         var id = order.id;
-
-  //         // first node from evaluation
-  //         node = order.nodes[0];
-
-  //         // process all or one
-  //         amount = allGood ? order.remaining - order.processing : 1;
-
-  //         // final global budget check
-  //         if (allGood || H.Economy.fits(node.costs, budget, amount)){
-
-  //           switch(order.verb){
-
-  //             case "train":
-  //               self.economy.do("train", amount, order, node); 
-  //               H.Economy.subtract(node.costs, budget, amount);
-  //               order.processing += amount;
-  //               rep.exe.push(id + ":" + amount);
-  //             break;
-
-  //             case "build":
-  //               if (!hasBuild){
-  //                 self.economy.do("build", 1, order, node); 
-  //                 H.Economy.subtract(node.costs, budget, 1);
-  //                 order.processing += 1;
-  //                 hasBuild = true;
-  //               } else {
-  //                 deb("    OQ: #%s build postponed (%s)", t(id, 3), node.name);
-  //               }
-  //             break;
-
-  //             case "research":
-  //               self.economy.do("research", amount, order, node);
-  //               H.Economy.subtract(node.costs, budget, amount);
-  //               order.processing += amount;
-  //               rep.exe.push(id + ":" + amount);
-  //             break;
-
-  //             default:
-  //               deb("ERROR : orderQueue.process: #%s unknown order.verb: %s", id, order.verb);
-
-  //           }
-
-  //         } else {
-  //           rep.ign.push(id);
-
-  //         }
-
-
-  //     });
-
-  //     queue
-  //       .filter(function(order){return order.remaining === 0;})
-  //       .forEach(function(order){
-  //         rep.rem.push(order.id);
-  //         self.remove(order);
-  //     });
-
-  //     this.tP = Date.now() - t0;
-
-  //   }    
-
-  // };
   H.LIB.Order = function(context){
 
     H.extend(this, {
@@ -1031,7 +729,6 @@ HANNIBAL = (function(H){
 
   };
 
-
   H.LIB.Economy = function(context){
 
     H.extend(this, {
@@ -1053,13 +750,10 @@ HANNIBAL = (function(H){
         "orderqueue",
         "producers",
       ],
-
+      
       prioVerbs:    ["research", "train", "build"],
       availability: ["food", "wood", "stone", "metal"],
       allocations:  {food: 0, wood: 0, stone: 0, metal: 0},
-
-      producers:  null,
-      orderqueue: null,
 
     });
 
@@ -1070,8 +764,8 @@ HANNIBAL = (function(H){
     log: function(){},
     logTick: function(){
       var 
-        stock = this.stock, 
-        flows = this.flows,
+        stock = this.stats.stock, 
+        flows = this.stats.flows,
         t = H.tab, f = n => n > 0 ? "+" + n : n === 0 ? " 0": n,
         msg = H.format("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
           t(stock.food,   6), f(flows.food.toFixed(1)),
@@ -1086,6 +780,7 @@ HANNIBAL = (function(H){
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     clone: function(context){
       context.data[this.name] = this.serialize();
@@ -1100,12 +795,14 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
       this.childs.forEach( child => {
+        deb("ECO.child: %s", child);
         if (!this[child]){
           this[child] = new H.LIB[H.noun(child)](this.context)
             .import()
             .initialize();
         }
       });
+      return this;
     },
     deserialize: function(){
       if (this.context.data[this.name]){
@@ -1204,12 +901,10 @@ HANNIBAL = (function(H){
     },
     tick: function(tick, secs){
 
-      var 
-        t0 = Date.now(),
-        stock = this.player.resourceCounts;
-      
+      var stock = this.stats.stock, t0 = Date.now();
+
       if ((tick % this.config.economy.intervalMonitorGoals) === 0){
-        this.monitorGoals();
+        // this.monitorGoals();
       }
 
       // sort availability by stock
@@ -1220,6 +915,7 @@ HANNIBAL = (function(H){
       this.logTick();
       
       return Date.now() - t0;
+
     },
     multiply: function(cost, amount=1){
       cost.food  *= amount;
@@ -1797,4 +1493,319 @@ return H; }(HANNIBAL));
 //     typeCountsByClass: OBJECT (Structure, ConquestCritical, Civic, Defensive, CivCentre, ...)[19]
 
 
+
+  // H.Producers = function(context){
+
+  //   // deb();deb();deb("   PDC: inited for %s", context.parent.name);
+
+  //   H.extend(this, {
+  //     name:       context.parent.name + ":pdc",
+  //     tree:       context.tree.nodes,
+  //     ingames:    context.ingames,
+  //     nameCentre: context.nameCentre,
+  //     maxAllocs:  context.config.economy.maxAllocations,
+  //     producers: {},
+  //   }); 
+    
+  //   // TODO ignore units for build
+  //   this.ingames.forEach(node => this.register(node.name));
+
+  //   // deb("   PDC: registered %s producers", H.count(this.producers));
+
+  // };
+
+  // H.Producers.prototype = {
+  //   constructor: H.Producers,
+  //   log: function(){
+  //     var self = this;
+  //     H.each(this.producers, function(nameid, data){
+  //       var [name, id] = nameid.split("#");
+  //       deb("   PDC: %s %s info: %s", id, name, self.infoProducer(name));
+  //     });
+  //   },
+  //   isProducer: function(name){
+  //     return (this.tree[name] && this.tree[name].products.count);
+  //   },
+  //   infoProducer: function(name){
+  //     var 
+  //       train    = H.count(this.tree[name].products.train),
+  //       build    = H.count(this.tree[name].products.build),
+  //       research = H.count(this.tree[name].products.research);
+  //     return H.format("procucer: %s trains: %s, builds: %s, researches: %s", name, train, build, research);
+  //   },
+  //   resetAllocs: function(){
+  //     H.each(this.producers, function (name, producer){
+  //       producer.allocs = producer.queue.length;
+  //     });      
+  //   },
+  //   unqueue: function(verb, info){
+
+  //     var found = false;
+
+  //     H.each(this.producers, function (name, producer){
+  //       if(!found && producer.queue && producer.queue.length){
+  //         if (H.delete(producer.queue, task => task[0] === info)){
+  //           found = true;
+  //           producer.allocs -= 1;
+  //           deb("   PDC: unqueue: removed in queue: %s, %s from %s", verb, info, producer.name);
+  //         }
+  //       }
+  //     });
+
+  //     if (!found) {
+  //       deb("   PDC: unqueue: not found in any queue: %s, %s", verb, info);
+  //     }
+
+  //   },
+  //   findCentre: function(name){
+  //     var producer, names = H.attribs(this.producers), i = names.length;
+  //     while ((producer = this.producers[names[--i]])){
+  //       if (producer.name === this.nameCentre){
+  //         return producer;
+  //       }
+  //     }      
+  //     return null;
+  //   },
+  //   register: function(nameid){
+  //     var parts = nameid.split("#"), name = parts[0], id = parts[1];
+  //     if (this.isProducer(name) && !this.producers[nameid]){
+  //       this.producers[nameid] = {
+  //         id:     ~~id,
+  //         name:   name, 
+  //         queue:    [],   // taskids or techs
+  //         simqueue: [],   // simulates engine's queue for simulations
+  //         allocs:    0,   // per orderqueue cycle
+  //       };
+  //       // deb("   PDC: reg: %s", uneval(this.producers[nameid]));
+  //     }
+  //   },
+  //   remove: function(nodeOrId){
+  //     var self = this, id = H.isInteger(nodeOrId) ? nodeOrId : nodeOrId.id;
+  //     H.each(self.producers, function(nameid, producer){
+  //       if (producer.id === id){
+  //         delete self.producers[nameid];
+  //         deb("   PDC: removed id: %s, tpl: %s", id, H.Entities[id] ? H.Entities[id]._templateName : "unknown");
+  //       }        
+  //     });
+  //   },  
+  //   allocate: function(product, order){
+
+  //     var 
+  //       phase, producer, 
+  //       tree = this.tree,
+  //       verb = this.tree[product].verb, 
+  //       names = H.attribs(this.producers),
+  //       i = names.length,
+  //       found = false;
+
+  //     // deb("   PDC: allocate: %s, %s", product, cc || "nocc");
+
+  //     // has no producer
+  //     if(!verb){
+  //       // deb("ERROR : PDC.allocate: no verb for %s", product);
+  //       return null;
+  //     }
+
+  //     switch (verb){
+
+  //       case "build":
+  //         // can ignore cc and allocations
+  //         while ((producer = this.producers[names[--i]])){
+
+  //           // deb("   PDC testing %s %s %s", !!tree[producer.name].products.build[product], producer.name, product);
+
+  //           if (tree[producer.name].products.build[product]){
+  //             break;  
+  //           }        
+  //         }
+  //       break;
+
+  //       case "research":
+  //         // can ignore cc
+  //         if (product.contains("phase")){
+  //           if ((producer = this.findCentre())){ // TODO: search over all centres
+  //             if (producer.allocs >= this.maxAllocs){
+  //               // deb("   PDC: max: %s", uneval(producer));
+  //               producer = null;
+  //             }
+  //           }
+  //         } else {
+  //           while (i--){
+  //             producer = this.producers[names[i]];
+  //             found = (
+  //               tree[producer.name].products.research[product] && 
+  //               producer.allocs < this.maxAllocs
+  //             );
+  //             if (found){break;} else {producer = null;}
+  //           }
+  //         }
+  //       break;
+        
+  //       case "train":
+  //         while (i--){
+  //           producer = this.producers[names[i]];
+
+  //           deb("   PDC: allocate: id: %s, meta: %s", producer.id, uneval(H.MetaData[producer.id]));
+
+  //           found = (
+  //             tree[producer.name].products.train[product] &&
+  //             producer.allocs < this.maxAllocs && 
+  //             !order.cc || H.MetaData[producer.id].cc === order.cc
+  //           );
+  //           if (found){break;} else {producer = null;}
+  //         }
+  //       break;
+        
+  //     }
+
+  //     if(producer){producer.allocs += 1;}
+
+  //     return producer;
+
+  //   },
+  // };
+
+  // H.OrderQueue = function (options){
+
+  //   // options: parent, executor (do, prioverbs, stats)
+
+  //   H.extend(this, options, {
+  //     name:   options.parent.name + ":queue",
+  //     queue:  [],
+  //     report: {rem: [], exe: [], ign: []},
+  //     tP:    0,
+  //   });
+
+  // };
+
+  // H.OrderQueue.prototype = {
+  //   constructor: H.OrderQueue,
+  //   get length  () {return this.queue.length;},
+  //   get waiting () {return this.queue.filter(o => o.remaining === o.processing).length;},
+  //   get processing () {return this.queue.length - this.waiting;},
+  //   append: function(item){this.queue.push(item);},
+  //   remove: function(item){H.remove(this.queue, item);},
+  //   delete: function(fn){return H.delete(this.queue, fn);},
+  //   log:    function(){
+  //     var r = this.report;
+  //     // deb("    OQ: name: %s, queue.length: %s, %s msecs, rem: %s, ign: %s, exe: %s", this.name, this.queue.length, this.tP, r.rem, r.ign, r.exe);
+  //   },      
+  //   process: function(isSimulation=false, logWaiting=false){
+
+  //     var 
+  //       self = this, t0 = Date.now(), amount, node, msg, t = H.tab, 
+  //       processing    = 0,
+  //       waiting    = 0,
+  //       allGood    = false, 
+  //       hasBuild   = false, // only one construction per tick
+  //       rep        = this.report,
+  //       queue      = this.queue,
+  //       allocs     = H.deepcopy(this.economy.allocations),
+  //       budget     = H.deepcopy(this.economy.stats.stock),
+  //       prioVerbs  = this.economy.prioVerbs;
+        
+  //     // reset logging array
+  //     rep.rem.length = 0; rep.ign.length = 0; rep.exe.length = 0;
+
+  //     // queue empty -> exit
+  //     if (!queue.length){this.tP = 0; return;}
+
+  //     // clear allocs from last tick
+  //     this.economy.producers.resetAllocs();
+
+  //     // sort by (source, verbs) and evaluate
+  //     queue
+  //       .sort((a, b) => prioVerbs.indexOf(a.verb) < prioVerbs.indexOf(b.verb) ? -1 : 1)
+  //       .forEach(order => isSimulation ? order.simulate(allocs) : order.evaluate(allocs));
+
+  //     // info
+  //     waiting = this.waiting;
+  //     processing = this.processing;
+  //     allGood = H.Economy.fits(allocs, budget);  // get first quote whether all order fit budget
+
+  //     if (processing){
+  //       deb("    OQ: queue: %s, allg: %s, waits: %s, allocs: %s", queue.length, allGood, waiting, uneval(allocs));
+  //     }
+
+  //     // rep / debug
+  //     msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
+  //     queue.forEach(o => {
+  //       var 
+  //         isWaiting = o.remaining === o.processing,
+  //         exec = o.executable ? "X" : "-",
+  //         source = H.isInteger(o.source) ? H.Objects(o.source).name : o.source,
+  //         nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
+  //       if(!(isWaiting && !logWaiting)){
+  //         deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
+  //       }
+  //     });
+
+  //     // choose executables and process
+  //     queue
+  //       .filter(order => order.executable)
+  //       .forEach(function(order){
+
+  //         var id = order.id;
+
+  //         // first node from evaluation
+  //         node = order.nodes[0];
+
+  //         // process all or one
+  //         amount = allGood ? order.remaining - order.processing : 1;
+
+  //         // final global budget check
+  //         if (allGood || H.Economy.fits(node.costs, budget, amount)){
+
+  //           switch(order.verb){
+
+  //             case "train":
+  //               self.economy.do("train", amount, order, node); 
+  //               H.Economy.subtract(node.costs, budget, amount);
+  //               order.processing += amount;
+  //               rep.exe.push(id + ":" + amount);
+  //             break;
+
+  //             case "build":
+  //               if (!hasBuild){
+  //                 self.economy.do("build", 1, order, node); 
+  //                 H.Economy.subtract(node.costs, budget, 1);
+  //                 order.processing += 1;
+  //                 hasBuild = true;
+  //               } else {
+  //                 deb("    OQ: #%s build postponed (%s)", t(id, 3), node.name);
+  //               }
+  //             break;
+
+  //             case "research":
+  //               self.economy.do("research", amount, order, node);
+  //               H.Economy.subtract(node.costs, budget, amount);
+  //               order.processing += amount;
+  //               rep.exe.push(id + ":" + amount);
+  //             break;
+
+  //             default:
+  //               deb("ERROR : orderQueue.process: #%s unknown order.verb: %s", id, order.verb);
+
+  //           }
+
+  //         } else {
+  //           rep.ign.push(id);
+
+  //         }
+
+
+  //     });
+
+  //     queue
+  //       .filter(function(order){return order.remaining === 0;})
+  //       .forEach(function(order){
+  //         rep.rem.push(order.id);
+  //         self.remove(order);
+  //     });
+
+  //     this.tP = Date.now() - t0;
+
+  //   }    
+
+  // };
 

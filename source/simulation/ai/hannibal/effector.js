@@ -47,8 +47,11 @@ HANNIBAL = (function(H){
 
   H.LIB.Effector.engine = {
 
+    dumpgrid: function(name, grid, threshold){
+      Engine.DumpImage(name, grid.data, grid.width, grid.height, threshold);    
+    },
     execute: function(command){
-      Engine.PostCommand(H.Bot.id, command);
+      Engine.PostCommand(this.id, command);
     },
     quit:  function(){
       this.execute({type: "quit"});
@@ -57,6 +60,15 @@ HANNIBAL = (function(H){
       this.execute({type: "chat", message: msg});
     },
 
+    // m.BaseAI.prototype.chatTeam = function(message)
+    // {
+    //   Engine.PostCommand(PlayerID,{"type": "aichat", "message": "/team " +message});
+    // };
+    // m.BaseAI.prototype.chatEnemies = function(message)
+    // {
+    //   Engine.PostCommand(PlayerID,{"type": "aichat", "message": "/enemy " +message});
+    // };
+    
     format: function(who, what){
 
       deb("   EFF: format: %s", uneval(arguments));

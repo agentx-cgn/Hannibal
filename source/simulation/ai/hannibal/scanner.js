@@ -56,6 +56,8 @@ HANNIBAL = (function(H){
         "resources", // visionRange, position
       ],
 
+      grid: null,
+
     });
 
   };
@@ -74,11 +76,7 @@ HANNIBAL = (function(H){
       return {};
     },
     initialize: function(){
-
-      if (grid === null){
-        grid = new H.Grid(this.width, this.height, 8);
-      }
-
+      this.grid = this.map.scanner;
     },
     dump: function (name){grid.dump(name || "scouting", 255);},
     createDetector: function (position, vision){

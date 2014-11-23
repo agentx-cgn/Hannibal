@@ -19,18 +19,15 @@ HANNIBAL = (function(H){
 
     this.context = context;
     this.imports = [
-      "id",           "width", "height",
+      "id",           "width",         "height",
       "player",       "players",
       "entities",     "metadata",
-      "templates",    "techtemplates",
-      "technologies",
-      "objects",
+      "templates",    "techtemplates", "technologies",
+      "events",
       "effector",
       "map",
       "brain",
-      "scout",
       "groups",
-      "phases",
       "economy",
       "culture",
       "effector",
@@ -45,38 +42,56 @@ HANNIBAL = (function(H){
     constructor: H.LIB.Bot,
     log: function(){},
     clone: function(context){
-      return new H.LIB.Bot(context);
+      return (
+        new H.LIB.Bot(context)
+          .import()
+          .initialize(this.serialize())
+      );
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
-    deserialize: function(){
-      return {};
+    serialize: function(){
+      var data = {};
+      this.imports.forEach( imp => {
+        data[imp] = this[imp].serialize();
+      });
+      return data;
+    },
+    initialize: function(){
+      return this;
     },
     activate: function(){},
     tick: function(tick, secs){
 
-      this.timing.all = 0;
+      var timing = {all: 0};
 
       if (tick === 0){
-        this.timing.tst = H.Tester.tick(   secs, this.ticks);
-        this.timing.trg = H.Triggers.tick( secs, this.ticks);
-        this.timing.evt = H.Events.tick(   secs, this.ticks);
+
+        // allow processing autoresearch first
+        timing.brn = this.brain.tick(         secs, tick);
+        timing.map = this.map.tick(           secs, tick);
+        timing.gps = this.groups.tick(        secs, tick);
+        timing.mil = this.military.tick(      secs, tick);
+        timing.sts = this.economy.stats.tick( secs, tick);
+        timing.eco = this.economy.tick(       secs, tick);
 
       } else {
-        this.timing.tst = H.Tester.tick(   secs, this.ticks);
-        this.timing.trg = H.Triggers.tick( secs, this.ticks);
-        this.timing.evt = H.Events.tick(   secs, this.ticks);
-        this.timing.brn = H.Brain.tick(    secs, this.ticks);
-        this.timing.geo = H.Grids.tick(    secs, this.ticks);
-        this.timing.gps = H.Groups.tick(   secs, this.ticks);
-        this.timing.mil = H.Military.tick( secs, this.ticks);
-        this.timing.sts = H.Stats.tick(    secs, this.ticks);
-        this.timing.eco = H.Economy.tick(  secs, this.ticks);
+
+        timing.tst = H.Tester.tick(           secs, tick);
+        timing.trg = H.Triggers.tick(         secs, tick);
+        timing.evt = this.events.tick(        secs, tick);
+        timing.brn = this.brain.tick(         secs, tick);
+        timing.map = this.map.tick(           secs, tick);
+        timing.gps = this.groups.tick(        secs, tick);
+        timing.mil = this.military.tick(      secs, tick);
+        timing.sts = this.economy.stats.tick( secs, tick);
+        timing.eco = this.economy.tick(       secs, tick);
 
       }
 
-      return this.timing;
+      return timing;
 
     },
 

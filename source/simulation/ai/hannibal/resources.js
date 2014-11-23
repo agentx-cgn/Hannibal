@@ -208,7 +208,7 @@ HANNIBAL = (function(H){
 
       });
 
-      this.eachAll(function(generic, specific, stats, id, res){
+      this.eachAll((generic, specific, stats, id, res) => {
 
         if (this.entities[id] && !res.consumed){
           stats.entities  += 1;

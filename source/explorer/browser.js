@@ -397,7 +397,7 @@ HANNIBAL = (function(H){
       },
       import: function(civilisation){
         $("slcCivs").value = civilisation;
-        H.store = new H.Store;
+        H.store = new H.LIB.Store;
         H.store.importFromJSON(window["store_" + civilisation]);
         self.info({
           store: civilisation,

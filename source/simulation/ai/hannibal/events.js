@@ -39,6 +39,7 @@ HANNIBAL = (function(H){
       name: "events",
       context: context,
       imports: [
+        "id",
         "players",
         "entities", // owner
       ],
@@ -107,10 +108,11 @@ HANNIBAL = (function(H){
     log: function(){},
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     clone: function(context){
       context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
+      return new H.LIB[H.noun(this.name)](context).import().initialize();
     },
     serialize: function(){
       // the listeners have to be re-created somewhere else
@@ -122,7 +124,10 @@ HANNIBAL = (function(H){
       }
     },
     initialize: function(){
-      // ???
+      if (!this.savedEvents){
+        this.savedEvents = [];
+      }
+      return this;
     },
     tick: function(tick, secs){
 
@@ -154,7 +159,7 @@ HANNIBAL = (function(H){
     logTick: function(events){
 
       var 
-        lengths = orderedEvents
+        lengths = this.orderedEvents
           .map(type => events[type] ? events[type].length : 0),
         sum = lengths
           .reduce((a, b) => a + b, 0);
@@ -182,7 +187,7 @@ HANNIBAL = (function(H){
 
       } else if (args.length === 2 && typeof args[1] === "function"){
         type     = args[0];
-        player   = H.Bot.id;
+        player   = this.id;
         listener = args[1];
 
       } else if (args.length === 3 && typeof args[2] === "function"){
@@ -203,7 +208,7 @@ HANNIBAL = (function(H){
 
       var 
         dispatcher = this.dispatcher,
-        [type, player, listener] = this.readArgs.apply(null, H.toArray(arguments));
+        [type, player, listener] = this.readArgs.apply(this, H.toArray(arguments));
 
       H.delete(dispatcher["*"]["*"],     l => l === listener);
       H.delete(dispatcher[player]["*"],  l => l === listener);
@@ -212,7 +217,7 @@ HANNIBAL = (function(H){
     },
     on: function (/* [type, [player, ]] listener */) {
 
-      var [type, player, listener] = this.readArgs.apply(null, H.toArray(arguments));
+      var [type, player, listener] = this.readArgs.apply(this, H.toArray(arguments));
 
       this.registerListener(player, type, listener);
 

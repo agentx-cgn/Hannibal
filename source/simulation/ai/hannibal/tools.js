@@ -68,43 +68,43 @@ HANNIBAL = (function(H) {
 
   };
 
-  H.class2name = function(klass){return H.QRY(klass + " CONTAIN").first().name;};
+  // H.class2name = function(klass){return H.QRY(klass + " CONTAIN").first().name;};
 
-  function cost2flow(cost){
+  H.cost2flow = function (cost){
     return {
       food:  cost.food/cost.time,
       wood:  cost.wood/cost.time,
       stone: cost.stone/cost.time,
       metal: cost.metal/cost.time
     };
-  }
+  };
 
-  function reduceFlow(a,b){
+  H.maxFlow = function (a,b){
     return {
       food:  Math.max(a.food, b.food).toFixed(1),
       wood:  Math.max(a.wood, b.wood).toFixed(1),
       stone: Math.max(a.stone, b.stone).toFixed(1),
       metal: Math.max(a.metal, b.metal).toFixed(1),
     };
-  }
-
-  H.getFlowFromClass = function(klass){
-
-    return H.attribs(H.Bot.tree.nodes[H.class2name(klass)].products.train)
-      // .map(function(name){deb(" TOOLS: getFlowStructure: %s %s %s", klass, name, uneval(H.QRY(name).first().costs)); return name;})
-      .map(name => H.QRY(name).first().costs)
-      .map(costs => cost2flow(costs))
-      .reduce(reduceFlow, {food:0,wood:0,stone:0,metal:0});
   };
 
-  H.getFlowFromTrainer = function(name){
+  // H.getFlowFromClass = function(klass){
 
-    return H.attribs(H.Bot.tree.nodes[name].products.train)
-      // .map(function(name){deb(" TOOLS: getFlowStructure: %s %s %s", klass, name, uneval(H.QRY(name).first().costs)); return name;})
-      .map(name => H.QRY(name).first().costs)
-      .map(costs => cost2flow(costs))
-      .reduce(reduceFlow, {food:0,wood:0,stone:0,metal:0});
-  };
+  //   return H.attribs(H.Bot.tree.nodes[H.class2name(klass)].products.train)
+  //     // .map(function(name){deb(" TOOLS: getFlowStructure: %s %s %s", klass, name, uneval(H.QRY(name).first().costs)); return name;})
+  //     .map(name => H.QRY(name).first().costs)
+  //     .map(costs => cost2flow(costs))
+  //     .reduce(reduceFlow, {food:0,wood:0,stone:0,metal:0});
+  // };
+
+  // H.getFlowFromTrainer = function(name){
+
+  //   return H.attribs(H.Bot.tree.nodes[name].products.train)
+  //     // .map(function(name){deb(" TOOLS: getFlowStructure: %s %s %s", klass, name, uneval(H.QRY(name).first().costs)); return name;})
+  //     .map(name => H.QRY(name).first().costs)
+  //     .map(costs => cost2flow(costs))
+  //     .reduce(reduceFlow, {food:0,wood:0,stone:0,metal:0});
+  // };
 
 
 

@@ -20,21 +20,21 @@ HANNIBAL = (function(H){
       self, 
       tick = 0, 
       sequence = "", sequences, // sequence subset
-      chat = function(msg){Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});};
+      chat = function(msg){Engine.PostCommand(H.APP.bot.id, {"type": "chat", "message": msg});};
 
   H.extend(T, {
     quit: function(){
-      return () => Engine.PostCommand(H.Bot.id, {"type": "quit"});
+      return () => Engine.PostCommand(H.APP.bot.id, {"type": "quit"});
     },
     chat: function(msg){
-      return () => Engine.PostCommand(H.Bot.id, {"type": "chat", "message": msg});
+      return () => Engine.PostCommand(H.APP.bot.id, {"type": "chat", "message": msg});
     },
     destroy: function(ids){ 
       ids = Array.isArray(ids) ? ids : arguments.length > 1 ? H.toArray(arguments) : [ids];
-      return () => Engine.PostCommand(H.Bot.id, {type: "delete-entities", "entities": ids});
+      return () => Engine.PostCommand(H.APP.bot.id, {type: "delete-entities", "entities": ids});
     },
     research: function(tpl, id){
-      return () => Engine.PostCommand(H.Bot.id, {type: 'research', entity: id, template: tpl}); 
+      return () => Engine.PostCommand(H.APP.bot.id, {type: 'research', entity: id, template: tpl}); 
     },
     launch: function(group /*, ... */){
       return H.toArray(arguments).slice(1).map((id) => () => H.Groups.launch(group, id));

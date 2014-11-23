@@ -14,6 +14,89 @@
 
 HANNIBAL = (function(H){
 
+  H.LIB.Phases = function(context){
+
+    H.extend(this, {
+
+      name:     "phases",
+      context:  context,
+      imports:  [
+        "query",
+        "culture",
+        "templates",
+        "techtemplates",
+        "class2name",
+      ],
+
+      "1" : {idx: 1, abbr: "vill", next: "", generic: "phase_village", alternates: ["vill", "phase_village"]},
+      "2" : {idx: 2, abbr: "town", next: "", generic: "phase_town",    alternates: ["town", "phase_town"]},
+      "3" : {idx: 3, abbr: "city", next: "", generic: "phase_city",    alternates: ["city", "phase_city"]},
+      current: "",
+
+    });
+
+  };
+
+  H.LIB.Phases.prototype = {
+    constructor: H.LIB.Phases,
+    log: function(){},
+    initialize: function(){
+      var test, self = this;
+      function extract(str){
+        if (str && str.contains("phase")){
+          if (str.contains("village")){self["1"].alternates.push(str);}
+          if (str.contains("town")){self["2"].alternates.push(str);}
+          if (str.contains("city")){self["3"].alternates.push(str);}
+        }
+      }
+      function check(key, tpl){
+        if ((test = H.test(tpl, "Identity.RequiredTechnology"))){extract(test);}
+        if ((test = H.test(tpl, "requirements.tech"))){extract(test);}
+        if ((test = H.test(tpl, "requirements.any"))){test.filter(t => !!t.tech).forEach(t => extract(t.tech));}
+      }
+      H.each(this.templates, check); 
+      H.each(this.techtemplates, check); 
+      this["1"].alternates = H.unique(this["1"].alternates);
+      this["2"].alternates = H.unique(this["2"].alternates);
+      this["3"].alternates = H.unique(this["3"].alternates);
+      return this;
+    },
+    clone: function(context){
+      return new H.LIB.Phases(context);
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    finalize: function(){
+      this.query(this.class2name("civilcentre") + " RESEARCH").forEach(node => {
+        if (node.name.contains("town")){this["1"].next = node.name;}
+        if (node.name.contains("city")){this["2"].next = node.name;}
+      });
+      deb("     T: phases: 1 next: %s, %s", this["1"].next, uneval(this["1"].alternates));
+      deb("     T: phases: 2 next: %s, %s", this["2"].next, uneval(this["2"].alternates));
+      deb("     T: phases: 3 %s", uneval(this["3"].alternates));
+    },
+    tick: function(tick, secs){
+
+      var t0 = Date.now();
+
+
+      return Date.now() - t0;
+
+    },
+    prev: function(phase){return this[(this.find(phase).idx - 1) || 1];},
+    find: function(phase){
+      for (var i=1; i<=3; i++) {
+        if (H.contains(this[i].alternates, phase)){
+          return this[i];
+        }
+      } 
+      return undefined; //H.throw("phases.find: '%s' unknown", phase);
+    },
+
+  };
+
   H.LIB.Tree = function(context){
 
     H.extend(this, {
@@ -29,6 +112,7 @@ HANNIBAL = (function(H){
         "entities",
         "templates",
         "techtemplates",
+        "operators",
       ],
 
       nodes:   null,
@@ -145,7 +229,7 @@ HANNIBAL = (function(H){
 
       // downlink info, products
 
-      H.each(nodes, function(name /*, node */){
+      H.each(nodes, (name /*, node */) => {
         "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
           this.query(name + " " + verb).forEach(p => {
             nodes[name].products.count += 1;
@@ -203,15 +287,30 @@ HANNIBAL = (function(H){
 
       // setting max resource flow for all trainer
 
-      H.each(nodes, function(name, node){
+      H.each(nodes, (name, node) => {
         node.flow = ( H.count(node.products.train) ?
-          H.getFlowFromTrainer(name) :
+          this.getFlowFromTrainer(name) :
           null
         );
       });
 
       deb();deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
 
+    },
+    getFlowFromClass: function(klass){
+
+      return H.attribs(this.nodes[this.class2name(klass)].products.train)
+        .map(name => this.query(name).first().costs)
+        .map(costs => H.cost2flow(costs))
+        .reduce(H.maxFlow, {food:0,wood:0,stone:0,metal:0});
+    },
+
+    getFlowFromTrainer: function(name){
+
+      return H.attribs(this.nodes[name].products.train)
+        .map(name => this.query(name).first().costs)
+        .map(costs => H.cost2flow(costs))
+        .reduce(H.maxFlow, {food:0,wood:0,stone:0,metal:0});
     },
     getType: function(tpln){
 

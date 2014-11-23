@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals  HANNIBAL, H, Uint8Array, deb, uneval */
+/*globals  HANNIBAL, Uint8Array, deb, uneval */
 
 /*--------------- M A P S -----------------------------------------------------
 
@@ -47,14 +47,110 @@ HANNIBAL = (function(H){
       );
     };
 
-  H.LIB.Map = function(config){
-    H.extend(this, config, {
+  H.LIB.Map = function(context){
+
+    H.extend(this, {
+
+      name:    "map",
+      context: context,
+      imports: [
+        "id",
+        "width",
+        "height",
+        "cellsize",
+        "events",
+        "players",            // isEnemy
+      ],
+
+      childs: [               // these are all grids
+        "terrain",            // water, land, shore, etc, static
+        "regionswater",       // connected water cells, static
+        "regionsland",        // connected land cells, static
+        "obstructions",       // where buildings can be placed, dynamic
+        "obstacles",          // where units can move, dynamic
+        "claims",             // reserved space in villages, dynamic
+        "attacks",            // where attacks happened, w/ radius, dynamic
+        "scanner",            // used by scouts
+      ],
+
+      territory:     null,        // copy from API 
+      passability:   null,        // copy from API 
 
     });
+
   };
 
+
   H.LIB.Map.prototype = {
-    constructor: H.Map,
+    constructor: H.LIB.Map,
+    log: function(){
+      deb();
+      deb("   MAP: width: %s, height: %s, cellsize: %s", this.width, this.height, this.cellsize);
+      this.childs.forEach(child => {
+        this[child].log();
+      });
+    },
+    initialize: function(){
+
+      this.territory   = this.context.territory;
+      this.passability = this.context.passability;
+
+      this.childs.forEach( child => {
+        if (!this[child]){
+          this[child] = new H.LIB.Grid(this.context)
+            .import()
+            .initialize();
+        }
+      });
+
+    },
+    deserialize: function(){
+      if (this.context.data[this.name]){
+        this.childs.forEach( child => {
+          if (this.context.data[this.name][child]){
+            this[child] = new H.LIB.Grid(this.context)
+              .import()
+              .initialize(this.context.data[this.name][child]);
+          }
+        });
+      }
+    },
+    clone: function(context){
+      return (
+        new H.LIB[H.noun(this.name)](context)
+          .import()
+          .initialize(this.serialize())
+      );
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    serialize: function(){
+      var data = {};
+      this.childs.forEach( child => {
+        data[child] = this[child].serialize();
+      });
+      return data;
+    },
+    activate: function(){
+
+      this.events.on("Attack", msg => {
+
+      });
+
+    },
+    tick: function(tick, secs){
+
+      var t0 = Date.now();
+
+      this.territory   = this.context.territory;
+      this.passability = this.context.passability;
+
+
+      return Date.now() - t0;
+
+    },    
     mapPosToGridPos: function(p){
       return [~~(p[0] / this.cellsize), ~~(p[1] / this.cellsize)];
     },
@@ -75,17 +171,17 @@ HANNIBAL = (function(H){
     isOwnTerritory: function(p){
       var 
         index  = this.mapPosToIndex(p),
-        player = H.Grids.territory.data[index] & TERRITORY_PLAYER_MASK;
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
 
       // deb("isOwnTerritory: %s", index);
 
-      return player === H.Bot.id;
+      return player === this.context.id;
     },
     isEnemyTerritory: function(pos){
       var 
         index  = this.mapPosToGridIndex(pos),
-        player = H.Grids.territory.data[index] & TERRITORY_PLAYER_MASK;
-      return H.GameState.playerData.isEnemy[player];
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
+      return this.players.isEnemy[player];
     },
     nearest: function(point, ids){
 
@@ -94,7 +190,7 @@ HANNIBAL = (function(H){
       var distance = 1e10, dis, result = 0, pos = 0.0;
 
       ids.forEach(id => {
-        pos = H.Entities[id].position();
+        pos = this.entities[id].position();
         dis = this.distance(point, pos);
         if ( dis < distance){
           distance = dis; result = id;
@@ -105,7 +201,7 @@ HANNIBAL = (function(H){
     },
     getSpread: function(ids){
       var 
-        poss = ids.map(id => H.Entities[id].position()),
+        poss = ids.map(id => this.entities[id].position()),
         xs = poss.map(pos => pos[0]),
         zs = poss.map(pos => pos[1]),
         minx = Math.max.apply(Math, xs),
@@ -137,18 +233,26 @@ HANNIBAL = (function(H){
         H.throw(H.format("Map.getCenter with unusable param: '%s'", uneval(ids)));
       }
 
-      return this.centerOf( ids
-        .filter(id => !!H.Entities[id])
-        .map(id => H.Entities[id].position())
+      return this.centerOf( 
+        ids
+          .filter(id => !!this.entities[id])
+          .map(id => this.entities[id].position())
       );
 
     },
+    updateObstructions: function(){},
+    updateObstacles: function(){},
+    updateTerrain: function(){},
+    updateClaims: function(){},
+    updateRegions: function(){},
+
     createTerritoryMap: function() {
       var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
       map.getOwner      = function(p) {return this.point(p) & TERRITORY_PLAYER_MASK;};
       map.getOwnerIndex = function(p) {return this.map[p]   & TERRITORY_PLAYER_MASK;};
       return map;
     },
+
     createObstructionMap: function(accessIndex, template){
 
       var 

@@ -158,6 +158,27 @@ H.extend(H, {
         undefined
     );
   },
+  fnBody: function (fn){
+
+    var body, source = fn.toString();
+    
+    // assuming function
+    if (source.indexOf("return") !== -1){
+      body = source.slice(source.indexOf("return") + 6, source.lastIndexOf("}")).trim();
+      
+    // assuming lambda
+    } else if (source.indexOf("=>") !== -1){
+       body = source.slice(source.indexOf("=>") + 2).trim();
+      
+    // assuming ignorance
+    } else {
+      throw "fnBody: can't handle that: " + source;
+    }
+    
+    return body;
+    
+  },
+
 
   // graphics
   fillCircle: function(a, w, h, x, y, r, v){

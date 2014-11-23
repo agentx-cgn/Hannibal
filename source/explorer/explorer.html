@@ -753,8 +753,8 @@
               bInitializes = false;
 
               H.Bot = {ticks: false};
-              H.HCQ = H.Store.Query;
-              H.QRY = function(hcq, debug){return new H.HCQ(H.store, hcq, debug);};
+              H.HCQ = H.LIB.Query;
+              H.QRY = function(hcq, debug){return new H.LIB.Query(H.culture.store, hcq, debug);};
 
               TIM.step("HASH", location.hash);
 
