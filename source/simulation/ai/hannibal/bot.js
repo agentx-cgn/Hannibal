@@ -40,7 +40,9 @@ HANNIBAL = (function(H){
 
   H.LIB.Bot.prototype = {
     constructor: H.LIB.Bot,
-    log: function(){},
+    log: function(){
+      deb("   BOT: loaded");
+    },
     clone: function(context){
       return (
         new H.LIB.Bot(context)
@@ -53,19 +55,20 @@ HANNIBAL = (function(H){
       return this;
     },
     serialize: function(){
-      var data = {};
-      this.imports.forEach( imp => {
-        data[imp] = this[imp].serialize();
-      });
-      return data;
+      return {
+        culture:   this.culture.serialize(),
+        events:    this.events.serialize(),
+        groups:    this.groups.serialize(),
+        villages:  this.villages.serialize(),
+        resources: this.resources.serialize(),
+        map:       this.map.serialize(),
+      };
     },
     initialize: function(){
       return this;
     },
     activate: function(){},
-    tick: function(tick, secs){
-
-      var timing = {all: 0};
+    tick: function(tick, secs, timing){
 
       if (tick === 0){
 
@@ -79,8 +82,6 @@ HANNIBAL = (function(H){
 
       } else {
 
-        timing.tst = H.Tester.tick(           secs, tick);
-        timing.trg = H.Triggers.tick(         secs, tick);
         timing.evt = this.events.tick(        secs, tick);
         timing.brn = this.brain.tick(         secs, tick);
         timing.map = this.map.tick(           secs, tick);
@@ -90,8 +91,6 @@ HANNIBAL = (function(H){
         timing.eco = this.economy.tick(       secs, tick);
 
       }
-
-      return timing;
 
     },
 

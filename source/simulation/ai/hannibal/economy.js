@@ -47,9 +47,15 @@ HANNIBAL = (function(H){
 
   H.LIB.Stats.prototype = {
     constructor: H.LIB.Stats,
-    log: function(){},
-    initialize: function(){
-      this.tick();
+    log: function(){
+      deb(" STATS: stock: %s", JSON.stringify(this.stock));
+    },
+    initialize: function(data){
+      if (data){
+        H.extend(this, data);
+      } else {
+        this.tick();
+      }
       return this;
     },
     clone: function(context){
@@ -63,16 +69,16 @@ HANNIBAL = (function(H){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
-    deserialize: function(){
+    serialize: function(){
       return {
         stock: H.deepcopy(this.stock), 
         suply: H.deepcopy(this.suply), 
-        diffs: H.deepcopy(this.diffs),
+        diffs: H.deepcopy(this.diffs), // buffer !!
         flows: H.deepcopy(this.flows), 
         alloc: H.deepcopy(this.alloc),
         forec: H.deepcopy(this.forec), 
         trend: H.deepcopy(this.trend), 
-        stack: H.deepcopy(this.stack),
+        stack: H.deepcopy(this.stack), // buffer !!
       };
     },
     tick: function(tick, secs){
@@ -784,7 +790,12 @@ HANNIBAL = (function(H){
     },
     clone: function(context){
       context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
+      return (
+        new H.LIB[H.noun(this.name)](context)
+          .import()
+          .deserialize()
+          .initialize()
+      );
     },
     serialize: function(){
       return {
@@ -792,17 +803,6 @@ HANNIBAL = (function(H){
         producers:  this.producers.serialize(),
         orderqueue: this.orderqueue.serialize(),
       };
-    },
-    initialize: function(){
-      this.childs.forEach( child => {
-        deb("ECO.child: %s", child);
-        if (!this[child]){
-          this[child] = new H.LIB[H.noun(child)](this.context)
-            .import()
-            .initialize();
-        }
-      });
-      return this;
     },
     deserialize: function(){
       if (this.context.data[this.name]){
@@ -814,6 +814,18 @@ HANNIBAL = (function(H){
           }
         });
       }
+      return this;
+    },
+    initialize: function(){
+      this.childs.forEach( child => {
+        // deb("ECO.child: %s", child);
+        if (!this[child]){
+          this[child] = new H.LIB[H.noun(child)](this.context)
+            .import()
+            .initialize();
+        }
+      });
+      return this;
     },
     activate: function(){
       var node, order;

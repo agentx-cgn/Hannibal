@@ -99,7 +99,7 @@ HANNIBAL = (function(H){
         if (!this[child]){
           this[child] = new H.LIB.Grid(this.context)
             .import()
-            .initialize();
+            .initialize({title: child, bits: "c8"});
         }
       });
 

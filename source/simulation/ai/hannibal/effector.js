@@ -19,10 +19,12 @@ HANNIBAL = (function(H){
 
   H.LIB.Effector = function(config){
 
-    deb("eff: %s", uneval(config));
+    // deb("eff: %s", uneval(config));
 
     H.extend(this, config, H.LIB.Effector[config.connector], {
-
+      log: function(){
+        deb();deb("EFFCTR: connector: '%s'", this.connector);        
+      }
     });
 
   };

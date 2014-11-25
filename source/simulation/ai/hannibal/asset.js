@@ -40,10 +40,10 @@ HANNIBAL = (function(H){
         "Destroy",
       ],
 
-      instance: null,
-      property: null,
-      resources: null,
-      users: null,
+      instance:  null,
+      property:  null,
+      resources: null,  //s
+      users:     null,  //s
 
     });
 

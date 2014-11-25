@@ -266,7 +266,7 @@ HANNIBAL = (function(H) {
         ss = sharedscript;
         gs = gamestate;
         resolution = H.Config.numerus.resolution;
-        deb();deb();deb(" STATS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
+        deb();deb("NUMRUS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
         out("#! open 1 " + H.Config.numerus.file);
         out("#! append 1 :# Numerus Log from: " + new Date());
         H.each(ss.playersData, function(id){
@@ -275,7 +275,8 @@ HANNIBAL = (function(H) {
         });
         out("#! append 1 :" + tickLine(1, "head"));
       },
-      tick: function(secs, ticks){
+      tick: function(secs, ticks, sharedscript){
+        ss = sharedscript;
         if (~~ticks % resolution === 0) { 
           H.each(ss.playersData, function(id){
             id = ~~id;

@@ -143,20 +143,7 @@ HANNIBAL = (function(H){
 
   H.LIB.Resources.prototype = {
     constructor: H.LIB.Resources,
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-    },
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    serialize: function(){
-      return {
-        resources: H.deepcopy(this.resources),
-      };
-    },
     log: function(){
-
       var 
         tab = H.tab, type, msg = "",
         head   = "ents,     found, avail, total, depl, cons".split(", "),
@@ -165,7 +152,8 @@ HANNIBAL = (function(H){
 
       // header
       H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-      deb("     R:                " + msg);
+      deb();
+      deb("RESRCS:                " + msg);
 
       // lines
       this.eachStats(function(generic, specific, stats){
@@ -174,16 +162,28 @@ HANNIBAL = (function(H){
           msg += tab(stats[p], t);
         });    
         type = H.tab(generic + "." + specific, 13);
-        deb("      : %s: %s", type, msg);
+        deb("     R: %s: %s", type, msg);
       });
 
     },
-    activate: function(){},
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    clone: function(context){
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
+    },
+    serialize: function(){
+      return {
+        resources: "wip", // H.deepcopy(this.resources),
+      };
+    },
     initialize: function(){
 
       var res, type, counter = 0, t0 = Date.now();
 
-      deb();deb();deb("   RES: init -----------");
+      // deb();deb();deb("   RES: init -----------");
 
       H.each(this.entities, (id, ent) => {
         
@@ -223,9 +223,10 @@ HANNIBAL = (function(H){
 
       });
 
-      deb("     R: found %s, %s msecs", counter, Date.now() - t0);
+      // deb("     R: found %s, %s msecs", counter, Date.now() - t0);
 
     },
+    activate: function(){},
     availability: function( /* arguments */ ){
 
         var 

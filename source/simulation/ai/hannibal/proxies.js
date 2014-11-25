@@ -91,8 +91,12 @@ HANNIBAL = (function(H){
     MetaData: function(meta){
       return Proxy.create({  
         get: function(proxy, id){
-          if (!meta[id]){meta[id] = {};}
-          return meta[id];
+          if (H.isInteger(~~id)){
+            if (!meta[id]){meta[id] = {};}
+            return meta[id];
+          } else {
+            return undefined;
+          }
         }
       });
     },

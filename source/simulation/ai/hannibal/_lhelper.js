@@ -203,10 +203,10 @@ H.extend(H, {
   // ES6 Suite
   unique:     function (a){return [...Set(a)];},
   attribs:    function (o){return Object.keys(o);},
-  each:       function (o,fn){Object.keys(o).forEach(k => fn(k, o[k]));},
   count:      function (o){return Object.keys(o).length;},
   values:     function (o){return Object.keys(o).map(function(k){return o[k];});},
-  // each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, a[k]);}},
+  // each:       function (o,fn){Object.keys(o).forEach(k => fn(k, o[k]));},
+  each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}},
 
 });
 

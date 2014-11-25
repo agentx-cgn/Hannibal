@@ -51,15 +51,15 @@ var HANNIBAL = (function() {
 
     // stateful support objects, ordered
     this.serializers = [
-      "culture", 
+      // "effector",    // engine or simulation or explorer
+      "culture",     // store, tree, phases
       "events", 
+      "map",         // grids
       "villages", 
-      "map", 
       "resources", 
       "scanner", 
-      "stats", 
-      "economy", 
-      "groups", 
+      "groups",      // assets
+      "economy",     // stats, producers, orderqueue
       "military", 
       "brain", 
     ];
@@ -144,7 +144,7 @@ var HANNIBAL = (function() {
 
       launcher:            this,
 
-      connector:          "engine",
+      effector:            new H.LIB.Effector({connector: "engine"}),
 
       cellsize:            gameState.cellSize, 
       width:               sharedScript.passabilityMap.width, 
@@ -157,20 +157,16 @@ var HANNIBAL = (function() {
       metadata:            H.Proxies.MetaData(sharedScript._entityMetadata[this.context.id]),
 
       // API read only, static
-      // templates:           H.Proxies.Templates(this.settings.templates),
       templates:           this.settings.templates,
-      // techtemplates:       H.Proxies.TechTemplates(sharedScript._techTemplates), 
       techtemplates:       sharedScript._techTemplates, 
 
       // API read only, dynamic
       states:              H.Proxies.States(gameState.entities._entities),
-      // entities:            H.Proxies.Entities(gameState.entities._entities),
       entities:            gameState.entities._entities,
-      // technologies:        H.Proxies.Technologies(sharedScript._techTemplates), 
       technologies:        sharedScript._techTemplates, 
-      techmodifications:   H.Proxies.TechModifications(sharedScript._techModifications),
-      player:              H.Proxies.Player(sharedScript.playersData[this.context.id]),
-      players:             H.Proxies.Players(sharedScript.playersData),
+      techmodifications:   sharedScript._techModifications,
+      player:              sharedScript.playersData[this.context.id],
+      players:             sharedScript.playersData,
 
       query:               function(hcq, debug){
         return new H.LIB.Query(this.context.culture.store, hcq, debug);
@@ -205,7 +201,7 @@ var HANNIBAL = (function() {
         this.serializers.forEach( s => {
           ss = s;
           o = this.context[s];
-          deb("try: %s : %s", s, action);
+          // deb("try: %s : %s", s, action);
             ( o[action]  && o[action]() );
         });
 
@@ -217,6 +213,34 @@ var HANNIBAL = (function() {
     this.bot = new H.LIB.Bot(this.context)
       .import()
       .initialize();
+
+    this.context.effector.log();
+    this.bot.log();
+
+    this.initialized = true;
+
+
+    /*
+
+    Below is for development
+
+    */
+
+    /* run scripted actions named in H.Config.sequence */
+
+    deb();
+    H.Tester.activate();      
+
+
+    /* test clone & serialize */
+
+    var t0 = Date.now();
+    var DATA = this.bot.serialize();
+    var t1 = Date.now();
+    exportObject(DATA, "serialized");
+    deb("EXPORT : serialized bot, ms: %s", t1 - t0);
+
+
 
     // // H.Phases.init();                         // acquire all phase names
     // this.tree    = new H.TechTree(this.id);  // analyse templates of bot's civ
@@ -289,16 +313,6 @@ var HANNIBAL = (function() {
     //   resources:      H.Resources.availability("wood", "food", "metal", "stone", "treasure"),
     // });
     
-    this.initialized = true;
-
-    // H.Config.deb = 0;
-
-
-    /*
-
-    Below is for development
-
-    */
 
 
     /* Export functions */
@@ -356,12 +370,7 @@ var HANNIBAL = (function() {
 
     /* end techs and their modifications */
 
-    /* run scripted actions named in H.Config.sequence */
 
-    deb();
-    deb();
-    H.Tester.activate();
-    deb();
 
     /* end scripter */
 
@@ -468,11 +477,19 @@ var HANNIBAL = (function() {
       );
 
       // THIS IS THE MAIN ACT
-      this.timing = this.bot.tick(secs, this.context.tick);
+      this.timing.tst = H.Tester.tick(           secs, this.context.tick);
+      this.timing.trg = H.Triggers.tick(         secs, this.context.tick);
+      this.bot.tick(                             secs, this.context.tick, this.timing);
+
+      // if (this.context.tick === 2){
+      //   var DATA = this.bot.serialize();
+      //   exportObject(DATA, "serialized");
+      //   deb(" EXPORT: serialized done");
+      // }
 
       // deb: collect stats
       if (H.Config.numerus.enabled){
-        H.Numerus.tick(secs, this.context.tick);
+        H.Numerus.tick(secs, this.context.tick, sharedScript);
       }
 
       // deb: prepare line

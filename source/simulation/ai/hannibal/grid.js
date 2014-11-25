@@ -43,7 +43,7 @@ HANNIBAL = (function(H){
     log: function(name){
       var stats = {},i = this.length,data = this.data;
       while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
-      deb("   GRD: log: %s min: %s, max: %s, stats: %s", name || ">", this.min(), this.max(), H.prettify(stats));
+      deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(name || this.title, 12), this.min(), this.max(), H.prettify(stats));
     },    
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -58,32 +58,33 @@ HANNIBAL = (function(H){
     },
     serialize: function(){
       return {
+        title:  this.title,
         bits:   this.bits,
         height: this.height,
         width:  this.width,
-        bytes:  H.deepcopy(this.data),
+        bytes:  Array.prototype.slice.call(this.data),
       };
     },
     initialize: function(data){
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
+
+      this.width  = this.map.width  / this.cellsize;
+      this.height = this.map.height / this.cellsize;
+      this.length = this.width * this.height;
+
       if (data){
         this.title  = data.title || "unknown";
         this.bits   = data.bits;
-        this.width  = this.map.width  / this.cellsize;
-        this.height = this.map.height / this.cellsize;
         this.data = (
-          data.bits === "i32" ? new Uint32Array(data.bytes.slice()) :  // CHECK: might works w/o slice
-            new Uint8Array(data.bytes.slice())
+          data.bits === "i32" ? new Uint32Array(data.bytes ? data.bytes.slice() : this.length) :  // CHECK: might works w/o slice
+            new Uint8Array(data.bytes ? data.bytes.slice() : this.length)
         );
 
       } else {
         this.title  = "grid" + this.context.idgen++;
         this.bits   = "c8";
-        this.width  = this.map.width  / this.cellsize;
-        this.height = this.map.height / this.cellsize;
         this.data   = new Uint8Array(this.width * this.height);
       }
-      this.length = this.width * this.height;
       return this;
     },
     toArray: function(){
