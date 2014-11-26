@@ -51,17 +51,16 @@ var HANNIBAL = (function() {
 
     // stateful support objects, ordered
     this.serializers = [
-      // "effector",    // engine or simulation or explorer
-      "culture",     // store, tree, phases
       "events", 
+      "culture",     // store, tree, phases
       "map",         // grids
-      "villages", 
-      "resources", 
-      "scanner", 
-      "groups",      // assets
-      "economy",     // stats, producers, orderqueue
-      "military", 
-      "brain", 
+      // "villages", 
+      // "resources",   // after map
+      // "scanner",     // scanner after map
+      // "groups",      // assets
+      // "economy",     // stats, producers, orderqueue
+      // "military", 
+      // "brain", 
     ];
 
     H.extend(this, {
@@ -102,14 +101,13 @@ var HANNIBAL = (function() {
       timeElapsed:   this.context.timeElapsed,
       idgen:         this.context.idgen,
       id:            this.context.id,
+      phase:         this.context.phase,
       turn:          this.context.turn,
       tick:          this.context.tick,
       difficulty:    this.context.difficulty,
       config:        H.Config,                          // 
-      data:          {}
+      data:          this.bot.serialize()
     };
-
-    this.serializers.forEach(s => context.data[s] = this.bot[s].serialize());
 
     return context;
 
@@ -146,6 +144,7 @@ var HANNIBAL = (function() {
 
       effector:            new H.LIB.Effector({connector: "engine"}),
 
+      phase:               gameState.currentPhase(),     // num
       cellsize:            gameState.cellSize, 
       width:               sharedScript.passabilityMap.width, 
       height:              sharedScript.passabilityMap.height, 
@@ -216,8 +215,53 @@ var HANNIBAL = (function() {
 
     this.context.effector.log();
     this.bot.log();
+    exportObject(this.bot.serialize(), "bot1.serialized");
 
+
+    // clone second bot to compare serialization
+    this.otherContext = {};
+
+    H.each(this.context, (name, item) => {
+
+      // link/copy everything not serializer
+      if (!H.contains(this.serializers, name)){
+        this.otherContext[name] = this.context[name];
+      }
+
+    });
+
+    // create serializers
+    ["clone", "import", "deserialize", "initialize", "finalize", "activate", "log"].forEach(action => {
+
+      var o, ss;
+
+      this.serializers.forEach( s => {
+
+        ss = s;
+        
+        if (action === "clone"){
+          this.otherContext[s] = this.context[s].clone(this.otherContext);
+
+        } else {
+          o = this.otherContext[s];
+          ( o[action]  && o[action]() );
+        }
+
+      });
+
+    });
+
+
+    this.otherBot = new H.LIB.Bot(this.otherContext)
+      .import()
+      .initialize();
+
+    exportObject(this.otherBot.serialize(), "bot2.serialized");
+
+
+    deb();
     this.initialized = true;
+    return;
 
 
     /*

@@ -91,25 +91,23 @@ HANNIBAL = (function(H){
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
-    deserialize: function(){
+    deserialize: function(data){
+      H.extend(this, data);
+      return this;
+    },
+    serialize: function(data){
       return {};
+    },
+    initialize: function(){
+      return this;
     },
     activate: function(){
 
       this.events.on("Advance", msg => {
-
-        var phase, phases = this.culture.phases;
-
-        if ((phase = phases.find(msg.data.key))){
-          phases.current = phase.abbr;
-          deb(" BRAIN: onAdvance: set new phase %s", phases.current);
-          return;
-        }
         deb(" BRAIN: onAdvance: %s", msg.data.technology);
-
       });
-
 
       this.events.on("Attacked", "*", msg => {
         deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);

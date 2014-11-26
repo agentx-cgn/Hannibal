@@ -19,20 +19,20 @@
         "data/techs-json.export",
         // simulates 0AD's alphabetic loading sequence -->
         "../simulation/ai/hannibal/_lhelper.js",
+        "../simulation/ai/hannibal/ai.js",
         "../simulation/ai/hannibal/config.js",
         "../simulation/ai/hannibal/data.js",
-        "../simulation/ai/hannibal/ai.js",
         "../simulation/ai/hannibal/economy.js",
-        "../simulation/ai/hannibal/store.js",
+        "../simulation/ai/hannibal/effector.js",
+        "../simulation/ai/hannibal/geometry.js",
+        "../simulation/ai/hannibal/grid.js",
         "../simulation/ai/hannibal/htn-helper.js",
         "../simulation/ai/hannibal/htn-eco-methods.js",
         "../simulation/ai/hannibal/htn-eco-operators.js",
         "../simulation/ai/hannibal/htn-planner.js",
-        "../simulation/ai/hannibal/grids.js",
         "../simulation/ai/hannibal/map.js",
-        "../simulation/ai/hannibal/geometry.js",
+        "../simulation/ai/hannibal/store.js",
         "../simulation/ai/hannibal/tools.js",
-        "../simulation/ai/hannibal/effector.js",
         //end of alphabetic loading sequence -->
         "htn-eco-examples.js",
         "htn-tree-methods.js",
@@ -733,7 +733,6 @@
                 scr = SCRIPTS[pointer];
 
               document.body.appendChild(el);
-
               el.onload = () => {
                 // TIM.step("load", scr);
                 pointer += 1;
@@ -744,7 +743,8 @@
                 pointer += 1;
                 scriptLoader();
               };
-              el.src = scr;
+              el.async = false;
+              el.src = scr + "?" + Date.now();
 
             } else {
 

@@ -143,6 +143,62 @@ H.extend(H, {
         bi++;
     }}return r;
   },  
+  toRLE:      function(a){
+      
+    var 
+      i, prev, count = 1, len = a.length, typ = (
+        a instanceof Uint8ClampedArray ? "Uint8ClampedArray" :
+        a instanceof Int8Array    ? "Int8Array"    :
+        a instanceof Uint8Array   ? "Uint8Array"   :
+        a instanceof Int16Array   ? "Int16Array"   :
+        a instanceof Uint16Array  ? "Uint16Array"  :
+        a instanceof Int32Array   ? "Int32Array"   :
+        a instanceof Uint32Array  ? "Uint32Array"  :
+        a instanceof Float32Array ? "Float32Array" :
+        a instanceof Float64Array ? "Float64Array" : 
+        Array.isArray(a)          ? "Array"        : 
+          null
+      ), 
+      rle = [typ],
+      push = function(count, item){
+        rle.push( count === 1 ? item : [count, item]);
+      }
+    
+    for (count = 1, prev = a[0], i = 1; i < len; i++) {
+      if (a[i] !== prev) {
+          push(count, prev);
+          count = 1;
+          prev = a[i];
+      } else {count++;}
+    }
+    push(count, prev);
+    return rle;
+  },
+  fromRLE:    function(rle){
+    var i, j, out = [], len = rle.length, typ = rle[0];
+    for (i=1;i<len;i++){
+      if (Array.isArray(rle[i])){
+        for (j=0;j<rle[i][0];j++){
+          out.push(rle[i][1]);
+        }
+      } else {
+        out.push(rle[i]);
+      }
+    }
+    return (
+      typ === "Uint8ClampedArray" ? new Uint8ClampedArray(out) : 
+      typ === "Int8Array"    ? new Int8Array(out) : 
+      typ === "Uint8Array"   ? new Uint8Array(out) : 
+      typ === "Int16Array"   ? new Int16Array(out) : 
+      typ === "Uint16Array"  ? new Uint16Array(out) : 
+      typ === "Int32Array"   ? new Int32Array(out) : 
+      typ === "Uint32Array"  ? new Uint32Array(out) : 
+      typ === "Float32Array" ? new Float32Array(out) : 
+      typ === "Float64Array" ? new Float64Array(out) :
+        out
+    );
+
+  },
 
   // functions
   binda:      function(fn, obj, a){

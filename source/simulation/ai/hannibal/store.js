@@ -41,48 +41,36 @@ HANNIBAL = (function(H){
 
   H.LIB.Store.prototype = {
     constructor: H.LIB.Store,
-    log: function(){},
+    log: function(){
+      deb();
+      deb(" STORE: %s verbs, %s nodes, %s edges", this.verbs.length, H.count(this.nodes), this.edges.length);
+    },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
-    initialize: function(data){
-      this.verbs = this.culture.verbs;
-      if (data){
-        this.nodes = H.deepcopy(data.nodes);
-        this.edges = this.importEdges(data.edges);
-        this.cntNodes = H.count(this.nodes);
-      } else {
-        this.nodes = {};
-        this.edges = [];
-        this.cntNodes = 0;
-      }
       return this;
     },
     serialize: function(){
       return {
         verbs: H.deepcopy(this.verbs),
         nodes: H.deepcopy(this.nodes),
-        edges: this.exportEdges(this.edges),
+        edges: this.edges.map(e => [e[0].name, e[1], e[2].name]),
       };
     },
-    importEdges: function(json){
-      var src, tgt;
-      json.edges.forEach(edge => {
-        src = this.nodes[edge[0]];
-        tgt = this.nodes[edge[2]];
-        this.addEdge(src, edge[1], tgt);
-      });
+    deserialize: function(data){
+      this.verbs = data.verbs;
+      this.nodes = data.nodes;
+      this.edges = data.edges.map(e => [this.nodes[e[0]], e[1], this.nodes[e[2]]]);
+      this.cntNodes = H.count(this.nodes);
+      return this;
     },
-    exportEdges: function(){
-      return this.edges.map(edge => [edge[0].name, edge[1], edge[2].name]);
+    initialize: function(){
+      if (!this.verbs){
+        this.verbs = this.culture.verbs;
+        this.nodes = {};
+        this.edges = [];
+        this.cntNodes = 0;
+      }
+      return this;
     },
     addNode: function(node){
       if (!this.nodes[node.name]){
@@ -90,16 +78,6 @@ HANNIBAL = (function(H){
         this.cntNodes += 1;
       } else {
         deb("ERROR : node already exists in store: %s, %s ", this.name, node.name);
-      }
-    },
-    addEdge: function(source, verb, target){
-      if (!source)                      {deb("ERROR : addEdge: source not valid: %s", source);} 
-      else if (!target)                 {deb("ERROR : addEdge: target not valid: %s", target);} 
-      else if (!this.nodes[source.name]){deb("ERROR : addEdge: no source node for %s", source.name);}
-      else if (!this.nodes[target.name]){deb("ERROR : addEdge: no target node for %s", target.name);}
-      else if (this.verbs.indexOf(verb) === -1){deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
-      else {
-        this.edges.push([source, verb, target]);
       }
     },
     delNode: function(name){  // TODO: speed up
@@ -113,6 +91,16 @@ HANNIBAL = (function(H){
         deb("WARN  : store.delNode: can't delete '%s' unknown", name);
       }
 
+    },
+    addEdge: function(source, verb, target){
+      if (!source)                      {deb("ERROR : addEdge: source not valid: %s", source);} 
+      else if (!target)                 {deb("ERROR : addEdge: target not valid: %s", target);} 
+      else if (!this.nodes[source.name]){deb("ERROR : addEdge: no source node for %s", source.name);}
+      else if (!this.nodes[target.name]){deb("ERROR : addEdge: no target node for %s", target.name);}
+      else if (this.verbs.indexOf(verb) === -1){deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
+      else {
+        this.edges.push([source, verb, target]);
+      }
     },
 
   };

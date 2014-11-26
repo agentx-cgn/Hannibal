@@ -22,7 +22,7 @@ HANNIBAL = (function(H){
       name:    "grid",
       context: context,
       imports: [
-        "map",
+        "map",         // width, height
         "cellsize",
         "effector",
       ],
@@ -49,47 +49,36 @@ HANNIBAL = (function(H){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
     serialize: function(){
       return {
         title:  this.title,
         bits:   this.bits,
-        height: this.height,
-        width:  this.width,
-        bytes:  Array.prototype.slice.call(this.data),
+        bytes:  H.toRLE(this.data),
       };
     },
-    initialize: function(data){
+    deserialize: function(data){
+      this.title = data.title;
+      this.bits  = data.bits;
+      this.data  = H.fromRLE(data.bytes);
+    },
+    initialize: function(){
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
       this.width  = this.map.width  / this.cellsize;
       this.height = this.map.height / this.cellsize;
       this.length = this.width * this.height;
 
-      if (data){
-        this.title  = data.title || "unknown";
-        this.bits   = data.bits;
-        this.data = (
-          data.bits === "i32" ? new Uint32Array(data.bytes ? data.bytes.slice() : this.length) :  // CHECK: might works w/o slice
-            new Uint8Array(data.bytes ? data.bytes.slice() : this.length)
-        );
-
-      } else {
+      if (!this.data){
         this.title  = "grid" + this.context.idgen++;
         this.bits   = "c8";
         this.data   = new Uint8Array(this.width * this.height);
       }
+
       return this;
     },
-    toArray: function(){
-      return Array.prototype.slice.call(this.data);
-    },
+    // toArray: function(){
+    //   return Array.prototype.slice.call(this.data);
+    // },
     dump: function (name, threshold){
       threshold = threshold || this.max() || 255;
       name = H.format("%s-%s.png", name, threshold);

@@ -86,9 +86,29 @@ HANNIBAL = (function(H){
     log: function(){
       deb();
       deb("   MAP: width: %s, height: %s, cellsize: %s", this.width, this.height, this.cellsize);
-      this.childs.forEach(child => {
-        this[child].log();
+      this.childs.forEach(child => this[child].log());
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    serialize: function(){
+      var data = {};
+      this.childs.forEach( child => {
+        data[child] = this[child].serialize();
       });
+      return data;
+    },
+    deserialize: function(data){
+      if (this.context.data[this.name]){
+        this.childs.forEach( child => {
+          if (this.context.data[this.name][child]){
+            this[child] = new H.LIB.Grid(this.context)
+              .import()
+              .deserialize(this.context.data[this.name][child]);
+          }
+        });
+      }
     },
     initialize: function(){
 
@@ -103,35 +123,8 @@ HANNIBAL = (function(H){
         }
       });
 
-    },
-    deserialize: function(){
-      if (this.context.data[this.name]){
-        this.childs.forEach( child => {
-          if (this.context.data[this.name][child]){
-            this[child] = new H.LIB.Grid(this.context)
-              .import()
-              .initialize(this.context.data[this.name][child]);
-          }
-        });
-      }
-    },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
-    },
-    serialize: function(){
-      var data = {};
-      this.childs.forEach( child => {
-        data[child] = this[child].serialize();
-      });
-      return data;
+
     },
     activate: function(){
 

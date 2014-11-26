@@ -55,14 +55,14 @@ HANNIBAL = (function(H){
       return this;
     },
     serialize: function(){
-      return {
-        culture:   this.culture.serialize(),
-        events:    this.events.serialize(),
-        groups:    this.groups.serialize(),
-        villages:  this.villages.serialize(),
-        resources: this.resources.serialize(),
-        map:       this.map.serialize(),
-      };
+      var data = {};
+      this.imports.forEach( imp => {
+        if(this[imp] && typeof this[imp].serialize === "function"){
+          deb("import: %s", imp);
+          data[imp] = this[imp].serialize();
+        }
+      });
+      return data;
     },
     initialize: function(){
       return this;

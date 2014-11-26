@@ -21,7 +21,9 @@ HANNIBAL = (function(H){
       name:     "phases",
       context:  context,
       imports:  [
+        "phase",
         "query",
+        "events",
         "culture",
         "templates",
         "techtemplates",
@@ -46,7 +48,23 @@ HANNIBAL = (function(H){
       deb("     P: 2: %s", JSON.stringify(this["2"]));
       deb("     P: 3: %s", JSON.stringify(this["3"]));
     },
-    initialize: function(data){
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    serialize: function(){
+      return {
+        "1": this["1"],
+        "2": this["2"],
+        "3": this["3"],
+        "current": this.current,
+      };
+    },
+    deserialize: function(data){
+      H.extend(this, data);  // just take 1,2,3, current
+      return this;
+    },
+    initialize: function(){
       var test, self = this;
       function extract(str){
         if (str && str.contains("phase")){
@@ -60,9 +78,7 @@ HANNIBAL = (function(H){
         if ((test = H.test(tpl, "requirements.tech"))){extract(test);}
         if ((test = H.test(tpl, "requirements.any"))){test.filter(t => !!t.tech).forEach(t => extract(t.tech));}
       }
-      if (data){
-        H.extend(this, data);
-      } else {
+      if (this["1"].next === ""){
         H.each(this.templates, check); 
         H.each(this.techtemplates, check); 
         this["1"].alternates = H.unique(this["1"].alternates);
@@ -71,30 +87,21 @@ HANNIBAL = (function(H){
       }
       return this;
     },
-    clone: function(context){
-      return (
-        new H.LIB.Phases(this.context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    serialize: function(){
-      return {
-        "1": this["1"],
-        "2": this["2"],
-        "3": this["3"],
-        "current": this.current,
-      };
-    },
     finalize: function(){
+      this.current = this[this.phase].abbr;
       this.query(this.class2name("civilcentre") + " RESEARCH").forEach(node => {
         if (node.name.contains("town")){this["1"].next = node.name;}
         if (node.name.contains("city")){this["2"].next = node.name;}
       });
+    },
+    activate: function(){
+      this.events.on("Advance", msg => {
+        var phase;
+        if ((phase = this.find(msg.data.key))){
+          this.current = phase.abbr;
+          deb("PHASES: onAdvance: set new phase %s", this.current);
+        }
+      });      
     },
     prev: function(phase){return this[(this.find(phase).idx - 1) || 1];},
     find: function(phase){
@@ -126,10 +133,11 @@ HANNIBAL = (function(H){
         "operators",
       ],
 
-      nodes:   null,
-      sources: null,
-      names:   null,
-      keys:    null,
+      nodes:      null,
+      sources:    null,
+      names:      null,
+      keys:       null,
+      cntSources: 0,
 
     });
 
@@ -138,18 +146,15 @@ HANNIBAL = (function(H){
   H.LIB.Tree.prototype = {
     constructor: H.LIB.Tree,
     log: function(){
-      deb(); deb("  TREE: expanded %s sources into %s nodes", H.count(this.sources), H.count(this.nodes));
+      deb(); deb("  TREE: expanded %s sources into %s nodes", this.cntSources, H.count(this.nodes));
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
+    deserialize: function(data){
+      this.nodes = data.nodes;
+      return this;
     },
     serialize: function(){
 
@@ -197,11 +202,6 @@ HANNIBAL = (function(H){
       return data;
 
     },
-    deserialize: function(config){
-      if (config.tree){
-        this.nodes = H.deepcopy(config.nodes);
-      }
-    },
     initialize: function(){
 
       this.civ = this.player.civ;
@@ -219,6 +219,7 @@ HANNIBAL = (function(H){
         );    
 
         this.sources = H.unique(this.sources).map(src => [0, src]);
+        this.cntSources = this.sources.length;
         this.build();
         this.names = H.attribs(this.nodes);
         this.keys  = H.attribs(this.nodes).map(t => this.nodes[t].key);
@@ -232,7 +233,7 @@ HANNIBAL = (function(H){
     },
     finalize: function(){
 
-      // called after culture was loaded
+      // after initialize AND deserialize
 
       var 
         tech, name, producers, nodes = this.nodes, t0 = Date.now(),
@@ -503,8 +504,10 @@ HANNIBAL = (function(H){
       name:    "culture",
       context: context,
       imports: [
+        "id",
         "player",
         "entities",
+        "metadata",
         "events",
         "templates",
         "techtemplates",
@@ -536,17 +539,22 @@ HANNIBAL = (function(H){
     constructor: H.Culture,
     log: function (){
       deb();
-      deb("  CULT: civ: %s, templates: %s", this.civ, H.count(this.templates));
-      deb("     C: verbs: %s, nodes: %s, edges: %s", this.verbs.length, H.count(this.store.nodes), this.store.edges.length);
+      deb("  CULT: civ: %s, templates: %s, %s nodes, %s edges, %s verbs", 
+        this.civ,
+        H.count(this.templates),
+        H.count(this.store.nodes),
+        this.store.edges.length,
+        this.verbs.length
+      );
       this.phases.log();
       this.tree.log();
       this.store.log();
     },
     import: function (){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     clone: function (context){
-      context.data[this.name] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
@@ -562,7 +570,7 @@ HANNIBAL = (function(H){
           if (this.context.data[this.name][child]){
             this[child] = new H.LIB[H.noun(child)](this.context)
               .import()
-              .initialize(this.context.data[this.name][child]);
+              .deserialize(this.context.data[this.name][child]);
           }
         });
       }
@@ -594,15 +602,15 @@ HANNIBAL = (function(H){
         this.loadEntities();             // from game to triple store
         this.loadTechnologies();         // from game to triple store
 
+        H.each(this.store.nodes, name => {
+          delete this.store.nodes[name].template;
+          delete this.store.nodes[name].classes;
+        });
+
       }
 
     },
     finalize: function (){
-
-      Object.keys(this.store.nodes).forEach( name => {
-        delete this.store.nodes[name].template;
-        delete this.store.nodes[name].classes;
-      });
 
       this.childs.forEach( child => {
         if (this[child].finalize){
@@ -775,7 +783,7 @@ HANNIBAL = (function(H){
       targetNodes.forEach( nodeTarget => {
 
         nodeSourceName = nodeTarget.name.split("#")[0];
-        nodeSource = H.Bot.culture.store.nodes[nodeSourceName];
+        nodeSource = this.store.nodes[nodeSourceName];
 
         if (!nodeSource){deb("ERROR : loadEntities nodeSource: %s", nodeSourceName);}
         if (!nodeTarget){deb("ERROR : loadEntities nodeTarget: %s", nodeTarget.name);}
@@ -874,6 +882,7 @@ HANNIBAL = (function(H){
 
       var 
         entities = this.entities,
+        metadata = this.metadata,
         node = {
           name      : name,
           key       : key,
@@ -913,7 +922,7 @@ HANNIBAL = (function(H){
             return pos;
           }},
           "metadata": {enumerable: true, get: function(){
-            var meta = H.MetaData[id];
+            var meta = metadata[id];
             return (meta === Object(meta)) ? meta : {};
           }},
           "slots": {enumerable: true, get: function(){

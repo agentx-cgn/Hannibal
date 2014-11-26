@@ -72,7 +72,7 @@ HANNIBAL = (function(H){
       context.data[this.name] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
     },
-    deserialize: function(){
+    serialize: function(){
       return {};
     },
     initialize: function(){

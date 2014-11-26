@@ -25,9 +25,6 @@ HANNIBAL = (function(H){
         "events",
       ],
 
-      childs: [
-      ],
-
     });
 
   };
@@ -35,30 +32,20 @@ HANNIBAL = (function(H){
   H.LIB.Military.prototype = {
     constructor: H.LIB.Military,
     log: function(){},
-    initialize: function(){
-      this.childs.forEach( child => {
-        if (!this[child]){
-          this[child] = new H.LIB[H.noun(child)](this.context)
-            .import()
-            .initialize();
-        }
-      });
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-    },
-    deserialize: function(){
-      this.childs.forEach( child => {
-        if (this.context.data.economy[child]){
-          this.orderqueue = new H.LIB[H.noun(child)](this.context)
-            .import()
-            .initialize(this.context.data.economy[child]);
-        }
-      });
-    },
     clone: function(context){
       context.data[this.name] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    serialize: function(){
+      return {};
+    },
+    initialize: function(){
+    },
+    deserialize: function(){
     },
     activate: function(){
 

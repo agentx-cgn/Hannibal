@@ -105,23 +105,24 @@ HANNIBAL = (function(H){
 
   H.LIB.Events.prototype = {
     constructor: H.LIB.Events,
-    log: function(){},
+    log: function(){
+      deb();
+      deb("EVENTS: have %s saved events", this.savedEvents.length);
+    },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
     clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context).import().initialize();
+      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
       // the listeners have to be re-created somewhere else
       return H.deepcopy(this.savedEvents);
     },
-    deserialize: function(){
-      if (this.context.data.events){
-        this.savedEvents = this.context.data.events;
-      }
+    deserialize: function(data){
+      this.savedEvents = data;
+      return this;
     },
     initialize: function(){
       if (!this.savedEvents){

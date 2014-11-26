@@ -25,7 +25,7 @@
 
 HANNIBAL = (function(H){
 
-  var cvs, ctx, size = 512, mouse, msg, grdVill = new H.Grid(size, size, 8);  
+  var cvs, ctx, size = 512, mouse, msg, grdVill = new H.LIB.Grid(size, size, 8);  
 
   function Rect(x, y, w, h, a){
     this.x      = x !== undefined ? x : size/2;
