@@ -732,7 +732,6 @@
                 el = document.createElement('script'),
                 scr = SCRIPTS[pointer];
 
-              document.body.appendChild(el);
               el.onload = () => {
                 // TIM.step("load", scr);
                 pointer += 1;
@@ -745,6 +744,7 @@
               };
               el.async = false;
               el.src = scr + "?" + Date.now();
+              document.body.appendChild(el);
 
             } else {
 

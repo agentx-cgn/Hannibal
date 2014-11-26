@@ -98,6 +98,7 @@ HANNIBAL = (function(H){
       this.events.on("Advance", msg => {
         var phase;
         if ((phase = this.find(msg.data.key))){
+          this.context.phase = phase.idx;
           this.current = phase.abbr;
           deb("PHASES: onAdvance: set new phase %s", this.current);
         }
@@ -531,6 +532,10 @@ HANNIBAL = (function(H){
       resources:     [],
       resourcetypes: [],
 
+      cntIngames:    0,
+      cntNodes:      0,
+      cntEdges:      0,
+
     });
 
   };
@@ -539,12 +544,13 @@ HANNIBAL = (function(H){
     constructor: H.Culture,
     log: function (){
       deb();
-      deb("  CULT: civ: %s, templates: %s, %s nodes, %s edges, %s verbs", 
+      deb("  CULT: civ: %s, templates: %s, %s verbs, %s nodes, %s edges, %s ingames", 
         this.civ,
         H.count(this.templates),
-        H.count(this.store.nodes),
-        this.store.edges.length,
-        this.verbs.length
+        this.verbs.length,
+        this.cntNodes,
+        this.cntEdges,
+        this.cntIngames
       );
       this.phases.log();
       this.tree.log();
@@ -575,6 +581,21 @@ HANNIBAL = (function(H){
         });
       }
     },
+    finalize: function (){
+
+      H.each(this.store.nodes, (name, node) => {
+        this.addNodeDynaProps(node);
+        delete this.store.nodes[name].template;
+        delete this.store.nodes[name].classes;
+      });
+
+      this.childs.forEach( child => {
+        if (this[child].finalize){
+          this[child].finalize();
+        }
+      });
+
+    },
     initialize: function (){
 
       this.civ = this.player.civ; 
@@ -602,21 +623,7 @@ HANNIBAL = (function(H){
         this.loadEntities();             // from game to triple store
         this.loadTechnologies();         // from game to triple store
 
-        H.each(this.store.nodes, name => {
-          delete this.store.nodes[name].template;
-          delete this.store.nodes[name].classes;
-        });
-
       }
-
-    },
-    finalize: function (){
-
-      this.childs.forEach( child => {
-        if (this[child].finalize){
-          this[child].finalize();
-        }
-      });
 
     },
     activate: function (){
@@ -761,8 +768,7 @@ HANNIBAL = (function(H){
     loadEntities: function(){
 
       var 
-        targetNodes = [], 
-        cntNodes = 0, cntEdges = 0, key, name, 
+        targetNodes = [], cntEdges = 0, key, name, 
         nodeSource, nodeSourceName, 
         sani = H.saniTemplateName;
 
@@ -774,8 +780,8 @@ HANNIBAL = (function(H){
         name = sani(key) + "#" + id;
 
         if (ent.owner() === this.id){
-          targetNodes.push(this.addNode(name, key, ent._template, +id));
-          cntNodes += 1;
+          targetNodes.push(this.addNode(name, key, ent._template, ~~id));
+          this.cntIngames += 1;
         }
 
       });
@@ -791,12 +797,12 @@ HANNIBAL = (function(H){
         this.store.addEdge(nodeSource, "ingame",      nodeTarget);
         this.store.addEdge(nodeTarget, "describedby", nodeSource);
 
-        cntEdges += 2;
+        this.cntEdges += 2;
 
       });
 
-      deb("     C: created %s nodes for game entities", H.tab(cntNodes, 4));
-      deb("     C: created %s edges for game entities", H.tab(cntEdges, 4));      
+      // deb("     C: created %s nodes for game entities", H.tab(this.cntIngames, 4));
+      // deb("     C: created %s edges for game entities", H.tab(this.cntEdges, 4));      
 
     },
     loadTechnologies: function(){
@@ -822,11 +828,12 @@ HANNIBAL = (function(H){
         store.addEdge(nodeSource, "techdescribedby", nodeTarget);
         store.addEdge(nodeTarget, "techingame",      nodeSource);
         
+        this.cntEdges += 2;
         counter += 1;
 
       });
 
-      deb("     C: loaded %s nodes %s edges as tech: [%s]", H.tab(counter, 4), counter*2, names);  
+      // deb("     C: loaded %s nodes %s edges as tech: [%s]", H.tab(counter, 4), counter*2, names);  
 
 
     },
@@ -854,6 +861,7 @@ HANNIBAL = (function(H){
 
       this.store.addEdge(nodeSource, "ingame",      nodeTarget);
       this.store.addEdge(nodeTarget, "describedby", nodeSource);
+      this.addNodeDynaProps(nodeTarget);
 
       // deb("  CULT: loadById %s <= %s", nameTarget, nameSource);
 
@@ -866,9 +874,7 @@ HANNIBAL = (function(H){
         tpln = ent ? ent._templateName : "unknown";
 
       if (node){
-        this.store.edges
-          .filter(edge => edge[0] === node || edge[2] === node)
-          .forEach(edge => this.store.edges.splice(this.store.edges.indexOf(edge), 1));
+        H.delete(this.store.edges, edge => edge[0] === node || edge[2] === node);
         delete this.store.nodes[node.name];
 
       } else {
@@ -881,15 +887,13 @@ HANNIBAL = (function(H){
     addNode: function(name, key, template, id){
 
       var 
-        entities = this.entities,
-        metadata = this.metadata,
         node = {
           name      : name,
           key       : key,
           template  : template  //TODO: remove this dependency
         },
         properties = {
-          id        : +id || undefined,
+          id        : ~~id || undefined,
           civ       : H.test(template, "Identity.Civ"), // this.getCivilisation(template),
           info      : this.getInfo(template),
           icon      : (!!template.Identity && template.Identity.Icon) ? template.Identity.Icon : undefined,       // tech
@@ -915,44 +919,55 @@ HANNIBAL = (function(H){
         }
       });
 
-      if (id){
-        Object.defineProperties(node, {
-          "position": {enumerable: true, get: function(){
-            var pos = entities[id].position();
-            return pos;
-          }},
-          "metadata": {enumerable: true, get: function(){
-            var meta = metadata[id];
-            return (meta === Object(meta)) ? meta : {};
-          }},
-          "slots": {enumerable: true, get: function(){
-
-            if (!node.capacity){
-              deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, entities[id].templateName() || "???");
-              return undefined;
-            }
-
-            var freeSlots = node.capacity - entities[id].garrisoned.length;
-            return freeSlots;
-          }},          
-          "state": {enumerable: true, get: function(){
-            var state = entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
-            return state;
-          }},
-          "health": {enumerable: true, get: function(){
-            var ent = entities[id];
-            return Math.round(ent.hitpoints() / ent.maxHitpoints()); // propbably slow
-          }}
-        });
-      }
-
       this.store.addNode(node);
+      this.cntNodes += 1;
 
       // deb("  CULT: addNode: %s, id: %s", node.name, id);
 
       return node;
 
     },    
+    delNodeDynaProps: function(node){
+      var props = [
+        "position",
+        "metadata",
+        "slots",
+        "state",
+        "health"
+      ];
+      return H.dropcopy(node, props);
+    },
+    addNodeDynaProps: function(node){
+
+      var id = node.id, metadata  = this.metadata, entities = this.entities; // CLOSURE !!
+
+      Object.defineProperties(node, {
+        "position": {enumerable: true, get: function(){
+          var pos = entities[id].position();
+          return pos;
+        }},
+        "metadata": {enumerable: true, get: function(){
+          var meta = metadata[id];
+          return (meta === Object(meta)) ? meta : {};
+        }},
+        "slots": {enumerable: true, get: function(){
+          if (!node.capacity){
+            deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, entities[id].templateName() || "???");
+            return undefined;
+          }
+          var freeSlots = node.capacity - entities[id].garrisoned.length;
+          return freeSlots;
+        }},          
+        "state": {enumerable: true, get: function(){
+          var state = entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
+          return state;
+        }},
+        "health": {enumerable: true, get: function(){
+          var ent = entities[id];
+          return Math.round(ent.hitpoints() / ent.maxHitpoints()); // propbably slow
+        }}
+      });
+    },
     logNode: function(node){
       deb("    %s", node.name);
       deb("      : key  %s", node.key);
@@ -1212,14 +1227,15 @@ HANNIBAL = (function(H){
 
       debug = debug || false;
 
-      H.each(store.nodes, function(name, nodeSource){
+      H.each(store.nodes, (name, nodeSource) => {
         if (test(nodeSource)){
           if (debug){deb("     C: Edge.%s test: %s", verb, name);}
-          targets(nodeSource).forEach(function(nameTarget){
+          targets(nodeSource).forEach( nameTarget => {
             nodeTarget = store.nodes[nameTarget];
             if (nodeTarget){
               store.addEdge(nodeSource, verb,    nodeTarget);
               store.addEdge(nodeTarget, inverse, nodeSource);
+              this.cntEdges += 2;
               counter += 1;
               if (debug){deb("     C: Edge.%s:      -> %s", verb, nodeTarget.name);}
             } else {
@@ -1229,7 +1245,7 @@ HANNIBAL = (function(H){
         }
       });
 
-      deb("     C: created %s edges on pair: %s|%s - %s", H.tab(counter*2, 4), verb, inverse, msg);
+      // deb("     C: created %s edges on pair: %s|%s - %s", H.tab(counter*2, 4), verb, inverse, msg);
 
     },        
     loadEdges: function(){

@@ -54,8 +54,8 @@ var HANNIBAL = (function() {
       "events", 
       "culture",     // store, tree, phases
       "map",         // grids
-      // "villages", 
-      // "resources",   // after map
+      "resources",   // after map
+      "villages", 
       // "scanner",     // scanner after map
       // "groups",      // assets
       // "economy",     // stats, producers, orderqueue
@@ -95,8 +95,7 @@ var HANNIBAL = (function() {
     H.extend(this.context.data, data);
   };
   H.Launcher.prototype.Serialize = function(){
-
-    var context = {
+    return {
       time:          Date.now(),
       timeElapsed:   this.context.timeElapsed,
       idgen:         this.context.idgen,
@@ -108,9 +107,6 @@ var HANNIBAL = (function() {
       config:        H.Config,                          // 
       data:          this.bot.serialize()
     };
-
-    return context;
-
   };
   H.Launcher.prototype.CustomInit = function(gameState, sharedScript) {
 
@@ -229,6 +225,9 @@ var HANNIBAL = (function() {
       }
 
     });
+
+    // reset gen
+    this.otherContext.idgen = 1;
 
     // create serializers
     ["clone", "import", "deserialize", "initialize", "finalize", "activate", "log"].forEach(action => {

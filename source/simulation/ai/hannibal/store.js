@@ -50,9 +50,11 @@ HANNIBAL = (function(H){
       return this;
     },
     serialize: function(){
+      var nodes = {};
+      H.each(this.nodes, (name, node) => nodes[name] = this.culture.delNodeDynaProps(node));
       return {
         verbs: H.deepcopy(this.verbs),
-        nodes: H.deepcopy(this.nodes),
+        nodes: H.deepcopy(nodes),
         edges: this.edges.map(e => [e[0].name, e[1], e[2].name]),
       };
     },
@@ -60,7 +62,6 @@ HANNIBAL = (function(H){
       this.verbs = data.verbs;
       this.nodes = data.nodes;
       this.edges = data.edges.map(e => [this.nodes[e[0]], e[1], this.nodes[e[2]]]);
-      this.cntNodes = H.count(this.nodes);
       return this;
     },
     initialize: function(){
@@ -68,9 +69,11 @@ HANNIBAL = (function(H){
         this.verbs = this.culture.verbs;
         this.nodes = {};
         this.edges = [];
-        this.cntNodes = 0;
       }
       return this;
+    },
+    finalize: function(){
+      this.cntNodes = H.count(this.nodes);
     },
     addNode: function(node){
       if (!this.nodes[node.name]){

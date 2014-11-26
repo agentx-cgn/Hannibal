@@ -59,11 +59,7 @@ HANNIBAL = (function(H){
       return this;
     },
     clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
+      return new H.LIB[H.noun(this.name)](context);
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);

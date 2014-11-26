@@ -88,6 +88,9 @@ HANNIBAL = (function(H){
       deb("   MAP: width: %s, height: %s, cellsize: %s", this.width, this.height, this.cellsize);
       this.childs.forEach(child => this[child].log());
     },
+    clone: function(context){
+      return new H.LIB[H.noun(this.name)](context);
+    },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;

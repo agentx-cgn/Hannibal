@@ -104,6 +104,15 @@ H.extend(H, {
     mx.forEach(m => Object.keys(m).forEach(k => o[k] = m[k]));
     return o;
   },
+  dropcopy:   function(o, a){
+    var out = {};
+    Object.keys(o).forEach(k => {
+      if (a.indexOf(k) === -1){
+        out[k] = o[k];
+      }
+    });
+    return out;
+  },
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},

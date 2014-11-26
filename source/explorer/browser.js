@@ -398,7 +398,7 @@ HANNIBAL = (function(H){
       import: function(civilisation){
         $("slcCivs").value = civilisation;
         H.store = new H.LIB.Store;
-        H.store.deserialize(window["store_" + civilisation]);
+        H.store.deserialize(window["store_" + civilisation]); 
         self.info({
           store: civilisation,
           nodes: H.count(H.store.nodes),

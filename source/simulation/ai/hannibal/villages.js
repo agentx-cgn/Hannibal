@@ -255,6 +255,8 @@ HANNIBAL = (function (H){
 
       this.query("INGAME").forEach(node => {
 
+        deb("appointOperators: id: %s, key: ", node.id, node.key);
+        
         opname = node.metadata.opname;
 
         // deb("     V: 1 %s %s", node.name, uneval(node.metadata));

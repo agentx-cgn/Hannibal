@@ -61,17 +61,19 @@ HANNIBAL = (function(H){
       this.bits  = data.bits;
       this.data  = H.fromRLE(data.bytes);
     },
-    initialize: function(){
+    initialize: function(config){
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
+
+      config = config || {};
 
       this.width  = this.map.width  / this.cellsize;
       this.height = this.map.height / this.cellsize;
       this.length = this.width * this.height;
 
       if (!this.data){
-        this.title  = "grid" + this.context.idgen++;
-        this.bits   = "c8";
-        this.data   = new Uint8Array(this.width * this.height);
+        this.title  = config.title || "grid" + this.context.idgen++;
+        this.bits   = config.bits  || "c8";
+        this.data   = new Uint8ClampedArray(this.width * this.height);
       }
 
       return this;

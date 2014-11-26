@@ -35,25 +35,22 @@ HANNIBAL = (function(H){
 
     //TODO remove API access, owner, template.Identity, resourceSupplyMax
 
-    H.extend(this, data, {
-      id:       data.id,
+    H.extend(this, {
       found:    false,
       consumed: false,
-    });
-
-    this.initialize();
+    }, data);
 
   }
 
   Resource.prototype = {
     constructor: Resource,
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-    },
+    // clone: function(context){
+    //   return new H.LIB[H.noun(this.name)](context);
+    // },
+    // import: function(){
+    //   this.imports.forEach(imp => this[imp] = this.context[imp]);
+    //   return this;
+    // },
     serialize: function(){
       return {
         id: this.id,
@@ -83,8 +80,11 @@ HANNIBAL = (function(H){
 
       } else {
         this.consumed = true;
+        deb("   RES: res with id: '%s' was consumed, no entity", this.id);
 
       }
+
+      return this;
 
     },
     log: function(){
@@ -110,7 +110,9 @@ HANNIBAL = (function(H){
         "entities",
       ],
 
-      resources: {
+      resources: null,
+
+      template: {
         food:  {
           meat:  {stats: H.deepcopy(stats)},
           grain: {stats: H.deepcopy(stats)},
@@ -171,13 +173,32 @@ HANNIBAL = (function(H){
       return this;
     },
     clone: function(context){
-      context.data[this.name] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
-      return {
-        resources: "wip", // H.deepcopy(this.resources),
-      };
+      var data = {};
+      this.eachAll((generic, specific, stats, id, res) => {
+        if (!data[generic]){data[generic] = {};}
+        if (!data[generic][specific]){data[generic][specific] = {};}
+        if (!data[generic][specific].stats){data[generic][specific].stats = H.deepcopy(stats);}
+        data[generic][specific][id] = res.serialize();
+      });
+      return data;
+    },
+    deserialize: function(){
+      if (this.context.data[this.name]){
+        this.resources = this.context.data[this.name];
+        this.eachAll((generic, specific, stats, id, res) => {
+          this.resource[generic][specific][id] = new Resource(H.mixin(res, {
+            map:      this.map,
+            config:   this.config,
+            context:  this.context,
+            generic:  type.generic,
+            specific: type.specific,
+            entities: this.entities,
+          })).initialize();
+        });
+      }
     },
     initialize: function(){
 
@@ -185,43 +206,50 @@ HANNIBAL = (function(H){
 
       // deb();deb();deb("   RES: init -----------");
 
-      H.each(this.entities, (id, ent) => {
-        
-        if ((type = ent.resourceSupplyType())){ // returns { "generic": type, "specific": subtype };
-          //TODO: whales
-          if (this.resources[type.generic][type.specific]){
-            counter += 1;
-            res = this.resources[type.generic][type.specific][ent.id()] = new Resource({
-              id:       id, 
-              map:      this.map,
-              config:   this.config,
-              context:  this.context,
-              generic:  type.generic,
-              specific: type.specific,
-              entities: this.entities,
-            });
-          } else {
-            deb("ERROR : unknown resource type %s %s %s", type.generic, type.specific, ent._templateName);
+      if (!this.resources){
+
+        this.resources = this.template;
+
+        H.each(this.entities, (id, ent) => {
+          
+          if ((type = ent.resourceSupplyType())){ // returns { "generic": type, "specific": subtype };
+            //TODO: whales
+            if (this.resources[type.generic][type.specific]){
+              counter += 1;
+              res = this.resources[type.generic][type.specific][ent.id()] = new Resource({
+                id:       id, 
+                map:      this.map,
+                config:   this.config,
+                context:  this.context,
+                generic:  type.generic,
+                specific: type.specific,
+                entities: this.entities,
+              }).initialize();
+
+            } else {
+              deb("ERROR : unknown resource type %s %s %s", type.generic, type.specific, ent._templateName);
+            }
+
           }
 
-        }
+        });
 
-      });
+        this.eachAll((generic, specific, stats, id, res) => {
 
-      this.eachAll((generic, specific, stats, id, res) => {
+          if (this.entities[id] && !res.consumed){
+            stats.entities  += 1;
+            stats.found     += res.found ? 1 : 0;
+            stats.available += res.found ? res.supply : 0;
+            stats.total     += res.supply;
+          } else if (!this.entities[id] && !res.consumed){
+            res.consumed   = true;
+            stats.consumed += res.supply;
+            stats.depleted += 1;
+          }
 
-        if (this.entities[id] && !res.consumed){
-          stats.entities  += 1;
-          stats.found     += res.found ? 1 : 0;
-          stats.available += res.found ? res.supply : 0;
-          stats.total     += res.supply;
-        } else if (!this.entities[id] && !res.consumed){
-          res.consumed   = true;
-          stats.consumed += res.supply;
-          stats.depleted += 1;
-        }
+        });
 
-      });
+      }
 
       // deb("     R: found %s, %s msecs", counter, Date.now() - t0);
 
