@@ -56,7 +56,10 @@ HANNIBAL = (function(H){
         "resources", // visionRange, position
       ],
 
-      grid: null,
+      grids: {
+        scanner: null,
+        attacks: null,
+      },
 
     });
 
@@ -76,7 +79,8 @@ HANNIBAL = (function(H){
       return {};
     },
     initialize: function(){
-      this.grid = this.map.scanner;
+      this.grids.scanner = this.map.scanner;
+      this.grids.attacks = this.map.attacks;
     },
     dump: function (name){grid.dump(name || "scouting", 255);},
     createDetector: function (position, vision){
@@ -84,8 +88,10 @@ HANNIBAL = (function(H){
       // Object Factory
 
       var 
-        data = grid.data, 
+        dataScan = this.grids.scanner.data, 
+        dataAttk = this.grids.attacks.data, 
         cellsize = this.cellsize,
+        width    = this.width / cellsize,
         posStart = position,
         rng      = ~~(vision * 0.9),
         corners  = [[-rng,-rng],[-rng,rng],[rng,rng],[rng,-rng]],
@@ -106,7 +112,7 @@ HANNIBAL = (function(H){
           return x < 0 || y < 0 || x >= grid.width || y >= grid.height;
         },
         isHostile = index => {
-          return (data[index] & mHostile) !== 0;
+          return dataAttk[index] > 0;
         },
         isUnknown  = pos => {
           // unknown means a) valid and b) at least 1 corner unknown
@@ -115,10 +121,10 @@ HANNIBAL = (function(H){
             if (isInvalid(test)){
               // deb("   SCT: isUnknown: %s, invalid", test);
               return false;
-            } else if (data[pos2Index(test)] === undefined){
+            } else if (dataScan[pos2Index(test)] === undefined){
               // deb("   SCT: isUnknown: %s, undefined", test);
               return false;
-            } else if (data[pos2Index(test)] !== 0) {
+            } else if (dataScan[pos2Index(test)] !== 0) {
               // deb("   SCT: isUnknown: %s, known", test);
               return false;
             } else {
@@ -161,7 +167,7 @@ HANNIBAL = (function(H){
 
             posTest = [~~(pos[0] + sq[0]), ~~(pos[1] + sq[1])];
             index   = pos2Index(posTest);
-            value   = data[pos2Index(posTest)];
+            value   = dataScan[pos2Index(posTest)];
 
             if (H.contains(recentTiles, index)){
               continue;

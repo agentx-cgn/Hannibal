@@ -119,6 +119,41 @@ HANNIBAL = (function(H){
       });
       return Date.now() - t0;
     },
+    appointOperators: function () {
+
+      var opname;
+
+      deb("     V: appointing operators for structures");
+
+      this.query("INGAME").forEach(node => {
+
+        deb("appointOperators: id: %s, key: ", node.id, node.key);
+
+        logObject(node, "appointOperators.node");
+        
+        opname = node.metadata.opname;
+
+        // deb("     V: 1 %s %s", node.name, uneval(node.metadata));
+        
+        if (opname === "none"){
+          // do nothing, is unit or other building
+
+        } else if (opname === "g.custodian"){
+          deb("     V: 2 %s %s", node.name, opname);
+          this.groups.appoint(node.id, {name: "g.custodian", cc: this.metadata[node.id].cc});
+
+        } else if (opname === "g.mayor"){
+          deb("     V: 2 %s %s", node.name, opname);
+          this.groups.appoint(node.id, {name: "g.mayor", cc: this.metadata[node.id].cc});
+
+        } else {
+          deb("ERROR : appointOperators: don't know to handle %s as operator for %s", opname, node.name);
+
+        }
+
+      });
+
+    },    
     find: function (fn){
       return this.instances.filter(fn);
     },

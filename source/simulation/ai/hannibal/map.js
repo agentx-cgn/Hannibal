@@ -12,6 +12,8 @@
 
 */
 
+// http://stackoverflow.com/questions/4826453/get-two-lower-bytes-from-int-variable
+
 // sharedScript.passabilityClasses
 //   pathfinderObstruction: NUMBER (1)
 //   foundationObstruction: NUMBER (2)
@@ -58,6 +60,7 @@ HANNIBAL = (function(H){
         "width",
         "height",
         "cellsize",
+        "effector",
         "events",
         "players",            // isEnemy
       ],
@@ -73,6 +76,8 @@ HANNIBAL = (function(H){
         "scanner",            // used by scouts
       ],
 
+      tick:          0,           // marks age of grids
+      length:        0,
       territory:     null,        // copy from API 
       passability:   null,        // copy from API 
 
@@ -85,8 +90,18 @@ HANNIBAL = (function(H){
     constructor: H.LIB.Map,
     log: function(){
       deb();
-      deb("   MAP: width: %s, height: %s, cellsize: %s", this.width, this.height, this.cellsize);
+      deb("   MAP: width: %s, height: %s, cellsize: %s, grid: %s, length: %s", 
+        this.width, 
+        this.height, 
+        this.cellsize, 
+        this.gridsize, 
+        this.length
+      );
       this.childs.forEach(child => this[child].log());
+
+      this.effector.dumparray("passability", this.passability.data, this.gridsize, this.gridsize, 255);    
+      this.effector.dumparray("territory",   this.territory.data,   this.gridsize, this.gridsize, 255);    
+
     },
     clone: function(context){
       return new H.LIB[H.noun(this.name)](context);
@@ -103,12 +118,12 @@ HANNIBAL = (function(H){
       return data;
     },
     deserialize: function(data){
-      if (this.context.data[this.name]){
+      if (data){
         this.childs.forEach( child => {
           if (this.context.data[this.name][child]){
             this[child] = new H.LIB.Grid(this.context)
               .import()
-              .deserialize(this.context.data[this.name][child]);
+              .deserialize(data[child]);
           }
         });
       }
@@ -117,16 +132,95 @@ HANNIBAL = (function(H){
 
       this.territory   = this.context.territory;
       this.passability = this.context.passability;
+      this.length      = this.passability.data.length;
+      this.gridsize    = this.passability.width; // only squares here
+
+
+      deb("   MAP: territory   size: %s", this.territory.width);
+      deb("   MAP: passability size: %s", this.passability.width);
 
       this.childs.forEach( child => {
         if (!this[child]){
           this[child] = new H.LIB.Grid(this.context)
             .import()
             .initialize({title: child, bits: "c8"});
+          this.updateGrid(child);
         }
       });
 
       return this;
+
+    },
+    updateGrid: function(name){
+
+      var 
+        t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
+        terr, regl, regw, mask, counter = 0;
+
+
+      // translates into internal terrain (land, water, forbidden, steep, error)
+
+      if (name === "terrain"){
+
+        src = this.passability.data;
+        tgt = this.terrain.data;
+
+        while(i--){s = src[i]; tgt[i] = (
+                                                                  (s & 64)   ?   0 :   //  border      //   0
+                         (s &  8) && !(s & 16)                && !(s & 64)   ?   4 :   //  land        //  32
+            !(s & 4) && !(s &  8)                             && !(s & 64)   ?   8 :   //  shallow     //  64
+             (s & 4) && !(s &  8) && !(s & 16)                && !(s & 64)   ?  16 :   //  mixed       //  92
+                                      (s & 16)  && !(s & 32)  && !(s & 64)   ?  32 :   //  deep water  // 128
+             (s & 4) &&               (s & 16)  &&  (s & 32)  && !(s & 64)   ?  64 :   //  steep land  // 192
+               255                                                                     //  error       // 255
+          );
+        }
+        t1 = Date.now();
+        this.terrain.dump("init", 255);
+        deb("   MAP: updated: terrain, ms: %s", t1 - t0);
+
+
+      // detects unconnected land regions
+
+      } else if (name === "regionsland") {
+
+        mask = 16 + 8 + 4;
+        terr = this.terrain.data;
+        regl = this.regionsland.data;
+
+        while (i--) {
+          s = terr[i]; t = regl[i];
+          if (t === 0 && ( s & mask) ) {
+            this.fillRegion(terr, regl, mask, i, ++counter);
+          }
+        }
+
+        t1 = Date.now();
+        this.regionsland.dump("init", 255);
+        deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
+
+
+      } else if (name === "regionswater") {
+
+        mask = 16 + 32;
+        terr = this.terrain.data;
+        regw = this.regionswater.data;
+
+        while (i--) {
+          s = terr[i]; t = regw[i];
+          if (t === 0 && ( s & mask) ) {
+            this.fillRegion(terr, regw, mask, i, ++counter);
+          }
+        }
+
+        t1 = Date.now();
+        this.regionswater.dump("init", 255);
+        deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
+
+
+      } else {
+        // deb("   MAP: initGrid: unknown grid: %s", name);
+      }
 
     },
     activate: function(){
@@ -140,6 +234,7 @@ HANNIBAL = (function(H){
 
       var t0 = Date.now();
 
+      this.tick        = tick;
       this.territory   = this.context.territory;
       this.passability = this.context.passability;
 
@@ -152,7 +247,7 @@ HANNIBAL = (function(H){
     },
     mapPosToIndex: function(p){
       var [x, y] = this.mapPosToGridPos(p);
-      return x + y * this.width;
+      return x + y * this.gridsize;
     },
     distanceTo: function(ids, pos){
       // deb("   MAP: distanceTo: args: %s", uneval(arguments));
@@ -236,12 +331,42 @@ HANNIBAL = (function(H){
       );
 
     },
-    updateObstructions: function(){},
-    updateObstacles: function(){},
-    updateTerrain: function(){},
-    updateClaims: function(){},
-    updateRegions: function(){},
+    fillRegion: function(src, tgt, mask, index, region){
 
+      var 
+        width = this.gridsize,
+        i, idx, nextX, nextY,
+        y = ~~(index / width) | 0,
+        x = index % width | 0,
+        stack = [x, y], pointer = 2, // push/pop is too slow
+        dx = [ 0, -1, +1,  0], 
+        dy = [-1,  0,  0, +1]; 
+
+      while (pointer) {
+
+        y = stack[pointer -1];
+        x = stack[pointer -2];
+        pointer -= 2;
+
+        tgt[y * width + x] = region;
+
+        i = 4; while (i--) {
+
+          nextX = x + dx[i];
+          nextY = y + dy[i];
+          idx   = (nextY * width + nextX);
+
+          if (!tgt[idx] && (src[idx] & mask) && nextX && nextY && nextX < width && nextY < width) {
+            stack[pointer]    = nextX;
+            stack[pointer +1] = nextY;
+            pointer += 2;
+          }
+
+        }
+
+      }
+
+    },   
     createTerritoryMap: function() {
       var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
       map.getOwner      = function(p) {return this.point(p) & TERRITORY_PLAYER_MASK;};

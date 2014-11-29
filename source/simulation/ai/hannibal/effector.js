@@ -50,7 +50,10 @@ HANNIBAL = (function(H){
   H.LIB.Effector.engine = {
 
     dumpgrid: function(name, grid, threshold){
-      Engine.DumpImage(name, grid.data, grid.width, grid.height, threshold);    
+      Engine.DumpImage(H.APP.map + "-" + name + ".png", grid.toArray(), grid.width, grid.height, threshold);    
+    },
+    dumparray: function(name, array, width, height, threshold){
+      Engine.DumpImage(H.APP.map + "-" + name + ".png", array, width, height, threshold);    
     },
     execute: function(command){
       Engine.PostCommand(this.id, command);

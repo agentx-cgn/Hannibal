@@ -434,6 +434,30 @@ var logDispatcher = function (){
 };
 
 
+var logPassability = function(mapname, passability){
+
+  // works nicely with Gimp's File > open as Layers
+
+  var 
+    i, b, w = passability.width, h = passability.height, 
+    pass = passability.data, len = pass.length;
+
+  deb(); deb("DUMP  : passability %s, %s, %s", mapname, w, h);
+
+  [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512].forEach(b => {
+
+    var data = [];
+    i = len;
+    while (i--){
+      data[i] = pass[i] & b ? 128 : 255; // set bits are grey, not set white
+    }
+    data.length = len;
+    Engine.DumpImage(mapname + "-passability-" + b + ".png", data, w, h, 255);    
+
+  });
+
+};
+
 
 var logStart = function(ss, gs, settings){
 

@@ -421,7 +421,7 @@ HANNIBAL = (function(H){
 
 
       if (this.debug > 1){
-        deb();deb();
+        deb();
         deb("     Q: q: '%s'", self.query);
         deb("      : c: '%s'", comment || "no comment");
       }
@@ -639,7 +639,6 @@ HANNIBAL = (function(H){
           }
         }
       }
-      deb();
 
     },
     partition: function (list, keywords){

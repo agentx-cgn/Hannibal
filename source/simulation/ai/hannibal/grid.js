@@ -78,14 +78,14 @@ HANNIBAL = (function(H){
 
       return this;
     },
-    // toArray: function(){
-    //   return Array.prototype.slice.call(this.data);
-    // },
+    toArray: function(){
+      return Array.prototype.slice.call(this.data);
+    },
     dump: function (name, threshold){
       threshold = threshold || this.max() || 255;
-      name = H.format("%s-%s.png", name, threshold);
-      this.effector.dumpgrid(name, this.data, this.width, this.height, threshold);    
-      deb("  GRID: dumping %s, w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
+      name = H.format("%s-%s-%s", this.title, name, threshold);
+      deb("   GRD: dumping '%s', w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
+      this.effector.dumpgrid(name, this, threshold);    
     },
     max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
     min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},

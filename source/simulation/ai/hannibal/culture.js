@@ -335,7 +335,8 @@ HANNIBAL = (function(H){
         phases[n].alternates.forEach(a => {
           name = H.saniTemplateName(a);
           if (nodes[name] && !H.count(nodes[name].producers)){
-            nodes[name].producers = H.deepcopy(producers);
+            // nodes[name].producers = H.deepcopy(producers);
+            nodes[name].producers = producers;
             // deb("tree: set %s", name);
           }
         });
@@ -507,6 +508,7 @@ HANNIBAL = (function(H){
       imports: [
         "id",
         "player",
+        "query",
         "entities",
         "metadata",
         "events",
@@ -552,9 +554,11 @@ HANNIBAL = (function(H){
         this.cntEdges,
         this.cntIngames
       );
+      this.query("INGAME SORT < id").execute("metadata", 5, 80, "culture.log: ingames with metadata");
       this.phases.log();
       this.tree.log();
       this.store.log();
+
     },
     import: function (){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -584,7 +588,6 @@ HANNIBAL = (function(H){
     finalize: function (){
 
       H.each(this.store.nodes, (name, node) => {
-        this.addNodeDynaProps(node);
         delete this.store.nodes[name].template;
         delete this.store.nodes[name].classes;
       });
@@ -624,6 +627,10 @@ HANNIBAL = (function(H){
         this.loadTechnologies();         // from game to triple store
 
       }
+
+      H.each(this.store.nodes, (name, node) => {
+        this.addNodeDynaProps(node);
+      });
 
     },
     activate: function (){
@@ -940,6 +947,8 @@ HANNIBAL = (function(H){
     addNodeDynaProps: function(node){
 
       var id = node.id, metadata  = this.metadata, entities = this.entities; // CLOSURE !!
+
+      // deb("  CULT: addNodeDynaProps: %s, %s", node.id, node.name);
 
       Object.defineProperties(node, {
         "position": {enumerable: true, get: function(){

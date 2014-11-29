@@ -56,7 +56,7 @@ var HANNIBAL = (function() {
       "map",         // grids
       "resources",   // after map
       "villages", 
-      // "scanner",     // scanner after map
+      "scanner",     // scanner after map, before groups
       // "groups",      // assets
       // "economy",     // stats, producers, orderqueue
       // "military", 
@@ -64,6 +64,7 @@ var HANNIBAL = (function() {
     ];
 
     H.extend(this, {
+      map:            TESTERDATA && TESTERDATA.map ? TESTERDATA.map : "unknown",
       settings:       settings,                            // from ai config dialog
       isInitialized:  false,                               // did that happen well?
       isTicking:      false,                               // toggles after first OnUpdate
@@ -123,6 +124,8 @@ var HANNIBAL = (function() {
     // exportObject(sharedScript.territoryMap, "territoryMap"); 
     // exportObject(sharedScript.passabilityClasses, "passabilityClasses"); 
 
+    // logPassability(this.map, ss.passabilityMap);
+
     logStart(ss, gs, this.settings);
     logPlayers(ss.playersData);
 
@@ -142,8 +145,8 @@ var HANNIBAL = (function() {
 
       phase:               gameState.currentPhase(),     // num
       cellsize:            gameState.cellSize, 
-      width:               sharedScript.passabilityMap.width, 
-      height:              sharedScript.passabilityMap.height, 
+      width:               sharedScript.passabilityMap.width  *4, 
+      height:              sharedScript.passabilityMap.height *4, 
       circular:            sharedScript.circularMap,
       territory:           sharedScript.territoryMap,
       passability:         sharedScript.passabilityMap,
@@ -168,7 +171,6 @@ var HANNIBAL = (function() {
       },
       class2name:          function(klass){
         return new H.LIB.Query(this.context.culture.store, klass + " CONTAIN").first().name;
-        // return H.QRY(klass + " CONTAIN").first().name;
       },
 
       operators:           H.HTN.Economy.operators,
@@ -218,16 +220,22 @@ var HANNIBAL = (function() {
     this.otherContext = {};
 
     H.each(this.context, (name, item) => {
-
-      // link/copy everything not serializer
       if (!H.contains(this.serializers, name)){
         this.otherContext[name] = this.context[name];
       }
-
     });
 
-    // reset gen
-    this.otherContext.idgen = 1;
+    // metadata ????
+    H.extend(this.otherContext, {
+      idgen:      1,
+      query:      function(hcq, debug){
+        return new H.LIB.Query(H.APP.otherContext.culture.store, hcq, debug);
+      },
+      class2name: function(klass){
+        return new H.LIB.Query(H.APP.otherContext.culture.store, klass + " CONTAIN").first().name;
+      },
+    });
+
 
     // create serializers
     ["clone", "import", "deserialize", "initialize", "finalize", "activate", "log"].forEach(action => {
