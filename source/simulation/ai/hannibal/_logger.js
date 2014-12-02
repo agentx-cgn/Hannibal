@@ -434,8 +434,9 @@ var logDispatcher = function (){
 };
 
 
-var logPassability = function(mapname, passability){
+var dumpPassability = function(mapname, passability){
 
+  // dumps all bits into single files
   // works nicely with Gimp's File > open as Layers
 
   var 

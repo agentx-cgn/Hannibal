@@ -22,7 +22,7 @@ HANNIBAL = (function(H){
       context:  context,
       imports:  [
         "map",
-        "health",
+        // "health",
         "events",
         "effector",
         "states",
@@ -39,6 +39,8 @@ HANNIBAL = (function(H){
         "Attacked",
         "Destroy",
       ],
+
+      handler:   this.listener.bind(this),
 
       instance:  null,
       property:  null,
@@ -66,6 +68,7 @@ HANNIBAL = (function(H){
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
     },
     initialize: function (data){
 
@@ -116,6 +119,7 @@ HANNIBAL = (function(H){
       };
     },
     activate: function(){
+      // logObject(this, "asset.this");
       this.eventlist.forEach(e => this.events.on(e, this.handler));
     },
     distanceTo: function(pos){this.map.distanceTo(this.resources, pos);},

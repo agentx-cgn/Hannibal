@@ -28,7 +28,7 @@ HANNIBAL = (function (H){
         "groups",
         "config",
         "objects",
-        "entities",
+        "entities", // hasClass
         "metadata",
       ],
 
@@ -104,6 +104,7 @@ HANNIBAL = (function (H){
     },
     isShared: function (ent){
       var klasses = ent.classes().map(String.toLowerCase);
+      // deb(klasses + "//" + this.config.data.sharedBuildingClasses);
       return this.config.data.sharedBuildingClasses.some(function (klass){
         return H.contains(klasses, klass);
       });
@@ -218,9 +219,9 @@ HANNIBAL = (function (H){
 
           } else if (ent.hasClass("Structure") && !this.metadata[id].opname){
 
-            deb("     V: entid: %s mainid: %s", ent.id(), this.main);
+            // deb("     V: id: %s, entid: %s mainid: %s", id, ent.id(), this.main);
 
-            if (ent.id() === this.main){
+            if (~~id === this.main){
               this.counter.mayors += 1;
               this.metadata[id].opname = "g.mayor";
               // deb("     V: set opname to 'g.mayor' for %s", ent);

@@ -62,6 +62,7 @@ HANNIBAL = (function(H){
         "cellsize",
         "effector",
         "events",
+        "entities",           
         "players",            // isEnemy
       ],
 

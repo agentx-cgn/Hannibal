@@ -21,6 +21,7 @@ HANNIBAL = (function(H){
       name: "groups",
       context: context,
       imports: [
+        "map",
         "metadata",
         "events",
         "culture",
@@ -40,10 +41,17 @@ HANNIBAL = (function(H){
     log: function(){
       deb();deb("GROUPS: %s -----------", this.instances.length);
       this.instances
-        .sort( (a, b) => a.groupname > b.groupname ? 1 : -1)
-        .forEach(i => {
-          deb("     G: %s, %s, assets: %s", i.name, i.groupname, i.assets.length);
-          i.assets.forEach( ast => {
+        .sort( (a, b) => a.name > b.name ? 1 : -1)
+        .forEach(ins => {
+          deb("     G: %s, assets: %s", ins.name, ins.assets.length);
+
+          logObject(ins, "ins");
+
+          ins.assets.forEach( ast => {
+
+            logObject(ast, "ast");
+
+
             deb("     G:   %s: [%s], %s, ", ast.property, ast.resources.length, ast);
             ast.resources.forEach( id => {
               deb("     G:      tlp:  %s, meta: %s", this.entities[id], uneval(this.metadata[id]));
@@ -71,11 +79,16 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
 
+      // load mayors and custodians from metadata
+      this.appointOperators();
+
       if (Array.isArray(this.context.data.groups)){
         this.context.data.groups.forEach(group => {
           this.instances.push(this.launch(group));
         });
       }
+
+      return this;
 
     },
     activate: function(){
@@ -90,7 +103,11 @@ HANNIBAL = (function(H){
 
           host = this.launch({name: "g.custodian", cc: order.cc});
           host.structure = ["private", "INGAME WITH id = " + msg.id];
-          host.structure = this.createAsset(host, "structure");
+          host.structure = this.createAsset({
+            id: this.context.idgen++,
+            instance: host,
+            property: "structure",
+          });
 
           this.metadata[msg.id].opname = host.name;
           this.metadata[msg.id].opid   = host.id;
@@ -106,8 +123,11 @@ HANNIBAL = (function(H){
 
     },
     tick: function(tick, secs){
+
       // delegates down to all instances of all groups
+      
       var interval, t0 = Date.now();
+      
       H.each(this.instances, (groupsname, list) => {
         list.forEach(instance => {
           interval = ~~instance.interval; 
@@ -117,37 +137,39 @@ HANNIBAL = (function(H){
           }
         });
       });
+
       return Date.now() - t0;
+
     },
     appointOperators: function () {
 
       var opname;
 
-      deb("     V: appointing operators for structures");
+      deb("  GRPS: appointing operators for structures");
 
       this.query("INGAME").forEach(node => {
 
-        deb("appointOperators: id: %s, key: ", node.id, node.key);
+        // deb("appointOperators: id: %s, key: ", node.id, node.key);
 
-        logObject(node, "appointOperators.node");
+        // logObject(node, "appointOperators.node");
         
         opname = node.metadata.opname;
 
         // deb("     V: 1 %s %s", node.name, uneval(node.metadata));
         
         if (opname === "none"){
-          // do nothing, is unit or other building
+          deb("  GRPS: appOps %s for %s", opname, node.name);
 
         } else if (opname === "g.custodian"){
-          deb("     V: 2 %s %s", node.name, opname);
-          this.groups.appoint(node.id, {name: "g.custodian", cc: this.metadata[node.id].cc});
+          deb("  GRPS: appOps %s for %s", opname, node.name);
+          this.appoint(node.id, {groupname: "g.custodian", cc: this.metadata[node.id].cc});
 
         } else if (opname === "g.mayor"){
-          deb("     V: 2 %s %s", node.name, opname);
-          this.groups.appoint(node.id, {name: "g.mayor", cc: this.metadata[node.id].cc});
+          deb("  GRPS: appOps %s for %s", opname, node.name);
+          this.appoint(node.id, {groupname: "g.mayor", cc: this.metadata[node.id].cc});
 
         } else {
-          deb("ERROR : appointOperators: don't know to handle %s as operator for %s", opname, node.name);
+          deb("  GRPS: appOps ignored %s for %s", opname, node.name);
 
         }
 
@@ -157,33 +179,28 @@ HANNIBAL = (function(H){
     find: function (fn){
       return this.instances.filter(fn);
     },
-    createAsset: function(instance, property, resources){
+    // createAsset: function(instance, property, resources){
+    createAsset: function(config){
 
       var 
-        asset = new H.Asset(instance, property),
-        definition = instance[property],
-        id = H.Objects(asset),
-        name = H.format("%s:%s#%s", instance.name, property, id),
-        shared  = definition[0] === "shared",  
-        dynamic = definition[0] === "dynamic",
-        hcq = this.expandHCQ(definition[1], instance),
+        asset = new H.LIB.Asset(this.context).import(), 
+        id = config.id || this.context.idgen++,
+        definition = config.instance[config.property],
+        name = H.format("%s:%s#%s", config.instance.name, config.property, id),
         verb = this.getAssetVerb(definition);
 
-      H.extend(asset, {
+      asset.initialize({
         id:          id,
         name:        name,
         definition:  definition,
-        shared:      shared,  
-        dynamic:     dynamic,
-        hcq:         hcq,
+        shared:      definition[0] === "shared",  
+        dynamic:     definition[0] === "dynamic",
+        hcq:         this.expandHCQ(definition[1], config.instance),
         claim:       definition[1],
-        verb:        !dynamic ?  verb : "dynamic",  // dynamics are not ordered
+        verb:        definition[0] === "dynamic" ?  "dynamic" : verb,  // dynamics are not ordered
         users:       [],
         // handler:     asset.listener.bind(asset)
       });    
-
-      asset.initActions(resources);
-      // asset.listener.callsign = asset.name;
 
       asset.activate();
 
@@ -201,7 +218,7 @@ HANNIBAL = (function(H){
 
       } else if (typeof definition[1] === "string") {
 
-        this.query(definition[1]).forEach(function(node){  // mind units.athen.infantry.archer.a
+        this.query(definition[1]).forEach( node => {  // mind units.athen.infantry.archer.a
           treenode = this.culture.tree.nodes[node.name];
           if(!found && treenode.verb){ 
             verb = treenode.verb;
@@ -270,10 +287,14 @@ HANNIBAL = (function(H){
       this.metadata[id].opname = instance.name;
 
       instance.structure = ["private", nodename];
-      instance.structure = this.createAsset(instance, "structure", [id]);
+      instance.structure = this.createAsset({
+        instance: instance, 
+        property: "structure",
+        resources: [id]
+      });
       instance.assets.push(instance.structure);
       
-      deb("   GRP: appointed %s for %s, cc: %s", options.name, this.entities[id], options.cc);
+      deb("   GRP: appointed %s for %s, cc: %s", instance.name, this.entities[id], options.cc);
 
       return instance;
 
@@ -316,7 +337,7 @@ HANNIBAL = (function(H){
       H.Triggers.add( -1,
         H.Economy.request.bind(H.Economy, new H.Order({
           amount:     amount,
-          cc:         cc,
+          cc:         instance.cc,
           location:   location,
           verb:       asset.verb, 
           hcq:        asset.hcq, 
@@ -343,17 +364,19 @@ HANNIBAL = (function(H){
       // registered props !!!
 
       var 
-        groups = this,
-        group = H.Groups[config.groupname], 
+        self = this,
+        definition = H.Groups[config.groupname], 
         id = config.id || this.context.idgen++,
         instance  = {listener: {}};
 
       // copies values from definition onto instance
-      H.each(group.definition, function(prop, value){
+      H.each(definition, function(prop, value){
+        
         if (prop === "listener") {
-          H.each(group.definition.listener, (name, fn) => {
+          H.each(definition.listener, (name, fn) => {
             instance.listener[name] = fn.bind(instance);
           });
+
         } else {
           switch (typeof value) {
             case "undefined":
@@ -364,6 +387,7 @@ HANNIBAL = (function(H){
             case "function":  instance[prop] = value.bind(instance); break;
           }
         }
+
       });
 
       H.extend(instance, {
@@ -373,14 +397,19 @@ HANNIBAL = (function(H){
         position:  config.position || this.map.getCenter([config.cc]),
         assets:    [],
         detector:  null,
-        dissolve:  groups.dissolve.bind(groups, instance),
-        request:   groups.request.bind(groups, instance),
-        claim:     groups.claim.bind(groups, instance),
-        scan:      groups.scan.bind(groups, instance),
+        dissolve:  self.dissolve.bind(self, instance),
+        request:   self.request.bind(self, instance),
+        claim:     self.claim.bind(self, instance),
+        scan:      self.scan.bind(self, instance),
         toString:  function(){return H.format("[group %s]", instance.name);},
         register:  function(/* arguments */){
+          deb("     G: %s register: %s", instance.name, uneval(arguments));
           H.toArray(arguments).forEach(function(prop){
-            instance[prop] = groups.createAsset(instance, prop, []);
+            instance[prop] = self.createAsset({
+              instance: instance,
+              property: prop,
+              resources: []
+            });
             instance.assets.push(instance[prop]);
           });
         },
@@ -404,7 +433,7 @@ HANNIBAL = (function(H){
       this.instances.push(instance);
 
       // log before launching
-      deb("   GRP: launch %s args: %s", instance, uneval(config));
+      // deb("   GRP: launch %s args: %s", instance, uneval(config));
 
       // call and activate
       instance.listener.onLaunch(config);

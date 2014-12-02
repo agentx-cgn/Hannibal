@@ -37,6 +37,7 @@ HANNIBAL = (function(H){
                             "blacksmith", 
                             "farmstead",
                             "storehouse",
+                            "barracks", // temporarely
                              ],
       prey:                  ["chicken", "sheep", "pig", "goat"], // possible food resources
     },

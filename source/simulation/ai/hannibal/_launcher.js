@@ -57,7 +57,7 @@ var HANNIBAL = (function() {
       "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
-      // "groups",      // assets
+      "groups",      // assets
       // "economy",     // stats, producers, orderqueue
       // "military", 
       // "brain", 
@@ -124,7 +124,7 @@ var HANNIBAL = (function() {
     // exportObject(sharedScript.territoryMap, "territoryMap"); 
     // exportObject(sharedScript.passabilityClasses, "passabilityClasses"); 
 
-    // logPassability(this.map, ss.passabilityMap);
+    // dumpPassability(this.map, ss.passabilityMap);
 
     logStart(ss, gs, this.settings);
     logPlayers(ss.playersData);
@@ -211,6 +211,12 @@ var HANNIBAL = (function() {
       .import()
       .initialize();
 
+    deb();
+    deb("#####################################################################################################");
+    deb();
+
+    H.Config.deb = 0;
+    
     this.context.effector.log();
     this.bot.log();
     exportObject(this.bot.serialize(), "bot1.serialized");

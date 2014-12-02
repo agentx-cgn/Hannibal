@@ -168,20 +168,20 @@ H.extend(H, {
         Array.isArray(a)          ? "Array"        : 
           null
       ), 
-      rle = [typ],
-      push = function(count, item){
-        rle.push( count === 1 ? item : [count, item]);
-      }
+      rle  = [typ],
+      push = (amount, item) => rle.push( amount === 1 ? item : [count, item]);
     
     for (count = 1, prev = a[0], i = 1; i < len; i++) {
       if (a[i] !== prev) {
-          push(count, prev);
-          count = 1;
-          prev = a[i];
+        push(count, prev);
+        count = 1;
+        prev = a[i];
       } else {count++;}
     }
+    
     push(count, prev);
     return rle;
+
   },
   fromRLE:    function(rle){
     var i, j, out = [], len = rle.length, typ = rle[0];

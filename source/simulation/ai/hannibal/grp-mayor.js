@@ -14,9 +14,9 @@
 
 HANNIBAL = (function(H){
 
-  H.Plugins = H.Plugins || {};
+  H.Groups = H.Groups || {};
 
-  H.extend(H.Plugins, {
+  H.extend(H.Groups, {
 
     "g.mayor" : {
 
