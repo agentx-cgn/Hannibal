@@ -84,7 +84,7 @@ HANNIBAL = (function(H){
     dump: function (name, threshold){
       threshold = threshold || this.max() || 255;
       name = H.format("%s-%s-%s", this.title, name, threshold);
-      deb("   GRD: dumping '%s', w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
+      // deb("   GRD: dumping '%s', w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
       this.effector.dumpgrid(name, this, threshold);    
     },
     max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},

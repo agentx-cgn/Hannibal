@@ -58,7 +58,7 @@ HANNIBAL = (function(H){
       var data = {};
       this.imports.forEach( imp => {
         if(this[imp] && typeof this[imp].serialize === "function"){
-          deb("import: %s", imp);
+          // deb("import: %s", imp);
           data[imp] = this[imp].serialize();
         }
       });
@@ -70,27 +70,27 @@ HANNIBAL = (function(H){
     activate: function(){},
     tick: function(tick, secs, timing){
 
-      if (tick === 0){
+      // if (tick === 0){
 
-        // allow processing autoresearch first
-        timing.brn = this.brain.tick(         secs, tick);
-        timing.map = this.map.tick(           secs, tick);
-        timing.gps = this.groups.tick(        secs, tick);
-        timing.mil = this.military.tick(      secs, tick);
-        timing.sts = this.economy.stats.tick( secs, tick);
-        timing.eco = this.economy.tick(       secs, tick);
+      //   // allow processing autoresearch first
+      //   timing.brn = this.brain.tick(         secs, tick);
+      //   timing.map = this.map.tick(           secs, tick);
+      //   timing.gps = this.groups.tick(        secs, tick);
+      //   timing.mil = this.military.tick(      secs, tick);
+      //   timing.sts = this.economy.stats.tick( secs, tick);
+      //   timing.eco = this.economy.tick(       secs, tick);
 
-      } else {
+      // } else {
 
-        timing.evt = this.events.tick(        secs, tick);
-        timing.brn = this.brain.tick(         secs, tick);
-        timing.map = this.map.tick(           secs, tick);
-        timing.gps = this.groups.tick(        secs, tick);
-        timing.mil = this.military.tick(      secs, tick);
-        timing.sts = this.economy.stats.tick( secs, tick);
-        timing.eco = this.economy.tick(       secs, tick);
+      //   timing.evt = this.events.tick(        secs, tick);
+      //   timing.brn = this.brain.tick(         secs, tick);
+      //   timing.map = this.map.tick(           secs, tick);
+      //   timing.gps = this.groups.tick(        secs, tick);
+      //   timing.mil = this.military.tick(      secs, tick);
+      //   timing.sts = this.economy.stats.tick( secs, tick);
+      //   timing.eco = this.economy.tick(       secs, tick);
 
-      }
+      // }
 
     },
 

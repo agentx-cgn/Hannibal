@@ -351,7 +351,8 @@ HANNIBAL = (function(H){
         );
       });
 
-      deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
+      // last time was 254 ms and 125 nodes on brain/athen 
+      // deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
 
     },
     getFlowFromClass: function(klass){

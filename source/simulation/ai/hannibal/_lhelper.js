@@ -64,15 +64,15 @@ H.extend(H, {
   rndClamp:   function (min, max){return Math.random()*(max-min+1) + min;},
 
   // strings
-  replace:    function (s,f,r){return s.replace(new RegExp(H.escapeRex(f), 'g'), r);},
+  replace:    function (s,f,r){return s.replace(new RegExp(H.escapeRex(f), "g"), r);},
   padZero:    function (num, len){len = len || 2; num = "0000" + num; return num.substr(num.length-2, 2);},
-  format:     function (){var a=H.toArray(arguments),s=a[0].split("%s"),p=a.slice(1).concat([""]),c=0;return s.map(function(t){return t + p[c++];}).join('');},
+  format:     function (){var a=H.toArray(arguments),s=a[0].split("%s"),p=a.slice(1).concat([""]),c=0;return s.map(function(t){return t + p[c++];}).join("");},
   mulString:  function (s, l){return new Array(l+1).join(s);},
   escapeRex:  function (s){return s.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");},
   letterRange:function (r){return H.range(r.charCodeAt(0), r.charCodeAt(1)+1).map(function(i){return String.fromCharCode(i);}).join("");},
   findAll:    function (str, s){var idxs=[],idx,p=0;while((idx=str.indexOf(s,p))>-1){idxs.push(idx);p=idx+1;}return idxs;},
   tab:        function (s,l){l=l||8;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);},
-  replaceAll: function (find, replace, str) {return str.replace(new RegExp(H.escapeRex(find), 'g'), replace);},
+  replaceAll: function (find, replace, str) {return str.replace(new RegExp(H.escapeRex(find), "g"), replace);},
   endsWith:   function (str, end){var l0=str.length,l1=end.length; return str.slice(l0-l1,l0) === end;},
   noun:       function (s){return s[0].toUpperCase()+s.slice(1).toLowerCase();},
   
@@ -88,7 +88,7 @@ H.extend(H, {
   deepcopy:   function (obj){return JSON.parse(JSON.stringify(obj));},
   isEmpty:    function (o){var p;for(p in o){if(o.hasOwnProperty(p)){return false;}}return true;},
   prettify:   function (o){return JSON.stringify(o).split('"').join("");},
-  map:        function (o, fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},
+  // map:        function (o, fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},
   transform:  function (o, fn){var r={}; H.each(o,function(k,v){var [ra,rv]=fn(k,v);r[ra]=rv;});return r;},
   test:       function (o, s){
     var p = 0, as = s.split("."), l = as.length -1;
@@ -266,6 +266,13 @@ H.extend(H, {
 
 
   // ES6 Suite
+  map:        function (o, fn){
+    var r={}, isF = typeof fn==="function";
+    Object.keys(o).forEach( k => {
+      r[k]=(isF)?fn(k, o[k]):fn;
+    });
+    return r;
+  },
   unique:     function (a){return [...Set(a)];},
   attribs:    function (o){return Object.keys(o);},
   count:      function (o){return Object.keys(o).length;},
@@ -280,14 +287,14 @@ H.extend(H, {
 
 H.humanFileSize = function (bytes, si) {
     var thresh = si ? 1000 : 1024;
-    if(bytes < thresh) {return bytes + ' B';}
-    var units = si ? ['kB','MB','GB','TB','PB','EB','ZB','YB'] : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
+    if(bytes < thresh) {return bytes + " B";}
+    var units = si ? ["kB","MB","GB","TB","PB","EB","ZB","YB"] : ["KiB","MiB","GiB","TiB","PiB","EiB","ZiB","YiB"];
     var u = -1;
     do {
         bytes /= thresh;
         ++u;
     } while(bytes >= thresh);
-    return bytes.toFixed(1)+' '+units[u];
+    return bytes.toFixed(1)+" "+units[u];
 };
 
 H.interpolate = function (data, points){
@@ -314,9 +321,11 @@ H.interpolate = function (data, points){
 
 };
 
-H.createRingBuffer = function(length){
+H.createRingBuffer = function(length, buffer, pointer, lastPointer){
 
-  var pointer = 0, lastPointer = 0, buffer = []; 
+  buffer      = buffer      || []; 
+  pointer     = pointer     || 0;
+  lastPointer = lastPointer || 0; 
 
   return {
     push : function(item){
@@ -331,7 +340,8 @@ H.createRingBuffer = function(length){
     min   : function(){return Math.min.apply(Math, buffer);},
     sum   : function(){return buffer.reduce(function(a, b){ return a + b; }, 0);},
     avg   : function(){return buffer.reduce(function(a, b){ return a + b; }, 0) / length;},    
-    trend : function(){return H.trend(buffer);}    
+    trend : function(){return H.trend(buffer);},
+    serialize: function(){return H.deepcopy([length, buffer, pointer, lastPointer]);}
   };
 };
 

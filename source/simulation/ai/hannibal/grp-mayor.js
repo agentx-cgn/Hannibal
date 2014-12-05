@@ -54,8 +54,8 @@ HANNIBAL = (function(H){
 
           deb("     G: launch %s %s", this, uneval(options));
 
-          this.options = options;
-          this.cc = options.cc;
+          // this.options = options;
+          // this.cc = options.cc;
           this.register("builders");
 
         },

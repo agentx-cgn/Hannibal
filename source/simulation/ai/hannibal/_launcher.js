@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, debTable, print, logObject, logError, TESTERDATA, uneval, logPlayers, logStart */
+/*globals Engine, API3, deb, debTable, print, logObject, exportObject, logError, TESTERDATA, uneval, logPlayers, logStart */
 
 /*--------------- L A U N C H E R   -------------------------------------------
 
@@ -37,7 +37,13 @@ var HANNIBAL = (function() {
           .forEach(k => o[k] = e[k]
     );});},
     throw: function(){
-      throw "\n" + H.format.apply(null, H.toArray(arguments)) + "\n" + new Error().stack;      
+      var 
+        msg = H.format.apply(null, H.toArray(arguments)),
+        stack = new Error().stack.split("\n").slice(1);
+      deb();
+      deb(msg);
+      stack.forEach(line => deb("  " + line));      
+      throw "\n*\n*";
     },
     chat: function(msg){
       Engine.PostCommand(H.APP.context.id, {"type": "chat", "message": msg});
@@ -58,7 +64,7 @@ var HANNIBAL = (function() {
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
-      // "economy",     // stats, producers, orderqueue
+      "economy",     // stats, producers, orderqueue
       // "military", 
       // "brain", 
     ];
@@ -188,21 +194,49 @@ var HANNIBAL = (function() {
       this.context[s] = new H.LIB[H.noun(s)](this.context);
     });
 
+    var logger = [
+      // "events", 
+      // "culture",     // store, tree, phases
+      // "map",         // grids
+      // "resources",   // after map
+      "villages", 
+      // "scanner",     // scanner after map, before groups
+      "groups",      // assets
+      "economy",     // stats, producers, orderqueue
+      // "military", 
+      // "brain", 
+    ];
+
+    var actions = [
+      "clone",
+      "import",
+      "deserialize",
+      "initialize",
+      "finalize",
+      "activate",
+      "log",
+    ];
+
+    var lines1, lines2;
+
     // initialize the support objects
-    ["import", "deserialize", "initialize", "finalize", "activate", "log"].forEach(action => {
+    actions.forEach(action => {
 
-      var o, ss;
+      this.serializers.forEach( s => {
 
-      // try {
+        var obj = this.context[s];
 
-        this.serializers.forEach( s => {
-          ss = s;
-          o = this.context[s];
-          // deb("try: %s : %s", s, action);
-            ( o[action]  && o[action]() );
-        });
+        if (action === "clone"){
+          // do nothing
 
-      // } catch(e){H.throw("serializer '%s' failed on '%s' e:", ss, action, uneval(e));}
+        } else if (!(action === "log" && !H.contains(logger, s))){
+          ( obj[action]  && obj[action]() );
+
+        } else {
+          deb("   IGN: logger: %s", s);
+
+        }
+      });
 
     });
 
@@ -211,16 +245,15 @@ var HANNIBAL = (function() {
       .import()
       .initialize();
 
-    deb();
-    deb("#####################################################################################################");
-    deb();
-
-    H.Config.deb = 0;
+    // H.Config.deb = 0;
     
     this.context.effector.log();
     this.bot.log();
-    exportObject(this.bot.serialize(), "bot1.serialized");
+    lines1 = exportJSON(this.bot.serialize(), "bot1.serialized");
 
+    deb();
+    deb("#####################################################################################################");
+    deb();
 
     // clone second bot to compare serialization
     this.otherContext = {};
@@ -244,36 +277,43 @@ var HANNIBAL = (function() {
 
 
     // create serializers
-    ["clone", "import", "deserialize", "initialize", "finalize", "activate", "log"].forEach(action => {
-
-      var o, ss;
+    actions.forEach( action => {
 
       this.serializers.forEach( s => {
 
-        ss = s;
-        
+      var obj = this.otherContext[s];
+
         if (action === "clone"){
           this.otherContext[s] = this.context[s].clone(this.otherContext);
 
-        } else {
-          o = this.otherContext[s];
-          ( o[action]  && o[action]() );
-        }
+        } else if (!(action === "log" && !H.contains(logger, s))){
+          ( obj[action]  && obj[action]() );
 
+        } else {
+          deb("   IGN: logger: %s", s);
+        }
+        
       });
 
     });
-
 
     this.otherBot = new H.LIB.Bot(this.otherContext)
       .import()
       .initialize();
 
-    exportObject(this.otherBot.serialize(), "bot2.serialized");
-
-
+    lines2 = exportJSON(this.otherBot.serialize(), "bot2.serialized");
+    
     deb();
+    deb("SRLIAZ: bot 1: %s lines", lines1);
+    deb("SRLIAZ: bot 2: %s lines", lines2);
+    deb();
+    deb("#####################################################################################################");
+    deb();
+
     this.initialized = true;
+
+    H.Config.deb = 0;
+
     return;
 
 

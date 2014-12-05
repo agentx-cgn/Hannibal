@@ -28,7 +28,7 @@ HANNIBAL = (function(H){
         "player"
       ],
 
-      ress:        ress,
+      ress:        H.deepcopy(ress),
       gatherables: ["food", "wood", "stone", "metal"],
 
       stock: H.deepcopy(ress), 
@@ -52,14 +52,28 @@ HANNIBAL = (function(H){
     },
     initialize: function(data){
       if (data){
-        H.extend(this, data);
+        H.extend(this, {
+          stock: data.stock, 
+          suply: data.suply, 
+          diffs: H.map(data.diffs, (key, data) => H.createRingBuffer.apply(null, data)), // last x stock vals
+          flows: data.flows, 
+          alloc: data.alloc,
+          forec: data.forec, 
+          trend: data.trend, 
+          stack: H.map(data.stack, (key, data) => H.createRingBuffer.apply(null, data)), // last x stock vals
+        });
+
       } else {
         this.tick();
       }
       return this;
     },
     clone: function(context){
-      return new H.LIB[H.noun(this.name)](context);
+      return (
+        new H.LIB[H.noun(this.name)](context)
+          .import()
+          .initialize(this.serialize())
+      );
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -69,12 +83,12 @@ HANNIBAL = (function(H){
       return {
         stock: H.deepcopy(this.stock), 
         suply: H.deepcopy(this.suply), 
-        diffs: H.deepcopy(this.diffs), // buffer !!
+        diffs: H.map(this.diffs, (key, buffer) => buffer.serialize()), // buffer !!
         flows: H.deepcopy(this.flows), 
         alloc: H.deepcopy(this.alloc),
         forec: H.deepcopy(this.forec), 
         trend: H.deepcopy(this.trend), 
-        stack: H.deepcopy(this.stack), // buffer !!
+        stack: H.map(this.stack, (key, buffer) => buffer.serialize()), // buffer !!
       };
     },
     tick: function(tick, secs){
@@ -320,7 +334,6 @@ HANNIBAL = (function(H){
     },
 
   };
-
 
   H.LIB.Orderqueue = function(context){
 
@@ -749,8 +762,8 @@ HANNIBAL = (function(H){
       ],
       childs: [
         "stats",
-        "orderqueue",
         "producers",
+        "orderqueue",
       ],
       
       prioVerbs:    ["research", "train", "build"],
@@ -784,14 +797,8 @@ HANNIBAL = (function(H){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .deserialize()
-          .initialize()
-      );
+    clone: function (context){
+      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
       return {
@@ -806,11 +813,10 @@ HANNIBAL = (function(H){
           if (this.context.data[this.name][child]){
             this[child] = new H.LIB[H.noun(child)](this.context)
               .import()
-              .initialize(this.context.data[this.name][child]);
+              .deserialize(this.context.data[this.name][child]);
           }
         });
       }
-      return this;
     },
     initialize: function(){
       this.childs.forEach( child => {

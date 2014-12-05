@@ -58,13 +58,17 @@ HANNIBAL = (function (H){
       return this;
     },
     clone: function (context){
+      context.data[this.name] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
     },
-    deserialize: function (data) {
-      if (data){
+    deserialize: function () {
+      var data;
+      if (this.context.data[this.name]){
+        data = this.context.data[this.name];
         this.main    = data.main;
         this.centres = data.centres;
       }
+      deb("  VILL: deserialized: %s", uneval(data));
     },
     serialize: function () {
       return {
@@ -73,6 +77,7 @@ HANNIBAL = (function (H){
       };
     },
     initialize: function () {
+      deb("  VILL: initializing: %s", uneval(this.centres));
       if (this.centres === null){
         this.centres = {};
         this.organizeVillages(); // set metadata.cc to nearest cc

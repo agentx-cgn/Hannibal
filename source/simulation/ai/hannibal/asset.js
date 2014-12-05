@@ -87,22 +87,13 @@ HANNIBAL = (function(H){
     },
     serialize: function(){
       return {
-        id: this.id,
-        resources: H.deepcopy(this.resources),
-        users: H.deepcopy(this.users),
+        id:         this.id,
+        users:      H.deepcopy(this.users),
+        property:   this.property,
+        resources:  H.deepcopy(this.resources),
+        definition: H.deepcopy(this.definition),
       };
     },
-    // deserialize: function(){
-    //   // group takes care
-    // },
-    // tick: function(tick, secs){
-
-    //   var t0 = Date.now();
-
-
-    //   return Date.now() - t0;
-
-    // },
     get health () {return this.health(this.resources);},
     get count  () {return this.resources.length;},
     get first  () {return this.toSelection(this.resources.slice(0, 1));},

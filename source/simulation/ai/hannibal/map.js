@@ -136,9 +136,8 @@ HANNIBAL = (function(H){
       this.length      = this.passability.data.length;
       this.gridsize    = this.passability.width; // only squares here
 
-
-      deb("   MAP: territory   size: %s", this.territory.width);
-      deb("   MAP: passability size: %s", this.passability.width);
+      // deb("   MAP: territory   size: %s", this.territory.width);
+      // deb("   MAP: passability size: %s", this.passability.width);
 
       this.childs.forEach( child => {
         if (!this[child]){
@@ -178,7 +177,7 @@ HANNIBAL = (function(H){
         }
         t1 = Date.now();
         this.terrain.dump("init", 255);
-        deb("   MAP: updated: terrain, ms: %s", t1 - t0);
+        // deb("   MAP: updated: terrain, ms: %s", t1 - t0);
 
 
       // detects unconnected land regions
@@ -198,7 +197,7 @@ HANNIBAL = (function(H){
 
         t1 = Date.now();
         this.regionsland.dump("init", 255);
-        deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
+        // deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
 
 
       } else if (name === "regionswater") {
@@ -216,7 +215,7 @@ HANNIBAL = (function(H){
 
         t1 = Date.now();
         this.regionswater.dump("init", 255);
-        deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
+        // deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
 
 
       } else {

@@ -76,11 +76,13 @@ var debTable = function (header, table, sort){
 
 };
 
-function exportObject (obj, filename){
+function exportJSON (obj, filename){
 
   var 
     H = HANNIBAL,
-    file = H.format("/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/%s.export", filename);
+    file  = H.format("/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/%s.export", filename),
+    lines = JSON.stringify(obj, null, "  ").split("\n"),
+    count = lines.length;
 
   function logg(){
     print ( arguments.length === 0 ? 
@@ -95,14 +97,15 @@ function exportObject (obj, filename){
 
   print(H.format("#! open 0 %s\n", file));
   logg("// EXPORTED %s at %s", filename, new Date());
-  JSON.stringify(obj, null, "  ")
-    .split("\n")
-    .forEach(line => {
-      logg(line);
-    });
+
+  lines.forEach(line => logg(line));
+  // lines.forEach(logg);
+  
   logg("// Export end of %s", filename);
   print("#! close 0\n");
   deb("EXPORT: Done");
+
+  return count;
 
 }
 
@@ -313,14 +316,16 @@ var logObject = function(o, msg){
 };
 
 var logObjectShort = function(o){
-  HANNIBAL.attribs(o).sort().map(function(a){
-    return getAttribType(a, o[a]);
-  }).forEach(function(line){deb(line);});
+  HANNIBAL.attribs(o)
+    .sort()
+    // .map(function(a){return getAttribType(a, o[a]);})
+    // .forEach(function(line){deb(line);});
+    .map(function(a){deb(getAttribType(a, o[a]));});
 };
 
 var getAttribType = function(name, value){
 
-  var H = HANNIBAL;
+  var H = HANNIBAL, keys;
 
   function toString(value){
     return value.toString ? value.toString() : value+"";
@@ -330,15 +335,15 @@ var getAttribType = function(name, value){
     case "string":
     case "number":
     case "undefined":
-    case "boolean":
-      return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
+    case "boolean":   return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
     case "object":
       if (Array.isArray(value)){
         return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
       } else if (value === null) {
         return H.format("  %s: NULL", name);
       } else {
-        return H.format("  %s: OBJECT [%s](%s, ...)", name, H.attribs(value).length, H.attribs(value).slice(0, 5).join(", "));
+        keys = Object.keys(value);
+        return H.format("  %s: OBJECT [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
       }
     break;
     case "function":
