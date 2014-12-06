@@ -15,6 +15,22 @@
 // var debC = new Function("print ('> ' + debC.caller.name); 
 // print(H.format.apply(H, H.toArray(arguments)));");
 
+/* SNIPPETS */ 
+  // exportObject(gameState, "gameState");       // ERROR cyclic object value
+  // exportObject(sharedScript, "sharedScript"); // ERROR cyclic object value
+
+  // exportObject(this.settings.templates, "templates");
+  // exportObject(ss._techTemplates, "techtemplates")
+  // exportObject(sharedScript.playersData, "players");
+  // exportObject(sharedScript._entityMetadata, "metadata");
+  // exportObject(sharedScript.passabilityMap, "passabilityMap"); 
+  // exportObject(sharedScript.territoryMap, "territoryMap"); 
+  // exportObject(sharedScript.passabilityClasses, "passabilityClasses"); 
+
+  // dumpPassability(this.map, ss.passabilityMap);
+
+
+
 // used in JSON Export
 function logg(){
   var args = arguments;
@@ -513,6 +529,81 @@ var logPlayers = function(players){
   });
 
 };
+
+
+
+
+
+// /* play area */
+
+// try {
+
+//   // deb("------: Techs");
+//   // H.each(H.TechTemplates, function(name, tech){
+//   //   if (tech.modifications){
+//   //     var aff = tech.affects ? uneval(tech.affects) : "";
+//   //     var req = tech.requirements ? uneval(tech.requirements) : "";
+//   //     var mod = tech.modifications ? uneval(tech.modifications) : "";
+//   //     deb("%s;%s;%s;%s;%s", name, tech.genericName||"", req, aff, mod);
+//   //   }
+//   // });
+//   // deb("------: Techs end");
+
+
+// } catch(e){logError(e, "play area");} 
+
+/* end play area */
+
+// /* Export functions */
+
+// if (false){
+//   // activate to log tech templates
+//   deb("-------- _techTemplates");
+//   deb("var techTemplates = {");
+//   H.attribs(ss._techTemplates).sort().forEach(function(tech){
+//     deb("'%s': %s,", tech, JSON.stringify(ss._techTemplates[tech]));
+//   });
+//   deb("};");
+//   deb("-------- _techTemplates");
+//   H.Config.deb = 0;
+// }
+
+// /* list techs and their modifications */
+
+// if (false){
+
+//   deb();deb();deb("      : Technologies ---------");
+//   var affects, modus, table = [];
+//   H.each(H.Technologies, function(key, tech){
+//     if (tech.modifications){
+//       tech.modifications.forEach(function(mod){
+//         modus = (
+//           mod.add      !== undefined ? "add"      :
+//           mod.multiply !== undefined ? "multiply" :
+//           mod.replace  !== undefined ? "replace"  :
+//             "wtf"
+//         );
+//         affects = tech.affects ? tech.affects.join(" ") : mod.affects ? mod.affects : "wtf";
+//         table.push([H.saniTemplateName(key), mod.value, modus, mod[modus], affects]);
+//       });
+//     }
+//   });
+//   debTable("TEX", table, 1);
+//   deb("      : end ---------");
+//   H.Config.deb = 0;
+
+// }
+
+// /* end techs and their modifications */
+
+
+
+
+
+
+
+
+
 
 // Object: playersData(me)  ---------------
 //   cheatsEnabled: BOOLEAN (false)

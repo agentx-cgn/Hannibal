@@ -343,6 +343,7 @@ H.createRingBuffer = function(length, buffer, pointer, lastPointer){
     trend : function(){return H.trend(buffer);},
     serialize: function(){return H.deepcopy([length, buffer, pointer, lastPointer]);}
   };
+  
 };
 
 // http://dracoblue.net/dev/linear-least-squares-in-javascript/
