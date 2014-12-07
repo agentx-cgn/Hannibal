@@ -40,6 +40,10 @@ HANNIBAL = (function(H){
       consumed: false,
     }, data);
 
+    if (!this.entities || !this.map){
+      logObject(this);
+    }
+
   }
 
   Resource.prototype = {
@@ -189,12 +193,12 @@ HANNIBAL = (function(H){
       if (this.context.data[this.name]){
         this.resources = this.context.data[this.name];
         this.eachAll((generic, specific, stats, id, res) => {
-          this.resource[generic][specific][id] = new Resource(H.mixin(res, {
+          this.resources[generic][specific][id] = new Resource(H.mixin(res, {
             map:      this.map,
             config:   this.config,
             context:  this.context,
-            generic:  type.generic,
-            specific: type.specific,
+            generic:  generic,
+            specific: specific,
             entities: this.entities,
           })).initialize();
         });

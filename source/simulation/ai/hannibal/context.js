@@ -14,22 +14,17 @@
 
 HANNIBAL = (function(H){
 
-  H.LIB.Context = function(settings){
+  H.LIB.Context = function(name){
 
-    this.defaults = {                                  // all primitive data
+    this.defaults = {                                    // all primitive data
+      name:           name,
+      connector:      "",
       time:           Date.now(),                        // time game created/saved 
-      timeElapsed:    0,
+      timeElapsed:    0,                                 // API data
       idgen:          1,                                 // seed for unique object ids
       turn:           0,                                 // increments on API tick
       tick:           0,                                 // increments on BOT tick
-      id:             settings.player,                   // bot id, used within 0 A.D.
-      difficulty:     settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
-      config:         H.Config,                          // 
-      data:           {},                                // serialized data
     };
-
-    H.extend(this, this.defaults);
-    this.settings = settings;
 
     // stateful support objects, ordered
     this.serializers = [
@@ -45,19 +40,7 @@ HANNIBAL = (function(H){
       // "brain", 
     ];
 
-    this.logger = [
-      // "events", 
-      // "culture",     // store, tree, phases
-      // "map",         // grids
-      // "resources",   // after map
-      "villages", 
-      // "scanner",     // scanner after map, before groups
-      "groups",      // assets
-      "economy",     // stats, producers, orderqueue
-      // "military", 
-      // "brain", 
-    ];
-
+    // sequence to init serializers
     this.actions = [
       "clone",
       "import",
@@ -68,112 +51,136 @@ HANNIBAL = (function(H){
       "log",
     ];
 
-    this.bot = null; // bot and context know each other
+    // debug, avoid noisy logs during sequence
+    this.logger = [
+      // "events", 
+      // "culture",     // store, tree, phases
+      // "map",         // grids
+      // "resources",   // after map
+      // "villages", 
+      // "scanner",     // scanner after map, before groups
+      // "groups",      // assets
+      // "economy",     // stats, producers, orderqueue
+      // "military", 
+      // "brain", 
+    ];
 
-    // initialize container for serialized data
+    // set initial properties
+    this.data = {};
+    H.extend(this, this.defaults);
     this.serializers.forEach(s => this.data[s] = null);
 
   };
 
   H.LIB.Context.prototype = {
     constructor: H.LIB.Context,
+    log: function(){
+      var data = {};
+      H.each(this.defaults, name => data[name] = this[name]);
+      deb("   CTX: %s", uneval(data));
+    },
+    runSequence: function(fn){
+      this.actions.forEach( action => {
+        this.serializers.forEach( serializer => {
+          fn(action, serializer);
+        });      
+      });      
+    },
     createBot: function(){
       return (this.bot = new H.LIB.Bot(this).import().initialize());
     },
-    deserialize: function(connector){},
+    deserialize: function(data){
+      var name = this.name;
+      H.extend(this, data);
+      this.name = name;
+    },
     serialize: function(){
       return {
+        name:          this.name,
+        connector:     this.connector,
         time:          Date.now(),
         timeElapsed:   this.timeElapsed,
         idgen:         this.idgen,
         id:            this.id,
-        phase:         this.phase,
         turn:          this.turn,
         tick:          this.tick,
         difficulty:    this.difficulty,
-        data:          this.bot.serialize()
+        data:          this.bot.serialize(),
       };
 
     },
     clone: function(){
 
-      // creates a new fully independent context by de/serializing this one
+      // creates a new context by de/serializing this one
       // does initialize
 
-      var copyContext = new H.LIB.Context(this.settings);
+      var ctxClone = new H.LIB.Context(this.name + ".copy");
 
       // copy primitive data
       H.each(this, name => {
         if (!H.contains(this.serializers, name)){
-          copyContext[name] = this[name];
+          ctxClone[name] = this[name];
         }
       });
 
       // reset id generator
-      copyContext.idgen = 1;
+      ctxClone.idgen = 1;  /// ????
 
       // add connecter specific interfaces
-      H.extend(copyContext, {
+      H.extend(ctxClone, {
         query:      function(hcq, debug){
-          return new H.LIB.Query(copyContext.culture.store, hcq, debug);
+          return new H.LIB.Query(ctxClone.culture.store, hcq, debug);
         },
         class2name: function(klass){
-          return new H.LIB.Query(copyContext.culture.store, klass + " CONTAIN").first().name;
+          return new H.LIB.Query(ctxClone.culture.store, klass + " CONTAIN").first().name;
         },
       });
 
-      // // create serializers
-      this.actions.forEach( action => {
+      // create serializers
+      this.runSequence( (action, serializer) => {
 
-        this.serializers.forEach( s => {
+        var obj = ctxClone[serializer];
 
-        var obj = copyContext[s];
+        if (action === "clone"){
+          ctxClone[serializer] = this[serializer].clone(ctxClone);
 
-          if (action === "clone"){
-            copyContext[s] = this[s].clone(copyContext);
+        } else if (!(action === "log" && !H.contains(this.logger, serializer))){
+          ( obj[action]  && obj[action]() );
 
-          } else if (!(action === "log" && !H.contains(this.logger, s))){
-            ( obj[action]  && obj[action]() );
+        } else {
+          deb("   IGN: logger: %s", serializer);
+        }
 
-          } else {
-            deb("   IGN: logger: %s", s);
-          }
-          
-        });      
-      
-      });      
+      });
 
-      return copyContext;
+      return ctxClone;
 
     },
     initialize: function(){
 
-      this.serializers.forEach(s => {
-        // deb("new: %s", s);
-        this[s] = new H.LIB[H.noun(s)](this);
+      this.serializers.forEach(serializer => {
+        this[serializer] = new H.LIB[H.noun(serializer)](this);
       });
 
+      this.runSequence( (action, serializer) => {
 
-      // initialize the support objects
-      this.actions.forEach(action => {
+        var obj = this[serializer];
 
-        this.serializers.forEach( s => {
+        // deb("   CTX: %s initialize: a: %s.%s", this.name, serializer, action);
 
-          var obj = this[s];
+        if (action === "clone"){ // do nothing
 
-          if (action === "clone"){
-            // do nothing
+        } else if (!(action === "log" && !H.contains(this.logger, serializer))){
+          ( obj[action] && obj[action]() );
 
-          } else if (!(action === "log" && !H.contains(this.logger, s))){
-            ( obj[action]  && obj[action]() );
+        } else {
+          deb("   IGN: logger: %s", serializer);
 
-          } else {
-            deb("   IGN: logger: %s", s);
+        }
 
-          }
-        });
+      });
 
-      });      
+      deb("   CTX: %s initialized", this.name);
 
     },
     connectEngine: function(launcher, gameState, sharedScript, settings){
@@ -182,8 +189,12 @@ HANNIBAL = (function(H){
 
         connector:           "engine",
         launcher:            launcher,
+        config:              H.Config,                          // 
 
-        phase:               gameState.currentPhase(),     // num
+        id:                  settings.player,                   // bot id, used within 0 A.D.
+        difficulty:          settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
+
+        phase:               gameState.currentPhase(),          // num
         cellsize:            gameState.cellSize, 
         width:               sharedScript.passabilityMap.width  *4, 
         height:              sharedScript.passabilityMap.height *4, 
@@ -224,17 +235,9 @@ HANNIBAL = (function(H){
 
       });
 
-
-
     },
-
-
 
 
   };
 
-
-
-
 return H; }(HANNIBAL));  
-

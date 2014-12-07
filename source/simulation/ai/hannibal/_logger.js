@@ -487,6 +487,7 @@ var logStart = function(ss, gs, settings){
 
   deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
   deb();
+  deb();
   deb("     A:    map from tester:  %s", TESTERDATA ? TESTERDATA.map : "unkown");
   deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
   deb("     A:          _entities: %s [  ]", H.count(ss._entities));

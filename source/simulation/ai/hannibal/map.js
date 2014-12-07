@@ -128,6 +128,12 @@ HANNIBAL = (function(H){
           }
         });
       }
+
+      this.territory   = this.context.territory;
+      this.passability = this.context.passability;
+      this.length      = this.passability.data.length;
+      this.gridsize    = this.passability.width; // only squares here
+
     },
     initialize: function(){
 

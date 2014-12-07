@@ -31,11 +31,6 @@ var HANNIBAL = (function() {
   var H = {
     API: API3,
     LIB: {},
-    extend: function (o){
-      Array.prototype.slice.call(arguments, 1)
-        .forEach(e => {Object.keys(e)
-          .forEach(k => o[k] = e[k]
-    );});},
     throw: function(){
       var 
         msg = H.format.apply(null, H.toArray(arguments)),
@@ -45,6 +40,12 @@ var HANNIBAL = (function() {
       stack.forEach(line => deb("  " + line));      
       throw "\n*\n*";
     },
+    extend: function (o){
+      Array.prototype.slice.call(arguments, 1)
+        .forEach(e => {Object.keys(e)
+          .forEach(k => o[k] = e[k]
+    );});},
+    chat: function(){}
   };
 
   // constructor
@@ -60,9 +61,10 @@ var HANNIBAL = (function() {
       isFinished:     false,                               // there is still no winner
       noInitReported: false,                               // report init failure only once
       timing:         {all: 0},                            // used to identify perf. sinks in OnUpdate
-      context:        new H.LIB.Context(settings)          // create fresh context
+      context:        new H.LIB.Context("ctx1")            // create empty context
     });
 
+    deb();
     deb("------: Launcher.constructor.out");
 
   };
@@ -88,7 +90,7 @@ var HANNIBAL = (function() {
       H.Numerus.init(ss, gs);          
     }             
 
-    var lines1, lines2;
+    var lines1, lines2, lines3;
 
     // connect the context
     this.context.connectEngine(this, gameState, sharedScript, this.settings);
@@ -96,9 +98,8 @@ var HANNIBAL = (function() {
 
     // This bot faces the other players
     this.bot = this.context.createBot();
-
-    this.context.effector.log();
-    this.bot.log();
+    
+    this.context.log();
     lines1 = exportJSON(this.context.serialize(), "ctx1.serialized");
 
     deb();
@@ -106,17 +107,30 @@ var HANNIBAL = (function() {
     deb();
 
     // clone second context to compare serialization
-    this.otherContext = this.context.clone();
-    this.otherBot     = this.otherContext.createBot();
-    lines2 = exportJSON(this.otherContext.serialize(), "ctx2.serialized");
+    this.secondContext = this.context.clone();
+    this.secondBot     = this.secondContext.createBot();
+    lines2 = exportJSON(this.secondContext.serialize(), "ctx2.serialized");
     
-    deb();
-    deb("SRLIAZ: bot 1: %s lines", lines1);
-    deb("SRLIAZ: bot 2: %s lines", lines2);
     deb();
     deb("################################################################################");
     deb();
 
+    // third context via de/serialize
+    this.thirdContext = new H.LIB.Context("ctx3");
+    this.thirdContext.deserialize(this.secondContext.serialize());
+    this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
+    this.thirdContext.initialize();
+
+    this.thirdContext.log();
+    this.thirdBot     = this.thirdContext.createBot();
+    lines3 = exportJSON(this.thirdContext.serialize(), "ctx3.serialized");
+
+    deb();
+    deb("SRLIAZ: ctx 1: %s lines", lines1);
+    deb("SRLIAZ: ctx 2: %s lines", lines2);
+    deb("SRLIAZ: ctx 3: %s lines", lines3);
+    deb();
+    deb("################################################################################");
     /*
 
     Below is for development
@@ -129,9 +143,9 @@ var HANNIBAL = (function() {
     /* end scripter */
 
     /* testing triple store */
-    this.bot.culture.debug = 5;
-    // H.QRY(H.class2name("civilcentre") + " RESEARCH").execute("metadata", 5, 10, "next phases");
-    this.bot.culture.debug = 0;
+    this.context.culture.debug = 5;
+    // this.context.query(this.context.class2name("civilcentre") + " RESEARCH").execute("metadata", 5, 10, "next phases");
+    this.context.culture.debug = 0;
     /* end testing triple store */
 
     deb();
@@ -142,47 +156,27 @@ var HANNIBAL = (function() {
     return;
 
   };
-
   H.Launcher.prototype.OnUpdate = function(sharedScript) {
 
     var 
-      t0        = Date.now(),
-      msgTiming = "", 
-      secs      = (sharedScript.timeElapsed/1000).toFixed(1),
-      map       = TESTERDATA ? TESTERDATA.map : "unkown";
+      t0 = Date.now(),
+      secs = (sharedScript.timeElapsed/1000).toFixed(1),
+      msgTiming = "";
 
-    // update context
-    this.context.timeElapsed        = sharedScript.timeElapsed;
-    this.context.territory          = sharedScript.territoryMap;
-    this.context.passability        = sharedScript.passabilityMap;
-    this.context.passabilityClasses = sharedScript.passabilityClasses;
-    this.context.techtemplates      = sharedScript._techTemplates;
-    this.context.player             = sharedScript.playersData[this.context.id];
-    this.context.players            = sharedScript.playersData;
-    this.context.metadata           = sharedScript._entityMetadata[this.context.id];
+    if (this.isFinished){return;} // API ????
 
     if (!this.initialized){
       if (!this.noInitReported){
-        deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-        deb();deb();
-        deb("ERROR : HANNIBAL IS NOT INITIALIZED !!!");
-        H.chat("HANNIBAL IS NOT INITIALIZED, check install.txt");
-        deb();deb();
-        deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+        this.logNotInitialized();
       }
       this.noInitReported = true;
       return;      
     }
 
     if (!this.isTicking){
-      deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-      deb();deb();
-      deb("------: OnUpdate: startup: %s secs, map: '%s'", ((t0 - TIMESTART)/1000).toFixed(3), map);
-      deb();
+      this.logFirstTick(t0);
       this.isTicking = true;
     }
-
-    if (this.isFinished){return;} // API ????
 
     if (H.Tester.OnUpdate){
       H.chat("OnUpdate");
@@ -191,8 +185,8 @@ var HANNIBAL = (function() {
       // H.chat("no OnUpdate");
     }
     
-    // save API events, even if not processing
-    this.bot.events.collect(this.events);
+    // keep API events from each turn, even if not processing
+    this.context.events.collect(this.events);
 
 
     // ------------- A C T I O N   S T A R T ----------------------------------
@@ -200,6 +194,17 @@ var HANNIBAL = (function() {
     // Run the update every n turns, offset depending on player ID to balance the load
     if ((this.turn + this.player) % 8 === 5) {
 
+      // update context
+      this.context.timeElapsed        = sharedScript.timeElapsed;
+      this.context.territory          = sharedScript.territoryMap;
+      this.context.passability        = sharedScript.passabilityMap;
+      this.context.passabilityClasses = sharedScript.passabilityClasses;
+      this.context.techtemplates      = sharedScript._techTemplates;
+      this.context.player             = sharedScript.playersData[this.context.id];
+      this.context.players            = sharedScript.playersData;
+      this.context.metadata           = sharedScript._entityMetadata[this.context.id];
+
+      // log top row debug info
       deb("STATUS: @%s, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
         this.context.tick, this.bot.id, this.bot.player.civ, secs, 
         H.count(this.bot.player.researchedTechs), 
@@ -219,7 +224,7 @@ var HANNIBAL = (function() {
         H.Numerus.tick(secs, this.context.tick, sharedScript);
       }
 
-      // deb: prepare line
+      // prepare bottom row debug info
       H.each(this.timing, (name, msecs) => {
         if (name !== "all"){
           msgTiming += H.format(", %s: %s", name, msecs);
@@ -227,6 +232,7 @@ var HANNIBAL = (function() {
         this.timing.all += msecs;
       });
 
+      // log row
       deb("______: @%s, trigs: %s, timing: %s, all: %s %s", 
         this.context.tick, 
         H.Triggers.info(), 
@@ -235,6 +241,7 @@ var HANNIBAL = (function() {
         this.timing.all >= 100 ? "!!!!!!!!" : ""
       );
 
+      // increase tick number
       this.context.tick++;
 
 
@@ -244,10 +251,25 @@ var HANNIBAL = (function() {
       
     }
 
+    // increase turn number
     this.context.turn++;
     this.turn++;
 
   };
-
+  H.Launcher.prototype.logNotInitialized = function() {
+    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+    deb();deb();
+    deb("ERROR : HANNIBAL IS NOT INITIALIZED !!!");
+    H.chat("HANNIBAL IS NOT INITIALIZED, check install.txt");
+    deb();deb();
+    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+  };
+  H.Launcher.prototype.logFirstTick = function(t0) {
+    var map = TESTERDATA ? TESTERDATA.map : "unkown";
+    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+    deb();deb();
+    deb("------: OnUpdate: startup: %s secs, map: '%s'", ((t0 - TIMESTART)/1000).toFixed(3), map);
+    deb();
+  };
 
 return H;}());

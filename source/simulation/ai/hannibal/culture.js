@@ -154,7 +154,7 @@ HANNIBAL = (function(H){
       return this;
     },
     deserialize: function(data){
-      this.nodes = data.nodes;
+      this.nodes = data;
       return this;
     },
     serialize: function(){
@@ -286,6 +286,7 @@ HANNIBAL = (function(H){
       // downlink info, products
 
       H.each(nodes, (name /*, node */) => {
+        nodes[name].products.count = 0; // 
         "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
           this.query(name + " " + verb).forEach(p => {
             nodes[name].products.count += 1;
@@ -296,15 +297,19 @@ HANNIBAL = (function(H){
 
       this.query("RESEARCHEDBY DISTINCT").forEach(researcher => {  
         this.query(researcher.name + " RESEARCH PAIR").forEach(p => {
-          nodes[researcher.name].products.research[p.name] = p;
-          nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
+          if (!nodes[researcher.name].products.research[p.name]){
+            nodes[researcher.name].products.research[p.name] = p;
+            nodes[researcher.name].products.count += 1; // H.count(nodes[researcher.name].products.research);
+          }
         });
       });          
 
       this.query("RESEARCHEDBY DISTINCT").forEach(researcher => {  
         this.query(researcher.name + " RESEARCH SUPERSED").forEach(p => {
-          nodes[researcher.name].products.research[p.name] = p;
-          nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
+          if (!nodes[researcher.name].products.research[p.name]){
+            nodes[researcher.name].products.research[p.name] = p;
+            nodes[researcher.name].products.count += 1; // H.count(nodes[researcher.name].products.research);
+          }
         });
       });          
 
