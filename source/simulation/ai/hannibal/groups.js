@@ -135,7 +135,7 @@ HANNIBAL = (function(H){
 
       var opname;
 
-      deb("  GRPS: launching operators for structures");
+      // deb("  GRPS: launching operators for structures");
 
       this.query("INGAME").forEach(node => {
 
@@ -151,15 +151,15 @@ HANNIBAL = (function(H){
           // deb("  GRPS: appOps %s for %s", opname, node.name);
 
         } else if (opname === "g.custodian"){
-          deb("  GRPS: appOps %s for %s", opname, node.name);
+          // deb("  GRPS: appOps %s for %s", opname, node.name);
           this.appoint(node.id, {groupname: "g.custodian", cc: this.metadata[node.id].cc});
 
         } else if (opname === "g.mayor"){
-          deb("  GRPS: appOps %s for %s", opname, node.name);
+          // deb("  GRPS: appOps %s for %s", opname, node.name);
           this.appoint(node.id, {groupname: "g.mayor", cc: this.metadata[node.id].cc});
 
         } else {
-          deb("  GRPS: appOps ignored %s for %s", opname, node.name);
+          // deb("  GRPS: appOps ignored %s for %s", opname, node.name);
 
         }
 
@@ -290,7 +290,7 @@ HANNIBAL = (function(H){
       // });
       // instance.assets.push(instance.structure);
       
-      deb("   GRP: appointed %s for %s, cc: %s", instance.name, this.entities[id], config.cc);
+      // deb("  GRPS: appointed %s for %s, cc: %s", instance.name, this.entities[id], config.cc);
 
       return instance;
 
@@ -369,7 +369,7 @@ HANNIBAL = (function(H){
           listener:  {},
         };
 
-      deb("  GRPS: have: %s, to launch %s", this.instances.length, uneval(instance));
+      // deb("  GRPS: have: %s, to launch %s", this.instances.length, uneval(instance));
 
       // copies values from the groups' definition onto instance
       H.each(H.Groups[config.groupname], (prop, value) => {
@@ -407,7 +407,7 @@ HANNIBAL = (function(H){
         scan:      self.scan.bind(self, instance),
         toString:  function(){return H.format("[group %s]", instance.name);},
         register:  function(/* arguments */){
-          deb("     G: %s register: %s", instance.name, uneval(arguments));
+          // deb("     G: %s register: %s", instance.name, uneval(arguments));
           H.toArray(arguments).forEach( property => {
             // transform primitive definition into live object
             // except already deserialized
@@ -419,7 +419,7 @@ HANNIBAL = (function(H){
               });
               instance.assets.push(instance[property]);
             } else {
-              deb("  GRPS: did not register %s, %s", property, instance.name);
+              // deb("  GRPS: did not register %s, %s", property, instance.name);
             }
           });
         },

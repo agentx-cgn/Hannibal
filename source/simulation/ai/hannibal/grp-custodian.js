@@ -41,7 +41,7 @@ HANNIBAL = (function(H){
 
       listener: {
         onLaunch: function(options){
-          deb("     G: launch %s %s", this, uneval(options));
+          // deb("     G: launch %s %s", this, uneval(options));
           this.options = options;
         },
         onConnect: function(listener){

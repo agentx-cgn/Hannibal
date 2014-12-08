@@ -17,8 +17,8 @@ HANNIBAL = (function(H){
   H.LIB.Context = function(name){
 
     this.defaults = {                                    // all primitive data
-      name:           name,
-      connector:      "",
+      name:           name,                              // used in logs
+      connector:      "",                                // set by connecting
       time:           Date.now(),                        // time game created/saved 
       timeElapsed:    0,                                 // API data
       idgen:          1,                                 // seed for unique object ids
@@ -26,7 +26,7 @@ HANNIBAL = (function(H){
       tick:           0,                                 // increments on BOT tick
     };
 
-    // stateful support objects, ordered
+    // stateful support objects, ordered, no dependencies to following objects
     this.serializers = [
       "events", 
       "culture",     // store, tree, phases
@@ -35,39 +35,40 @@ HANNIBAL = (function(H){
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
-      // "economy",     // stats, producers, orderqueue
-      // "military", 
-      // "brain", 
+      "economy",     // stats, producers, orderqueue
+      "military", 
+      "brain", 
+      // "bot", 
     ];
 
-    // sequence to init serializers
-    this.actions = [
-      "clone",
-      "import",
-      "deserialize",
-      "initialize",
-      "finalize",
-      "activate",
-      "log",
+    // action sequence to init serializers
+    this.sequence = [
+      "clone",         // either new Obj or Obj.clone
+      "import",        // import properties from context
+      "deserialize",   // if context contains data 
+      "initialize",    // otherwise init from game data
+      "finalize",      // 
+      "activate",      // subsribe to events
+      "log",           // 
     ];
 
     // debug, avoid noisy logs during sequence
     this.logger = [
       // "events", 
-      // "culture",     // store, tree, phases
+      "culture",     // store, tree, phases
       // "map",         // grids
       // "resources",   // after map
       // "villages", 
       // "scanner",     // scanner after map, before groups
       // "groups",      // assets
-      // "economy",     // stats, producers, orderqueue
+      "economy",     // stats, producers, orderqueue
       // "military", 
       // "brain", 
+      // "bot", 
     ];
 
     // set initial properties
-    this.data = {};
-    H.extend(this, this.defaults);
+    H.extend(this, this.defaults, {data: {}});
     this.serializers.forEach(s => this.data[s] = null);
 
   };
@@ -80,7 +81,7 @@ HANNIBAL = (function(H){
       deb("   CTX: %s", uneval(data));
     },
     runSequence: function(fn){
-      this.actions.forEach( action => {
+      this.sequence.forEach( action => {
         this.serializers.forEach( serializer => {
           fn(action, serializer);
         });      
@@ -89,13 +90,9 @@ HANNIBAL = (function(H){
     createBot: function(){
       return (this.bot = new H.LIB.Bot(this).import().initialize());
     },
-    deserialize: function(data){
-      var name = this.name;
-      H.extend(this, data);
-      this.name = name;
-    },
     serialize: function(){
-      return {
+
+      var data = {
         name:          this.name,
         connector:     this.connector,
         time:          Date.now(),
@@ -105,23 +102,36 @@ HANNIBAL = (function(H){
         turn:          this.turn,
         tick:          this.tick,
         difficulty:    this.difficulty,
-        data:          this.bot.serialize(),
+        data:          {},
       };
 
+      this.serializers.forEach(serializer => {
+        data.data[serializer] = this[serializer].serialize();
+      });
+
+      return data;
+
+    },
+    deserialize: function(data){
+      var name = this.name;
+      H.extend(this, data);
+      this.name = name;
     },
     clone: function(){
 
       // creates a new context by de/serializing this one
       // does initialize
 
-      var ctxClone = new H.LIB.Context(this.name + ".copy");
+      var ctxClone = new H.LIB.Context(this.name + ".copy"); // TODO: name does not remain
 
       // copy primitive data
-      H.each(this, name => {
-        if (!H.contains(this.serializers, name)){
-          ctxClone[name] = this[name];
-        }
-      });
+      H.each(this.defaults, name => ctxClone[name] = this[name]);
+
+      // H.each(this, name => {
+      //   if (!H.contains(this.serializers, name)){
+      //     ctxClone[name] = this[name];
+      //   }
+      // });
 
       // reset id generator
       ctxClone.idgen = 1;  /// ????
@@ -156,10 +166,26 @@ HANNIBAL = (function(H){
       return ctxClone;
 
     },
-    initialize: function(){
+    initialize: function(config){
 
-      this.serializers.forEach(serializer => {
-        this[serializer] = new H.LIB[H.noun(serializer)](this);
+      H.extend(this, {
+
+        config:              config,
+
+        query:               (hcq, debug) => {
+          return new H.LIB.Query(this.culture.store, hcq, debug);
+        },
+        class2name:          klass => {
+          return new H.LIB.Query(this.culture.store, klass + " CONTAIN").first().name;
+        },
+
+        operators:           H.HTN.Economy.operators,
+        methods:             H.HTN.Economy.methods,
+        planner:             new H.HTN.Planner(this, {
+          name:      "eco.planner",
+          verbose:   1
+        }),
+
       });
 
       this.runSequence( (action, serializer) => {
@@ -169,12 +195,13 @@ HANNIBAL = (function(H){
         // deb("   CTX: %s initialize: a: %s.%s", this.name, serializer, action);
 
         if (action === "clone"){ // do nothing
+          this[serializer] = new H.LIB[H.noun(serializer)](this);
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
           ( obj[action] && obj[action]() );
 
         } else {
-          deb("   IGN: logger: %s", serializer);
+          // deb("   CTX: ignored logger: %s", serializer);
 
         }
 
@@ -183,13 +210,30 @@ HANNIBAL = (function(H){
       deb("   CTX: %s initialized", this.name);
 
     },
+    connectExplorer:  function(launcher){
+      H.extend(this, {
+        connector:           "explorer",
+        params:              H.toArray(arguments),
+        launcher:            launcher,
+        effector:            new H.LIB.Effector({connector: "explorer"}),
+      });
+    },
+    connectSimulator: function(launcher){
+      H.extend(this, {
+        connector:           "simulator",
+        params:              H.toArray(arguments),
+        launcher:            launcher,
+        effector:            new H.LIB.Effector({connector: "simulator"}),
+      });
+    },
     connectEngine: function(launcher, gameState, sharedScript, settings){
 
       H.extend(this, {
 
         connector:           "engine",
+        params:              H.toArray(arguments),
         launcher:            launcher,
-        config:              H.Config,                          // 
+        effector:            new H.LIB.Effector({connector: "engine"}),
 
         id:                  settings.player,                   // bot id, used within 0 A.D.
         difficulty:          settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
@@ -216,22 +260,6 @@ HANNIBAL = (function(H){
         techmodifications:   sharedScript._techModifications,
         player:              sharedScript.playersData[settings.player],
         players:             sharedScript.playersData,
-
-        effector:            new H.LIB.Effector({connector: "engine"}),
-
-        query:               (hcq, debug) => {
-          return new H.LIB.Query(this.culture.store, hcq, debug);
-        },
-        class2name:          klass => {
-          return new H.LIB.Query(this.culture.store, klass + " CONTAIN").first().name;
-        },
-
-        operators:           H.HTN.Economy.operators,
-        methods:             H.HTN.Economy.methods,
-        planner:             new H.HTN.Planner(this, {
-          name:      "eco.planner",
-          verbose:   1
-        }),
 
       });
 

@@ -68,7 +68,7 @@ HANNIBAL = (function (H){
         this.main    = data.main;
         this.centres = data.centres;
       }
-      deb("  VILL: deserialized: %s", uneval(data));
+      // deb("  VILL: deserialized: %s", uneval(data));
     },
     serialize: function () {
       return {
@@ -77,7 +77,7 @@ HANNIBAL = (function (H){
       };
     },
     initialize: function () {
-      deb("  VILL: initializing: %s", uneval(this.centres));
+      // deb("  VILL: initializing: %s", uneval(this.centres));
       if (this.centres === null){
         this.centres = {};
         this.organizeVillages(); // set metadata.cc to nearest cc
@@ -164,8 +164,8 @@ HANNIBAL = (function (H){
         deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
       }
 
-      deb();
-      deb("  VILL: organize villages for %s civic centres [%s]", ccNodes.length, ccNodes.map(c => c.id).join(", "));
+      // deb();
+      // deb("  VILL: organize villages for %s civic centres [%s]", ccNodes.length, ccNodes.map(c => c.id).join(", "));
       
       this.query("INGAME").forEach( node => {
 
@@ -200,14 +200,14 @@ HANNIBAL = (function (H){
       this.main = getMain();
 
       H.each(this.centres, (id, amount) => {
-        deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === this.main ? "X" : ""));
+        // deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === this.main ? "X" : ""));
       });
 
     },    
 
     initializeMeta: function () {
 
-      deb("     V: setting operators for shared buildings and Main CC in metadata");
+      // deb("     V: setting operators for shared buildings and Main CC in metadata");
 
       //TODO: test for multiple villages
       // find units and buildings not belonging to a group and

@@ -34,12 +34,12 @@ HANNIBAL = (function(H){
       stock: H.deepcopy(ress), 
       // totals gathered, difference per tick, flow = avg over diff
       suply: H.deepcopy(ress), 
-      diffs: H.map(ress, H.createRingBuffer.bind(null, bufferLength)),
+      diffs: H.map(ress, H.createRingBuffer.bind(null, bufferLength, [], 0, 0)),
       flows: H.deepcopy(ress), 
       alloc: H.deepcopy(ress), // allocated per queue
       forec: H.deepcopy(ress), // ???
       trend: H.deepcopy(ress), // as per suply
-      stack: H.map(ress, H.createRingBuffer.bind(null, bufferLength)), // last x stock vals
+      stack: H.map(ress, H.createRingBuffer.bind(null, bufferLength, [], 0, 0)), // last x stock vals
 
     });
 
@@ -48,9 +48,39 @@ HANNIBAL = (function(H){
   H.LIB.Stats.prototype = {
     constructor: H.LIB.Stats,
     log: function(){
-      deb(" STATS: stock: %s", JSON.stringify(this.stock));
+      deb();
+      deb("   STS: stock: %s", JSON.stringify(this.stock));
     },
-    initialize: function(data){
+    initialize: function(){
+      // if (data){
+      //   H.extend(this, {
+      //     stock: data.stock, 
+      //     suply: data.suply, 
+      //     diffs: H.map(data.diffs, (key, data) => H.createRingBuffer.apply(null, data)), // last x stock vals
+      //     flows: data.flows, 
+      //     alloc: data.alloc,
+      //     forec: data.forec, 
+      //     trend: data.trend, 
+      //     stack: H.map(data.stack, (key, data) => H.createRingBuffer.apply(null, data)), // last x stock vals
+      //   });
+
+      // } else {
+        this.tick();
+      // }
+      return this;
+    },
+    clone: function(context){
+      return (
+        new H.LIB[H.noun(this.name)](context)
+          .import()
+          .deserialize(this.serialize())
+      );
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    deserialize: function(data){ // child
       if (data){
         H.extend(this, {
           stock: data.stock, 
@@ -62,21 +92,7 @@ HANNIBAL = (function(H){
           trend: data.trend, 
           stack: H.map(data.stack, (key, data) => H.createRingBuffer.apply(null, data)), // last x stock vals
         });
-
-      } else {
-        this.tick();
       }
-      return this;
-    },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
     serialize: function(){
@@ -137,7 +153,7 @@ HANNIBAL = (function(H){
         "metadata",
       ],
 
-      producers: {},
+      producers: null,
 
       info:      {
         id:        0,   // entity id
@@ -154,10 +170,15 @@ HANNIBAL = (function(H){
   H.LIB.Producers.prototype = {
     constructor: H.LIB.Producers,
     log: function(){
-      H.each(this.producers, function(nameid){
-        var [name, id] = nameid.split("#");
-        deb("   PDC: %s %s info: %s", id, name, this.infoProducer(name));
-      });
+      deb();
+      if (H.count(this.producers)){
+        H.each(this.producers, nameid => {
+          var [name, id] = nameid.split("#");
+          deb("   PDC: log: %s %s info: %s", id, name, this.infoProducer(name));
+        });
+      } else {
+        deb("   PDC: log: no producer registered");
+      }
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -170,29 +191,53 @@ HANNIBAL = (function(H){
           .initialize(this.serialize())
       );
     },
+    deserialize: function(data){ // child
+      deb("   PDC: deserialize.in: %s", uneval(data));
+      this.producers = data ? data : null; //{};
+      return this;
+    },
     serialize: function(){
       return H.deepcopy(this.producers);
     },
-    initialize: function(producers){
-      if (!producers){
-        this.query("INGAMES").forEach( node => {
-          this.register(node);
-        });
-      } else {
-        this.producers = H.deepcopy(producers);
-      }
+    initialize: function(){
       return this;
     },
-    isProducer: function(name){
-      return (this.culture.tree[name] && this.culture.tree[name].products.count);
+    finalize: function(){
+      deb("   PDC: finalize.in: %s", uneval(this.producers));
+      if (!this.producers){
+        this.producers = {};
+        this.query("INGAME").execute().forEach( node => {
+          this.register(node);
+        });
+      }
+    },
+    register: function(node){
+
+      var check, [name, id] = node.name.split("#");
+
+      deb("   PDC: to register: %s, %s", name, id);
+
+      check = (
+        !this.producers[node.name] &&                 // is not already known
+        this.culture.tree.nodes[name] &&              // is a node
+        this.culture.tree.nodes[name].products.count  // has products
+      ); 
+
+      if (check){
+        this.producers[node.name] = H.mixin(H.deepcopy(this.info), {id: ~~id, name:   name});
+        deb("   PDC: registered: %s", uneval(this.producers[node.name]));
+      } else {
+        deb("   PDC: NOT registered: %s, %s", name, id);
+      }
+
     },
     infoProducer: function(name){
-      var 
-        tree     = this.culture.tree,
-        train    = H.count(tree[name].products.train),
-        build    = H.count(tree[name].products.build),
-        research = H.count(tree[name].products.research);
-      return H.format("procucer: %s trains: %s, builds: %s, researches: %s", name, train, build, research);
+      var tree = this.culture.tree.nodes;
+      return H.format("producer: %s train: %s, build: %s, research: %s", name,
+        H.count(tree[name].products.train),
+        H.count(tree[name].products.build),
+        H.count(tree[name].products.research)
+      );
     },
     resetAllocs: function(){
       H.each(this.producers, (name, producer) => {
@@ -226,19 +271,6 @@ HANNIBAL = (function(H){
         }
       }      
       return null;
-    },
-    register: function(node){
-
-      var nameid = node.name, parts = nameid.split("#");
-
-      if (this.isProducer(name) && !this.producers[nameid]){
-        this.producers[nameid] = H.mixin(H.deepcopy(this.info), {
-          id:     ~~parts[1],
-          name:   parts[0], 
-        });
-        // deb("   PDC: reg: %s", uneval(this.producers[nameid]));
-      }
-
     },
     remove: function(nodeOrId){
       
@@ -348,7 +380,7 @@ HANNIBAL = (function(H){
 
       report: {rem: [], exe: [], ign: []},
       tP: 0, // processing time, msecs
-      queue: [],
+      queue: null,
 
       logProcessing: false,
       logWaiting:    false,
@@ -359,7 +391,16 @@ HANNIBAL = (function(H){
 
   H.LIB.Orderqueue.prototype = {
     constructor: H.LIB.Orderqueue,
-    log: function(){},
+    log: function(){
+      deb();
+      if (this.queue.length){
+        this.queue.forEach( order => {
+          order.log();
+        });
+      } else {
+        deb("   ORQ: empty");
+      }
+    },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
@@ -371,24 +412,27 @@ HANNIBAL = (function(H){
           .initialize(this.serialize())
       );
     },
-    initialize: function(data){
-      if (data){
+    deserialize: function(data){
+      if(data){
+        this.queue = [];
         data.forEach( order => {
           this.queue.push(
             new H.LIB.Order(this.context)
               .import()
-              .initialize(order)
+              .deserialize(order)
           );
         });
       }
       return this;
     },
+    initialize: function(data){
+      if (!this.queue){
+        this.queue = [];
+      }
+      return this;
+    },
     serialize: function(tick, secs){
-      var data = [];
-      this.queue.forEach( order => {
-        data.push(order.serialize());
-      });
-      return data;
+      return this.queue.map( order => order.serialize());
     },
     delete: function(fn){return H.delete(this.queue, fn);},
     process: function(logWaiting=false){
@@ -776,7 +820,9 @@ HANNIBAL = (function(H){
 
   H.LIB.Economy.prototype = {
     constructor: H.LIB.Economy,
-    log: function(){},
+    log: function(){
+      this.childs.forEach(child => this[child].log());
+    },
     logTick: function(){
       var 
         stock = this.stats.stock, 
@@ -811,6 +857,7 @@ HANNIBAL = (function(H){
       if (this.context.data[this.name]){
         this.childs.forEach( child => {
           if (this.context.data[this.name][child]){
+            deb("   ECO: child.deserialize: %s", child);
             this[child] = new H.LIB[H.noun(child)](this.context)
               .import()
               .deserialize(this.context.data[this.name][child]);
@@ -820,14 +867,21 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
       this.childs.forEach( child => {
-        // deb("ECO.child: %s", child);
         if (!this[child]){
+          deb("   ECO: child.initialize: %s", child);
           this[child] = new H.LIB[H.noun(child)](this.context)
             .import()
             .initialize();
         }
       });
       return this;
+    },
+    finalize: function(){
+      this.childs.forEach( child => {
+        if (this[child].finalize){
+          this[child].finalize();
+        } 
+      });
     },
     activate: function(){
       var node, order;

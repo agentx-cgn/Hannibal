@@ -292,7 +292,7 @@ displayName(fn)
 isAsmJSCompilationAvailable
   Returns whether asm.js compilation is currently available or whether it is disabled
   (e.g., by the debugger).
-isSimdAvailable
+isSimdAvailable()
   Returns true if SIMD extensions are supported on this platform.
 getCompilerOptions()
 Return an object describing some of the JIT compiler options.

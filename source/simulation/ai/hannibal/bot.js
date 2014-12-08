@@ -47,21 +47,27 @@ HANNIBAL = (function(H){
       return (
         new H.LIB.Bot(context)
           .import()
-          .initialize(this.serialize())
+          .deserialize(this.serialize())
       );
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
+    deserialize: function(data){
+      return this;
+    },
     serialize: function(){
       var data = {};
-      this.imports.forEach( imp => {
-        if(this[imp] && typeof this[imp].serialize === "function"){
-          // deb("import: %s", imp);
-          data[imp] = this[imp].serialize();
-        }
-      });
+      // this.context.serializer.forEach(serializer => {
+      //   data[serializer] = this[imp].serialize();
+      // })
+      // this.imports.forEach( imp => {
+      //   if(this[imp] && typeof this[imp].serialize === "function"){
+      //     // deb("import: %s", imp);
+      //     data[imp] = this[imp].serialize();
+      //   }
+      // });
       return data;
     },
     initialize: function(){

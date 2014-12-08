@@ -87,17 +87,19 @@ HANNIBAL = (function(H){
     constructor: H.LIB.Brain,
     log: function(){},
     clone: function(context){
-      return new H.LIB.Brain(context);
+      context.data[this.name] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
-    deserialize: function(data){
-      H.extend(this, data);
-      return this;
+    deserialize: function(){
+      if (this.context.data[this.name]){
+        H.extend(this, this.context.data[this.name]);
+      }
     },
-    serialize: function(data){
+    serialize: function(){
       return {};
     },
     initialize: function(){

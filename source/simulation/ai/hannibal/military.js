@@ -40,12 +40,16 @@ HANNIBAL = (function(H){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
+    deserialize: function(){
+      if (this.context.data[this.name]){
+        H.extend(this, this.context.data[this.name]);
+      }
+    },
     serialize: function(){
       return {};
     },
     initialize: function(){
-    },
-    deserialize: function(){
+      return this;
     },
     activate: function(){
 

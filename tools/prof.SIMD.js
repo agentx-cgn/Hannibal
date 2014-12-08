@@ -14,6 +14,27 @@ var
 
 deb("Start V: %s, O: %s", version(), options());
 
+
+// SIMD in JavaScript, By Ivan Jibaja, Senior Software Engineer, Intel Corporation
+// https://01.org/node/1495
+
+
+// getBuildConfiguration();
+// build();
+// isSimdAvailable()
+// typein:12:0 ReferenceError: getCompilerOptions is not defined
+
+// js> Object.getOwnPropertyNames(SIMD)
+// ["float32x4", "int32x4"]
+
+// js> Object.getOwnPropertyNames(SIMD.float32x4)
+// ["byteLength", "byteAlignment", "toSource", "array", "equivalent", "prototype", "abs", "fromInt32x4", "fromInt32x4Bits", 
+// "neg", "not", "reciprocal", "reciprocalSqrt", "splat", "sqrt", "add", "and", "div", "equal", "greaterThan", 
+// "greaterThanOrEqual", "lessThan", "lessThanOrEqual", "load", "loadXYZ", "loadXY", "loadX", "max", "maxNum", 
+// "min", "minNum", "mul", "notEqual", "or", "store", "storeXYZ", "storeXY", "storeX", "sub", "withX", "withY", "withZ", "withW", 
+// "xor", "clamp", "select", "swizzle", "shuffle"]
+
+
 function process0(source, target){
   
   var t0 = dateNow(), s, i = length;

@@ -94,7 +94,7 @@ var HANNIBAL = (function() {
 
     // connect the context
     this.context.connectEngine(this, gameState, sharedScript, this.settings);
-    this.context.initialize();
+    this.context.initialize(H.Config);
 
     // This bot faces the other players
     this.bot = this.context.createBot();
@@ -107,23 +107,23 @@ var HANNIBAL = (function() {
     deb();
 
     // clone second context to compare serialization
-    this.secondContext = this.context.clone();
-    this.secondBot     = this.secondContext.createBot();
-    lines2 = exportJSON(this.secondContext.serialize(), "ctx2.serialized");
+    // this.secondContext = this.context.clone();
+    // this.secondBot     = this.secondContext.createBot();
+    // lines2 = exportJSON(this.secondContext.serialize(), "ctx2.serialized");
     
-    deb();
-    deb("################################################################################");
-    deb();
+    // deb();
+    // deb("################################################################################");
+    // deb();
 
     // third context via de/serialize
-    this.thirdContext = new H.LIB.Context("ctx3");
-    this.thirdContext.deserialize(this.secondContext.serialize());
-    this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
-    this.thirdContext.initialize();
+    // this.thirdContext = new H.LIB.Context("ctx3");
+    // this.thirdContext.deserialize(this.context.serialize());
+    // this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
+    // this.thirdContext.initialize(H.Config);
 
-    this.thirdContext.log();
-    this.thirdBot     = this.thirdContext.createBot();
-    lines3 = exportJSON(this.thirdContext.serialize(), "ctx3.serialized");
+    // this.thirdContext.log();
+    // this.thirdBot     = this.thirdContext.createBot();
+    // lines3 = exportJSON(this.thirdContext.serialize(), "ctx3.serialized");
 
     deb();
     deb("SRLIAZ: ctx 1: %s lines", lines1);
