@@ -25,7 +25,6 @@ print("#! xdotool init\n");
 
 Engine.IncludeModule("common-api");
 
-
 var HANNIBAL = (function() {
 
   var H = {
@@ -90,8 +89,6 @@ var HANNIBAL = (function() {
       H.Numerus.init(ss, gs);          
     }             
 
-    var lines1, lines2, lines3;
-
     // connect the context
     this.context.connectEngine(this, gameState, sharedScript, this.settings);
     this.context.initialize(H.Config);
@@ -99,12 +96,20 @@ var HANNIBAL = (function() {
     // This bot faces the other players
     this.bot = this.context.createBot();
     
-    this.context.log();
-    lines1 = exportJSON(this.context.serialize(), "ctx1.serialized");
+    /*
 
-    deb();
-    deb("################################################################################");
-    deb();
+    Below is for development
+
+    */
+
+    var lines1, lines2, lines3, diff;
+    this.context.log();
+
+    // lines1 = exportJSON(this.context.serialize(), "ctx1.serialized");
+
+    // deb();
+    // deb("################################################################################");
+    // deb();
 
     // clone second context to compare serialization
     // this.secondContext = this.context.clone();
@@ -116,26 +121,24 @@ var HANNIBAL = (function() {
     // deb();
 
     // third context via de/serialize
-    // this.thirdContext = new H.LIB.Context("ctx3");
-    // this.thirdContext.deserialize(this.context.serialize());
-    // this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
-    // this.thirdContext.initialize(H.Config);
+    this.thirdContext = new H.LIB.Context("ctx3");
+    this.thirdContext.deserialize(this.context.serialize());
+    this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
+    this.thirdContext.initialize(H.Config);
+
+    diff = diffJSON(this.context.serialize(), this.thirdContext.serialize());
+    logJSON(diff, "ctx1 vs. ctx3");
 
     // this.thirdContext.log();
     // this.thirdBot     = this.thirdContext.createBot();
     // lines3 = exportJSON(this.thirdContext.serialize(), "ctx3.serialized");
 
-    deb();
-    deb("SRLIAZ: ctx 1: %s lines", lines1);
-    deb("SRLIAZ: ctx 2: %s lines", lines2);
-    deb("SRLIAZ: ctx 3: %s lines", lines3);
-    deb();
-    deb("################################################################################");
-    /*
-
-    Below is for development
-
-    */
+    // deb();
+    // deb("SRLIAZ: ctx 1: %s lines", lines1);
+    // deb("SRLIAZ: ctx 2: %s lines", lines2);
+    // deb("SRLIAZ: ctx 3: %s lines", lines3);
+    // deb();
+    // deb("################################################################################");
 
     /* run scripted actions named in H.Config.sequence */
     deb();
@@ -152,7 +155,7 @@ var HANNIBAL = (function() {
     deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
 
     this.initialized = true;
-    H.Config.deb = 0;
+    // H.Config.deb = 0; // suppress further log line
     return;
 
   };
@@ -215,6 +218,7 @@ var HANNIBAL = (function() {
       );
 
       // THIS IS THE MAIN ACT
+      this.timing.all = 0;
       this.timing.tst = H.Tester.tick(           secs, this.context.tick);
       this.timing.trg = H.Triggers.tick(         secs, this.context.tick);
       this.bot.tick(                             secs, this.context.tick, this.timing);

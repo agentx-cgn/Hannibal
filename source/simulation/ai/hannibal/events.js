@@ -58,13 +58,13 @@ HANNIBAL = (function(H){
         "TrainingFinished",
         "ConstructionFinished",
         "AIMetadata",
-        "Destroy",
         "Attacked",
         "OwnershipChanged",
         "Garrison",
         "UnGarrison",
         "RangeUpdate",
         "PlayerDefeated",
+        "Destroy",
       ],
 
       internalEvents:  [
@@ -150,8 +150,8 @@ HANNIBAL = (function(H){
         });
       });
 
-      this.savedEvents = [];
-      this.createEvents = {};
+      this.savedEvents =   [];
+      this.createEvents =  {};
       this.destroyEvents = {};
 
       return Date.now() - t0;
@@ -318,7 +318,25 @@ HANNIBAL = (function(H){
 
     /* Handler for API Events */
 
-    Create: function(e){}, 
+    Create: function(e){
+
+      var 
+        id     = e.entity, 
+        tpln   = this.entities[id] ? this.entities[id]._templateName : "unknown",
+        player = this.entities[id] ? this.entities[id].owner() : NaN;
+
+      if (!this.entities[id]){
+        this.createEvents[id] = tpln;
+
+      } else {
+        // deb("  EVTS: Create ent: %s, own: %s, tpl: %s, mats: %s", id, owner, tpln, H.attribs(e));
+        this.fire("Create", {
+          player: player,
+          id:     id,
+        });
+      }
+
+    }, 
     OwnershipChanged: function(e){},
     Garrison: function(e){},
     UnGarrison: function(e){},
@@ -378,12 +396,36 @@ HANNIBAL = (function(H){
       });
 
     },
+    Attacked: function(e){
+
+      // listener: assets, grids, mili?
+
+      // deb("   EVT: got attacked: %s", uneval(e));
+
+      if (this.entities[e.target]){
+
+        this.fire("Attacked", {
+          player: this.entities[e.target].owner(),
+          id:     e.target,
+          id2:    e.attacker,
+          data:   {damage: e.damage, type: e.type},
+        });
+
+      }
+
+    },
     Destroy: function(e){
 
       // listener: assets, culture, mili?
       // TODO are foundations removed from triple store by Renamed?
 
       var msg;
+
+      if (this.createEvents[e.entity]){
+        // deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
+        // looks like a failed structure
+        return;
+      }
 
       if (!e.entityObj){
         deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
@@ -408,126 +450,107 @@ HANNIBAL = (function(H){
       }
 
     },
-    Attacked: function(e){
-
-      // listener: assets, grids, mili?
-
-      // deb("   EVT: got attacked: %s", uneval(e));
-
-      if (this.entities[e.target]){
-
-        this.fire("Attacked", {
-          player: this.entities[e.target].owner(),
-          id:     e.target,
-          id2:    e.attacker,
-          data:   {damage: e.damage, type: e.type},
-        });
-
-      }
-
-    },
 
   };
 
   // // public interface
   // H.Events = (function(){
 
-  //   var t0;
+    //   var t0;
 
-  //   return {
-  //     boot:    function(){self = this; return self;},
-  //     collect: function(newEvents){packs.push(newEvents);},
-  //     logTick: function(events){
-  //       var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
-  //           sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
-  //       if (sum){
-  //         deb.apply(null, [msgTick].concat(lengths));
-  //       }
-  //     },
-  //     tick:    function(){
+    //   return {
+    //     boot:    function(){self = this; return self;},
+    //     collect: function(newEvents){packs.push(newEvents);},
+    //     logTick: function(events){
+    //       var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
+    //           sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
+    //       if (sum){
+    //         deb.apply(null, [msgTick].concat(lengths));
+    //       }
+    //     },
+    //     tick:    function(){
 
-  //       // dispatches new techs and finally fifo processes 
-  //       // collected event packs and then single events in order defined above
+    //       // dispatches new techs and finally fifo processes 
+    //       // collected event packs and then single events in order defined above
 
-  //       t0 = Date.now();
+    //       t0 = Date.now();
 
-  //       processTechs();
+    //       processTechs();
 
-  //       packs.forEach(function(events){
-  //         self.logTick(events);
-  //         orderedEvents.forEach(function(type){
-  //           if (events[type]){
-  //             events[type].forEach(function(event){
-  //               handler[type](event);
-  //             });
-  //           }
-  //         });
-  //       });
+    //       packs.forEach(function(events){
+    //         self.logTick(events);
+    //         orderedEvents.forEach(function(type){
+    //           if (events[type]){
+    //             events[type].forEach(function(event){
+    //               handler[type](event);
+    //             });
+    //           }
+    //         });
+    //       });
 
-  //       packs = [];
-  //       createEvents = {};
-  //       destroyEvents = {};
+    //       packs = [];
+    //       createEvents = {};
+    //       destroyEvents = {};
 
-  //       return Date.now() - t0;
+    //       return Date.now() - t0;
 
-  //     },
-  //     fire: function(name, msg){
-  //       return dispatchMessage(new Message(name, msg));
-  //     },
-  //     readArgs: function (type /* [player, ] listener */) {
+    //     },
+    //     fire: function(name, msg){
+    //       return dispatchMessage(new Message(name, msg));
+    //     },
+    //     readArgs: function (type /* [player, ] listener */) {
 
-  //       var player, listener, callsign, args = H.toArray(arguments);
+    //       var player, listener, callsign, args = H.toArray(arguments);
 
-  //       if (args.length === 1 && typeof args[0] === "function"){
-  //         type     = "*";
-  //         player   = "*";
-  //         listener = args[0];
+    //       if (args.length === 1 && typeof args[0] === "function"){
+    //         type     = "*";
+    //         player   = "*";
+    //         listener = args[0];
 
-  //       } else if (args.length === 2 && typeof args[1] === "function"){
-  //         type     = args[0];
-  //         player   = H.Bot.id;
-  //         listener = args[1];
+    //       } else if (args.length === 2 && typeof args[1] === "function"){
+    //         type     = args[0];
+    //         player   = H.Bot.id;
+    //         listener = args[1];
 
-  //       } else if (args.length === 3 && typeof args[2] === "function"){
-  //         type     = args[0];
-  //         player   = args[1];
-  //         listener = args[2];
+    //       } else if (args.length === 3 && typeof args[2] === "function"){
+    //         type     = args[0];
+    //         player   = args[1];
+    //         listener = args[2];
 
-  //       } else {
-  //         deb("ERROR: Events.on is strange: %s", uneval(args));
-  //         return [];
+    //       } else {
+    //         deb("ERROR: Events.on is strange: %s", uneval(args));
+    //         return [];
 
-  //       }
+    //       }
 
-  //       return [type, player, listener, "unknown"];
+    //       return [type, player, listener, "unknown"];
 
-  //     },
-  //     off: function (/* [type, [player, ]] listener */) {
+    //     },
+    //     off: function (/* [type, [player, ]] listener */) {
 
-  //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+    //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
 
-  //       H.delete(dispatcher["*"]["*"],     l => l === listener);
-  //       H.delete(dispatcher[player]["*"],  l => l === listener);
-  //       H.delete(dispatcher[player][type], l => l === listener);
+    //       H.delete(dispatcher["*"]["*"],     l => l === listener);
+    //       H.delete(dispatcher[player]["*"],  l => l === listener);
+    //       H.delete(dispatcher[player][type], l => l === listener);
 
-  //     },
-  //     on: function (/* [type, [player, ]] listener */) {
+    //     },
+    //     on: function (/* [type, [player, ]] listener */) {
 
-  //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
+    //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
 
-  //       registerListener(player, type, listener);
+    //       registerListener(player, type, listener);
 
-  //       // allows to add/sub type afterwards
-  //       return {
-  //         add : function(type){registerListener(player, type, listener);},
-  //         sub : function(type){removeListener(player, type, listener);}
-  //       };
+    //       // allows to add/sub type afterwards
+    //       return {
+    //         add : function(type){registerListener(player, type, listener);},
+    //         sub : function(type){removeListener(player, type, listener);}
+    //       };
 
-  //     },
+    //     },
 
-  //   };
+    //   };
 
-  // }()).boot();
+    // }()).boot();
 
 return H; }(HANNIBAL));
-

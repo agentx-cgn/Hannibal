@@ -17,31 +17,37 @@ HANNIBAL = (function(H){
 
   H.LIB.Bot = function(context){
 
-    this.context = context;
-    this.imports = [
-      "id",           "width",         "height",
-      "player",       "players",
-      "entities",     "metadata",
-      "templates",    "techtemplates", "technologies",
-      "events",
-      "effector",
-      "map",
-      "brain",
-      "groups",
-      "economy",
-      "culture",
-      "effector",
-      "military",
-      "villages",
-      "resources",
-    ];
+    H.extend(this, {
+
+      name:    "bot",
+      context: context,
+      imports: [
+        "id",
+        "player",
+        "entities",
+        "templates",
+        "events",
+        "effector",
+        "map",
+        "brain",
+        "groups",
+        "economy",
+        "culture",
+        "effector",
+        "military",
+        "villages",
+        "resources",
+      ],
+
+    });
 
   };
 
   H.LIB.Bot.prototype = {
     constructor: H.LIB.Bot,
+    toString: function(){return H.format("[bot %s.%s]", this.context.name, this.name);},
     log: function(){
-      deb("   BOT: loaded");
+      deb("   BOT: loaded: %s", this);
     },
     clone: function(context){
       return (
@@ -59,15 +65,6 @@ HANNIBAL = (function(H){
     },
     serialize: function(){
       var data = {};
-      // this.context.serializer.forEach(serializer => {
-      //   data[serializer] = this[imp].serialize();
-      // })
-      // this.imports.forEach( imp => {
-      //   if(this[imp] && typeof this[imp].serialize === "function"){
-      //     // deb("import: %s", imp);
-      //     data[imp] = this[imp].serialize();
-      //   }
-      // });
       return data;
     },
     initialize: function(){
@@ -76,27 +73,29 @@ HANNIBAL = (function(H){
     activate: function(){},
     tick: function(tick, secs, timing){
 
-      // if (tick === 0){
+      // logObject(this.map, "this.map");
 
-      //   // allow processing autoresearch first
-      //   timing.brn = this.brain.tick(         secs, tick);
-      //   timing.map = this.map.tick(           secs, tick);
-      //   timing.gps = this.groups.tick(        secs, tick);
-      //   timing.mil = this.military.tick(      secs, tick);
-      //   timing.sts = this.economy.stats.tick( secs, tick);
-      //   timing.eco = this.economy.tick(       secs, tick);
+      if (tick === 0){
 
-      // } else {
+        // allow processing autoresearch first
+        timing.brn = this.brain.tick(         secs, tick);
+        timing.map = this.map.tick(           secs, tick);
+        timing.gps = this.groups.tick(        secs, tick);
+        timing.mil = this.military.tick(      secs, tick);
+        timing.sts = this.economy.stats.tick( secs, tick);
+        timing.eco = this.economy.tick(       secs, tick);
 
-      //   timing.evt = this.events.tick(        secs, tick);
-      //   timing.brn = this.brain.tick(         secs, tick);
-      //   timing.map = this.map.tick(           secs, tick);
-      //   timing.gps = this.groups.tick(        secs, tick);
-      //   timing.mil = this.military.tick(      secs, tick);
-      //   timing.sts = this.economy.stats.tick( secs, tick);
-      //   timing.eco = this.economy.tick(       secs, tick);
+      } else {
 
-      // }
+        timing.evt = this.events.tick(        secs, tick);
+        timing.brn = this.brain.tick(         secs, tick);
+        timing.map = this.map.tick(           secs, tick);
+        timing.gps = this.groups.tick(        secs, tick);
+        timing.mil = this.military.tick(      secs, tick);
+        timing.sts = this.economy.stats.tick( secs, tick);
+        timing.eco = this.economy.tick(       secs, tick);
+
+      }
 
     },
 

@@ -9,6 +9,10 @@
   everything non domain H.[lowercase] should be here.
   V: 0.1, agentx, CGN, Feb, 2014
 
+  Credits: 
+    http://www.140byt.es
+    http://rosettacode.org/wiki/Category:JavaScript
+
 */
 
 // a > b ? 1 : -1 biggest first, http://blog.rodneyrehm.de/archives/14-Sorting-Were-Doing-It-Wrong.html
@@ -62,10 +66,10 @@ H.extend(H, {
   isInteger:  function (n){return Math.floor(n) === n;},
   pareto:     function (alpha) {return 1.0 / Math.pow((1 - Math.random()), 1.0 / alpha);},
   rndClamp:   function (min, max){return Math.random()*(max-min+1) + min;},
+  isPrime:    function (n, i){for(i=n;n%--i;);return i===1;},
 
   // strings
   replace:    function (s,f,r){return s.replace(new RegExp(H.escapeRex(f), "g"), r);},
-  padZero:    function (num, len){len = len || 2; num = "0000" + num; return num.substr(num.length-2, 2);},
   format:     function (){var a=H.toArray(arguments),s=a[0].split("%s"),p=a.slice(1).concat([""]),c=0;return s.map(function(t){return t + p[c++];}).join("");},
   mulString:  function (s, l){return new Array(l+1).join(s);},
   escapeRex:  function (s){return s.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");},
@@ -75,7 +79,25 @@ H.extend(H, {
   replaceAll: function (find, replace, str) {return str.replace(new RegExp(H.escapeRex(find), "g"), replace);},
   endsWith:   function (str, end){var l0=str.length,l1=end.length; return str.slice(l0-l1,l0) === end;},
   noun:       function (s){return s[0].toUpperCase()+s.slice(1).toLowerCase();},
+  // padZero:    function (num, len){len = len || 2; num = "0000" + num; return num.substr(num.length-2, 2);},
+  padZero:    function (n, i){i=i||2;return (1e15+n+"").slice(-i);},
+  spark:      function (a,b,c,d,e){b=a.slice().sort();c="";for(d=0;d<(e=b.length);c+=["","▁","▃","▅","▆","█"][-~(4*(a[d++]-b[0])/(b[e-1]-b[0]))]);return c;},
   
+  // html
+  urlquery:   function (a,b,c,d,e){
+    for(b=/[?&]?([^=]+)=([^&]*)/g,
+      c={},
+      e=decodeURIComponent; 
+      d=b.exec(a.replace(/\+/g," ")); 
+      c[e(d[1])]=e(d[2])
+      ); 
+      return c;},
+  spinner:    function (a){function b(){
+    a.innerHTML="◴◷◶◵".charAt(b=-~b%4);}
+    setInterval(b,250/(a||1));
+    b(a=document.createElement("b"));
+    return a;},
+
   // objects
   // each:       function (o,fn){var a;for(a in o){if(o.hasOwnProperty(a)){fn(a,o[a]);}}},
   // attribs:    function (o){var a,n=[];for(a in o){if(o.hasOwnProperty(a)){n.push(a);}}return n;},

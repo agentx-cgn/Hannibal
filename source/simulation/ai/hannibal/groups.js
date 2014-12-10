@@ -27,6 +27,7 @@ HANNIBAL = (function(H){
         "culture",
         "query",
         "entities",
+        "resources", // used in supply groups
         "economy",
       ],
 
@@ -103,7 +104,6 @@ HANNIBAL = (function(H){
           this.metadata[msg.id].opid   = host.id;
 
           instance = this.instances.find(i => i.id === order.instance);
-          // client = this.objects(order.source).instance;
           host.listener.onConnect(instance.listener);
 
         }
@@ -118,14 +118,12 @@ HANNIBAL = (function(H){
       
       var interval, t0 = Date.now();
       
-      H.each(this.instances, (groupsname, list) => {
-        list.forEach(instance => {
-          interval = ~~instance.interval; 
-          if (interval > 0 && (tick % interval === 0) && instance.listener.onInterval){ 
-            instance.assets.forEach(asset => asset.tick(secs, tick));
-            instance.listener.onInterval(secs, tick);
-          }
-        });
+      this.instances.forEach(instance => {
+        interval = ~~instance.interval; 
+        if (interval > 0 && (tick % interval === 0) && instance.listener.onInterval){ 
+          // instance.assets.forEach(asset => asset.tick(secs, tick)); //??
+          instance.listener.onInterval(secs, tick);
+        }
       });
 
       return Date.now() - t0;
@@ -166,12 +164,22 @@ HANNIBAL = (function(H){
       });
 
     },    
-    find: function (fn){
+    findGroups: function (fn){
       return this.instances.filter(fn);
+    },
+    findAssets: function (fn){
+      var out = [];
+      this.instances
+        .forEach(instance => {
+          instance.assets.forEach(asset => {
+            if (fn(asset)){out.push(asset);}
+          });
+        });
+      return out;
     },
     createAsset: function(config){
 
-      deb("  GRPS: createAsset.in: %s", H.attribs(config));
+      // deb("  GRPS: createAsset.in: %s", H.attribs(config));
 
       var 
         asset = new H.LIB.Asset(this.context).import(), 
@@ -180,12 +188,13 @@ HANNIBAL = (function(H){
         name = H.format("%s:%s#%s", config.instance.name, config.property, id),
         verb = this.getAssetVerb(definition);
 
-      deb("  GRPS: createAsset: id: %s, name: %s, def: ", id, name, definition);
-      deb("  GRPS: createAsset: hcq: %s", this.expandHCQ(definition[1], config.instance));
+      // deb("  GRPS: createAsset: id: %s, name: %s, def: ", id, name, definition);
+      // deb("  GRPS: createAsset: hcq: %s", this.expandHCQ(definition[1], config.instance));
 
       asset.initialize({
         id:          id,
         name:        name,
+        instance:    config.instance,
         definition:  definition,
         users:       config.users     || [],
         resources:   config.resources || [],
@@ -199,13 +208,13 @@ HANNIBAL = (function(H){
 
       asset.activate();
 
-      // deb("   AST: created: %s, res: %s", asset, uneval(asset.resources));
+      deb("  GRPS: created Asset: %s, res: %s", asset, uneval(asset.resources));
       
       return asset;
     },   
     getAssetVerb: function (definition){
 
-      var found = false, treenode, storenode, verb;
+      var found = false, treenode, verb;
 
       if (typeof definition[1] === "object"){
 
@@ -214,15 +223,13 @@ HANNIBAL = (function(H){
       } else if (typeof definition[1] === "string") {
 
         this.query(definition[1]).forEach( node => {  // mind units.athen.infantry.archer.a
-          treenode = this.culture.tree.nodes[node.name];
-          if(!found && treenode.verb){ 
+          if(!found && (treenode = this.culture.tree.nodes[node.name]) && treenode.verb){ 
             verb = treenode.verb;
-            storenode = node;
             found = true;
           }
         });
 
-        // deb("   AST: getAssetVerb: chose %s for %s [%s]", verb, storenode.name, verb.length);
+        // deb("   AST: getAssetVerb: chose %s for %s", verb, definition[1]);
 
         return verb;
 
@@ -261,7 +268,7 @@ HANNIBAL = (function(H){
       instance.assets.forEach(asset => asset.release());
       instance.assets = null;
       H.remove(this.instances, instance);
-      deb("GROUPS: dissolved %s", instance);
+      deb("  GRPS: dissolved %s", instance);
 
     },
     appoint: function(id, config){
@@ -330,17 +337,16 @@ HANNIBAL = (function(H){
       asset.isRequested = true;
 
       // Eco requests are postponed one tick to avoid unevaluated orders in queue
-      H.Triggers.add( -1,
-        H.Economy.request.bind(H.Economy, new H.Order({
+        this.economy.request(new H.LIB.Order(this.context).import().initialize({
           amount:     amount,
           cc:         instance.cc,
           location:   location,
           verb:       asset.verb, 
           hcq:        asset.hcq, 
           source:     asset.id, 
-          shared:     asset.shared
-        }))
-      );
+          shared:     asset.shared,
+          evaluated:  false
+        }));
 
       // deb("   GRP: requesting: (%s)", args);    
 
@@ -363,10 +369,15 @@ HANNIBAL = (function(H){
       var 
         self = this,
         instance  = {
+          klass:     "group",
           id:        config.id || this.context.idgen++,
           cc:        config.cc,
           groupname: config.groupname,
           listener:  {},
+
+          resources: this.resources, // needs lexical signature
+          economy:   this.economy,   //
+
         };
 
       // deb("  GRPS: have: %s, to launch %s", this.instances.length, uneval(instance));
@@ -405,23 +416,30 @@ HANNIBAL = (function(H){
         request:   self.request.bind(self, instance),
         claim:     self.claim.bind(self, instance),
         scan:      self.scan.bind(self, instance),
-        toString:  function(){return H.format("[group %s]", instance.name);},
+        toString:  function(){return H.format("[%s %s]", this.klass, instance.name);},
         register:  function(/* arguments */){
           // deb("     G: %s register: %s", instance.name, uneval(arguments));
+
+          // transforms primitive definition into live object
+          // except already done by deserialization
+
           H.toArray(arguments).forEach( property => {
-            // transform primitive definition into live object
-            // except already deserialized
-            if (!Array.isArray(instance[property])){
+
+            if (instance[property] instanceof H.LIB.Asset){
+              deb("  GRPS: did not register '%s' for %s", property, instance);
+            
+            } else {
               instance[property] = self.createAsset({
                 definition: instance[property],
                 instance:   instance,
                 property:   property,
               });
               instance.assets.push(instance[property]);
-            } else {
-              // deb("  GRPS: did not register %s, %s", property, instance.name);
+              deb("  GRPS: registered '%s' for %s", property, instance);
             }
+
           });
+
         },
         serialize: function(){
           return {

@@ -35,6 +35,10 @@ HANNIBAL = (function(H){
       interval:       4,              // call onInterval every x ticks
       parent:         "",             // inherit useful features
 
+      defaults:       {
+        size:         2,
+      },
+
       technologies: [                 // these techs help
                       "gather.lumbering.ironaxes",
                       "gather.capacity.wheelbarrow",
@@ -71,10 +75,10 @@ HANNIBAL = (function(H){
 
           // deb("     G: onlaunch %s", uneval(arguments));
 
-          this.options   = options;
-          this.size      = options.size;
+          // this.options   = options;
+          this.size      = options.size || this.defaults.size;
           this.resource  = options.resource;
-          this.target    = H.Resources.nearest(this.position, options.resource);
+          this.target    = this.resources.nearest(this.position, options.resource);
 
           if (!this.target){
             deb("   GRP: dissolving %s/", this.name, this.resource);
@@ -114,7 +118,7 @@ HANNIBAL = (function(H){
           );
 
           this.register("units", "dropsite", "dropsites");
-          this.economy.request(1, this.units, this.position);   
+          this.request(1, this.units, this.position);   
 
         },
         onAssign: function(asset){
@@ -127,12 +131,12 @@ HANNIBAL = (function(H){
 
             if (this.units.count === 1){
               if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
-                this.economy.request(1, this.dropsite, this.position); 
+                this.request(1, this.dropsite, this.position); 
               }  
             }
 
             if (this.units.count < this.size){
-              this.economy.request(1, this.units, this.position);   
+              this.request(1, this.units, this.position);   
             }
 
             if (this.target){
@@ -154,10 +158,10 @@ HANNIBAL = (function(H){
           deb("     G: %s onDestroy: %s", this, asset);
 
           if (this.units.match(asset)){
-            this.economy.request(1, this.units, this.position);
+            this.request(1, this.units, this.position);
 
           } else if (this.dropsite.match(asset)){
-            // this.economy.request(1, this.dropsite, this.position);
+            // this.request(1, this.dropsite, this.position);
 
           }
 
@@ -176,8 +180,7 @@ HANNIBAL = (function(H){
 
           if (this.units.doing("idle").count === this.units.count){
             this.dissolve();
-            deb("      G: %s finished supplying ", this, this.resource);
-            return;
+            deb("      G: %s finished supplying %s, all idle", this, this.resource);
           
           } else if (this.units.doing("idle").count > 0){
 

@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, TESTERDATA, warn, error, print */
+/*globals HANNIBAL, H, TESTERDATA, Engine, warn, error, print */
 
 /*--------------- D E B U G  --------------------------------------------------
 
@@ -125,6 +125,12 @@ function exportJSON (obj, filename){
 
 }
 
+function logJSON(obj, header){
+  var lines = JSON.stringify(obj, null, "  ").split("\n");
+  deb("   LOG: JSON: %s", header);
+  lines.forEach(line => deb("      " + line));
+  deb("   LOG: ----------");
+}
 
 
 function exportTemplates (tpls){
@@ -533,7 +539,70 @@ var logPlayers = function(players){
 
 
 
+function diffJSON (a, b) {
 
+  // https://github.com/paldepind/dffptch
+  
+  var 
+    O = Object, keys = O.keys,
+    aKey, bKey, aVal, bVal, rDelta, shortAKey, 
+    aKeys = keys(a).sort(),
+    bKeys = keys(b).sort(),
+    delta = {}, adds = {}, mods = {}, dels = [], recurses = {},
+    aI = 0, bI = 0;
+
+  // Continue looping as long as we haven't reached the end of both keys lists
+
+  while(aKeys[aI] !== undefined || bKeys[bI]  !== undefined || false) {
+    
+    aKey = aKeys[aI]; 
+    bKey = bKeys[bI];
+    aVal = a[aKey];
+    bVal = b[bKey];
+    shortAKey = String.fromCharCode(aI+48);
+
+    if (aKey == bKey) {
+
+      // We are looking at two equal keys this is a
+      // change – possibly to an object or array
+      
+      if (O(aVal) === aVal && O(bVal) === bVal) {
+      
+        // Find changs in the object recursively
+        rDelta = diffJSON(aVal, bVal);
+      
+        // Add recursive delta if it contains modifications
+        if (keys(rDelta)) {recurses[shortAKey] = rDelta;}
+      
+      } else if (aVal !== bVal) {
+        mods[shortAKey] = bVal;
+      
+      }
+      
+      aI++; bI++;
+
+    } else if (aKey > bKey || !aKey) {
+      // aKey is ahead, this means keys have been added to b
+      adds[bKey] = bVal;
+      bI++;
+
+    } else {
+      // bKey is larger, keys have been deleted
+      dels.push(shortAKey);
+      aI++;
+
+    }
+  }
+
+  // We only add the change types to delta if they contains changes
+  if (dels[0]) delta.d = dels;
+  if (keys(adds)[0]) delta.a = adds;
+  if (keys(mods)[0]) delta.m = mods;
+  // if (keys(recurses)[0]) delta.r = recurses;
+  
+  return delta;
+
+}
 
 // /* play area */
 

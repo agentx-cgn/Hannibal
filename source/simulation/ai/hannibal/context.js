@@ -41,9 +41,9 @@ HANNIBAL = (function(H){
       // "bot", 
     ];
 
-    // action sequence to init serializers
+    // action sequence to launch serializers
     this.sequence = [
-      "clone",         // either new Obj or Obj.clone
+      "create",         // either new Obj or Obj.clone
       "import",        // import properties from context
       "deserialize",   // if context contains data 
       "initialize",    // otherwise init from game data
@@ -117,26 +117,23 @@ HANNIBAL = (function(H){
       H.extend(this, data);
       this.name = name;
     },
-    clone: function(){
+    clone: function(name){
 
-      // creates a new context by de/serializing this one
-      // does initialize
+      // prepares a new context by de/serializing this one
 
-      var ctxClone = new H.LIB.Context(this.name + ".copy"); // TODO: name does not remain
+      var ctxClone;
 
-      // copy primitive data
+      name = name || this.name + ".copy";
+
+      ctxClone = new H.LIB.Context(name);
+
+      // copy primitive default data
       H.each(this.defaults, name => ctxClone[name] = this[name]);
-
-      // H.each(this, name => {
-      //   if (!H.contains(this.serializers, name)){
-      //     ctxClone[name] = this[name];
-      //   }
-      // });
 
       // reset id generator
       ctxClone.idgen = 1;  /// ????
 
-      // add connecter specific interfaces
+      // add helper, still confusing here
       H.extend(ctxClone, {
         query:      function(hcq, debug){
           return new H.LIB.Query(ctxClone.culture.store, hcq, debug);
@@ -146,12 +143,12 @@ HANNIBAL = (function(H){
         },
       });
 
-      // create serializers
+      // launch serializers
       this.runSequence( (action, serializer) => {
 
         var obj = ctxClone[serializer];
 
-        if (action === "clone"){
+        if (action === "create"){
           ctxClone[serializer] = this[serializer].clone(ctxClone);
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
@@ -194,14 +191,14 @@ HANNIBAL = (function(H){
 
         // deb("   CTX: %s initialize: a: %s.%s", this.name, serializer, action);
 
-        if (action === "clone"){ // do nothing
+        if (action === "create"){ 
           this[serializer] = new H.LIB[H.noun(serializer)](this);
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
           ( obj[action] && obj[action]() );
 
         } else {
-          // deb("   CTX: ignored logger: %s", serializer);
+          // logging for serializer disabled
 
         }
 
@@ -227,6 +224,8 @@ HANNIBAL = (function(H){
       });
     },
     connectEngine: function(launcher, gameState, sharedScript, settings){
+
+      var self = this;
 
       H.extend(this, {
 
@@ -260,6 +259,16 @@ HANNIBAL = (function(H){
         techmodifications:   sharedScript._techModifications,
         player:              sharedScript.playersData[settings.player],
         players:             sharedScript.playersData,
+
+        unitstates:          Proxy.create({  // sanitize UnitAI state
+          get: function (proxy, id) {
+            return (
+              self.entities[id] && self.entities[id]._entity.unitAIState ? 
+                H.replace(self.entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
+                undefined
+            ); 
+          }
+        }),
 
       });
 

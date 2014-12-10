@@ -170,11 +170,15 @@ HANNIBAL = (function(H){
   H.LIB.Producers.prototype = {
     constructor: H.LIB.Producers,
     log: function(){
+      var count;
       deb();
-      if (H.count(this.producers)){
-        H.each(this.producers, nameid => {
-          var [name, id] = nameid.split("#");
-          deb("   PDC: log: %s %s info: %s", id, name, this.infoProducer(name));
+      if ((count = H.count(this.producers))){
+        deb("   PDC: have %s producers", count);
+        H.attribs(this.producers)
+          .sort((a, b) => ~~a < ~~b ? -1 : 1)
+          .forEach( nameid => {
+            var [name, id] = nameid.split("#");
+            deb("     P: %s %s", id, this.infoProducer(name));
         });
       } else {
         deb("   PDC: log: no producer registered");
@@ -203,7 +207,7 @@ HANNIBAL = (function(H){
       return this;
     },
     finalize: function(){
-      deb("   PDC: finalize.in: %s", uneval(this.producers));
+      // deb("   PDC: finalize.in: %s", uneval(this.producers));
       if (!this.producers){
         this.producers = {};
         this.query("INGAME").execute().forEach( node => {
@@ -215,7 +219,7 @@ HANNIBAL = (function(H){
 
       var check, [name, id] = node.name.split("#");
 
-      deb("   PDC: to register: %s, %s", name, id);
+      // deb("   PDC: to register: %s, %s", name, id);
 
       check = (
         !this.producers[node.name] &&                 // is not already known
@@ -225,15 +229,15 @@ HANNIBAL = (function(H){
 
       if (check){
         this.producers[node.name] = H.mixin(H.deepcopy(this.info), {id: ~~id, name:   name});
-        deb("   PDC: registered: %s", uneval(this.producers[node.name]));
+        // deb("   PDC: registered: %s", uneval(this.producers[node.name]));
       } else {
-        deb("   PDC: NOT registered: %s, %s", name, id);
+        // deb("   PDC: NOT registered: %s, %s", name, id);
       }
 
     },
     infoProducer: function(name){
       var tree = this.culture.tree.nodes;
-      return H.format("producer: %s train: %s, build: %s, research: %s", name,
+      return H.format("name: %s train: %s, build: %s, research: %s", name,
         H.count(tree[name].products.train),
         H.count(tree[name].products.build),
         H.count(tree[name].products.research)
@@ -391,6 +395,9 @@ HANNIBAL = (function(H){
 
   H.LIB.Orderqueue.prototype = {
     constructor: H.LIB.Orderqueue,
+    logTick: function(){
+      deb("   ORQ: length: %s", this.queue.length);
+    },
     log: function(){
       deb();
       if (this.queue.length){
@@ -477,15 +484,17 @@ HANNIBAL = (function(H){
 
       // rep / debug
       msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
-      queue.forEach(o => {
-        var 
-          isWaiting = o.remaining === o.processing,
-          exec = o.executable ? "X" : "-",
-          source = H.isInteger(o.source) ? this.groups.findAsset(o.source).name : o.source,
-          nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
-        if(!(isWaiting && !logWaiting)){
-          deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
-        }
+      queue
+        .filter(o => o.evaluated)
+        .forEach(o => {
+          var 
+            isWaiting = o.remaining === o.processing,
+            exec = o.executable ? "X" : "-",
+            source = H.isInteger(o.source) ? this.groups.findAsset(o.source).name : o.source,
+            nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
+          if(!(isWaiting && !logWaiting)){
+            deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
+          }
       });
 
       // choose executables and process
@@ -563,7 +572,7 @@ HANNIBAL = (function(H){
       name: "order",
       context: context,
       imports: [
-        "id",
+        // "id",
         "economy",
         "query",
         "culture",
@@ -580,16 +589,17 @@ HANNIBAL = (function(H){
   H.LIB.Order.prototype = {
     constructor: H.LIB.Order,
     log: function(){},
+    logTick: function(){},
     initialize: function(config){
       H.extend(this, config, {
-        verb:       config.verb, 
-        hcq:        config.hcq, 
-        source:     config.source, 
-        shared:     config.shared,
+        // verb:       config.verb, 
+        // hcq:        config.hcq, 
+        // source:     config.source, 
+        // shared:     config.shared,
         id:         config.id         || this.context.idgen,
         x:          config.location ? config.location[0] : undefined,
         z:          config.location ? config.location[1] : undefined,
-        amount:     config.amount,
+        // amount:     config.amount,
         remaining:  config.remaining  || config.amount,
         processing: config.processing || 0,
         executable: config.executable || false,
@@ -857,7 +867,7 @@ HANNIBAL = (function(H){
       if (this.context.data[this.name]){
         this.childs.forEach( child => {
           if (this.context.data[this.name][child]){
-            deb("   ECO: child.deserialize: %s", child);
+            // deb("   ECO: child.deserialize: %s", child);
             this[child] = new H.LIB[H.noun(child)](this.context)
               .import()
               .deserialize(this.context.data[this.name][child]);
@@ -868,7 +878,7 @@ HANNIBAL = (function(H){
     initialize: function(){
       this.childs.forEach( child => {
         if (!this[child]){
-          deb("   ECO: child.initialize: %s", child);
+          // deb("   ECO: child.initialize: %s", child);
           this[child] = new H.LIB[H.noun(child)](this.context)
             .import()
             .initialize();
@@ -884,6 +894,7 @@ HANNIBAL = (function(H){
       });
     },
     activate: function(){
+      
       var node, order;
 
       this.events.on("EntityRenamed", msg => {
@@ -971,15 +982,11 @@ HANNIBAL = (function(H){
 
       var stock = this.stats.stock, t0 = Date.now();
 
-      if ((tick % this.config.economy.intervalMonitorGoals) === 0){
-        // this.monitorGoals();
-      }
-
       // sort availability by stock
       this.availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
 
       this.orderqueue.process();
-      this.orderqueue.log();
+      this.orderqueue.logTick();
       this.logTick();
       
       return Date.now() - t0;
@@ -1016,15 +1023,25 @@ HANNIBAL = (function(H){
       };
     },
     request: function(order){
+      
+      // probably useless layer, but eco may reject orders
 
       var  // debug
-        sourcename = H.Objects(order.source).name,  // this is an asset instance
-        loc = (order.location === undefined) ? "undefined" : order.location.map(p => p.toFixed(1)),
-        msg = "  EREQ: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s";
+        sourcename = this.groups.findAssets(g => g.id === order.source)[0].name,  // this is an group instance
+        loc = (order.location === undefined) ? "undefined" : order.location.map(p => p.toFixed(1));
 
-      this.orderqueue.queue.push(order);
+      this.orderqueue.queue.push(new H.LIB.Order(this.context).import().initialize(order));
 
-      deb(msg, order.id, order.verb, order.amount, order.cc || "NO CC" , loc, sourcename, order.shared, order.hcq.slice(0, 30));
+      deb("  EREQ: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
+        order.id, 
+        order.verb, 
+        order.amount, 
+        order.cc || "NO CC" , 
+        loc, 
+        sourcename, 
+        order.shared, 
+        order.hcq.slice(0, 30)
+      );
 
     },
     do: function(verb, amount, order, node){
@@ -1044,6 +1061,7 @@ HANNIBAL = (function(H){
 
         case "train" :
           task = this.context.idgen++;
+          // this.producers[node.name].queue.push([task, order])
           node.producer.queue.push([task, order]);
           deb(msg, order.id, verb, id, amount, template); 
           this.effector.train([id], template, amount, {order: order.id, task: task, cc:order.cc});

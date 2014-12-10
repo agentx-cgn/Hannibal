@@ -77,7 +77,6 @@ HANNIBAL = (function(H){
         "scanner",            // used by scouts
       ],
 
-      tick:          0,           // marks age of grids
       length:        0,
       territory:     null,        // copy from API 
       passability:   null,        // copy from API 
@@ -157,78 +156,6 @@ HANNIBAL = (function(H){
       return this;
 
     },
-    updateGrid: function(name){
-
-      var 
-        t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
-        terr, regl, regw, mask, counter = 0;
-
-
-      // translates into internal terrain (land, water, forbidden, steep, error)
-
-      if (name === "terrain"){
-
-        src = this.passability.data;
-        tgt = this.terrain.data;
-
-        while(i--){s = src[i]; tgt[i] = (
-                                                                  (s & 64)   ?   0 :   //  border      //   0
-                         (s &  8) && !(s & 16)                && !(s & 64)   ?   4 :   //  land        //  32
-            !(s & 4) && !(s &  8)                             && !(s & 64)   ?   8 :   //  shallow     //  64
-             (s & 4) && !(s &  8) && !(s & 16)                && !(s & 64)   ?  16 :   //  mixed       //  92
-                                      (s & 16)  && !(s & 32)  && !(s & 64)   ?  32 :   //  deep water  // 128
-             (s & 4) &&               (s & 16)  &&  (s & 32)  && !(s & 64)   ?  64 :   //  steep land  // 192
-               255                                                                     //  error       // 255
-          );
-        }
-        t1 = Date.now();
-        this.terrain.dump("init", 255);
-        // deb("   MAP: updated: terrain, ms: %s", t1 - t0);
-
-
-      // detects unconnected land regions
-
-      } else if (name === "regionsland") {
-
-        mask = 16 + 8 + 4;
-        terr = this.terrain.data;
-        regl = this.regionsland.data;
-
-        while (i--) {
-          s = terr[i]; t = regl[i];
-          if (t === 0 && ( s & mask) ) {
-            this.fillRegion(terr, regl, mask, i, ++counter);
-          }
-        }
-
-        t1 = Date.now();
-        this.regionsland.dump("init", 255);
-        // deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
-
-
-      } else if (name === "regionswater") {
-
-        mask = 16 + 32;
-        terr = this.terrain.data;
-        regw = this.regionswater.data;
-
-        while (i--) {
-          s = terr[i]; t = regw[i];
-          if (t === 0 && ( s & mask) ) {
-            this.fillRegion(terr, regw, mask, i, ++counter);
-          }
-        }
-
-        t1 = Date.now();
-        this.regionswater.dump("init", 255);
-        // deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
-
-
-      } else {
-        // deb("   MAP: initGrid: unknown grid: %s", name);
-      }
-
-    },
     activate: function(){
 
       this.events.on("Attack", msg => {
@@ -240,7 +167,6 @@ HANNIBAL = (function(H){
 
       var t0 = Date.now();
 
-      this.tick        = tick;
       this.territory   = this.context.territory;
       this.passability = this.context.passability;
 
@@ -335,6 +261,78 @@ HANNIBAL = (function(H){
           .filter(id => !!this.entities[id])
           .map(id => this.entities[id].position())
       );
+
+    },
+    updateGrid: function(name){
+
+      var 
+        t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
+        terr, regl, regw, mask, counter = 0;
+
+
+      // translates into internal terrain (land, water, forbidden, steep, error)
+
+      if (name === "terrain"){
+
+        src = this.passability.data;
+        tgt = this.terrain.data;
+
+        while(i--){s = src[i]; tgt[i] = (
+                                                                  (s & 64)   ?   0 :   //  border      //   0
+                         (s &  8) && !(s & 16)                && !(s & 64)   ?   4 :   //  land        //  32
+            !(s & 4) && !(s &  8)                             && !(s & 64)   ?   8 :   //  shallow     //  64
+             (s & 4) && !(s &  8) && !(s & 16)                && !(s & 64)   ?  16 :   //  mixed       //  92
+                                      (s & 16)  && !(s & 32)  && !(s & 64)   ?  32 :   //  deep water  // 128
+             (s & 4) &&               (s & 16)  &&  (s & 32)  && !(s & 64)   ?  64 :   //  steep land  // 192
+               255                                                                     //  error       // 255
+          );
+        }
+        t1 = Date.now();
+        this.terrain.dump("init", 255);
+        // deb("   MAP: updated: terrain, ms: %s", t1 - t0);
+
+
+      // detects unconnected land regions
+
+      } else if (name === "regionsland") {
+
+        mask = 16 + 8 + 4;
+        terr = this.terrain.data;
+        regl = this.regionsland.data;
+
+        while (i--) {
+          s = terr[i]; t = regl[i];
+          if (t === 0 && ( s & mask) ) {
+            this.fillRegion(terr, regl, mask, i, ++counter);
+          }
+        }
+
+        t1 = Date.now();
+        this.regionsland.dump("init", 255);
+        // deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
+
+
+      } else if (name === "regionswater") {
+
+        mask = 16 + 32;
+        terr = this.terrain.data;
+        regw = this.regionswater.data;
+
+        while (i--) {
+          s = terr[i]; t = regw[i];
+          if (t === 0 && ( s & mask) ) {
+            this.fillRegion(terr, regw, mask, i, ++counter);
+          }
+        }
+
+        t1 = Date.now();
+        this.regionswater.dump("init", 255);
+        // deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
+
+
+      } else {
+        // deb("   MAP: initGrid: unknown grid: %s", name);
+      }
 
     },
     fillRegion: function(src, tgt, mask, index, region){

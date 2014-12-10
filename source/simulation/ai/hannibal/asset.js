@@ -18,7 +18,7 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:  "asset",
+      klass:    "asset",
       context:  context,
       imports:  [
         "map",
@@ -27,6 +27,8 @@ HANNIBAL = (function(H){
         "effector",
         "states",
         "groups",
+        "metadata",
+        "unitstates",
         "entities", // attackTypes, position
       ],
 
@@ -61,7 +63,7 @@ HANNIBAL = (function(H){
     },
     clone: function(context){
       return (
-        new H.LIB[H.noun(this.name)](context)
+        new H.LIB[H.noun(this.klass)](context)
           .import()
           .initialize(this.serialize())
       );
@@ -72,17 +74,22 @@ HANNIBAL = (function(H){
     },
     initialize: function (data){
 
+      // name ??
       // id
-      // instance
-      // property
-      // resources
-      // verb
-      // hcq
-      // shared
-      // definition
-      // users
+      // instance     // the parent group 
+      // property     // property name
+      // resources    // array of ids
+      // verb         // the action performed
+      // hcq          // resource selector
+      // shared       // or private
+      // definition   // from group's assets
+      // users        // list of ??? for shared asset users
 
       H.extend(this, data);
+
+      deb("   AST: initialized: %s for %s with hcq: %s", this, this.instance, this.hcq || "unknown");
+
+      return this;
 
     },
     serialize: function(){
@@ -99,7 +106,7 @@ HANNIBAL = (function(H){
     get first  () {return this.toSelection(this.resources.slice(0, 1));},
     get center () {return this.map.getCenter(this.resources);},
     get spread () {return this.map.getSpread(this.resources);},
-    toString: function(){return H.format("[asset %s]", this.name);},
+    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     toLog:    function(){return "    AST: " + this + " " + JSON.stringify(this, null, "      : ");},
     toOrder:  function(){
       return {
@@ -108,6 +115,21 @@ HANNIBAL = (function(H){
         source: this.id, 
         shared: this.shared
       };
+    },
+    toSelection: function(resources){
+      var id = this.context.idgen++;
+      return (
+        new H.LIB.Asset(this.context)
+          .import()
+          .initialize({
+            id:        id,
+            name:      H.format("%s:%s#%s", this.instance.name, this.property, id),
+            klass:     "asset.selection",
+            instance:  this.instance, 
+            property:  this.property, 
+            resources: resources,
+          })
+      );
     },
     activate: function(){
       // logObject(this, "asset.this");
@@ -232,23 +254,11 @@ HANNIBAL = (function(H){
       }
 
     },
-    toSelection: function(){
-      var asset = new H.LIB.Asset(this.context);
-      asset.import();
-      asset.initialize({
-        id: this.context.idgen++, 
-        name: "selection",
-        instance: this.instance, 
-        property: this.property, 
-        resources: this.resources,
-      });
-      return asset;
-    },
     release:    function(){
       this.eventlist.forEach(e => this.events.off(e, this.handler));
       this.resources.forEach(id => {
         this.metadata[id].opname = "none";
-        this.metadate[id].opid = undefined;
+        this.metadata[id].opid = undefined;
       });
       // users ????
       // deb("   ASS: releasing %s", uneval(this.resources));          
@@ -280,18 +290,20 @@ HANNIBAL = (function(H){
       });
 
     },
-    doing: function(/* [who,] filters */){ // filters resource on ai state
+    doing: function(/* [who,] filters */){ 
+
+      // filters resources on unit ai state
 
       var 
-        al = arguments.length,
+        ids = [], 
+        al      = arguments.length,
         who     = (al === 1) ? this.resources : arguments[0],
         filters = (al === 1) ? arguments[0] : arguments[1],
-        ids = [], state, 
         actions = filters.split(" ").filter(a => !!a);
 
       actions.forEach(action => {
         who.forEach(id => {
-          state = H.States[id];
+          var state = this.unitstates[id];
           if (action[0] === "!"){
             if (state !== action.slice(1)){ids.push(id);}
           } else {
