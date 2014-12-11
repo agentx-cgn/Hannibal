@@ -121,13 +121,13 @@ var HANNIBAL = (function() {
     // deb();
 
     // third context via de/serialize
-    this.thirdContext = new H.LIB.Context("ctx3");
-    this.thirdContext.deserialize(this.context.serialize());
-    this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
-    this.thirdContext.initialize(H.Config);
+    // this.thirdContext = new H.LIB.Context("ctx3");
+    // this.thirdContext.deserialize(this.context.serialize());
+    // this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
+    // this.thirdContext.initialize(H.Config);
 
-    diff = diffJSON(this.context.serialize(), this.thirdContext.serialize());
-    logJSON(diff, "ctx1 vs. ctx3");
+    // diff = diffJSON(this.context.serialize(), this.thirdContext.serialize());
+    // logJSON(diff, "ctx1 vs. ctx3");
 
     // this.thirdContext.log();
     // this.thirdBot     = this.thirdContext.createBot();
@@ -208,8 +208,9 @@ var HANNIBAL = (function() {
       this.context.metadata           = sharedScript._entityMetadata[this.context.id];
 
       // log top row debug info
-      deb("STATUS: @%s, %s, %s, elapsed: %s secs, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
-        this.context.tick, this.bot.id, this.bot.player.civ, secs, 
+      deb("STATUS: @%s, elapsed: %s secs, id: %s, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+        this.context.tick, secs, this.bot.id, this.bot.player.civ, 
+        this.context.culture.phases.current,
         H.count(this.bot.player.researchedTechs), 
         this.bot.player.resourceCounts.food,
         this.bot.player.resourceCounts.wood,
@@ -237,9 +238,8 @@ var HANNIBAL = (function() {
       });
 
       // log row
-      deb("______: @%s, trigs: %s, timing: %s, all: %s %s", 
+      deb("______: @%s timing: %s, all: %s %s", 
         this.context.tick, 
-        H.Triggers.info(), 
         msgTiming, 
         this.timing.all, 
         this.timing.all >= 100 ? "!!!!!!!!" : ""

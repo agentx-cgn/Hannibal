@@ -24,6 +24,7 @@ HANNIBAL = (function(H){
         "map",
         // "health",
         "events",
+        "query",
         "effector",
         "states",
         "groups",
@@ -55,6 +56,7 @@ HANNIBAL = (function(H){
 
   H.LIB.Asset.prototype = {
     constructor: H.LIB.Asset,
+    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     log: function(){
       deb(" ASSET: %s %s res: %s", this.instance.name, this.property, this.resources.length);
       this.resources.forEach( id => {
@@ -87,7 +89,7 @@ HANNIBAL = (function(H){
 
       H.extend(this, data);
 
-      deb("   AST: initialized: %s for %s with hcq: %s", this, this.instance, this.hcq || "unknown");
+      // deb("   AST: initialized: %s for %s with hcq: %s", this, this.instance, this.hcq || "unknown");
 
       return this;
 
@@ -106,7 +108,6 @@ HANNIBAL = (function(H){
     get first  () {return this.toSelection(this.resources.slice(0, 1));},
     get center () {return this.map.getCenter(this.resources);},
     get spread () {return this.map.getSpread(this.resources);},
-    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     toLog:    function(){return "    AST: " + this + " " + JSON.stringify(this, null, "      : ");},
     toOrder:  function(){
       return {
@@ -117,13 +118,13 @@ HANNIBAL = (function(H){
       };
     },
     toSelection: function(resources){
-      var id = this.context.idgen++;
+      // var id = this.context.idgen++;
       return (
         new H.LIB.Asset(this.context)
           .import()
           .initialize({
-            id:        id,
-            name:      H.format("%s:%s#%s", this.instance.name, this.property, id),
+            // id:        id,
+            name:      H.format("%s:%s#[%s]", this.instance.name, this.property, resources.join("|")),
             klass:     "asset.selection",
             instance:  this.instance, 
             property:  this.property, 
@@ -150,31 +151,207 @@ HANNIBAL = (function(H){
       if (!ast.resources.length){H.throw("asset.repair: no resources");}
       this.effector.repair(this.resources, ast.first());
     },
+    release:    function(){
+      this.eventlist.forEach(e => this.events.off(e, this.handler));
+      this.resources.forEach(id => {
+        this.metadata[id].opname = "none";
+        this.metadata[id].opid = undefined;
+      });
+      // users ????
+      // deb("   ASS: releasing %s", uneval(this.resources));          
+    },
+    match: function (asset){
+      if(!this.resources){
+        H.throw("ERROR : asset.match: this no resources " + this.name);
+        return false;
+      } else if (!asset.resources){
+        H.throw("ERROR : asset.match: asset no resources " + asset);
+        return false;
+      }
+      deb("   AST: match %s in %s", uneval(asset.resources[0]), uneval(this.resources));
+      return H.contains(this.resources, asset.resources[0]);
+    },
+    uaistates: function (){
+      var state = {};
+      this.resources.forEach(id => state[id] = this.states[id]);
+      return state;
+    },      
+    forEach: function(fn){
+
+      // this.units.doing("idle").forEach(function(unit){
+      //   this.units.stance("aggressive");
+      //   unit.move(this.target.point);
+      // });
+
+      this.resources.forEach(id => {
+        fn.call(this.instance, this.toSelection([id]));
+      });
+
+    },
+    doing: function(/* [who,] filters */){ 
+
+      // filters resources on unit ai state
+
+      var 
+        ids = [], 
+        al      = arguments.length,
+        who     = (al === 1) ? this.resources : arguments[0],
+        filters = (al === 1) ? arguments[0] : arguments[1],
+        actions = filters.split(" ").filter(a => !!a);
+
+      actions.forEach(action => {
+        who.forEach(id => {
+          var state = this.unitstates[id];
+          if (action[0] === "!"){
+            if (state !== action.slice(1)){ids.push(id);}
+          } else {
+            if (state === action){ids.push(id);}
+          }
+        });
+      });
+
+      // deb("doing: actions: %s, states: %s, ids: %s", 
+      //   actions, H.prettify(self.states(resources)), ids
+      // );
+
+      return this.toSelection(ids);
+
+    },
+    exists: function(amount){
+      var hcq = this.groups.expandHCQ(this.definition[1], this.instance);
+      return this.query(hcq).execute().length >= (amount || 1);
+    },
+    nearestX: function(param){
+
+      deb("   AST: nearest: %s", uneval(arguments));
+
+      var hcq, ids;
+
+      // look for nearest from hcq
+      if (H.isInteger(param)){
+        hcq = this.groups.expandHCQ(this.definition[1], this.instance);
+        ids = [this.map.nearest(param, this.query(hcq).execute().map(node => node.id))];
+
+      // look for closest to point
+      } else if (Array.isArray(param)){
+        ids = [this.map.nearest(param, this.resources)];
+
+      } else {
+        H.throw("WARN  : Asset.nearest: got strange param: %s", param);
+        // deb("WARN  : Asset.nearest: got strange param: %s", param);
+
+      }
+
+      // deb("   AST: nearest %s ids: %s, param: %s", this.name, ids, param);
+
+      return this.toSelection(ids);
+      
+    },
+    nearest: function(param){
+
+      var hcq, pos, sorter, nodes, ids;
+
+      // look for nearest from hcq
+      if (H.isInteger(param)){
+
+        hcq = this.groups.expandHCQ(this.definition[1], this.instance);
+
+        // deb("   AST: nearest param: %s, hcq: %s", param, hcq);
+
+        pos = ( Array.isArray(this.instance.position) ? 
+            this.instance.position : 
+            this.instance.position.location()
+        );
+        // deb("   AST: nearest pos: %s", pos);
+        sorter = (na, nb) => {
+          return (
+            this.map.distance(na.position, pos) - 
+            this.map.distance(nb.position, pos)
+          );
+        };
+        nodes = this.query(hcq).execute().sort(sorter); // "node", 5, 5, "nearest"
+        ids = nodes.map(node => node.id).slice(0, param || 1);
+
+      // look for closest to point
+      } else if (Array.isArray(param)){
+        ids = [this.map.nearest(param, this.resources)];
+
+      } else {
+        H.throw("WARN  : Asset.nearest: got strange param: %s", param);
+        // deb("WARN  : Asset.nearest: got strange param: %s", param);
+
+      }
+
+      // deb("   AST: nearest %s ids: %s, param: %s", this.name, ids, param);
+
+      return this.toSelection(ids);
+      
+    },
+    location:   function(id){
+
+      // this should get a position for just everything
+
+      var loc = [];
+
+      if (id) {
+        loc = this.map.getCenter([id]);
+        // deb("   AST: location id: %s of %s, loc: %s", id, this, loc);
+
+      } else if (this.position){
+        loc = this.position.location();
+        // deb("   AST: location this.position: %s of %s, loc: %s", this.position, this, loc);
+
+      } else if (this.users.length) { // priotize shared, 
+        // loc = this.map.centerOf(this.users.map(function(listener){
+        //   var group = H.Objects(listener.callsign.split("#")[1]);
+        //   if (group.position){
+        //     return group.position.location();
+        //   } else {
+        //     return [];
+        //   }
+        // }));
+        // deb("   AST: location users: %s of %s, loc: %s", H.prettify(this.users), this, loc);
+
+      } else if (this.resources.length){
+        // only undestroyed entities, with valid position
+        // loc = H.Map.getCenter(this.resources.filter(id => !!H.Entities[id] && !!H.Entities[id].position() ));
+        loc = this.map.getCenter(this.resources);
+        // deb("   AST: location resources: %s of %s, loc: %s", H.prettify(this.resources), this, loc);
+
+      } else {
+        deb("  WARN: AST found no location for %s, res: %s", this, uneval(this.resources));
+
+      }
+
+      return loc;
+
+    },    
     listener: function(msg){
 
       var resource, tpln, ent, maxRanges, attacker, id = msg.id;
 
-      // deb("   AST: - listener: %s, res: %s, %s", this.name, this.resources, uneval(msg));
+      // deb("   AST: listener.in: %s %s, res: %s, %s", msg.name, this, this.resources, uneval(msg));
 
       if (msg.name === "OrderReady"){
 
         if (msg.data.source === this.id){
 
-          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
+          deb("   AST: listener.do: %s %s, res: %s, %s", msg.name, this, this.resources, uneval(msg));
 
           resource = this.toSelection([id]);
           tpln = this.entities[id]._templateName;
 
           // take over ownership
-          if ((this.verb === "train" || this.verb === "build")){
+          if (this.verb === "train" || this.verb === "build"){
             this.metadata[id].opid   = this.instance.id;
             this.metadata[id].opname = this.instance.name;
+
           } else {
             deb("ERROR : %s was assigned with verb: %s", this.verb, this);
           }
 
           if (this.verb === "build"){
-            if (tpln.indexOf("foundation") !== -1){
+            if (tpln.contains("foundation")){
               this.isFoundation = true; //?? too greedy
               resource.isFoundation = true;
             } else {
@@ -187,9 +364,6 @@ HANNIBAL = (function(H){
 
           // finalize
           this.resources.push(id);
-          // fnListener = this.listener.bind(this);
-          // fnListener.callsign = this.name;
-          // H.Events.registerListener(id, fnListener);
           this.instance.listener.onAssign(resource);          
 
         } // else { deb("   AST: no match: %s -> %s | %s", msg.data.source, this.id, this.name);}
@@ -254,138 +428,6 @@ HANNIBAL = (function(H){
       }
 
     },
-    release:    function(){
-      this.eventlist.forEach(e => this.events.off(e, this.handler));
-      this.resources.forEach(id => {
-        this.metadata[id].opname = "none";
-        this.metadata[id].opid = undefined;
-      });
-      // users ????
-      // deb("   ASS: releasing %s", uneval(this.resources));          
-    },
-    match: function (asset){
-      if(!this.resources){
-        H.throw("ERROR : asset.match: this no resources " + this.name);
-        return false;
-      } else if (!asset.resources){
-        H.throw("ERROR : asset.match: asset no resources " + asset);
-        return false;
-      }
-      return this.resources.indexOf(asset.first) !== -1;
-    },
-    uaistates: function (){
-      var state = {};
-      this.resources.forEach(id => state[id] = this.states[id]);
-      return state;
-    },      
-    forEach: function(fn){
-
-      // this.units.doing("idle").forEach(function(unit){
-      //   this.units.stance("aggressive");
-      //   unit.move(this.target.point);
-      // });
-
-      this.resources.forEach(id => {
-        fn.call(this.instance, this.toSelection([id]));
-      });
-
-    },
-    doing: function(/* [who,] filters */){ 
-
-      // filters resources on unit ai state
-
-      var 
-        ids = [], 
-        al      = arguments.length,
-        who     = (al === 1) ? this.resources : arguments[0],
-        filters = (al === 1) ? arguments[0] : arguments[1],
-        actions = filters.split(" ").filter(a => !!a);
-
-      actions.forEach(action => {
-        who.forEach(id => {
-          var state = this.unitstates[id];
-          if (action[0] === "!"){
-            if (state !== action.slice(1)){ids.push(id);}
-          } else {
-            if (state === action){ids.push(id);}
-          }
-        });
-      });
-
-      // deb("doing: actions: %s, states: %s, ids: %s", 
-      //   actions, H.prettify(self.states(resources)), ids
-      // );
-
-      return this.toSelection(ids);
-
-    },
-    exists: function(amount){
-      var hcq = this.groups.expandHCQ(this.definition[1], this.instance);
-      return this.query(hcq).execute().length >= (amount || 1);
-    },
-    nearest: function(param){
-
-      var hcq, ids;
-
-      // look for nearest from hcq
-      if (H.isInteger(param)){
-        hcq = this.groups.expandHCQ(this.definition[1], this.instance);
-        ids = [this.map.nearest(param, this.query(hcq).execute().map(node => node.id))];
-
-      // look for closest to point
-      } else if (Array.isArray(param)){
-        ids = [this.map.nearest(param, this.resources)];
-
-      } else {
-        H.throw("WARN  : Asset.nearest: got strange param: %s", param);
-        // deb("WARN  : Asset.nearest: got strange param: %s", param);
-
-      }
-
-      // deb("   AST: nearest %s ids: %s, param: %s", this.name, ids, param);
-
-      return this.toSelection(ids);
-      
-    },
-    location:   function(id){
-
-      // this should get a position for just everything
-
-      var loc = [];
-
-      if (id) {
-        loc = this.map.getCenter([id]);
-        // deb("   AST: location id: %s of %s, loc: %s", id, this, loc);
-
-      } else if (this.position){
-        loc = this.position.location();
-        // deb("   AST: location this.position: %s of %s, loc: %s", this.position, this, loc);
-
-      } else if (this.users.length) { // priotize shared, 
-        // loc = this.map.centerOf(this.users.map(function(listener){
-        //   var group = H.Objects(listener.callsign.split("#")[1]);
-        //   if (group.position){
-        //     return group.position.location();
-        //   } else {
-        //     return [];
-        //   }
-        // }));
-        // deb("   AST: location users: %s of %s, loc: %s", H.prettify(this.users), this, loc);
-
-      } else if (this.resources.length){
-        // only undestroyed entities, with valid position
-        // loc = H.Map.getCenter(this.resources.filter(id => !!H.Entities[id] && !!H.Entities[id].position() ));
-        loc = this.map.getCenter(this.resources);
-        // deb("   AST: location resources: %s of %s, loc: %s", H.prettify(this.resources), this, loc);
-
-      } else {
-        deb("  WARN: AST found no location for %s, res: %s", this, uneval(this.resources));
-
-      }
-
-      return loc;
-
-    },    
   };
 
 

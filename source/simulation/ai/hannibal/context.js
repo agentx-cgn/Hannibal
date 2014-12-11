@@ -60,7 +60,7 @@ HANNIBAL = (function(H){
       // "resources",   // after map
       // "villages", 
       // "scanner",     // scanner after map, before groups
-      // "groups",      // assets
+      "groups",      // assets
       "economy",     // stats, producers, orderqueue
       // "military", 
       // "brain", 
@@ -208,31 +208,37 @@ HANNIBAL = (function(H){
 
     },
     connectExplorer:  function(launcher){
+
+      this.connector = "explorer";
+
       H.extend(this, {
-        connector:           "explorer",
         params:              H.toArray(arguments),
         launcher:            launcher,
-        effector:            new H.LIB.Effector({connector: "explorer"}),
+        effector:            new H.LIB.Effector(this).import(),
       });
+
     },
     connectSimulator: function(launcher){
+
+      this.connector = "simulator";
+
       H.extend(this, {
-        connector:           "simulator",
         params:              H.toArray(arguments),
         launcher:            launcher,
-        effector:            new H.LIB.Effector({connector: "simulator"}),
+        effector:            new H.LIB.Effector(this).import(),
       });
+
     },
     connectEngine: function(launcher, gameState, sharedScript, settings){
 
       var self = this;
 
+      this.connector = "engine";
+
       H.extend(this, {
 
-        connector:           "engine",
         params:              H.toArray(arguments),
         launcher:            launcher,
-        effector:            new H.LIB.Effector({connector: "engine"}),
 
         id:                  settings.player,                   // bot id, used within 0 A.D.
         difficulty:          settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
@@ -255,12 +261,11 @@ HANNIBAL = (function(H){
         // API read only, dynamic
         states:              H.Proxies.States(gameState.entities._entities),
         entities:            gameState.entities._entities,
-        technologies:        sharedScript._techTemplates, 
-        techmodifications:   sharedScript._techModifications,
+        modifications:       sharedScript._techModifications,
         player:              sharedScript.playersData[settings.player],
         players:             sharedScript.playersData,
 
-        unitstates:          Proxy.create({  // sanitize UnitAI state
+        unitstates:          new Proxy({}, {  // sanitize UnitAI state
           get: function (proxy, id) {
             return (
               self.entities[id] && self.entities[id]._entity.unitAIState ? 
@@ -270,7 +275,21 @@ HANNIBAL = (function(H){
           }
         }),
 
+        technologies:       new Proxy({}, {
+          get: function (proxy, name){
+            return (
+              name === "available" ? tech => Object.keys(self.modifications).map(H.saniTemplateName).some(t => t === tech) :
+                undefined
+            );
+          }
+        }),
+
+
+
       });
+
+      this.effector = new H.LIB.Effector(this).import();
+
 
     },
 

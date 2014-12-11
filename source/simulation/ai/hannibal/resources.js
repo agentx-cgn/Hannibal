@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, deb, uneval, logObject */
 
 /*--------------- R E S O U R C E S  ------------------------------------------
 
@@ -36,6 +36,7 @@ HANNIBAL = (function(H){
     //TODO remove API access, owner, template.Identity, resourceSupplyMax
 
     H.extend(this, {
+      klass:    "resource",
       found:    false,
       consumed: false,
     }, data);
@@ -48,13 +49,15 @@ HANNIBAL = (function(H){
 
   Resource.prototype = {
     constructor: Resource,
-    // clone: function(context){
-    //   return new H.LIB[H.noun(this.name)](context);
-    // },
-    // import: function(){
-    //   this.imports.forEach(imp => this[imp] = this.context[imp]);
-    //   return this;
-    // },
+    log: function(){
+      var t = this;
+      deb("   RES: %s, %s, type: %s/%s, pos: %s, owner: %s, found: %s",
+        t.id, t.supply, t.generic, t.specific, t.position.map(c => ~~c), t.owner, t.found
+      );
+    },
+    toString: function(){
+      return H.format("[%s %s]", this.klass, this.name);
+    },
     serialize: function(){
       return {
         id: this.id,
@@ -64,19 +67,19 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
 
-      var tpl, name, ent = this.entities[this.id];
+      var tpl, specficname, ent = this.entities[this.id];
 
       if (ent){
 
         tpl  = ent._template;
-        name = (tpl.Identity && tpl.Identity.SpecificName) ? tpl.Identity.SpecificName.toLowerCase() : "unknown";
+        specficname = (tpl.Identity && tpl.Identity.SpecificName) ? tpl.Identity.SpecificName.toLowerCase() : "unknown";
 
         H.extend(this, {
-          name:      name,
+          name:      (this.generic + "." + this.specific + "#" + this.id).toLowerCase(),
           owner:     ent.owner(),
           position:  ent.position(),
           resources: [this.id],   // make asset gatherable
-          isPrey:    this.config.data.prey.indexOf(name) !== -1,
+          isPrey:    this.config.data.prey.indexOf(specficname) !== -1,
           maxSupply: ent.resourceSupplyMax(),
           found:     this.found ? true : this.map.isOwnTerritory(ent.position()) ? true : false,
           supply:    ent.resourceSupplyAmount(),
@@ -91,12 +94,6 @@ HANNIBAL = (function(H){
       return this;
 
     },
-    log: function(){
-      var t = this;
-      deb("   RES: %s, %s, type: %s/%s, pos: %s, owner: %s, found: %s",
-        t.id, t.supply, t.generic, t.specific, t.position.map(c => ~~c), t.owner, t.found
-      );
-    }
   };
 
 
@@ -221,7 +218,7 @@ HANNIBAL = (function(H){
             if (this.resources[type.generic][type.specific]){
               counter += 1;
               res = this.resources[type.generic][type.specific][ent.id()] = new Resource({
-                id:       id, 
+                id:       ~~id, 
                 map:      this.map,
                 config:   this.config,
                 context:  this.context,
@@ -289,8 +286,8 @@ HANNIBAL = (function(H){
 
       if (resources[generic] && specific === ""){
 
-        H.each(resources[generic], function(specific, specentry){
-          H.each(specentry, function(id, resource){
+        H.each(resources[generic], (specific, specentry) => {
+          H.each(specentry, (id, resource) => {
             if (id !== "stats"){
               fn(generic, specific, id, resource);
             }
@@ -299,7 +296,7 @@ HANNIBAL = (function(H){
 
       } else if (resources[generic][specific]){
 
-        H.each(resources[generic][specific], function(id, resource){
+        H.each(resources[generic][specific], (id, resource) => {
           if (id !== "stats"){
             fn(generic, specific, id, resource);
           }
@@ -313,9 +310,9 @@ HANNIBAL = (function(H){
     },
     eachAll: function(fn){
 
-      H.each(this.resources, function(generic, genentry){
-        H.each(genentry, function(specific, specentry){
-          H.each(specentry, function(id, resource){
+      H.each(this.resources, (generic, genentry) => {
+        H.each(genentry, (specific, specentry) => {
+          H.each(specentry, (id, resource) => {
             if (id !== "stats"){
               fn(generic, specific, specentry.stats, id, resource);
             }
@@ -326,15 +323,15 @@ HANNIBAL = (function(H){
     },
     eachStats: function(fn){
 
-      H.each(this.resources, function(generic, genentry){
-        H.each(genentry, function(specific, specentry){
+      H.each(this.resources, (generic, genentry) => {
+        H.each(genentry, (specific, specentry) => {
           fn(generic, specific, specentry.stats);
         });
       });
 
     },
     consume: function(ids){ //TODO
-      H.Resources.eachAll(function(generic, specific, stats, id, res){
+      this.eachAll( (generic, specific, stats, id, res) => {
         if (H.contains(ids, id)){
           res.consumed = true;
           stats.consumed += res.supply;
@@ -343,7 +340,7 @@ HANNIBAL = (function(H){
       });
     },
     markFound: function(pos, range){ //TODO
-      this.eachAll(function(generic, specific, stats, id, res){
+      this.eachAll( (generic, specific, stats, id, res) => {
         if (this.map.distance(pos, res.position) < range){
           res.found = true;
         }            
@@ -434,7 +431,7 @@ HANNIBAL = (function(H){
               return da - db;
             })[0];
             // nearest tree from that cluster
-            deb("   RES: kmeans: chose cluster %s with %s trees", cid, kmeans.centroids[0].items);
+            deb("   RES: kmeans: chose cluster with %s trees", kmeans.centroids[0].items);
             trees.sort(function(a, b){
               var da = (a.x - cid.x) * (a.x - cid.x) + (a.z - cid.z) * (a.z - cid.z),
                   db = (b.x - cid.x) * (b.x - cid.x) + (b.z - cid.z) * (b.z - cid.z);
@@ -449,7 +446,8 @@ HANNIBAL = (function(H){
 
       }
 
-      // deb("   RES: %s / %s at %s", generic, uneval(resource), pos); // TODO too long
+      deb("   RES: nearest '%s': %s at %s", type, resource, pos);
+      // deb("   RES: attribs: %s", H.attribs(resource));
       return resource;
 
     },      

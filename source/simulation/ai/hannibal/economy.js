@@ -295,13 +295,12 @@ HANNIBAL = (function(H){
       // works with orderqueue: avoids overflow of 0AD trainer/research queue
 
       var 
-        maxAllocs = this.config.economy.maxAllocations,
-        producer, 
-        tree  = this.culture.tree,
+        producer, found = false,
+        maxAllocs = this.config.economy.maxAllocations, 
+        tree  = this.culture.tree.nodes,
         verb  = tree[product].verb, 
         names = H.attribs(this.producers),
-        i     = names.length,
-        found = false;
+        i     = names.length;
 
       // deb("   PDC: allocate: %s, %s", product, cc || "nocc");
 
@@ -355,7 +354,7 @@ HANNIBAL = (function(H){
             found = (
               tree[producer.name].products.train[product] &&
               producer.allocs < maxAllocs && 
-              !order.cc || H.MetaData[producer.id].cc === order.cc
+              !order.cc || this.metadata[producer.id].cc === order.cc
             );
             if (found){break;} else {producer = null;}
           }
@@ -442,6 +441,11 @@ HANNIBAL = (function(H){
       return this.queue.map( order => order.serialize());
     },
     delete: function(fn){return H.delete(this.queue, fn);},
+    find: function(fn){
+      var i = this.queue.length;
+      while(i--){if (fn(this.queue[i])){return this.queue[i];}}
+      return undefined;
+    },
     process: function(logWaiting=false){
 
       var 
@@ -647,7 +651,7 @@ HANNIBAL = (function(H){
         return;
       }
 
-      this.nodes = this.query(this.hcq).map(function(node){
+      this.nodes = this.query(this.hcq).map( node => {
         return {
           name:      node.name,
           key:       node.key,
@@ -687,7 +691,7 @@ HANNIBAL = (function(H){
       });
 
       // any unmet techs
-      this.nodes.forEach(function(node){
+      this.nodes.forEach( node => {
 
         //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
         //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
@@ -706,7 +710,7 @@ HANNIBAL = (function(H){
 
       });  
 
-      this.nodes.forEach(node => {
+      this.nodes.forEach( node => {
         // deb("    OE: %s %s", node.name, node.info);
       });
 
@@ -805,6 +809,7 @@ HANNIBAL = (function(H){
       name: "economy",
       context: context,
       imports: [
+        "id",
         "config",
         "map",
         "effector",
@@ -942,7 +947,7 @@ HANNIBAL = (function(H){
 
         this.producers.unqueue("train", msg.data.task); 
 
-        order = this.orderqueue.find(msg.data.order);
+        order = this.orderqueue.find(order => order.id === msg.data.order);
         order.remaining  -= 1;
         order.processing -= 1;
         

@@ -170,7 +170,6 @@ HANNIBAL = (function(H){
       this.territory   = this.context.territory;
       this.passability = this.context.passability;
 
-
       return Date.now() - t0;
 
     },    
@@ -187,7 +186,9 @@ HANNIBAL = (function(H){
       return this.distance(center, pos);
     },
     distance: function(a, b){
-      // deb("   MAP: distance: args: %s", uneval(arguments));
+      if (!a.length || !b.length || a.length !== 2 || b.length !== 2){
+        H.throw("ERROR : map.distance wrong args: ", uneval(arguments));
+      }
       var dx = a[0] - b[0], dz = a[1] - b[1];
       return Math.sqrt(dx * dx + dz * dz);
     },
@@ -208,7 +209,7 @@ HANNIBAL = (function(H){
     },
     nearest: function(point, ids){
 
-      // deb("   MAP: nearest: target: %s, ids: %s", point, ids);
+      deb("   MAP: nearest: %s", uneval(arguments));
 
       var distance = 1e10, dis, result = 0, pos = 0.0;
 

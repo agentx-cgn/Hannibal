@@ -17,16 +17,35 @@ HANNIBAL = (function(H){
 
   // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
 
-  H.LIB.Effector = function(config){
+  H.LIB.Effector = function(context){
 
-    // deb("eff: %s", uneval(config));
+    H.extend(this, {
 
-    H.extend(this, config, H.LIB.Effector[config.connector], {
-      log: function(){
-        deb();deb("EFFCTR: connector: '%s'", this.connector);        
-      }
+      klass: "effector",
+      context: context,
+      imports: [
+        "id",
+        "map",
+        "templates",
+      ],
+
     });
 
+    // copy actual effectors
+    H.extend(this, H.LIB.Effector[context.connector]);
+
+  };
+
+  H.LIB.Effector.prototype = {
+    constructor: H.LIB.Effector,
+    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
+    log: function(){
+      deb();deb("   EFF: connector: '%s'", this.connector);        
+    },
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
   };
 
   H.LIB.Effector.simulator = {
@@ -39,6 +58,7 @@ HANNIBAL = (function(H){
         });
       } 
     },
+
     destroy: function(who){
       if (who.length){
         who.forEach(id => this.simulation.destroy(id));
@@ -48,6 +68,34 @@ HANNIBAL = (function(H){
   };
 
   H.LIB.Effector.engine = {
+
+    // m.BaseAI.prototype.chatTeam = function(message)
+    // {
+    //   Engine.PostCommand(PlayerID,{"type": "aichat", "message": "/team " +message});
+    // };
+    // m.BaseAI.prototype.chatEnemies = function(message)
+    // {
+    //   Engine.PostCommand(PlayerID,{"type": "aichat", "message": "/enemy " +message});
+    // };
+
+    // case 'stop-production' : Engine.PostCommand(PID,{ 
+    //   "type": cmd, "entity": id 
+    //   // "id": queue[i].id ????
+    // }); break;
+
+    // case 'barter' : Engine.PostCommand(PID, {
+    //     "type":   cmd, 
+    //     "sell":   order.barter.sellType, 
+    //     "buy":    order.barter.buyType, 
+    //     "amount": order.barter.amount 
+    // }); break;
+
+    // case 'setup-trade-route' :
+    //   // queue.RemoveBatch(cmd.id);
+    // break;
+    // case 'set-trading-goods' :
+    //   // queue.RemoveBatch(cmd.id);
+    // break;
 
     dumpgrid: function(name, grid, threshold){
       Engine.DumpImage(H.APP.map + "-" + name + ".png", grid.toArray(), grid.width, grid.height, threshold);    
@@ -64,15 +112,6 @@ HANNIBAL = (function(H){
     chat:  function(msg){
       this.execute({type: "chat", message: msg});
     },
-
-    // m.BaseAI.prototype.chatTeam = function(message)
-    // {
-    //   Engine.PostCommand(PlayerID,{"type": "aichat", "message": "/team " +message});
-    // };
-    // m.BaseAI.prototype.chatEnemies = function(message)
-    // {
-    //   Engine.PostCommand(PlayerID,{"type": "aichat", "message": "/enemy " +message});
-    // };
     
     format: function(who, what){
 
@@ -82,7 +121,7 @@ HANNIBAL = (function(H){
 
       if (who.length && H.contains(H.Data.formations, what)){
 
-        Engine.PostCommand(H.Bot.id, {type: "formation", 
+        Engine.PostCommand(this.id, {type: "formation", 
           entities: who, 
           name :    what, 
           queued:   false 
@@ -98,7 +137,7 @@ HANNIBAL = (function(H){
 
       if (who.length && H.contains(H.Data.stances, what)){
 
-        Engine.PostCommand(H.Bot.id, {type: "stance", 
+        Engine.PostCommand(this.id, {type: "stance", 
           entities: who, 
           name :    what, 
           queued:   false 
@@ -116,14 +155,14 @@ HANNIBAL = (function(H){
 
       if (who.length && whom.length) {
 
-        posWho       = H.Map.getCenter(who);
-        posWhom      = H.Map.getCenter(whom);
+        posWho       = this.map.getCenter(who);
+        posWhom      = this.map.getCenter(whom);
         direction    = [posWho[0] - posWhom[0], posWho[1] - posWhom[1]];
         distance     = H.API.VectorDistance(posWhom, posWho);
         direction[0] = (direction[0] / distance) * 8;
         direction[1] = (direction[1] / distance) * 8;
         
-        Engine.PostCommand(H.Bot.id, {type: "walk", 
+        Engine.PostCommand(this.id, {type: "walk", 
           entities: who, 
           x: posWho[0] + direction[0] * 5, 
           z: posWho[1] + direction[1] * 5, 
@@ -140,7 +179,7 @@ HANNIBAL = (function(H){
 
       if (who.length && where.length === 2){
 
-        Engine.PostCommand(H.Bot.id, {type: "walk", 
+        Engine.PostCommand(this.id, {type: "walk", 
           entities: who, 
           x: where[0], 
           z: where[1], 
@@ -158,7 +197,7 @@ HANNIBAL = (function(H){
 
       if (who.length){
 
-        Engine.PostCommand(H.Bot.id, {type: "delete-entities", 
+        Engine.PostCommand(this.id, {type: "delete-entities", 
           entities: who
         });
 
@@ -172,7 +211,7 @@ HANNIBAL = (function(H){
 
       if (who.length && H.isInteger(where)){
 
-        Engine.PostCommand(H.Bot.id, {type: "garrison", 
+        Engine.PostCommand(this.id, {type: "garrison", 
           entities: who,       // array
           target:   where,     // id
           queued:   false
@@ -188,14 +227,14 @@ HANNIBAL = (function(H){
 
       if (what.length && who.length){
 
-        Engine.PostCommand(H.Bot.id, {type: "gather", 
+        Engine.PostCommand(this.id, {type: "gather", 
           entities: who, 
           target:   what[0], 
           queued:   false
         });
 
         what.slice(1).forEach(function(id){
-          Engine.PostCommand(H.Bot.id, {type: "gather", 
+          Engine.PostCommand(this.id, {type: "gather", 
             entities: who, 
             target:   id, 
             queued:   true
@@ -219,7 +258,7 @@ HANNIBAL = (function(H){
 
           var [x, z] = H.Entities[id].position();
 
-          Engine.PostCommand(H.Bot.id, {type: "gather-near-position", 
+          Engine.PostCommand(this.id, {type: "gather-near-position", 
             entities: [id], 
             x: x, 
             z: z, 
@@ -246,7 +285,7 @@ HANNIBAL = (function(H){
 
       if (who.length && H.isInteger(what)){
 
-        Engine.PostCommand(H.Bot.id, {type: "gather", 
+        Engine.PostCommand(this.id, {type: "gather", 
           entities: who, 
           target:   what, 
           queued:   false
@@ -262,7 +301,7 @@ HANNIBAL = (function(H){
 
       if (who.length && H.isInteger(what)){
 
-        Engine.PostCommand(H.Bot.id, {type: "repair", 
+        Engine.PostCommand(this.id, {type: "repair", 
           entities: who,  // Array
           target:   what, // Int
           autocontinue: true, 
@@ -277,9 +316,9 @@ HANNIBAL = (function(H){
 
       deb("   EFF: train: %s", uneval(arguments));
 
-      if (who.length && H.Templates[what] && amount){
+      if (who.length && this.templates[what] && amount){
 
-        Engine.PostCommand(H.Bot.id, {type: "train", 
+        Engine.PostCommand(this.id, {type: "train", 
           count: amount,
           entities: who, // array
           template: what,
@@ -294,9 +333,9 @@ HANNIBAL = (function(H){
 
       deb("   EFF: construct: %s", uneval(arguments));
 
-      if (who.length && H.isInteger(who[0]) && H.Templates[what] && pos.length >= 2){
+      if (who.length && H.isInteger(who[0]) && this.templates[what] && pos.length >= 2){
 
-        Engine.PostCommand(H.Bot.id, { type: "construct",
+        Engine.PostCommand(this.id, { type: "construct",
           entities:     who, // array
           template:     what,
           x:            pos[0], 
@@ -318,7 +357,7 @@ HANNIBAL = (function(H){
 
       if (H.isInteger(who) && H.TechTemplates[what]){
 
-        Engine.PostCommand(H.Bot.id, { type: "research",
+        Engine.PostCommand(this.id, { type: "research",
           entity:   who, 
           template: what 
         }); 
@@ -327,25 +366,6 @@ HANNIBAL = (function(H){
 
     },
 
-
-    // case 'stop-production' : Engine.PostCommand(PID,{ 
-    //   "type": cmd, "entity": id 
-    //   // "id": queue[i].id ????
-    // }); break;
-
-    // case 'barter' : Engine.PostCommand(PID, {
-    //     "type":   cmd, 
-    //     "sell":   order.barter.sellType, 
-    //     "buy":    order.barter.buyType, 
-    //     "amount": order.barter.amount 
-    // }); break;
-
-    // case 'setup-trade-route' :
-    //   // queue.RemoveBatch(cmd.id);
-    // break;
-    // case 'set-trading-goods' :
-    //   // queue.RemoveBatch(cmd.id);
-    // break;
 
   };
 

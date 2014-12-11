@@ -125,7 +125,7 @@ HANNIBAL = (function(H){
       imports:  [
         "id",
         "player",
-        "techmodifications",
+        "modifications",
         "culture",
         "query",
         "entities",
@@ -213,7 +213,7 @@ HANNIBAL = (function(H){
 
         this.sources = [].concat(
           H.attribs(this.player.researchedTechs), 
-          H.attribs(this.techmodifications[this.id]),
+          H.attribs(this.modifications[this.id]),
           H.attribs(this.entities)
             .filter(id => this.entities[id].owner() === this.id)
             .map(id => this.entities[id]._templateName)
@@ -892,7 +892,7 @@ HANNIBAL = (function(H){
 
       } else {
         deb("WARN  : culture.removeById failed on id: %s, tpl: %s", id, tpln);
-        H.QRY("INGAME SORT < id").execute("metadata", 5, 50, "removeById: ingames with metadata");
+        this.query("INGAME SORT < id").execute("metadata", 5, 50, "removeById: ingames with metadata");
 
       }
 

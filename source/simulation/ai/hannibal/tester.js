@@ -39,8 +39,8 @@ HANNIBAL = (function(H){
     launch: function(group /*, ... */){
       return H.toArray(arguments).slice(1).map((id) => () => H.Groups.launch(group, id));
     },
-    supplier: function(resource, cc){
-      return () => H.APP.bot.groups.launch({cc: cc, groupname: "g.supplier", resource: resource});
+    supplier: function(supply, cc, size=2){
+      return () => H.APP.bot.groups.launch({cc: cc, groupname: "g.supplier", supply: supply, size: size});
     },
     speed: function(rate){
       return [
@@ -66,7 +66,7 @@ HANNIBAL = (function(H){
         "0": [() => "< - START: " + sequence + " - >"],
         // "2": [T.chat("huhu"), "chatted"], 
         // "1": [T.supplier(      "food.fruit", 44), "launching 1 food.fruit supplier"], 
-        "1": [T.supplier(            "wood", 44), "launching 1 wood supplier"], 
+        "1": [T.supplier(            "wood", 44, 10), "launching 1 wood supplier"], 
         "3": [T.speed(5),                            "more speed"],
       // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
     },

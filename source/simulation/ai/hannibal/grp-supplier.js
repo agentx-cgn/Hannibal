@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb */
+/*globals HANNIBAL, deb, uneval */
 
 /*--------------- GROUP: M I N E R --------------------------------------------
 
@@ -60,61 +60,55 @@ HANNIBAL = (function(H){
 
       exclusives:    function(options){
         return {units : [options.size, (
-          options.resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
-          options.resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
-          options.resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
-          options.resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
-          options.resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
-            deb(" ERROR: exclusives: unknown resource '%s' for g.supplier", options.resource)
+          options.supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
+          options.supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
+          options.supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
+          options.supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
+          options.supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
+            deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", options.supply)
         )]};
       },
 
       listener: {
 
-        onLaunch: function(options /*cc, resource, size*/){
+        onLaunch: function(options /*cc, supply, size*/){
 
-          // deb("     G: onlaunch %s", uneval(arguments));
+          deb("     G: onlaunch %s", uneval(arguments));
 
           // this.options   = options;
-          this.size      = options.size || this.defaults.size;
-          this.resource  = options.resource;
-          this.target    = this.resources.nearest(this.position, options.resource);
+          this.size   = options.size || this.defaults.size;
+          this.supply = options.supply;
+          this.target = this.resources.nearest(this.position, this.supply);
 
           if (!this.target){
-            deb("   GRP: dissolving %s/", this.name, this.resource);
+            deb("     G: onLaunch dissolving %s no target for %s", this, this.supply);
             this.dissolve(); 
             return;
-          }
+          
+          } else {
+            this.position  = this.target.position;
+            deb("     G: onLaunch %s have target for %s: %s", this, this.supply, this.target);
 
-          this.position  = this.target.position;
+          }
 
           this.units = this.exclusives(options).units[1];
 
-          // this.units = (
-          //   resource === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
-          //   resource === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
-          //   resource === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
-          //   resource === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
-          //   resource === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
-          //     deb(" ERROR: unknown resource '%s' for supply group", resource)
-          // );
-
           this.dropsite = (
-            options.resource === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
-            options.resource === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
-            options.resource === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
-            options.resource === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
-            options.resource === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
-              deb(" ERROR: unknown resource '%s' for supply group", options.resource)
+            this.supply === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
+            this.supply === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
+            this.supply === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
+            this.supply === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
+            this.supply === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
+              deb(" ERROR: unknown supply '%s' for supply group", this.supply)
           );
 
           this.dropsites = (
-            options.resource === "metal"      ?  ["dynamic",    "metal ACCEPTEDBY INGAME"] :
-            options.resource === "stone"      ?  ["dynamic",    "stone ACCEPTEDBY INGAME"] :
-            options.resource === "wood"       ?  ["dynamic",    "wood  ACCEPTEDBY INGAME"] :
-            options.resource === "food.fruit" ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-            options.resource === "food.meat"  ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-              deb(" ERROR: unknown resource '%s' for supply group", options.resource)
+            this.supply === "metal"      ?  ["dynamic",    "metal ACCEPTEDBY INGAME"] :
+            this.supply === "stone"      ?  ["dynamic",    "stone ACCEPTEDBY INGAME"] :
+            this.supply === "wood"       ?  ["dynamic",    "wood  ACCEPTEDBY INGAME"] :
+            this.supply === "food.fruit" ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
+            this.supply === "food.meat"  ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
+              deb(" ERROR: unknown supply '%s' for supply group", this.supply)
           );
 
           this.register("units", "dropsite", "dropsites");
@@ -123,11 +117,9 @@ HANNIBAL = (function(H){
         },
         onAssign: function(asset){
 
-          // deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.resource, asset, asset.property, asset.first);
+          deb("     G: onAssign %s got %s, have pos: %s", this, asset, this.position);
          
           if (this.units.match(asset)){
-
-            // deb("     G: %s onAssign position: %s", this, H.prettify(this.position));
 
             if (this.units.count === 1){
               if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
@@ -135,6 +127,7 @@ HANNIBAL = (function(H){
               }  
             }
 
+            deb("     G: onAssign %s units: %s/%s", this, this.units.count, this.size);
             if (this.units.count < this.size){
               this.request(1, this.units, this.position);   
             }
@@ -142,13 +135,16 @@ HANNIBAL = (function(H){
             if (this.target){
               asset.gather(this.target);
             } else {
-              deb("  WARN: %s with res: %s has no target", this, this.resource);
+              deb("  WARN: %s with res: %s has no target", this, this.supply);
             }
 
           } else if (this.dropsite.match(asset)){
 
             if (asset.isFoundation){this.units.repair(asset);}
             if (asset.isStructure){this.units.gather(this.target);}
+
+          } else {
+            deb("     G: onAssign %s no match", this);
 
           }
 
@@ -174,23 +170,23 @@ HANNIBAL = (function(H){
         onBroadcast: function(){},
         onInterval:  function(){
 
-          // deb("     G: %s onInterval, res: %s, states: %s", this, this.resource, H.prettify(this.units.states()));
+          // deb("     G: %s onInterval, res: %s, states: %s", this, this.supply, H.prettify(this.units.states()));
 
           if (!this.units.count){return;}
 
-          if (this.units.doing("idle").count === this.units.count){
+          if (this.units.doing("idle").count === this.size){
             this.dissolve();
-            deb("      G: %s finished supplying %s, all idle", this, this.resource);
+            deb("      G: onInterval %s finished supplying %s, all (%s) idle", this, this.size, this.supply);
           
           } else if (this.units.doing("idle").count > 0){
 
-            H.Resources.update(this.resource);
-            this.target = H.Resources.nearest(this.position, this.resource);
+            // this.resources.update(this.supply);
+            this.target = this.resources.nearest(this.position, this.supply);
             
             if (this.target){
               this.units.doing("idle").gather(this.target);
             } else {
-              deb("  WARN: %s with res: %s has no target", this, this.resource);
+              deb("  WARN: %s with res: %s has no target", this, this.supply);
             }              
             
             
