@@ -198,19 +198,12 @@ var HANNIBAL = (function() {
     if ((this.turn + this.player) % 8 === 5) {
 
       // update context
-      this.context.timeElapsed        = sharedScript.timeElapsed;
-      this.context.territory          = sharedScript.territoryMap;
-      this.context.passability        = sharedScript.passabilityMap;
-      this.context.passabilityClasses = sharedScript.passabilityClasses;
-      this.context.techtemplates      = sharedScript._techTemplates;
-      this.context.player             = sharedScript.playersData[this.context.id];
-      this.context.players            = sharedScript.playersData;
-      this.context.metadata           = sharedScript._entityMetadata[this.context.id];
+      this.context.updateEngine(sharedScript);
 
       // log top row debug info
       deb("STATUS: @%s, elapsed: %s secs, id: %s, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
-        this.context.tick, secs, this.bot.id, this.bot.player.civ, 
-        this.context.culture.phases.current,
+        this.context.tick, secs, this.bot.id, 
+        this.bot.player.civ, this.context.culture.phases.current,
         H.count(this.bot.player.researchedTechs), 
         this.bot.player.resourceCounts.food,
         this.bot.player.resourceCounts.wood,
@@ -218,10 +211,10 @@ var HANNIBAL = (function() {
         this.bot.player.resourceCounts.stone
       );
 
-      // THIS IS THE MAIN ACT
       this.timing.all = 0;
       this.timing.tst = H.Tester.tick(           secs, this.context.tick);
-      this.timing.trg = H.Triggers.tick(         secs, this.context.tick);
+
+      // THIS IS THE MAIN ACT
       this.bot.tick(                             secs, this.context.tick, this.timing);
 
       // deb: collect stats

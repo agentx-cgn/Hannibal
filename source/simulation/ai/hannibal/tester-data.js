@@ -1,1 +1,1 @@
-var TESTERDATA = {"map": "brain02"};
+var TESTERDATA = {"map": "brain03"};

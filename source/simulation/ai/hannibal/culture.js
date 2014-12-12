@@ -641,9 +641,13 @@ HANNIBAL = (function(H){
     },
     activate: function (){
 
-      this.events.on("TrainingFinished", msg => {
+      this.events.on("EntityCreated", msg => {
         this.loadById(msg.id);
       });
+
+      // this.events.on("TrainingFinished", msg => {
+      //   this.loadById(msg.id);
+      // });
 
       this.events.on("EntityRenamed", msg => {
         this.loadById(msg.id2);
@@ -651,9 +655,9 @@ HANNIBAL = (function(H){
         // this.removeById(msg.id);
       });
 
-      this.events.on("AIMetadata", msg => {
-        this.loadById(msg.id);
-      });
+      // this.events.on("AIMetadata", msg => {
+      //   this.loadById(msg.id);
+      // });
 
       this.events.on("Destroy", msg => {
         if (!msg.data.foundation){

@@ -312,24 +312,24 @@ HANNIBAL = (function(H){
 
     },
 
-    train: function(who, what, amount, meta){
+    train: function(who, what, amount, metadata){
 
-      deb("   EFF: train: %s", uneval(arguments));
+      deb("   EFF: train: %s, id: %s", uneval(arguments), uneval(this.id));
 
       if (who.length && this.templates[what] && amount){
 
         Engine.PostCommand(this.id, {type: "train", 
-          count: amount,
+          count:    amount,
           entities: who, // array
           template: what,
-          metadata: meta || {} //{order: order.id}
+          metadata: metadata || {} //{order: order.id}
         }); 
 
       } else { deb("   EFF: ignored train: %s", uneval(arguments)); }
 
     },
 
-    construct: function(who, what, pos, meta){
+    construct: function(who, what, pos, metadata){
 
       deb("   EFF: construct: %s", uneval(arguments));
 
@@ -344,7 +344,7 @@ HANNIBAL = (function(H){
           autorepair:   false,   //??
           autocontinue: false,
           queued:       false,
-          metadata:     meta || {} // {order: order.id}
+          metadata:     metadata || {} // {order: order.id}
         });  
 
       } else { deb("   EFF: ignored construct: %s", uneval(arguments)); }

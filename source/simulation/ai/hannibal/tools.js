@@ -119,21 +119,21 @@ HANNIBAL = (function(H) {
   //   }
   // });  
 
-  H.Iterator = function ( /* arguments */ ) {
+  // H.Iterator = function ( /* arguments */ ) {
 
-    // infinite... !!!! wating for SM32
-    // http://www.tuicool.com/articles/3MBJj2z
+  //   // infinite... !!!! wating for SM32
+  //   // http://www.tuicool.com/articles/3MBJj2z
 
-    var 
-      args = H.toArray(arguments),
-      al = args.length,
-      fn = args.slice(-1),
-      fnArgs = args.slice(0, al -1),
-      iter = fn.apply(null, fnArgs);
+  //   var 
+  //     args = H.toArray(arguments),
+  //     al = args.length,
+  //     fn = args.slice(-1),
+  //     fnArgs = args.slice(0, al -1),
+  //     iter = fn.apply(null, fnArgs);
 
-    return function () {return iter.next().value;};
+  //   return function () {return iter.next().value;};
 
-  };
+  // };
 
   /*
 
@@ -150,58 +150,58 @@ HANNIBAL = (function(H) {
 
 
 
-  H.Task = (function(){
+  // H.Task = (function(){
 
-    // generates autoincrement numbers
+  //   // generates autoincrement numbers
 
-    var counter = 0;
-    return {
-      get id () {return ++counter;}
-    };
-  }());
+  //   var counter = 0;
+  //   return {
+  //     get id () {return ++counter;}
+  //   };
+  // }());
 
-  H.LIB.Objects = function(){
+  // H.LIB.Objects = function(){
 
-    // keeps track of objects and their IDs
+  //   // keeps track of objects and their IDs
     
-    var o = {}, p = 0;
-    return function (x) {
-      if (x === undefined){return o;}
-      if (typeof x === "object") {p += 1; o[p] = x; return p;}
-      return o[x];
-    };
-  };
+  //   var o = {}, p = 0;
+  //   return function (x) {
+  //     if (x === undefined){return o;}
+  //     if (typeof x === "object") {p += 1; o[p] = x; return p;}
+  //     return o[x];
+  //   };
+  // };
 
-  H.Triggers = (function(){
+  // H.Triggers = (function(){
 
-    // calls functions + params at a given tick or diff
+  //   // calls functions + params at a given tick or diff
 
-    var i, len, pointer = 0, actions = [], dels = [], t0;
+  //   var i, len, pointer = 0, actions = [], dels = [], t0;
 
-    return {
-      info: function(){return actions.length;},
-      add:  function(ticks, action){
-        // negative indicates a diff, default = zero = next, positive = absolute,
-        ticks = ticks || -1;
-        action.tick = (ticks < 1) ? pointer + Math.abs(ticks) -1 : ticks;
-        actions.push(action);
-      },
-      tick: function(){
-        t0 = Date.now(); dels = []; len = actions.length; pointer += 1;
-        for (i=0; i<len; i++) {
-          if(actions[i].tick < pointer){
-            actions[i](); 
-            dels.push(actions[i]);
-          }
-        }
-        dels.forEach(function(del){
-          actions.splice(actions.indexOf(del), 1);
-        });
-        return Date.now() - t0;
-      }
-    };
+  //   return {
+  //     info: function(){return actions.length;},
+  //     add:  function(ticks, action){
+  //       // negative indicates a diff, default = zero = next, positive = absolute,
+  //       ticks = ticks || -1;
+  //       action.tick = (ticks < 1) ? pointer + Math.abs(ticks) -1 : ticks;
+  //       actions.push(action);
+  //     },
+  //     tick: function(){
+  //       t0 = Date.now(); dels = []; len = actions.length; pointer += 1;
+  //       for (i=0; i<len; i++) {
+  //         if(actions[i].tick < pointer){
+  //           actions[i](); 
+  //           dels.push(actions[i]);
+  //         }
+  //       }
+  //       dels.forEach(function(del){
+  //         actions.splice(actions.indexOf(del), 1);
+  //       });
+  //       return Date.now() - t0;
+  //     }
+  //   };
 
-  }());
+  // }());
      
 
   H.Numerus = (function(){

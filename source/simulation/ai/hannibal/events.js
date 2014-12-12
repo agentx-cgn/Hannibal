@@ -14,8 +14,8 @@
 
 HANNIBAL = (function(H){
 
-  // log line
-  var msgTick = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, DY: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s";
+  // log line same order as orderedEvents
+  var msgTick = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s, DY: %s";
 
   function Message (name, msg) {
 
@@ -70,6 +70,7 @@ HANNIBAL = (function(H){
       internalEvents:  [
         "OrderReady",
         "BroadCast",
+        "EntityCreated",
       ],
 
       // saves the listeners
@@ -330,7 +331,7 @@ HANNIBAL = (function(H){
 
       } else {
         // deb("  EVTS: Create ent: %s, own: %s, tpl: %s, mats: %s", id, owner, tpln, H.attribs(e));
-        this.fire("Create", {
+        this.fire("EntityCreated", {
           player: player,
           id:     id,
         });
@@ -366,7 +367,7 @@ HANNIBAL = (function(H){
         this.fire("TrainingFinished", {
           player: e.owner,
           id:     id,
-          data:   e.metadata,
+          data:   e.metadata || {},
         });
 
       });

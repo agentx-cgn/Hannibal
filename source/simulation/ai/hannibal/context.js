@@ -43,7 +43,7 @@ HANNIBAL = (function(H){
 
     // action sequence to launch serializers
     this.sequence = [
-      "create",         // either new Obj or Obj.clone
+      "create",        // either new Obj or Obj.clone
       "import",        // import properties from context
       "deserialize",   // if context contains data 
       "initialize",    // otherwise init from game data
@@ -83,7 +83,7 @@ HANNIBAL = (function(H){
     runSequence: function(fn){
       this.sequence.forEach( action => {
         this.serializers.forEach( serializer => {
-          fn(action, serializer);
+          fn(serializer, action);
         });      
       });      
     },
@@ -144,7 +144,7 @@ HANNIBAL = (function(H){
       });
 
       // launch serializers
-      this.runSequence( (action, serializer) => {
+      this.runSequence( (serializer, action) => {
 
         var obj = ctxClone[serializer];
 
@@ -152,7 +152,7 @@ HANNIBAL = (function(H){
           ctxClone[serializer] = this[serializer].clone(ctxClone);
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
-          ( obj[action]  && obj[action]() );
+          ( obj[action] && obj[action]() );
 
         } else {
           deb("   IGN: logger: %s", serializer);
@@ -185,7 +185,7 @@ HANNIBAL = (function(H){
 
       });
 
-      this.runSequence( (action, serializer) => {
+      this.runSequence( (serializer, action) => {
 
         var obj = this[serializer];
 
@@ -198,7 +198,7 @@ HANNIBAL = (function(H){
           ( obj[action] && obj[action]() );
 
         } else {
-          // logging for serializer disabled
+          // logging for this serializer disabled
 
         }
 
@@ -231,11 +231,28 @@ HANNIBAL = (function(H){
     },
     connectEngine: function(launcher, gameState, sharedScript, settings){
 
-      var self = this;
+      var 
+        ss = sharedScript,
+        gs = gameState, 
+        entities = gs.entities._entities,
+        sanitize = H.saniTemplateName;
 
-      this.connector = "engine";
+      this.updateEngine = function(sharedScript){
+        ss = sharedScript;
+        this.timeElapsed        = ss.timeElapsed;
+        this.territory          = ss.territoryMap;
+        this.passability        = ss.passabilityMap;
+        this.passabilityClasses = ss.passabilityClasses;
+        this.techtemplates      = ss._techTemplates;
+        this.player             = ss.playersData[this.id];
+        this.players            = ss.playersData;
+        this.metadata           = ss._entityMetadata[this.id];
+      };
+
 
       H.extend(this, {
+
+        connector:           "engine",
 
         params:              H.toArray(arguments),
         launcher:            launcher,
@@ -243,56 +260,61 @@ HANNIBAL = (function(H){
         id:                  settings.player,                   // bot id, used within 0 A.D.
         difficulty:          settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
 
-        phase:               gameState.currentPhase(),          // num
-        cellsize:            gameState.cellSize, 
-        width:               sharedScript.passabilityMap.width  *4, 
-        height:              sharedScript.passabilityMap.height *4, 
-        circular:            sharedScript.circularMap,
-        territory:           sharedScript.territoryMap,
-        passability:         sharedScript.passabilityMap,
-
-        // API read/write
-        metadata:            H.Proxies.MetaData(sharedScript._entityMetadata[settings.player]),
+        phase:               gs.currentPhase(),          // num
+        cellsize:            gs.cellSize, 
+        width:               ss.passabilityMap.width  *4, 
+        height:              ss.passabilityMap.height *4, 
+        circular:            ss.circularMap,
+        territory:           ss.territoryMap,
+        passability:         ss.passabilityMap,
 
         // API read only, static
         templates:           settings.templates,
-        techtemplates:       sharedScript._techTemplates, 
+        techtemplates:       ss._techTemplates, 
 
         // API read only, dynamic
-        states:              H.Proxies.States(gameState.entities._entities),
-        entities:            gameState.entities._entities,
-        modifications:       sharedScript._techModifications,
-        player:              sharedScript.playersData[settings.player],
-        players:             sharedScript.playersData,
+        // states:              H.Proxies.States(gameState.entities._entities),
+        entities:            entities,
+        modifications:       ss._techModifications,
+        player:              ss.playersData[settings.player],
+        players:             ss.playersData,
 
-        unitstates:          new Proxy({}, {  // sanitize UnitAI state
-          get: function (proxy, id) {
-            return (
-              self.entities[id] && self.entities[id]._entity.unitAIState ? 
-                H.replace(self.entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
-                undefined
-            ); 
+        // API read/write
+        metadata:            new Proxy({}, {get: (proxy, id) => {
+
+          var meta = ss._entityMetadata[this.id];
+          
+          if (H.isInteger(~~id)){
+            if (!meta[id]){meta[id] = {};}
+            return meta[id];
+          } else {
+            return undefined;
           }
+
+        }}),
+
+        // sanitize UnitAI state // TODO: check if function works too
+        unitstates:          new Proxy({}, {get: (proxy, id) => {
+          return (
+            entities[id] && entities[id]._entity.unitAIState ? 
+              H.replace(entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
+                undefined
+          );}
         }),
 
-        technologies:       new Proxy({}, {
-          get: function (proxy, name){
-            return (
-              name === "available" ? tech => Object.keys(self.modifications).map(H.saniTemplateName).some(t => t === tech) :
-                undefined
-            );
-          }
-        }),
-
+        // try to get all tech funcs here
+        technologies:       new Proxy({}, {get: (proxy, name) => { return (
+          name === "available" ? techname => Object.keys(this.modifications).map(sanitize).some(t => t === techname) :
+          name === "templates" ? techname => ss._techTemplates[sanitize(techname)] :
+              undefined
+        );}}),
 
 
       });
 
       this.effector = new H.LIB.Effector(this).import();
 
-
     },
-
 
   };
 

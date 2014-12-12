@@ -208,7 +208,7 @@ HANNIBAL = (function(H){
 
       asset.activate();
 
-      deb("  GRPS: created Asset: %s, res: %s", asset, uneval(asset.resources));
+      // deb("  GRPS: created Asset: %s, res: %s", asset, uneval(asset.resources));
       
       return asset;
     },   
@@ -435,7 +435,7 @@ HANNIBAL = (function(H){
                 property:   property,
               });
               instance.assets.push(instance[property]);
-              deb("  GRPS: registered '%s' for %s", property, instance);
+              // deb("  GRPS: registered '%s' for %s", property, instance);
             }
 
           });

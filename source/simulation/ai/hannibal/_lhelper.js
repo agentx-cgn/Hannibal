@@ -67,6 +67,7 @@ H.extend(H, {
   pareto:     function (alpha) {return 1.0 / Math.pow((1 - Math.random()), 1.0 / alpha);},
   rndClamp:   function (min, max){return Math.random()*(max-min+1) + min;},
   isPrime:    function (n, i){for(i=n;n%--i;);return i===1;},
+  fixed1:     function (a){return a.map(n => (+n).toFixed(1));},
 
   // strings
   replace:    function (s,f,r){return s.replace(new RegExp(H.escapeRex(f), "g"), r);},
@@ -81,14 +82,12 @@ H.extend(H, {
   noun:       function (s){return s[0].toUpperCase()+s.slice(1).toLowerCase();},
   // padZero:    function (num, len){len = len || 2; num = "0000" + num; return num.substr(num.length-2, 2);},
   padZero:    function (n, i){i=i||2;return (1e15+n+"").slice(-i);},
-  spark:      function (a,b,c,d,e){b=a.slice().sort();c="";for(d=0;d<(e=b.length);c+=["","▁","▃","▅","▆","█"][-~(4*(a[d++]-b[0])/(b[e-1]-b[0]))]);return c;},
+  spark:      function (a,b,c,d,e){b=a.slice().sort();c="";for(d=0;d<(e=b.length);c+=["_","▁","▃","▅","▆","█"][-~(4*(a[d++]-b[0])/(b[e-1]-b[0]))]);return c;},
   
   // html
   urlquery:   function (a,b,c,d,e){
-    for(b=/[?&]?([^=]+)=([^&]*)/g,
-      c={},
-      e=decodeURIComponent; 
-      d=b.exec(a.replace(/\+/g," ")); 
+    for(b=/[?&]?([^=]+)=([^&]*)/g,c={},e=decodeURIComponent; 
+      (d=b.exec(a.replace(/\+/g," "))); 
       c[e(d[1])]=e(d[2])
       ); 
       return c;},
@@ -109,7 +108,7 @@ H.extend(H, {
   countAttrs: function (o){var a,c=0;for(a in o){if(o.hasOwnProperty(a)){c+=1;}}return c;},
   deepcopy:   function (obj){return JSON.parse(JSON.stringify(obj));},
   isEmpty:    function (o){var p;for(p in o){if(o.hasOwnProperty(p)){return false;}}return true;},
-  prettify:   function (o){return JSON.stringify(o).split('"').join("");},
+  prettify:   function (o){return JSON.stringify(o).split("\"").join("");},
   // map:        function (o, fn){var a,r={};for(a in o){if(o.hasOwnProperty(a)){r[a]=(typeof fn==='function')?fn(a,o[a]):fn;}}return r;},
   transform:  function (o, fn){var r={}; H.each(o,function(k,v){var [ra,rv]=fn(k,v);r[ra]=rv;});return r;},
   test:       function (o, s){

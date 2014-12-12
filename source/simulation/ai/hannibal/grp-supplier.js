@@ -117,7 +117,7 @@ HANNIBAL = (function(H){
         },
         onAssign: function(asset){
 
-          deb("     G: onAssign %s got %s, have pos: %s", this, asset, this.position);
+          deb("     G: onAssign %s : got %s, have pos: %s", this, asset, this.position);
          
           if (this.units.match(asset)){
 
@@ -151,7 +151,7 @@ HANNIBAL = (function(H){
         },
         onDestroy: function(asset){
 
-          deb("     G: %s onDestroy: %s", this, asset);
+          deb("     G: onDestroy %s : %s", this, asset);
 
           if (this.units.match(asset)){
             this.request(1, this.units, this.position);
@@ -164,7 +164,7 @@ HANNIBAL = (function(H){
         },
         onAttack: function(asset, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
+          deb("     G: onAttack %s : %s by %s, damage: %s", this, asset, enemy, damage);
 
         },
         onBroadcast: function(){},

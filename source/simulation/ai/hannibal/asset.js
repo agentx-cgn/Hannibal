@@ -168,7 +168,7 @@ HANNIBAL = (function(H){
         H.throw("ERROR : asset.match: asset no resources " + asset);
         return false;
       }
-      deb("   AST: match %s in %s", uneval(asset.resources[0]), uneval(this.resources));
+      // deb("   AST: match %s in %s", uneval(asset.resources[0]), uneval(this.resources));
       return H.contains(this.resources, asset.resources[0]);
     },
     uaistates: function (){
