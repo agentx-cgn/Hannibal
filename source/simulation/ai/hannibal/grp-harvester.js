@@ -52,7 +52,7 @@ HANNIBAL = (function(H){
       // shared: needed, but shared with other groups (e.g. dropsites, temples)
       // exclusive: fully managed by this group (e.g. fields, units)
 
-      units:          ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food"],
+      units:          ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0"], // hardcode females
       field:          ["exclusive", "food.grain PROVIDEDBY"],
       dropsite:       ["shared",    "food ACCEPTEDBY"],
       shelter:        ["dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 1"],

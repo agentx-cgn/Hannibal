@@ -60,11 +60,11 @@ HANNIBAL = (function(H){
 
       exclusives:    function(options){
         return {units : [options.size, (
-          options.supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY SORT > rates.metal.ore"]  :
-          options.supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY SORT > rates.stone.rock"] :
-          options.supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY SORT > rates.wood.tree"]  :
-          options.supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY SORT > rates.food.fruit"] :
-          options.supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY SORT > rates.food.meat"]  :
+          options.supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
+          options.supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
+          options.supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
+          options.supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
+          options.supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
             deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", options.supply)
         )]};
       },

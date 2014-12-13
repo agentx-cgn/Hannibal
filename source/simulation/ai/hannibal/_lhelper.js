@@ -137,7 +137,10 @@ H.extend(H, {
 
   // Arrays
   toArray:    function (a){return Array.prototype.slice.call(a);},
-  delete:     function (a, fn){var i=0,o=0;while(a[i]!==undefined){if(fn(a[i])){a.splice(i,1);o++;}else{i++;}}return o;},
+  delete:     function (a, fn){
+    // check: http://stackoverflow.com/a/18885102/515069
+    var i=0,o=0;while(a[i]!==undefined){if(fn(a[i])){a.splice(i,1);o++;}else{i++;}}return o;
+  },
   contains:   function (a, e){return a.indexOf(e)!==-1;},
   toFixed:    function (a, n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
   rotate:     function (a, n){return a.concat(a.splice(0,n));},

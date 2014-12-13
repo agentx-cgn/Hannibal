@@ -19,7 +19,7 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:    "bot",
+      klass:   "bot",
       context: context,
       imports: [
         "id",
@@ -27,11 +27,10 @@ HANNIBAL = (function(H){
         "entities",
         "templates",
         "events",
-        "effector",
         "map",
         "brain",
         "groups",
-        "economy",
+        "economy", 
         "culture",
         "effector",
         "military",
@@ -41,11 +40,13 @@ HANNIBAL = (function(H){
 
     });
 
+    this.name = H.format("%s:%s", this.context.name, "bot");
+
   };
 
   H.LIB.Bot.prototype = {
     constructor: H.LIB.Bot,
-    toString: function(){return H.format("[bot %s.%s]", this.context.name, this.name);},
+    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     log: function(){
       deb("   BOT: loaded: %s", this);
     },
@@ -98,6 +99,35 @@ HANNIBAL = (function(H){
       }
 
     },
+    unitprioritizer: function(){
+
+      var 
+        phase = this.culture.phases.current,
+        availability = this.economy.availability;
+
+      if (phase === "vill"){
+
+        return function(nodes){
+          nodes
+            .sort((a, b) => a.costs[availability[0]] < b.costs[availability[0]] ? 1 : -1 )
+            .sort((a, b) => a.costs[availability[1]] < b.costs[availability[1]] ? 1 : -1 )
+            .sort((a, b) => a.costs[availability[2]] < b.costs[availability[2]] ? 1 : -1 )
+            .sort((a, b) => a.costs[availability[3]] < b.costs[availability[3]] ? 1 : -1 );
+        };
+
+      } else if (phase === "town") {
+        return function(){deb("WARN  : bot.unitsortorder for town not implemented");};
+
+      } else if (phase === "city") {
+        return function(){deb("WARN  : bot.unitsortorder for city not implemented");};
+
+      } else {
+        return function(){deb("ERROR : bot.unitsortorder for '%s' not implemented", phase);};
+
+      }
+
+
+    }
 
   };
 

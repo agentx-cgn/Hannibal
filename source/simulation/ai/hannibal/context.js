@@ -246,7 +246,7 @@ HANNIBAL = (function(H){
         this.techtemplates      = ss._techTemplates;
         this.player             = ss.playersData[this.id];
         this.players            = ss.playersData;
-        this.metadata           = ss._entityMetadata[this.id];
+        // this.metadata           = ss._entityMetadata[this.id];
       };
 
 
@@ -273,7 +273,6 @@ HANNIBAL = (function(H){
         techtemplates:       ss._techTemplates, 
 
         // API read only, dynamic
-        // states:              H.Proxies.States(gameState.entities._entities),
         entities:            entities,
         modifications:       ss._techModifications,
         player:              ss.playersData[settings.player],
@@ -293,6 +292,7 @@ HANNIBAL = (function(H){
 
         }}),
 
+        // API ro/dynamic
         // sanitize UnitAI state // TODO: check if function works too
         unitstates:          new Proxy({}, {get: (proxy, id) => {
           return (
@@ -302,12 +302,35 @@ HANNIBAL = (function(H){
           );}
         }),
 
+
+        // API ro/dynamic
         // try to get all tech funcs here
         technologies:       new Proxy({}, {get: (proxy, name) => { return (
           name === "available" ? techname => Object.keys(this.modifications).map(sanitize).some(t => t === techname) :
           name === "templates" ? techname => ss._techTemplates[sanitize(techname)] :
               undefined
         );}}),
+
+        // API ro/dynamic
+        // 
+        health: function(ids){
+
+          // calcs health of an array of ent ids as percentage
+
+          var curHits = 0, maxHits = 0;
+
+          ids.forEach(function(id){
+            if (!entities[id]){
+              deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
+            } else {
+              curHits += entities[id]._entity.hitpoints;
+              maxHits += entities[id].maxHitpoints();
+            }
+          });
+
+          return ids.length ? (curHits / maxHits * 100).toFixed(1) : NaN;
+
+        },
 
 
       });

@@ -337,7 +337,8 @@ HANNIBAL = (function(H){
       asset.isRequested = true;
 
       // Eco requests are postponed one tick to avoid unevaluated orders in queue
-        this.economy.request(new H.LIB.Order(this.context).import().initialize({
+        // this.economy.request(new H.LIB.Order(this.context).import().initialize({
+        this.economy.request({
           amount:     amount,
           cc:         instance.cc,
           location:   location,
@@ -345,8 +346,7 @@ HANNIBAL = (function(H){
           hcq:        asset.hcq, 
           source:     asset.id, 
           shared:     asset.shared,
-          evaluated:  false
-        }));
+        });
 
       // deb("   GRP: requesting: (%s)", args);    
 

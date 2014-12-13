@@ -584,6 +584,7 @@ HANNIBAL = (function(H){
       context: context,
       imports: [
         // "id",
+        "bot",
         "economy",
         "query",
         "culture",
@@ -603,10 +604,11 @@ HANNIBAL = (function(H){
     logTick: function(){},
     initialize: function(order){
       H.extend(this, order, {
-        id:         order.id         || this.context.idgen,
+        id:         order.id         || this.context.idgen++,
         remaining:  order.remaining  || order.amount,
         processing: order.processing || 0,
         executable: order.executable || false,
+        evaluated:  order.evaluated  || false,
         x:          order.location ? order.location[0] : undefined,
         z:          order.location ? order.location[1] : undefined,
       });
@@ -631,7 +633,6 @@ HANNIBAL = (function(H){
         amount:     this.amount,
         remaining:  this.remaining,
         processing: this.processing,
-        executable: this.executable,
         verb:       this.verb, 
         hcq:        this.hcq, 
         source:     this.source, 
@@ -641,7 +642,7 @@ HANNIBAL = (function(H){
 
     evaluate: function(allocs){
 
-      var availability = this.economy.availability;
+      var sorter, availability = this.economy.availability;
 
       this.executable = false; // ready to send
 
@@ -719,16 +720,16 @@ HANNIBAL = (function(H){
       // remove disqualified nodes
       H.delete(this.nodes, node => !node.qualifies);
 
+      // finally
       if (this.nodes.length){
 
         this.executable = true;
 
-        // sort by availability, SM sorts stable
-        this.nodes
-          .sort((a, b) => a.costs[availability[0]] < b.costs[availability[0]] ? 1 : -1 )
-          .sort((a, b) => a.costs[availability[1]] < b.costs[availability[1]] ? 1 : -1 )
-          .sort((a, b) => a.costs[availability[2]] < b.costs[availability[2]] ? 1 : -1 )
-          .sort((a, b) => a.costs[availability[3]] < b.costs[availability[3]] ? 1 : -1 );
+        // bot priotizes by phase, speed, availability, armor
+        if (this.verb === "train"){        
+          sorter = this.bot.unitprioritizer();
+          sorter(this.nodes);
+        }
 
         // write costs for first into allocs
         allocs.food  += this.nodes[0].costs.food  * this.remaining;
