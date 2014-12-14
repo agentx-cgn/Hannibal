@@ -1,0 +1,421 @@
+js> print (help())
+print (help())
+JavaScript-C35.0a2
+version([number])
+  Get or force a script compilation version number.
+options([option ...])
+  Get or toggle JavaScript options.
+load(['foo.js' ...])
+  Load files named by string arguments. Filename is relative to the
+      current working directory.
+loadRelativeToScript(['foo.js' ...])
+  Load files named by string arguments. Filename is relative to the
+      calling script.
+evaluate(code[, options])
+  Evaluate code as though it were the contents of a file.
+  options is an optional object that may have these properties:
+      compileAndGo: use the compile-and-go compiler option (default: true)
+      noScriptRval: use the no-script-rval compiler option (default: false)
+      fileName: filename for error messages and debug info
+      lineNumber: starting line number for error messages and debug info
+      global: global in which to execute the code
+      newContext: if true, create and use a new cx (default: false)
+      saveFrameChain: if true, save the frame chain before evaluating code
+         and restore it afterwards
+      catchTermination: if true, catch termination (failure without
+         an exception value, as for slow scripts or out-of-memory)
+         and return 'terminated'
+      element: if present with value |v|, convert |v| to an object |o| and
+         mark the source as being attached to the DOM element |o|. If the
+         property is omitted or |v| is null, don't attribute the source to
+         any DOM element.
+      elementAttributeName: if present and not undefined, the name of
+         property of 'element' that holds this code. This is what
+         Debugger.Source.prototype.elementAttributeName returns.
+      sourceMapURL: if present with value |v|, convert |v| to a string, and
+         provide that as the code's source map URL. If omitted, attach no
+         source map URL to the code (although the code may provide one itself,
+         via a //#sourceMappingURL comment).
+      sourceIsLazy: if present and true, indicates that, after compilation, 
+script source should not be cached by the JS engine and should be 
+lazily loaded from the embedding as-needed.
+      loadBytecode: if true, and if the source is a CacheEntryObject,
+         the bytecode would be loaded and decoded from the cache entry instead
+         of being parsed, then it would be executed as usual.
+      saveBytecode: if true, and if the source is a CacheEntryObject,
+         the bytecode would be encoded and saved into the cache entry after
+         the script execution.
+      assertEqBytecode: if true, and if both loadBytecode and saveBytecode are 
+         true, then the loaded bytecode and the encoded bytecode are compared.
+         and an assertion is raised if they differ.
+
+run('foo.js')
+  Run the file named by the first argument, returning the number of
+  of milliseconds spent compiling and executing it.
+readline()
+  Read a single line from stdin.
+print([exp ...])
+  Evaluate and print expressions to stdout.
+printErr([exp ...])
+  Evaluate and print expressions to stderr.
+putstr([exp])
+  Evaluate and print expression without newline.
+dateNow()
+  Return the current time with sub-ms precision.
+help([name ...])
+  Display usage and help messages.
+quit()
+  Quit the shell.
+assertEq(actual, expected[, msg])
+  Throw if the first two arguments are not the same (both +0 or both -0,
+  both NaN, or non-zero and ===).
+throwError()
+  Throw an error from JS_ReportError.
+build()
+  Show build date and time.
+intern(str)
+  Internalize str in the atom table.
+getslx(obj)
+  Get script line extent.
+evalcx(s[, o])
+  Evaluate s in optional sandbox object o.
+  if (s == '' && !o) return new o with eager standard classes
+  if (s == 'lazy' && !o) return new o with lazy standard classes
+evalInFrame(n,str,save)
+  Evaluate 'str' in the nth up frame.
+  If 'save' (default false), save the frame chain.
+evalInWorker(str)
+  Evaluate 'str' in a separate thread with its own runtime.
+
+shapeOf(obj)
+  Get the shape of obj (an implementation detail).
+resolver(src[, proto])
+  Create object with resolve hook that copies properties
+  from src. If proto is omitted, use Object.prototype.
+sleep(dt)
+  Sleep for dt seconds.
+snarf(filename, ["binary"])
+  Read filename into returned string. Filename is relative to the current
+  working directory.
+read(filename, ["binary"])
+  Synonym for snarf.
+readRelativeToScript(filename, ["binary"])
+  Read filename into returned string. Filename is relative to the directory
+  containing the current script.
+compile(code)
+  Compiles a string to bytecode, potentially throwing.
+parse(code)
+  Parses a string, potentially throwing.
+syntaxParse(code)
+  Check the syntax of a string, returning success value
+offThreadCompileScript(code[, options])
+  Compile |code| on a helper thread. To wait for the compilation to finish
+  and run the code, call |runOffThreadScript|. If present, |options| may
+  have properties saying how the code should be compiled:
+      noScriptRval: use the no-script-rval compiler option (default: false)
+      fileName: filename for error messages and debug info
+      lineNumber: starting line number for error messages and debug info
+      element: if present with value |v|, convert |v| to an object |o| and
+         mark the source as being attached to the DOM element |o|. If the
+         property is omitted or |v| is null, don't attribute the source to
+         any DOM element.
+      elementAttributeName: if present and not undefined, the name of
+         property of 'element' that holds this code. This is what
+         Debugger.Source.prototype.elementAttributeName returns.
+
+runOffThreadScript()
+  Wait for off-thread compilation to complete. If an error occurred,
+  throw the appropriate exception; otherwise, run the script and return
+  its value.
+timeout([seconds], [func])
+  Get/Set the limit in seconds for the execution time for the current context.
+  A negative value (default) means that the execution time is unlimited.
+  If a second argument is provided, it will be invoked when the timer elapses.
+  Calling this function will replace any callback set by |setInterruptCallback|.
+
+interruptIf(cond)
+  Requests interrupt callback if cond is true. If a callback function is set via
+  |timeout| or |setInterruptCallback|, it will be called. No-op otherwise.
+invokeInterruptCallback(fun)
+  Forcefully set the interrupt flag and invoke the interrupt handler. If a
+  callback function is set via |timeout| or |setInterruptCallback|, it will
+  be called. Before returning, fun is called with the return value of the
+  interrupt handler.
+setInterruptCallback(func)
+  Sets func as the interrupt callback function.
+  Calling this function will replace any callback set by |timeout|.
+
+elapsed()
+  Execution time elapsed for the current context.
+decompileFunction(func)
+  Decompile a function.
+decompileBody(func)
+  Decompile a function's body.
+decompileThis()
+  Decompile the currently executing script.
+thisFilename()
+  Return the filename of the current script
+wrap(obj)
+  Wrap an object into a noop wrapper.
+wrapWithProto(obj)
+  Wrap an object into a noop wrapper with prototype semantics.
+newGlobal([options])
+  Return a new global object in a new compartment. If options
+  is given, it may have any of the following properties:
+      sameZoneAs: the compartment will be in the same zone as the given object (defaults to a new zone)
+      invisibleToDebugger: the global will be invisible to the debugger (default false)
+      principal: if present, its value converted to a number must be an
+         integer that fits in 32 bits; use that as the new compartment's
+         principal. Shell principals are toys, meant only for testing; one
+         shell principal subsumes another if its set bits are a superset of
+         the other's. Thus, a principal of 0 subsumes nothing, while a
+         principals of ~0 subsumes all other principals. The absence of a
+         principal is treated as if its bits were 0xffff, for subsumption
+         purposes. If this property is omitted, supply no principal.
+createMappedArrayBuffer(filename, [offset, [size]])
+  Create an array buffer that mmaps the given file.
+getMaxArgs()
+  Return the maximum number of supported args for a call.
+objectEmulatingUndefined()
+  Return a new object obj for which typeof obj === "undefined", obj == null
+  and obj == undefined (and vice versa for !=), and ToBoolean(obj) === false.
+
+isCachingEnabled()
+  Return whether JS caching is enabled.
+setCachingEnabled(b)
+  Enable or disable JS caching.
+cacheEntry(code)
+  Return a new opaque object which emulates a cache entry of a script.  This
+  object encapsulates the code and its cached content. The cache entry is filled
+  and read by the "evaluate" function by using it in place of the source, and
+  by setting "saveBytecode" and "loadBytecode" options.
+printProfilerEvents()
+  Register a callback with the profiler that prints javascript profiler events
+  to stderr.  Callback is only registered if profiling is enabled.
+enableSingleStepProfiling()
+  This function will fail on platforms that don't support single-step profiling
+  (currently everything but ARM-simulator). When enabled, at every instruction a
+  backtrace will be recorded and stored in an array. Adjacent duplicate backtraces
+  are discarded.
+disableSingleStepProfiling()
+  Return the array of backtraces recorded by enableSingleStepProfiling.
+isLatin1(s)
+  Return true iff the string's characters are stored as Latin1.
+gc([obj] | 'compartment' [, 'shrinking'])
+  Run the garbage collector. When obj is given, GC only its compartment.
+  If 'compartment' is given, GC any compartments that were scheduled for
+  GC via schedulegc.
+  If 'shrinking' is passes as the optional second argument, perform a
+  shrinking GC rather than a normal GC.
+minorgc([aboutToOverflow])
+  Run a minor collector on the Nursery. When aboutToOverflow is true, marks
+  the store buffer as about-to-overflow before collecting.
+gcparam(name [, value])
+  Wrapper for JS_[GS]etGCParameter. The name is one of maxBytes, maxMallocBytes, gcBytes, gcNumber, sliceTimeBudget, or markStackLimit
+getBuildConfiguration()
+  Return an object describing some of the configuration options SpiderMonkey
+  was built with.
+countHeap([start[, kind[, thing]]])
+  Count the number of live GC things in the heap or things reachable from
+  start when it is given and is not null. kind is either 'all' (default) to
+  count all things or one of 'object', 'double', 'string', 'function'
+  to count only things of that kind. If kind is the string 'specific',
+  then you can provide an extra argument with some specific traceable
+  thing to count.
+
+setSavedStacksRNGState(seed)
+  Set this compartment's SavedStacks' RNG state.
+
+getSavedFrameCount()
+  Return the number of SavedFrame instances stored in this compartment's
+  SavedStacks cache.
+saveStack()
+  Capture a stack.
+
+enableTrackAllocations()
+  Start capturing the JS stack at every allocation. Note that this sets an   object metadata callback that will override any other object metadata   callback that may be set.
+disableTrackAllocations()
+  Stop capturing the JS stack at every allocation.
+makeFinalizeObserver()
+  Get a special object whose finalization increases the counter returned
+  by the finalizeCount function.
+finalizeCount()
+  Return the current value of the finalization counter that is incremented
+  each time an object returned by the makeFinalizeObserver is finalized.
+gcPreserveCode()
+  Preserve JIT code during garbage collections.
+gcslice(n)
+  Run an incremental GC slice that marks about n objects.
+validategc(true|false)
+  If true, a separate validation step is performed after an incremental GC.
+fullcompartmentchecks(true|false)
+  If true, check for compartment mismatches before every GC.
+nondeterministicGetWeakMapKeys(weakmap)
+  Return an array of the keys in the given WeakMap.
+internalConst(name)
+  Query an internal constant for the engine. See InternalConst source for
+  the list of constant names.
+isProxy(obj)
+  If true, obj is a proxy of some sort
+dumpHeapComplete(['collectNurseryBeforeDump'], [filename])
+  Dump reachable and unreachable objects to the named file, or to stdout.  If
+  'collectNurseryBeforeDump' is specified, a minor GC is performed first,
+  otherwise objects in the nursery are ignored.
+terminate()
+  Terminate JavaScript execution, as if we had run out of
+  memory or been terminated by the slow script dialog.
+enableSPSProfiling()
+  Enables SPS instrumentation and corresponding assertions, with slow
+  assertions disabled.
+
+enableSPSProfilingWithSlowAssertions()
+  Enables SPS instrumentation and corresponding assertions, with slow
+  assertions enabled.
+
+disableSPSProfiling()
+  Disables SPS instrumentation
+enableOsiPointRegisterChecks()
+Emit extra code to verify live regs at the start of a VM call are not
+modified before its OsiPoint.
+displayName(fn)
+  Gets the display name for a function, which can possibly be a guessed or
+  inferred name based on where the function was defined. This can be
+  different from the 'name' property on the function.
+isAsmJSCompilationAvailable
+  Returns whether asm.js compilation is currently available or whether it is disabled
+  (e.g., by the debugger).
+isSimdAvailable
+  Returns true if SIMD extensions are supported on this platform.
+getCompilerOptions()
+Return an object describing some of the JIT compiler options.
+
+isAsmJSModule(fn)
+  Returns whether the given value is a function containing "use asm" that has been
+  validated according to the asm.js spec.
+isAsmJSModuleLoadedFromCache(fn)
+  Return whether the given asm.js module function has been loaded directly
+  from the cache. This function throws an error if fn is not a validated asm.js
+  module.
+isAsmJSFunction(fn)
+  Returns whether the given value is a nested function in an asm.js module that has been
+  both compile- and link-time validated.
+isLazyFunction(fun)
+  True if fun is a lazy JSFunction.
+isRelazifiableFunction(fun)
+  Ture if fun is a JSFunction with a relazifiable JSScript.
+inParallelSection()
+  True if this code is executing within a parallel section.
+setObjectMetadataCallback(fn)
+  Specify function to supply metadata for all newly created objects.
+setObjectMetadata(obj, metadataObj)
+  Change the metadata for an object.
+getObjectMetadata(obj)
+  Get the metadata for an object.
+bailout()
+  Force a bailout out of ionmonkey (if running in ionmonkey).
+setCompilerOption(<option>, <number>)
+  Set a compiler option indexed in JSCompileOption enum to a number.
+
+setIonCheckGraphCoherency(bool)
+  Set whether Ion should perform graph consistency (DEBUG-only) assertions. These assertions
+  are valuable and should be generally enabled, however they can be very expensive for large
+  (asm.js) programs.
+serialize(data, [transferables])
+  Serialize 'data' using JS_WriteStructuredClone. Returns a structured
+  clone buffer object.
+deserialize(clonebuffer)
+  Deserialize data generated by serialize.
+neuter(buffer, "change-data"|"same-data")
+  Neuter the given ArrayBuffer object as if it had been transferred to a
+  WebWorker. "change-data" will update the internal data pointer.
+  "same-data" will leave it set to its original value, to mimic eg
+  asm.js ArrayBuffer neutering.
+helperThreadCount()
+  Returns the number of helper threads available for off-main-thread tasks.
+startTraceLogger()
+  Start logging the mainThread.
+  Note: tracelogging starts automatically. Disable it by setting environment variable
+  TLOPTIONS=disableMainThread
+stopTraceLogger()
+  Stop logging the mainThread.
+reportOutOfMemory()
+  Report OOM, then clear the exception and return undefined. For crash testing.
+reportLargeAllocationFailure()
+  Call the large allocation failure callback, as though a large malloc call failed,
+  then return undefined. In Gecko, this sends a memory pressure notification, which
+  can free up some memory.
+findPath(start, target)
+  Return an array describing one of the shortest paths of GC heap edges from
+  |start| to |target|, or |undefined| if |target| is unreachable from |start|.
+  Each element of the array is either of the form:
+    { node: <object or string>, edge: <string describing edge from node> }
+  if the node is a JavaScript object or value; or of the form:
+    { type: <string describing node>, edge: <string describing edge> }
+  if the node is some internal thing that is not a proper JavaScript value
+  (like a shape or a scope chain element). The destination of the i'th array
+  element's edge is the node of the i+1'th array element; the destination of
+  the last array element is implicitly |target|.
+
+evalReturningScope(scriptStr)
+  Evaluate the script in a new scope and return the scope.
+backtrace()
+  Dump out a brief backtrace.
+getBacktrace([options])
+  Return the current stack as a string. Takes an optional options object,
+  which may contain any or all of the boolean properties
+    options.args - show arguments to each function
+    options.locals - show local variables in each frame
+    options.thisprops - show the properties of the 'this' object of each frame
+
+byteSize(value)
+  Return the size in bytes occupied by |value|, or |undefined| if value
+  is not allocated in memory.
+
+clone(fun[, scope])
+  Clone function object.
+getSelfHostedValue()
+  Get a self-hosted value by its name. Note that these values don't get 
+  cached, so repeatedly getting the same value creates multiple distinct clones.
+parent(obj)
+  Returns the parent of obj.
+line2pc([fun,] line)
+  Map line number to PC.
+pc2line(fun[, pc])
+  Map PC to line number.
+redirect(stdoutFilename[, stderrFilename])
+  Redirect stdout and/or stderr to the named file. Pass undefined to avoid
+   redirecting. Filenames are relative to the current working directory.
+system(command)
+  Execute command on the current host, returning result code.
+nestedShell(shellArgs...)
+  Execute the given code in a new JS shell process, passing this nested shell
+  the arguments passed to nestedShell. argv[0] of the nested shell will be argv[0]
+  of the current shell (which is assumed to be the actual path to the shell.
+  arguments[0] (of the call to nestedShell) will be argv[1], arguments[1] will
+  be argv[2], etc.
+assertFloat32(value, isFloat32)
+  In IonMonkey only, asserts that value has (resp. hasn't) the MIRType_Float32 if isFloat32 is true (resp. false).
+withSourceHook(hook, fun)
+  Set this JS runtime's lazy source retrieval hook (that is, the hook
+  used to find sources compiled with |CompileOptions::LAZY_SOURCE|) to
+  |hook|; call |fun| with no arguments; and then restore the runtime's
+  original hook. Return or throw whatever |fun| did. |hook| gets
+  passed the requested code's URL, and should return a string.
+
+  Notes:
+
+  1) SpiderMonkey may assert if the returned code isn't close enough
+  to the script's real code, so this function is not fuzzer-safe.
+
+  2) The runtime can have only one source retrieval hook active at a
+  time. If |fun| is not careful, |hook| could be asked to retrieve the
+  source code for compilations that occurred long before it was set,
+  and that it knows nothing about. The reverse applies as well: the
+  original hook, that we reinstate after the call to |fun| completes,
+  might be asked for the source code of compilations that |fun|
+  performed, and which, presumably, only |hook| knows how to find.
+
+undefined
+js> 
+
+js> 

@@ -128,7 +128,6 @@ HANNIBAL = (function(H){
       );
     },
     activate: function(){
-      // logObject(this, "asset.this");
       this.eventlist.forEach(e => this.events.on(e, this.handler));
     },
     release:    function(){
@@ -145,6 +144,7 @@ HANNIBAL = (function(H){
     get health () {return this.health(this.resources);},
     get count  () {return this.resources.length;},
     get first  () {return this.toSelection(this.resources.slice(0, 1));},
+    get firstid() {return this.resources[0];},
     get center () {return this.map.getCenter(this.resources);},
     get spread () {return this.map.getSpread(this.resources);},
     get uaistates (){
@@ -154,19 +154,17 @@ HANNIBAL = (function(H){
     },      
 
     // asset effector actions
-    destroy:  function(){this.effector.destroy(null, this.resources);},
+    destroy:  function(   ){this.effector.destroy(this.resources);},
     move:     function(pos){this.effector.move(this.resources, pos);},
     format:   function(fmt){this.effector.format(this.resources, fmt);},
     stance:   function(stc){this.effector.stance(this.resources, stc);},
     flee:     function(atk){this.effector.flee(this.resources, [atk.id]);},
     garrison: function(ast){this.effector.garrison(this.resources, ast.resources[0]);},
     gather:   function(ast){this.effector.gather(this.resources, ast.resources[0]);},
-    collect:  function(tgs){
-      this.effector.collect(this.resources, tgs.map(t => t.resources[0]));
-    },
+    collect:  function(tgs){this.effector.collect(this.resources, tgs.map(t => t.resources[0]));},
     repair:   function(ast){
       if (!ast.resources.length){H.throw("asset.repair: no resources");}
-      this.effector.repair(this.resources, ast.first());
+      this.effector.repair(this.resources, ast.firstid);
     },
 
     // asset helper
@@ -313,7 +311,7 @@ HANNIBAL = (function(H){
     // events
     listener: function(msg){
 
-      var resource, tpln, ent, maxRanges, attacker, id = msg.id;
+      var asset, tpln, ent, maxRanges, attacker, id = msg.id;
 
       if (msg.name === "OrderReady"){
 
@@ -321,7 +319,7 @@ HANNIBAL = (function(H){
 
           deb("   AST: listener.do: %s %s, res: %s, %s", msg.name, this, this.resources, uneval(msg));
 
-          resource = this.toSelection([id]);
+          asset = this.toSelection([id]);
 
           // take over ownership
           this.metadata[id].opid   = this.instance.id;
@@ -331,16 +329,16 @@ HANNIBAL = (function(H){
             tpln = this.entities[id]._templateName;
             if (tpln.contains("foundation")){
               this.isFoundation = true; //?? too greedy
-              resource.isFoundation = true;
+              asset.isFoundation = true;
             } else {
               this.isStructure = true;  //??
-              resource.isStructure = true;
+              asset.isStructure = true;
             }
           }
 
           // finalize
           this.resources.push(id);
-          this.instance.listener.onAssign(resource);          
+          this.instance.listener.onAssign(asset);          
 
         } // else { deb("   AST: no match: %s -> %s | %s", msg.data.source, this.id, this.name);}
 
@@ -353,8 +351,8 @@ HANNIBAL = (function(H){
 
           // no need to tell group about succesful foundations
           if (!msg.data.foundation){
-            resource = this.toSelection([id]);
-            this.instance.listener.onDestroy(resource);
+            asset = this.toSelection([id]);
+            this.instance.listener.onDestroy(asset);
           }
 
           // remove after so match works in instance
@@ -366,7 +364,7 @@ HANNIBAL = (function(H){
           // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
 
           ent = this.entities[msg.id2];
-          resource = this.toSelection([id]);
+          asset = this.toSelection([id]);
           maxRanges = ent.attackTypes().map(type => ent.attackRange(type).max);
           attacker = {
             id: msg.id2,
@@ -374,7 +372,7 @@ HANNIBAL = (function(H){
             range: Math.max.apply(Math, maxRanges)
           };
 
-          this.instance.listener.onAttack(resource, attacker, msg.data.type, msg.data.damage);
+          this.instance.listener.onAttack(asset, attacker, msg.data.type, msg.data.damage);
 
 
         } else if (msg.name === "EntityRenamed") {
@@ -390,7 +388,10 @@ HANNIBAL = (function(H){
 
           this.isFoundation = false;
           this.isStructure = true;
-          this.instance.listener.onAssign(this);
+          asset = this.toSelection([id]);
+          asset.isFoundation = false;
+          asset.isStructure = true;
+          this.instance.listener.onAssign(asset);
 
         }
 
