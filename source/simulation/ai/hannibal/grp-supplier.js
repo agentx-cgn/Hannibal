@@ -112,12 +112,13 @@ HANNIBAL = (function(H){
           );
 
           this.register("units", "dropsite", "dropsites");
-          this.request(1, this.units, this.position);   
+          // this.request(1, this.units, this.position);   
+          this.request(2, this.units, this.position);   
 
         },
         onAssign: function(asset){
 
-          deb("     G: onAssign %s : got %s, have pos: %s", this, asset, this.position);
+          deb("     G: onAssign %s : got %s, pos: %s", this, asset, H.fixed1(this.position));
          
           if (this.units.match(asset)){
 

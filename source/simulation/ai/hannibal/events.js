@@ -364,11 +364,13 @@ HANNIBAL = (function(H){
 
       e.entities.forEach( id => {
 
-        this.fire("TrainingFinished", {
+        var msg = this.fire("TrainingFinished", {
           player: e.owner,
           id:     id,
           data:   e.metadata || {},
         });
+
+        // if(e.owner === 1)deb("   EVT: %s", uneval(msg));
 
       });
 

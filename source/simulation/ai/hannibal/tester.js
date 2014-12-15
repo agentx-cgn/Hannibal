@@ -67,7 +67,7 @@ HANNIBAL = (function(H){
         // "2": [T.chat("huhu"), "chatted"], 
         // "1": [T.supplier(      "food.fruit", 44), "launching 1 food.fruit supplier"], 
         "1": [T.supplier(            "wood", 44, 10), "launching 1 wood supplier"], 
-        "3": [T.speed(5),                            "more speed"],
+        // "3": [T.speed(5),                            "more speed"],
       // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
     },
     "Forest Battle": {
