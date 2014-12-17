@@ -65,9 +65,11 @@ HANNIBAL = (function(H){
     "brain02": {
         "0": [() => "< - START: " + sequence + " - >"],
         // "2": [T.chat("huhu"), "chatted"], 
-        // "1": [T.supplier(      "food.fruit", 44), "launching 1 food.fruit supplier"], 
-        "1": [T.supplier(            "wood", 44, 10), "launching 1 wood supplier"], 
-        // "3": [T.speed(5),                            "more speed"],
+        "1": [T.supplier(      "food.fruit", 44), "launching 1 food.fruit supplier"], 
+        "2": [T.supplier(            "wood", 44, 10), "launching 1 wood supplier"], 
+        "3": [T.supplier(           "metal", 44, 10), "launching 1 metal supplier"], 
+        "4": [T.supplier(           "stone", 44, 10), "launching 1 stone supplier"], 
+        "5": [T.speed(5),                             "more speed"],
       // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
     },
     "Forest Battle": {

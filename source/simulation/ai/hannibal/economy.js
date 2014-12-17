@@ -22,7 +22,7 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:     "stats",
+      klass:    "stats",
       context:  context,
       imports:  [
         "player"
@@ -47,26 +47,13 @@ HANNIBAL = (function(H){
 
   H.LIB.Stats.prototype = {
     constructor: H.LIB.Stats,
+    toString: function(){return H.format("[%s %s:%s]", this.klass, this.context.name, this.name);},
     log: function(){
       deb();
       deb("   STS: stock: %s", JSON.stringify(this.stock));
     },
     initialize: function(){
-      // if (data){
-      //   H.extend(this, {
-      //     stock: data.stock, 
-      //     suply: data.suply, 
-      //     diffs: H.map(data.diffs, (key, data) => H.createRingBuffer.apply(null, data)), // last x stock vals
-      //     flows: data.flows, 
-      //     alloc: data.alloc,
-      //     forec: data.forec, 
-      //     trend: data.trend, 
-      //     stack: H.map(data.stack, (key, data) => H.createRingBuffer.apply(null, data)), // last x stock vals
-      //   });
-
-      // } else {
-        this.tick();
-      // }
+      this.tick();
       return this;
     },
     clone: function(context){
@@ -817,16 +804,14 @@ HANNIBAL = (function(H){
               case "train":
                 eco.do("train", amount, order); 
                 eco.subtract(product.costs, budget, amount);
-                order.processing += amount;
                 rep.exe.push(id + ":" + amount);
               break;
 
               case "build":
                 if (!hasBuild){
+                  hasBuild = true;
                   eco.do("build", 1, order); 
                   eco.subtract(product.costs, budget, 1);
-                  order.processing += 1;
-                  hasBuild = true;
                   rep.exe.push(id + ":" + amount);
                 } else {
                   deb("    OQ: #%s build postponed (%s)", t(id, 3), product.name);
@@ -836,7 +821,6 @@ HANNIBAL = (function(H){
               case "research":
                 eco.do("research", amount, order);
                 eco.subtract(product.costs, budget, amount);
-                order.processing += amount;
                 rep.exe.push(id + ":" + amount);
               break;
 
@@ -1092,6 +1076,10 @@ HANNIBAL = (function(H){
         sourcename = this.groups.findAssets(ast => ast.id === order.source)[0].name,  // this is an group instance
         loc = (order.location === undefined) ? "undefined" : H.fixed1(order.location);
 
+      if (order.verb === "build" && order.x === undefined){
+        H.throw("ERROR : %s order without position, source: %s", verb, sourcename);
+      }
+
       objorder = new H.LIB.Order(this.context).import().initialize(order);
       this.orderqueue.queue.push(objorder);
 
@@ -1113,40 +1101,39 @@ HANNIBAL = (function(H){
         pos, task, 
         product  = order.product,
         id = product.producer.id, 
-        template = product.key,
-        techname = H.saniTemplateName(product.key),
         msg = ( verb === "build" ?
           "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s" : 
           "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s"
         );
 
-      if (verb === "build" && order.x === undefined){deb("ERROR : order #%s %s without position", id, verb); return;}
+      order.processing += amount;
 
       switch(verb){
 
         case "train" :
           task = this.context.idgen++;
           this.producers.queue(product.producer, task);
-          deb(msg, order.id, verb, id, amount, template); 
-          this.effector.train([id], template, amount, {order: order.id, task: task, cc:order.cc});
+          deb(msg, order.id, verb, id, amount, product.key); 
+          this.effector.train([id], product.key, amount, {order: order.id, task: task, cc:order.cc});
         break;
 
         case "research" : 
-          this.producers.queue(product.producer, techname);
-          deb(msg, order.id, verb, id, 1, template); 
-          this.effector.research(id, template);
+          this.producers.queue(product.producer, product.name);
+          deb(msg, order.id, verb, id, 1, product.key); 
+          this.effector.research(id, product.key);
         break;
 
         case "build" : 
           // needs no queue
-          pos = this.map.findGoodPosition(template, [order.x, order.z]);
-          deb(msg, order.id, verb, id, 1, template, order.x.toFixed(0), order.z.toFixed(0)); 
-          this.effector.construct([id], template, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
+          pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
+          deb(msg, order.id, verb, id, 1, product.key, order.x.toFixed(0), order.z.toFixed(0)); 
+          this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
         break;
 
       }
 
     },
+
   };
 
 return H; }(HANNIBAL));

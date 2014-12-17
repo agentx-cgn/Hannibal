@@ -7,6 +7,7 @@ http://stackoverflow.com/questions/1606795/catching-stdout-in-realtime-from-subp
 http://askubuntu.com/questions/458041/find-x-window-name
 http://stackoverflow.com/questions/9681959/how-can-i-use-xdotool-from-within-a-python-module-script
 http://manpages.ubuntu.com/manpages/trusty/en/man1/avconv.1.html
+http://stackoverflow.com/questions/287871/print-in-terminal-with-colors-using-python
 
 xwininfo gives window info: xwininfo: Window id: 0x2800010 "0 A.D."
 
@@ -27,13 +28,28 @@ mplayer pyro02.mp4
 
 VERSION = "0.2.0"
 
-import sys, subprocess, time, os, sys, json
+import os, sys, subprocess, time, json
 from time import sleep
 
 sys.dont_write_bytecode = True
 
 ## maps etc.
 from data import data
+
+bcolors = {
+  "Bold":     "\033[1m",
+  "Header" :  "\033[95m",
+  "LBlue" :   "\033[94m", ## light blue
+  "DBlue" :   "\033[34m", ## dark blue
+  "OKGreen" : "\033[92m",
+  "Warning" : "\033[93m",
+  "Fail" :    "\033[91m",
+  "End" :     "\033[0m",
+}
+
+def printc(color, text) :
+  print (bcolors[color] + text + bcolors["End"])
+
 
 ## the game binary
 locations = {
@@ -171,12 +187,16 @@ def launch(typ="rel", map="Arcadia 02"):
       elif sline.startswith("#! xdotool init") :
         idWindow = findWindow("0 A.D")
         print("**");
-        print("   xdo: window id: %s" % idWindow)
+        printc("DBlue", "   xdo: window id: %s" % idWindow)
         xdotool("windowmove %s %s %s" % (idWindow, winX, winY))
 
       elif sline.startswith("#! xdotool ") :
         params = " ".join(sline.split(" ")[2:])
-        print("   X11: " + params)
+        printc("DBlue", "   X11: " + params)
+        xdotool(params)
+
+      elif sline.startswith("## xdotool ") : ## same, no echo
+        params = " ".join(sline.split(" ")[2:])
         xdotool(params)
 
       elif sline.startswith("#! clear") :
@@ -205,9 +225,9 @@ def launch(typ="rel", map="Arcadia 02"):
         curFileNum = filenum
         
       elif sline.startswith("#! close ") :
-        print(sline)
         filenum  = sline.split(" ")[2]
         files[filenum].close()    
+        print("#! closed %s at %s" % (filenum, os.stat(filename).st_size))
 
       # elif doWrite :
       #   # sys.stdout.write(".") little feedback if needed
