@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, TESTERDATA, Engine, deb, logObject */
+/*globals HANNIBAL, DEBUG, Engine, deb, logObject */
 
 /*--------------- T E S T E R -------------------------------------------------
 
@@ -16,11 +16,15 @@
 
 HANNIBAL = (function(H){
 
-  var T = H.T || {},
-      self, 
-      tick = 0, 
-      sequence = "", sequences, // sequence subset
-      chat = function(msg){Engine.PostCommand(H.APP.bot.id, {"type": "chat", "message": msg});};
+  // see gui.engine.methods.txt for remote control
+
+  var 
+    T = H.T || {},
+    CC = NaN, 
+    self, 
+    tick = 0, 
+    sequence = "", sequences, // sequence subset
+    chat = function(msg){Engine.PostCommand(H.APP.bot.id, {"type": "chat", "message": msg});};
 
   H.extend(T, {
     quit: function(){
@@ -50,6 +54,21 @@ HANNIBAL = (function(H){
         () => print("## xdotool key F9\n"),
       ];
 
+    },
+    camera: function(){
+      function ccloc(){
+        var 
+          c = H.APP.context,
+          [x, y] = c.entities[c.villages.main].position();
+        return x + ", " + y;
+      }
+      return [
+        () => print("## xdotool key F9\n"), 
+        () => print("#! xdotool type --delay 30 Engine.CameraMoveTo(" + ccloc() + ")\n"), 
+        () => print("## xdotool key Return\n"),
+        () => print("## xdotool key F9\n"),
+      ];
+
     }
 
   });
@@ -62,6 +81,17 @@ HANNIBAL = (function(H){
 
   // if any of these evaluate to a string, it gets chatted
   sequences = {
+    "random/brainland": {
+        "0": [() => "< - START: " + sequence + " - >"],
+        "1": [T.camera(),                             "set camera on CC"],
+        // "2": [T.chat("huhu"), "chatted"], 
+        "2": [T.supplier(      "food.fruit", CC), "launching 1 food.fruit supplier"], 
+        "3": [T.supplier(            "wood", CC, 10), "launching 1 wood supplier"], 
+        "4": [T.supplier(           "metal", CC, 10), "launching 1 metal supplier"], 
+        "5": [T.supplier(           "stone", CC, 10), "launching 1 stone supplier"], 
+        // "5": [T.speed(5),                             "more speed"],
+      // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
+    },
     "brain02": {
         "0": [() => "< - START: " + sequence + " - >"],
         // "2": [T.chat("huhu"), "chatted"], 
@@ -168,9 +198,9 @@ HANNIBAL = (function(H){
     return {
       boot:     function(){
         self = this; 
-        if (TESTERDATA !== undefined){
-          H.each(TESTERDATA, function(attr, value){
-            deb("tester: %s : %s", attr, value);
+        if (DEBUG !== undefined){
+          H.each(DEBUG, function(attr, value){
+            deb("TESTER: %s : %s", attr, value);
             if (attr.slice(0,2) === "On"){
               self[attr] = new Function(value);
             } else {
@@ -180,9 +210,10 @@ HANNIBAL = (function(H){
         }
         return self;
       },
-      activate: function(seq){
+      activate: function(seq, cc){
+        CC = cc; 
         sequence = seq || H.Config.sequence;
-        deb("TESTER: activated sequence: %s", sequence);
+        deb("TESTER: PID: %s CC: %s activated Tester.sequence: %s", PlayerID, CC, sequence);
       },
       log:      function(){
         var 
@@ -190,7 +221,7 @@ HANNIBAL = (function(H){
           lst = H.attribs(sequences[sequence]).join(",");
         deb("      :");
         deb("      :");
-        deb("      : TESTER running sequence: %s with %s ticks [%s]", sequence, cnt, lst);
+        deb("      : TESTER PID: %s CC: %s, running sequence: %s with %s ticks [%s]", PlayerID, CC, sequence, cnt, lst);
         deb("      :");
         deb("      :");
       },

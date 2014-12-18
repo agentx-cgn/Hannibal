@@ -20,6 +20,9 @@
 // very first line, enjoy the rest
 var TIMESTART = Date.now();
 
+// may load from _debug.js
+var DEBUG = HANNIBAL_DEBUG || {};
+
 print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### --- " + new Date() + "\n");
 print("#! xdotool init\n");
 
@@ -52,8 +55,10 @@ var HANNIBAL = (function() {
 
     API3.BaseAI.call(this, settings);
 
+    H.APP = this;
+
     H.extend(this, {
-      map:            TESTERDATA && TESTERDATA.map ? TESTERDATA.map : "unknown",
+      map:            DEBUG.map ? DEBUG.map : "unknown",
       settings:       settings,                            // from ai config dialog
       isInitialized:  false,                               // did that happen well?
       isTicking:      false,                               // toggles after first OnUpdate
@@ -81,8 +86,6 @@ var HANNIBAL = (function() {
 
     logStart(ss, gs, this.settings);
     logPlayers(ss.playersData);
-
-    H.APP = this;
 
     // launch the stats extension
     if (H.Config.numerus.enabled){
@@ -142,7 +145,7 @@ var HANNIBAL = (function() {
 
     /* run scripted actions named in H.Config.sequence */
     deb();
-    H.Tester.activate();      
+    H.Tester.activate(DEBUG.map, this.context.villages.main);      
     /* end scripter */
 
     /* testing triple store */
@@ -201,7 +204,8 @@ var HANNIBAL = (function() {
       this.context.updateEngine(sharedScript);
 
       // log top row debug info
-      deb("STATUS: @%s, elapsed: %s secs, id: %s, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+      deb("STATUS: %s@%s, elapsed: %s secs, id: %s, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+        PlayerID,
         this.context.tick, secs, this.bot.id, 
         this.bot.player.civ, this.context.culture.phases.current,
         H.count(this.bot.player.researchedTechs), 
@@ -231,7 +235,8 @@ var HANNIBAL = (function() {
       });
 
       // log row
-      deb("______: @%s timing: %s, all: %s %s", 
+      deb("______: %s@%s timing: %s, all: %s %s", 
+        PlayerID,
         this.context.tick, 
         msgTiming, 
         this.timing.all, 
@@ -262,7 +267,7 @@ var HANNIBAL = (function() {
     deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
   };
   H.Launcher.prototype.logFirstTick = function(t0) {
-    var map = TESTERDATA ? TESTERDATA.map : "unkown";
+    var map = DEBUG.map ? DEBUG.map : "unkown";
     deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
     deb();deb();
     deb("------: OnUpdate: startup: %s secs, map: '%s'", ((t0 - TIMESTART)/1000).toFixed(3), map);

@@ -168,7 +168,7 @@ HANNIBAL = (function(H){
           .sort((a, b) => ~~a < ~~b ? -1 : 1)
           .forEach( nameid => {
             var [name, id] = nameid.split("#");
-            deb("   PDC: %s %s", id, this.infoProducer(name));
+            deb("     P: %s %s", id, this.infoProducer(name));
         });
       } else {
         deb("   PDC: log: no producer registered");
@@ -178,17 +178,19 @@ HANNIBAL = (function(H){
       var count, name, id, allocs, queue, t = H.tab;
       if ((count = H.count(this.producers))){
         deb("   PDC: have %s producers", count);
-        deb("*");
-        H.attribs(this.producers)
-          // .filter(a => this.producers[a].queue.length)
-          .sort((a, b) => this.producers[a].queue.length > this.producers[b].queue.length ? -1 : 1)
-          .forEach( nameid => {
-            [name, id] = nameid.split("#");
-            allocs = this.producers[nameid].allocs;
-            queue  = this.producers[nameid].queue;
-            deb("     P: %s %s %s ", t("#" + id, 4), t(allocs,3), uneval(queue), nameid);
-        });
-        deb("*");
+        if (false){
+          deb("*");
+          H.attribs(this.producers)
+            // .filter(a => this.producers[a].queue.length)
+            .sort((a, b) => this.producers[a].queue.length > this.producers[b].queue.length ? -1 : 1)
+            .forEach( nameid => {
+              [name, id] = nameid.split("#");
+              allocs = this.producers[nameid].allocs;
+              queue  = this.producers[nameid].queue;
+              deb("     P: %s %s %s ", t("#" + id, 4), t(allocs,3), uneval(queue), nameid);
+          });
+          deb("*");
+        }
       } else {
         deb("   PDC: log: no producer registered");
       }
@@ -735,8 +737,7 @@ HANNIBAL = (function(H){
     process: function(){
 
       var 
-        t0 = Date.now(), 
-        amount, msg, t = H.tab, 
+        t0 = Date.now(), amount, 
         hasBuild      = false, // only one construction per tick
         allGood       = false, 
         rep           = this.report,
@@ -769,20 +770,6 @@ HANNIBAL = (function(H){
       // get first quote whether all orders fit budget
       allGood = eco.fits(allocs, budget);  
 
-      // rep / debug
-      // msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
-      // queue
-      //   .forEach(o => {
-      //     var 
-      //       isWaiting = o.remaining === o.processing,
-      //       exec = o.executable ? "X" : "-",
-      //       source = H.isInteger(o.source) ? this.groups.findAsset(o.source).name : o.source,
-      //       nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
-      //     if(!(isWaiting && !logWaiting)){
-      //       deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
-      //     }
-      // });
-
       // choose executables, sort and process
       queue
         .filter(order => !!order.product)
@@ -796,52 +783,34 @@ HANNIBAL = (function(H){
           // process all or one
           amount = allGood ? order.remaining - order.processing : 1;
 
+          // one build a time
+          if (order.verb === "build" && hasBuild){
+            return;
+          } else {
+            hasBuild = true;
+          }
+
           // final global budget check
           if (eco.fits(product.costs, budget, amount)){
 
-            switch(order.verb){
+            eco.do(amount, order); 
 
-              case "train":
-                eco.do("train", amount, order); 
-                eco.subtract(product.costs, budget, amount);
-                rep.exe.push(id + ":" + amount);
-              break;
-
-              case "build":
-                if (!hasBuild){
-                  hasBuild = true;
-                  eco.do("build", 1, order); 
-                  eco.subtract(product.costs, budget, 1);
-                  rep.exe.push(id + ":" + amount);
-                } else {
-                  deb("    OQ: #%s build postponed (%s)", t(id, 3), product.name);
-                }
-              break;
-
-              case "research":
-                eco.do("research", amount, order);
-                eco.subtract(product.costs, budget, amount);
-                rep.exe.push(id + ":" + amount);
-              break;
-
-              default:
-                deb("ERROR : orderQueue.process: #%s unknown order.verb: %s", id, order.verb);
-
-            }
+            eco.subtract(product.costs, budget, amount);
+            rep.exe.push(id + ":" + amount);
 
           } else {
             rep.ign.push(id);
 
           }
 
-
       });
 
-      queue
-        .filter( order => order.remaining === 0)
-        .forEach( order => {
+      // remove finished orders
+      H.delete(queue, order => {
+        if (order.remaining === 0){
           rep.rem.push(order.id);
-          H.remove(this.queue, order);
+          return true;
+        } else {return false;}
       });
 
       this.tP = Date.now() - t0;
@@ -966,7 +935,7 @@ HANNIBAL = (function(H){
 
       // new producer
       this.events.on("ConstructionFinished", msg => {
-        this.producers.register(this.query("INGAME WITH id = " + msg.id).first());
+        this.producers.register(msg.id);
       });
 
       // new unit
@@ -1077,7 +1046,7 @@ HANNIBAL = (function(H){
         loc = (order.location === undefined) ? "undefined" : H.fixed1(order.location);
 
       if (order.verb === "build" && order.x === undefined){
-        H.throw("ERROR : %s order without position, source: %s", verb, sourcename);
+        H.throw("ERROR : %s order without position, source: %s", order.verb, sourcename);
       }
 
       objorder = new H.LIB.Order(this.context).import().initialize(order);
@@ -1095,42 +1064,40 @@ HANNIBAL = (function(H){
       );
 
     },
-    do: function(verb, amount, order){
+    do: function(amount, order){
 
       var 
         pos, task, 
-        product  = order.product,
-        id = product.producer.id, 
-        msg = ( verb === "build" ?
-          "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s" : 
-          "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s"
-        );
+        product = order.product,
+        id = product.producer.id; 
+
+      deb("   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s",
+        order.id, 
+        order.verb, 
+        id, 
+        amount,
+        product.key, 
+        order.x ? order.x.toFixed(0) : NaN, 
+        order.z ? order.z.toFixed(0) : NaN 
+      );
 
       order.processing += amount;
 
-      switch(verb){
+      if (order.verb === "train"){
+        task = this.context.idgen++;
+        this.producers.queue(product.producer, task);
+        this.effector.train([id], product.key, amount, {order: order.id, task: task, cc:order.cc});
 
-        case "train" :
-          task = this.context.idgen++;
-          this.producers.queue(product.producer, task);
-          deb(msg, order.id, verb, id, amount, product.key); 
-          this.effector.train([id], product.key, amount, {order: order.id, task: task, cc:order.cc});
-        break;
+      } else if (order.verb === "research") {
+        this.producers.queue(product.producer, product.name);
+        this.effector.research(id, product.key);
 
-        case "research" : 
-          this.producers.queue(product.producer, product.name);
-          deb(msg, order.id, verb, id, 1, product.key); 
-          this.effector.research(id, product.key);
-        break;
-
-        case "build" : 
-          // needs no queue
-          pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
-          deb(msg, order.id, verb, id, 1, product.key, order.x.toFixed(0), order.z.toFixed(0)); 
-          this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
-        break;
+      } else if (order.verb === "build") {
+        pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
+        this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
 
       }
+
 
     },
 

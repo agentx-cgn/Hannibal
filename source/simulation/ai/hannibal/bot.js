@@ -40,7 +40,7 @@ HANNIBAL = (function(H){
 
     });
 
-    this.name = H.format("%s:%s", this.context.name, "bot");
+    this.name = H.format("%s:%s#%s", this.context.name, "bot", this.context.id);
 
   };
 
@@ -48,7 +48,7 @@ HANNIBAL = (function(H){
     constructor: H.LIB.Bot,
     toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     log: function(){
-      deb("   BOT: loaded: %s", this);
+      deb(); deb("   BOT: loaded: %s", this);
     },
     clone: function(context){
       return (

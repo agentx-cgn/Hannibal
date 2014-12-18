@@ -57,14 +57,14 @@ HANNIBAL = (function(H){
       // "events", 
       "culture",     // store, tree, phases
       // "map",         // grids
-      // "resources",   // after map
+      "resources",   // after map
       // "villages", 
       // "scanner",     // scanner after map, before groups
       "groups",      // assets
       "economy",     // stats, producers, orderqueue
       // "military", 
       // "brain", 
-      // "bot", 
+      "bot", 
     ];
 
     // set initial properties
@@ -78,6 +78,7 @@ HANNIBAL = (function(H){
     log: function(){
       var data = {};
       H.each(this.defaults, name => data[name] = this[name]);
+      deb();
       deb("   CTX: %s", uneval(data));
     },
     runSequence: function(fn){
@@ -204,7 +205,7 @@ HANNIBAL = (function(H){
 
       });
 
-      deb("   CTX: %s initialized", this.name);
+      // deb("   CTX: %s initialized", this.name);
 
     },
     connectExplorer:  function(launcher){

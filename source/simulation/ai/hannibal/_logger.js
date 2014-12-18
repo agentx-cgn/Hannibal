@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, TESTERDATA, Engine, warn, error, print */
+/*globals HANNIBAL, H, DEBUG, Engine, warn, error, print */
 
 /*--------------- D E B U G  --------------------------------------------------
 
@@ -40,16 +40,18 @@ function logg(){
 }
 
 function deb(){
+  // print(">>>> " + PlayerID);
   var 
-    H = HANNIBAL,
+    H    = HANNIBAL,
+    id   = PlayerID,
     args = arguments, al = args.length,
     msg = (
       (al === 0) ? "**\n**" :
       (al === 1) ? args[0] :
         H.format.apply(H, args)
       ) + "\n",
-    prefix = msg.substr(0, 7).toUpperCase(),
-    deblevel = H.Config.deb || 0,
+    prefix   = msg.substr(0, 7).toUpperCase(),
+    deblevel = DEBUG.logLevels ? DEBUG.logLevels[id] : H.Config.deb || 0,
     msglevel = (
       prefix === "ERROR :" ? 1 :
       prefix === "WARN  :" ? 2 :
@@ -494,7 +496,7 @@ var logStart = function(ss, gs, settings){
   deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
   deb();
   deb();
-  deb("     A:    map from tester:  %s", TESTERDATA ? TESTERDATA.map : "unkown");
+  deb("     A:    map from tester:  %s", DEBUG.map ? DEBUG.map : "unkown");
   deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
   deb("     A:          _entities: %s [  ]", H.count(ss._entities));
   deb("     A:         _templates: %s [  ]", H.count(ss._templates));

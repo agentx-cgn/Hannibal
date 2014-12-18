@@ -1,0 +1,11 @@
+{
+	"settings" : {
+		"Name" : "Brainland",
+		"Script" : "brainland.js",
+		"Description" : "Hannibal test map without any water, based on mainland.js",
+		"BaseTerrain" : ["medit_sea_depths"],
+		"BaseHeight" : 3,
+		"CircularMap" : true,
+		"XXXXXX" : "Optionally define other things here, like we would for a scenario"
+	}
+}
