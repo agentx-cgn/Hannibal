@@ -14,6 +14,8 @@
 
 HANNIBAL = (function(H){
 
+  var deb = H.deb;
+
   H.Groups = H.Groups || {};
 
   H.extend(H.Groups, {
@@ -187,7 +189,7 @@ HANNIBAL = (function(H){
             if (this.target){
               this.units.doing("idle").gather(this.target);
             } else {
-              deb("  WARN: %s with res: %s has no target", this, this.supply);
+              deb("WARN  : %s with res: %s has no target", this, this.supply);
             }              
             
             

@@ -14,6 +14,8 @@
 
 HANNIBAL = (function(H){
 
+  var deb = H.deb;
+
   H.Groups = H.Groups || {};
 
   H.extend(H.Groups, {
@@ -75,11 +77,11 @@ HANNIBAL = (function(H){
         onLaunch: function(options /*cc, size*/){
 
           this.options = options;
-          this.size = options.size;
+          this.size = options.size || 5;
           this.units = this.exclusives(options).units[1];
           this.field = this.exclusives(options).field[1];
           this.register("dropsite", "units", "field", "shelter");     // turn res definitions into res objects
-          this.economy.request(1, this.dropsite, this.position);      // assuming a CC exists
+          this.request(1, this.dropsite, this.position);      // assuming a CC exists
 
         },
 
@@ -90,7 +92,7 @@ HANNIBAL = (function(H){
 
           if (this.dropsite.match(asset)){
             this.position = asset;
-            this.economy.request(1, this.units);
+            this.request(1, this.units);
 
           } else if (this.field.match(asset)){
             this.position = asset;
@@ -100,7 +102,7 @@ HANNIBAL = (function(H){
           } else if (this.units.match(asset)){
 
             if (!this.field.isRequested){ 
-              this.economy.request(1, this.field, this.dropsite);
+              this.request(1, this.field, this.dropsite);
 
             } else if (this.field.isFoundation){
               // may silently fail, because field was destroyed
@@ -112,7 +114,7 @@ HANNIBAL = (function(H){
             }
 
             if (this.units.count < this.size){
-              this.economy.request(1, this.units, this.position);   
+              this.request(1, this.units, this.position);   
             }            
 
           } else {
@@ -129,10 +131,10 @@ HANNIBAL = (function(H){
 
           if (this.field.match(asset)){
             this.position = this.units;
-            this.economy.request(1, this.field, this.position);
+            this.request(1, this.field, this.position);
 
           } else if (this.units.match(asset)){
-            this.economy.request(1, this.units, this.position);
+            this.request(1, this.units, this.position);
 
           } else if (this.dropsite.match(asset)){
             // dropsite is shared, custodian orders new one

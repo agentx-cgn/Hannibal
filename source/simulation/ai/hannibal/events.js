@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval, logFn, logDispatcher */
+/*globals HANNIBAL, uneval */
 
 /*--------------- E V E N T S -------------------------------------------------
 
@@ -36,7 +36,6 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name: "events",
       context: context,
       imports: [
         "id",
@@ -104,18 +103,12 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Events.prototype = {
+  H.LIB.Events.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Events,
     log: function(){
-      deb();
-      deb("EVENTS: have %s saved events", this.savedEvents.length);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      return new H.LIB[H.noun(this.name)](context);
+      this.deb();
+      this.deb("EVENTS: have %s saved events", this.savedEvents.length);
     },
     serialize: function(){
       // the listeners have to be re-created somewhere else
@@ -167,7 +160,7 @@ HANNIBAL = (function(H){
           .reduce((a, b) => a + b, 0);
       
       if (sum){
-        deb.apply(null, [msgTick].concat(lengths));
+        this.deb.apply(null, [msgTick].concat(lengths));
       }
 
     },
@@ -198,7 +191,7 @@ HANNIBAL = (function(H){
         listener = args[2];
 
       } else {
-        deb("ERROR: Events.on is strange: %s", uneval(args));
+        this.deb("ERROR: Events.on is strange: %s", uneval(args));
         return [];
 
       }
@@ -263,7 +256,7 @@ HANNIBAL = (function(H){
           dispatcher[msg.player][msg.id]   ? dispatcher[msg.player][msg.id] : []
         )).filter(l => typeof l === "function");
 
-      // deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
+      // this.deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
 
       listeners.forEach(l => l(msg));
 
@@ -283,7 +276,7 @@ HANNIBAL = (function(H){
         dispatcher[player][type].push(listener);
 
       } else {
-        deb("WARN  : duplicate listener: %s %s, %s", player, type, logFn(listener));
+        this.deb("WARN  : duplicate listener: %s %s, %s", player, type, H.logFn(listener));
 
       }
 
@@ -330,7 +323,7 @@ HANNIBAL = (function(H){
         this.createEvents[id] = tpln;
 
       } else {
-        // deb("  EVTS: Create ent: %s, own: %s, tpl: %s, mats: %s", id, owner, tpln, H.attribs(e));
+        // this.deb("  EVTS: Create ent: %s, own: %s, tpl: %s, mats: %s", id, owner, tpln, H.attribs(e));
         this.fire("EntityCreated", {
           player: player,
           id:     id,
@@ -346,6 +339,8 @@ HANNIBAL = (function(H){
     EntityRenamed: function(e){
 
       // listener: assets, culture, producers
+
+      this.deb("   EVT: EntityRenamed %s" , uneval(e));
 
       var msg = this.fire("EntityRenamed", {
         player: this.entities[e.newentity].owner(),
@@ -370,7 +365,7 @@ HANNIBAL = (function(H){
           data:   e.metadata || {},
         });
 
-        // if(e.owner === 1)deb("   EVT: %s", uneval(msg));
+        // if(e.owner === 1)this.deb("   EVT: %s", uneval(msg));
 
       });
 
@@ -403,7 +398,7 @@ HANNIBAL = (function(H){
 
       // listener: assets, grids, mili?
 
-      // deb("   EVT: got attacked: %s", uneval(e));
+      // this.deb("   EVT: got attacked: %s", uneval(e));
 
       if (this.entities[e.target]){
 
@@ -425,13 +420,13 @@ HANNIBAL = (function(H){
       var msg;
 
       if (this.createEvents[e.entity]){
-        // deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
+        // this.deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
         // looks like a failed structure
         return;
       }
 
       if (!e.entityObj){
-        deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
+        this.deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
         return;
       }
 
@@ -448,112 +443,15 @@ HANNIBAL = (function(H){
         id:     e.entity,
       });
 
+      this.deb("  EVT: Destroy fired: %s" , uneval(msg));
+
+
       if (this.dispatcher[msg.player][msg.id]){
         // delete(dispatcher[msg.player][msg.id]);
       }
 
     },
 
-  };
-
-  // // public interface
-  // H.Events = (function(){
-
-    //   var t0;
-
-    //   return {
-    //     boot:    function(){self = this; return self;},
-    //     collect: function(newEvents){packs.push(newEvents);},
-    //     logTick: function(events){
-    //       var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
-    //           sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
-    //       if (sum){
-    //         deb.apply(null, [msgTick].concat(lengths));
-    //       }
-    //     },
-    //     tick:    function(){
-
-    //       // dispatches new techs and finally fifo processes 
-    //       // collected event packs and then single events in order defined above
-
-    //       t0 = Date.now();
-
-    //       processTechs();
-
-    //       packs.forEach(function(events){
-    //         self.logTick(events);
-    //         orderedEvents.forEach(function(type){
-    //           if (events[type]){
-    //             events[type].forEach(function(event){
-    //               handler[type](event);
-    //             });
-    //           }
-    //         });
-    //       });
-
-    //       packs = [];
-    //       createEvents = {};
-    //       destroyEvents = {};
-
-    //       return Date.now() - t0;
-
-    //     },
-    //     fire: function(name, msg){
-    //       return dispatchMessage(new Message(name, msg));
-    //     },
-    //     readArgs: function (type /* [player, ] listener */) {
-
-    //       var player, listener, callsign, args = H.toArray(arguments);
-
-    //       if (args.length === 1 && typeof args[0] === "function"){
-    //         type     = "*";
-    //         player   = "*";
-    //         listener = args[0];
-
-    //       } else if (args.length === 2 && typeof args[1] === "function"){
-    //         type     = args[0];
-    //         player   = H.Bot.id;
-    //         listener = args[1];
-
-    //       } else if (args.length === 3 && typeof args[2] === "function"){
-    //         type     = args[0];
-    //         player   = args[1];
-    //         listener = args[2];
-
-    //       } else {
-    //         deb("ERROR: Events.on is strange: %s", uneval(args));
-    //         return [];
-
-    //       }
-
-    //       return [type, player, listener, "unknown"];
-
-    //     },
-    //     off: function (/* [type, [player, ]] listener */) {
-
-    //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
-
-    //       H.delete(dispatcher["*"]["*"],     l => l === listener);
-    //       H.delete(dispatcher[player]["*"],  l => l === listener);
-    //       H.delete(dispatcher[player][type], l => l === listener);
-
-    //     },
-    //     on: function (/* [type, [player, ]] listener */) {
-
-    //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
-
-    //       registerListener(player, type, listener);
-
-    //       // allows to add/sub type afterwards
-    //       return {
-    //         add : function(type){registerListener(player, type, listener);},
-    //         sub : function(type){removeListener(player, type, listener);}
-    //       };
-
-    //     },
-
-    //   };
-
-    // }()).boot();
+  });
 
 return H; }(HANNIBAL));

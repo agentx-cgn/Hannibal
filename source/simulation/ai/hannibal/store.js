@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, logObject */
+/*globals HANNIBAL */
 
 /*--------------- S T O R E  --------------------------------------------------
 
@@ -18,18 +18,22 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:    "store",
       context: context,
+
       imports: [
         "culture"
       ],
 
-      verbs:  null,
-      nodes:  null,
-      edges:  null,
+      verbs:    null,
+      nodes:    null,
+      edges:    null,
+
+      capverbs:    null,
+      keywords:   "DISTINCT, WITH, SORT, LIMIT, RAND".split(", "),
 
       cntNodes:    0,
       cntQueries:  0,
+
       cache:      {},
       cacheHit:    0,
       cacheMiss:   0,
@@ -39,11 +43,12 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Store.prototype = {
+  H.LIB.Store.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Store,
     log: function(){
-      deb();
-      deb(" STORE: %s verbs, %s nodes, %s edges", this.verbs.length, H.count(this.nodes), this.edges.length);
+      this.deb();
+      this.deb(" STORE: %s verbs, %s nodes, %s edges", this.verbs.length, H.count(this.nodes), this.edges.length);
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -66,9 +71,10 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
       if (!this.verbs){
-        this.verbs = this.culture.verbs;
-        this.nodes = {};
-        this.edges = [];
+        this.verbs    = this.culture.verbs;
+        this.capverbs = this.culture.verbs.map(String.toUpperCase);
+        this.nodes    = {};
+        this.edges    = [];
       }
       return this;
     },
@@ -80,7 +86,7 @@ HANNIBAL = (function(H){
         this.nodes[node.name] = node;
         this.cntNodes += 1;
       } else {
-        deb("ERROR : node already exists in store: %s, %s ", this.name, node.name);
+        this.deb("WARN  : store.addNode: already exists in store: %s, %s ", this.name, node.name);
       }
     },
     delNode: function(name){  // TODO: speed up
@@ -91,131 +97,124 @@ HANNIBAL = (function(H){
         this.cntNodes -= 1;
 
       } else {
-        deb("WARN  : store.delNode: can't delete '%s' unknown", name);
+        this.deb("WARN  : store.delNode: can't delete '%s' unknown", name);
       }
 
     },
     addEdge: function(source, verb, target){
-      if (!source)                      {deb("ERROR : addEdge: source not valid: %s", source);} 
-      else if (!target)                 {deb("ERROR : addEdge: target not valid: %s", target);} 
-      else if (!this.nodes[source.name]){deb("ERROR : addEdge: no source node for %s", source.name);}
-      else if (!this.nodes[target.name]){deb("ERROR : addEdge: no target node for %s", target.name);}
-      else if (this.verbs.indexOf(verb) === -1){deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
+      if (!source)                      {this.deb("ERROR : addEdge: source not valid: %s", source);} 
+      else if (!target)                 {this.deb("ERROR : addEdge: target not valid: %s", target);} 
+      else if (!this.nodes[source.name]){this.deb("ERROR : addEdge: no source node for %s", source.name);}
+      else if (!this.nodes[target.name]){this.deb("ERROR : addEdge: no target node for %s", target.name);}
+      else if (this.verbs.indexOf(verb) === -1){this.deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
       else {
         this.edges.push([source, verb, target]);
       }
     },
 
-  };
+  });
 
   H.LIB.Query = function(store, query, debug){
 
-    this.debug = debug || 0;
+    H.extend(this, {
 
-    if(this.debug > 0){
-      deb();
-      deb("PARSER: i '%s'", query);
-    }
+      debug: debug || 0,
 
-    this.fromCache = false;
-    this.store = store;
-    this.verbs = store.verbs.map(String.toUpperCase);
-    this.keys  = "DISTINCT, WITH, SORT, LIMIT, RAND".split(", ");
+      context: store.context,
+
+      result: null,
+      ops:    NaN,
+
+      fromCache:  false,
+      store:      store,
+      verbs:      store.capverbs,
+      keys:       store.keywords,
+      params:     {deb: 0, max: 10, cmt: "no comment", fmt: ""},
+
+    });
+
     this.query = this.sanitize(query);
     this.tree  = this.parse(this.query);
 
-    if(this.debug > 0){
-      deb("     P: o: %s", JSON.stringify(this.tree));
-      deb();
-    }
+    this.store.cntQueries += 1;
 
   };
 
-  H.LIB.Query.prototype = {
+  H.LIB.Query.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Query,
+    logNodes: function (){
+      if (this.debug > 0 && this.fromCache){this.deb("     Q: %s recs from cache: %s", this.result.length, this.query);}
+      if (this.debug > 0){this.deb("     Q: executed: msecs: %s, records: %s, ops: %s", this.t1, this.result.length, this.ops);}
+      if (this.debug > 1){this.logResult(this.result, this.params.fmt, this.params.max);}
+    },
+    sanitize: function(phrase){
+      phrase = H.replace(phrase, "\n", " ");
+      phrase = H.replace(phrase, "\t", " ");
+      phrase = H.replace(phrase, " ,", ",");
+      return phrase.split(" ").filter(function(s){return !!s;}).join(" ");
+    },
+
+    parameter: function(params){
+      // takes fmt, deb, max, cmt,      
+      H.extend(this.params, params);
+      return this;
+    },
+    count: function(){
+      this.result = this.result || this.execute();
+      return this.result.length;
+    },
+    first: function(){
+      this.result = this.result || this.execute();
+      return this.result.length ? this.result[0] : null;
+    },
+    filter: function(fn, that){
+      this.result = this.result || this.execute();
+      return this.result.filter(fn, that);
+    },
+    forEach: function(fn, that){
+      this.result = this.result || this.execute();
+      this.result.forEach(fn, that);
+      return this.result;
+    },
+    map: function(fn, that){
+      this.result = this.result || this.execute();
+      return this.result.map(fn, that);
+    },
+
     checkCache: function(){
 
-      var result, 
-          useCache = (
-            this.query.indexOf("INGAME") === -1 &&
-            this.query.indexOf("TECHINGAME") === -1 &&
-            !!this.store.cache[this.query]
+      var 
+        result = null, 
+        check = (
+          this.query.indexOf("INGAME") === -1 &&
+          this.query.indexOf("TECHINGAME") === -1 &&
+          !!this.store.cache[this.query]
       );
 
-      if (useCache){
+      if (check){
         result = this.store.cache[this.query].result;
         this.fromCache = true;
         this.store.cache[this.query].hits += 1;
         this.store.cacheHit += 1;
+
       } else {
-        result = undefined;
         this.store.cacheMiss += 1;
+
       }
 
       return result;
 
     },
-    parse: function(query){
 
-      var self    = this, 
-          verbs   = this.verbs,
-          keys    = this.keys,
-          clauses = this.partition([query], verbs),
-          subClauses, out = [], error;
-
-      function isVerb(t){return verbs.indexOf(t) !== -1;}
-      function isString(t){return typeof t === "string";}
-
-      clauses.forEach(function(clause){
-
-        if (isString(clause) || clause.length === 1){
-          out.push(clause);
-
-        } else if (isVerb(clause[0])) {
-
-          subClauses = self.partition([clause[1]], keys);
-
-          if (isString(subClauses[0])) {
-            out.push([clause[0]].concat(subClauses.shift()));
-          } else {
-            out.push([clause[0]]);
-          }
-          subClauses.forEach(function(clause){
-            out.push(clause);
-          });
-
-        } else {
-          error = H.format("unknwon clause keyword: %s, ''", clause[0], clause);
-          deb("     P: %s", error);
-
-        }
-
-      });
-
-      return error ? undefined : out;
-
+    isVerb: function (t){return this.verbs.indexOf(t) !== -1;},
+    isKey: function (t){return this.keys.indexOf(t) !== -1;},
+    isString : function (t){return typeof t === "string";},
+    sample: function (a,n){
+      var l=a.length; 
+      return H.range(n||1).map(function(){return a[~~(H.Hannibal.entropy.random()*l)];});
     },
-    count: function(format, debug, debmax, comment){
-      return this.execute(format, debug, debmax, comment).length;
-    },
-    first: function(format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      // return nodes.length ? nodes[0] : undefined;
-      return nodes.length ? nodes[0] : null;
-    },
-    forEach: function(fn, format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      nodes.forEach(fn);
-      return nodes;
-    },
-    filter: function(fn, format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      return nodes.filter(fn);
-    },
-    map: function(fn, format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      return nodes.map(fn);
-    },
+
     get: function(node, dotlist){
       var p = dotlist.split("."), l = p.length;
       return  (
@@ -226,70 +225,105 @@ HANNIBAL = (function(H){
           undefined
       );
     },
-    execute: function(format, debug, debmax, comment){
+    prepResults: function(results){
+      Object.defineProperty(results, "stats", {
+        enumerable:   false,
+        configurable: false,
+        writable:     true,
+        value: {
+          ops:     this.ops,
+          msecs:   this.t1,
+          length:  results.length,
+          cached:  this.fromCache,
+          hits:    this.store.cache[this.query].hits,
+          nodes:   this.store.cntNodes,
+          edges:   this.store.edges.length,
+          verbs:   this.store.verbs.length
+        }
+      });
+      return results;
+    },
 
-      var t1, t0 = Date.now(), 
-          self    = this,
-          tree    = this.tree,
-          verbs   = this.verbs,
-          keys    = this.keys,
-          edges   = this.store.edges, //  = [source, verb, target]
-          nodes   = this.store.nodes, //  = {name:{}}
-          cache   = this.store.cache,
-          results = [],               // returns always an array
-          ops     = 0,
-          cacheDrop = "";
+    parse: function(query){
 
-      function isKey(t)   {return keys.indexOf(t) !== -1;}
-      function isVerb(t)  {return verbs.indexOf(t) !== -1;}
-      function isString(t){return typeof t === "string";}
-      function sample(a,n){var l=a.length; return H.range(n||1).map(function(){return a[~~(H.Hannibal.entropy.random()*l)];});}
-      function parse(v)   { // float or string
-        var f = parseFloat(v); 
-        return (
-          Array.isArray(v) ? v :                  // don't touch arrays
-          isNaN(f)         ? v.slice(1, -1) : f   // return strings without quotes
-        );
-      } 
-      function prepResults(ress){
-        Object.defineProperty(ress, "stats", {
-          enumerable: false,
-          configurable: false,
-          writable: true,
-          value: {
-            ops: ops,
-            msecs: t1,
-            length: results.length,
-            cached: self.fromCache,
-            hits: cache[self.query].hits,
-            nodes: self.store.cntNodes,
-            edges: edges.length,
-            verbs: verbs.length
+      var 
+        subClauses, out = [], error,
+        verbs   = this.verbs,
+        keys    = this.keys,
+        clauses = this.partition([query], verbs),
+        push = item => out.push(item);
+
+      clauses.forEach( clause => {
+
+        if (this.isString(clause) || clause.length === 1){
+          push(clause);
+
+        } else if (this.isVerb(clause[0])) {
+
+          subClauses = this.partition([clause[1]], keys);
+
+          if (this.isString(subClauses[0])) {
+            push([clause[0]].concat(subClauses.shift()));
+          } else {
+            push([clause[0]]);
           }
-        });
-        return results;
-      }
-      function logNodes(){
-        // debug
-        if (self.debug > 0 && self.fromCache){deb("     Q: %s recs from cache: %s", results.length, self.query);}
-        if (self.debug > 0){deb("     Q: executed: msecs: %s, records: %s, ops: %s", t1, results.length, ops);}
-        if (self.debug > 1){self.logResult(results, format, debmax);}
-      }
+          // subClauses.forEach(function(clause){
+          //   out.push(clause);
+          // });
+          subClauses.forEach(push);
 
-      this.debug  = debug || 0;
+        } else {
+          this.deb("ERROR :  store.parse: unknown keyword '%s' in clause: %s", clause, clause[0]);
 
-      this.store.cntQueries += 1;
+        }
+
+      });
+
+      return error ? undefined : out;
+
+    },
+    execute: function(){
+
+      var
+        t1,  t0 = Date.now(), 
+        ops     = this.ops = 0,
+        cacheDrop = "",
+        self    = this,
+        tree    = this.tree,
+
+        // verbs   = this.verbs,
+        // keys    = this.keys,
+        edges   = this.store.edges,     //  = [source, verb, target]
+        nodes   = this.store.nodes,     //  = {name:{}}
+
+        cache   = this.store.cache,
+        
+        // format  = this.params.fmt,
+        // debug   = this.params.deb,
+        // debmax  = this.params.max,
+        comment = this.params.cmt,
+        
+        // returns always an array
+        results = this.result = [],               
+
+        // isKey =    t => ~keys.indexOf(t),
+        // isVerb =   t => ~verbs.indexOf(t),
+        // isString = t => typeof t === "string",
+
+        // return strings without quotes
+        parse =    v => {
+          var f = parseFloat(v);
+          return Array.isArray(v) ? v : isNaN(f) ? v.slice(1, -1) : f;
+        };
 
       // Cached ?
-      results = this.checkCache();
-      if (results){
+      if (( results = this.checkCache() )){
         t1 = Date.now() - t0;
-        logNodes();
-        return prepResults(results);
+        this.logNodes();
+        return this.prepResults(results, ops, t1);
 
       } else {
         // we start with all nodes as result
-        // results = Object.keys(nodes).map(function (key){return nodes[key];});
         results = Object.keys(nodes).map(key => nodes[key]);
         ops     = results.length;
 
@@ -297,27 +331,23 @@ HANNIBAL = (function(H){
 
 
       if (this.debug > 1){
-        deb(" ");
-        deb("     Q: q: '%s'", self.query);
-        deb("      : c: '%s'", comment || "no comment");
+        this.deb("      :");
+        this.deb("     Q: q: '%s'", self.query);
+        this.deb("      : c: '%s'", comment || "no comment");
       }
 
-      tree.forEach(function(clause){
+      tree.forEach( clause => {
 
-        var first  = clause[0],
-            verb   = first.toLowerCase(),
-            rest   = !!clause[1] ? clause[1]  : undefined, 
-            params = !!rest ? rest.split(" ") : undefined, 
-            attr, oper, filters;
-
-        if (!H.APP.isTicking && self.debug > 0){
-          deb("      : i: ops: %s, nodes: %s, c: %s", H.tab(ops, 4), H.tab(results.length, 4), JSON.stringify(clause));
-        }
-
+        var 
+          first  = clause[0],
+          verb   = first.toLowerCase(),
+          rest   = !!clause[1] ? clause[1]  : undefined, 
+          params = !!rest ? rest.split(" ") : undefined, 
+          attr, oper, filters;
 
         // expecting node NAMES, the optional first clause
 
-        if (isString(clause)){
+        if (this.isString(clause)){
 
           // convert the names into nodes, remove unknown
           results = clause.split(", ")
@@ -327,7 +357,7 @@ HANNIBAL = (function(H){
 
         // a VERB
 
-        } else if (isVerb(first)) {
+        } else if (this.isVerb(first)) {
           
           // find all edges from source node, with given verb, collect target node
 
@@ -337,12 +367,12 @@ HANNIBAL = (function(H){
 
         // a KEYWORD
 
-        } else if (isKey(first)) {
+        } else if (this.isKey(first)) {
 
           switch (first){
 
             case "LIMIT"    : ops += ~~rest; results = results.slice(0, ~~rest); break;
-            case "RAND"     : ops += ~~rest; results = sample(results, ~~rest);  break;
+            case "RAND"     : ops += ~~rest; results = this.sample(results, ~~rest);  break;
             case "DISTINCT" : ops += results.length; results = [...Set(results)]; break;
 
             case "SORT" :
@@ -355,7 +385,7 @@ HANNIBAL = (function(H){
             case "WITH" :
 
               filters = clause[1].split(", ");
-              filters.forEach(function(filter){
+              filters.forEach( filter => {
 
                 var attr, oper, queryValue;
 
@@ -365,9 +395,9 @@ HANNIBAL = (function(H){
                 oper = filter[1] ? filter[1] : "e"; 
                 queryValue = (filter[2] !== undefined) ? parse(filter[2]) : undefined;
 
-                results = results.filter(function(node){
+                results = results.filter( node => {
                   
-                  var nodeValue = self.get(node, attr); ops++;
+                  var nodeValue = this.get(node, attr); ops++;
 
                   return (
                     oper === "e"  ? nodeValue !== undefined  : // exists ?
@@ -377,7 +407,7 @@ HANNIBAL = (function(H){
                     oper === "!=" ? nodeValue !== queryValue :
                     oper === "<=" ? nodeValue <=  queryValue :
                     oper === ">=" ? nodeValue >=  queryValue :
-                      deb("ERROR : unknown operator in WITH: %s", oper)
+                      this.deb("ERROR : unknown operator in WITH: %s", oper)
                   );
 
                 });
@@ -388,7 +418,7 @@ HANNIBAL = (function(H){
           }
 
         } else {
-          deb("ERROR : clause starts with invalid KEYWORD: %s", first);
+          this.deb("ERROR : clause starts with invalid KEYWORD: %s", first);
 
         }
 
@@ -403,14 +433,14 @@ HANNIBAL = (function(H){
         cacheDrop = Object.keys(cache).sort(function(a, b){
           return cache[a].hits - cache[b].hits;
         })[0];
-        if (this.debug > 0){deb("     Q: cache drop: hits: %s, qry: %s", cache[cacheDrop].hits, cache[cacheDrop]);}
+        if (this.debug > 0){this.deb("     Q: cache drop: hits: %s, qry: %s", cache[cacheDrop].hits, cache[cacheDrop]);}
         delete cache[cacheDrop];
       }
       cache[this.query] = {hits: 0, result: results};
 
-      logNodes();
+      this.logNodes();
 
-      return prepResults(results);
+      return this.prepResults(results, ops, t1);
 
     },
     sortResults: function (oper, attr, results, ops){
@@ -421,7 +451,7 @@ HANNIBAL = (function(H){
         return (
           oper === "<" ? bnValue < anValue :
           oper === ">" ? bnValue > anValue :
-            deb("ERROR : unknown operator in SORT: %s", oper)
+            this.deb("ERROR : unknown operator in SORT: %s", oper)
         );
       });
 
@@ -449,13 +479,7 @@ HANNIBAL = (function(H){
     },
     logResult: function (result, format, debmax){
 
-      var i, meta, node, c, p, t = H.tab;
-
-      function saniJson(node){
-        node = H.deepcopy(node);
-        node.template = "...";
-        return H.prettify(node);
-      }
+      var i, meta, node, c, p, t = H.tab, deb = this.deb;
 
       debmax = debmax || 20;
       format = format || "";
@@ -544,14 +568,8 @@ HANNIBAL = (function(H){
       return out;
 
     },
-    sanitize: function(phrase){
-      phrase = H.replace(phrase, "\n", " ");
-      phrase = H.replace(phrase, "\t", " ");
-      phrase = H.replace(phrase, " ,", ",");
-      return phrase.split(" ").filter(function(s){return !!s;}).join(" ");
-    }
 
-  };  
+  });  
 
 
 return H; }(HANNIBAL)); 

@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb */
+/*globals HANNIBAL, uneval */
 
 /*--------------- GROUP: M I N E R --------------------------------------------
 
@@ -14,8 +14,6 @@
 
 HANNIBAL = (function(H){
 
-  H.Groups = H.Groups || {};
-
   H.extend(H.Groups, {
 
     "g.builder" : {
@@ -24,8 +22,11 @@ HANNIBAL = (function(H){
         a group without units solely for the first/biggest CC
 
         Behaviour: 
-          builds houses until pop max reached
-          repairs houses if needed
+          builds structures until quantity or
+          builds houses until 
+          try garrison on attack (female, male)
+          try healing on hurt
+          dissolve on nothing to do
           
       */
 
@@ -33,99 +34,165 @@ HANNIBAL = (function(H){
       description:    "builder",     // text field for humans 
       civilisations:  ["*"],          // 
       interval:       4,              // call onInterval every x ticks
-      parent:         "",             // inherit useful features
-
-      capabilities:   "2 stone/sec",  // (athen) give the economy a hint what this group provides.
-
-      position:       null,           // refers to the coords of the group's position/activities
-
-      attackLevel:    0,              // increases with every attack, halfs on interval
-      needsRepair:   80,              // a health level (per cent)
-      needsDefense:  10,              // an attack level
-
-      exclusives:    function(options){
-        return {units : [options.size, ["exclusive", options.building + " BUILDBY"]]};
-      },
 
       listener: {
 
-        onLaunch: function(options /*cc, building, size, quantity*/){
+        onLaunch: function(g, config /*cc, building, size, quantity*/){
 
-          // deb("     G: onlaunch %s cc: %s, civ: %s", this, cc, H.Bot.civ);
+          g.log("onLaunch", g, uneval(config));
 
-          this.options = options;
+          g.size = g.size || config.size || 4;
+          g.quantity = g.quantity || config.quantity || 1;
 
-          this.buildings = ["exclusive", options.building]; // ???????????????
-          this.units = this.exclusives(options).units[1];
-          // this.units = ["exclusive", building + " BUILDBY"];
-          this.size = options.size; //H.Config.civs[H.Bot.civ].builders;
-          this.quantity = options.quantity;
+          g.buildings = ["exclusive", config.building];
+          g.units     = ["exclusive", config.building + " BUILDBY"];
 
-          this.register("units", "buildings");
-          this.economy.request(1, this.units, this.position);   
+          g.register("units", "buildings");
+
+          g.units.request();   
+
+          // this.options = options;
+
+          // this.buildings = ["exclusive", options.building]; // ???????????????
+          // this.units = this.exclusives(options).units[1];
+          // // this.units = ["exclusive", building + " BUILDBY"];
+          // this.quantity = options.size; //H.Config.civs[H.Bot.civ].builders;
+          // this.quantity = options.quantity;
+
+          // this.register("units", "buildings");
+          // this.economy.request(1, this.units, this.position);   
 
         },
-        onAssign: function(asset){
+        onAssign: function(g, asset){
 
-          deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.buildings, asset, asset.property, asset.first);
+          g.log("onAssign", g, asset);
          
-          if (this.units.match(asset)){
+          //  with first unit request structure to build
+          g.buildings
+            .member(asset, g.units)
+            .match(g.units.count, 1)
+            .request() // g.position
+          ;
 
-            if (this.units.count === 1){
-              this.economy.request(1, this.buildings, this.position);   
-            }
+          // keep requesting units unitl size
+          g.units
+            .match(asset, g.units)
+            .lt(g.units.count, g.size)
+            .request()   // g.position
+          ;
 
-            if (this.units.count < this.size){
-              this.economy.request(1, this.units, this.position);   
-            }
+          // still on foundation, repair
+          asset
+            .member(asset, g.units)
+            .match(g.foundation)
+            .repair(g.foundation)
+          ;
 
-            if (this.foundation){
-              // deb("---------> : %s", this.foundation.health);
-              asset.repair(this.foundation);
-            }
 
-          } else if (this.buildings.match(asset)){
+          // got the building, update position, all units repair
+          g.units
+            .match(g.buildings, asset)
+            .relocate(asset.position)
+            .repair(asset)
+          ;
 
-            this.position = asset;
 
-            if (asset.isFoundation){
-              this.foundation = asset;
-              this.units.repair(asset);
+
+
+
+          // if (this.units.match(asset)){
+
+          //   if (this.units.count === 1){
+          //     this.economy.request(1, this.buildings, this.position);   
+          //   }
+
+          //   if (this.units.count < this.size){
+          //     this.economy.request(1, this.units, this.position);   
+          //   }
+
+          //   if (this.foundation){
+          //     // deb("---------> : %s", this.foundation.health);
+          //     asset.repair(this.foundation);
+          //   }
+
+          // } else if (this.buildings.match(asset)){
+
+          //   this.position = asset;
+
+          //   if (asset.isFoundation){
+          //     this.foundation = asset;
+          //     this.units.repair(asset);
             
-            } else if (asset.isStructure){
-              if (this.buildings.count < this.quantity){
-                this.economy.request(1, this.buildings, this.position);
+          //   } else if (asset.isStructure){
+          //     if (this.buildings.count < this.quantity){
+          //       this.economy.request(1, this.buildings, this.position);
 
-              } else {
-                this.dissolve();
-              }
+          //     } else {
+          //       this.dissolve();
+          //     }
 
-            }
+          //   }
 
-          }
+          // }
 
-
-        },
-        onDestroy: function(asset){
-
-          deb("     G: %s onDestroy: %s", this, asset);
-
-          if (this.units.match(asset)){
-            this.economy.request(1, this.units, this.position);
-
-          } else if (this.buildings.match(asset)){
-            this.economy.request(1, this.buildings, this.position);
-
-          }
 
         },
-        onAttack: function(asset, enemy, type, damage){
+        onDestroy: function(g, asset){
+
+          g.log("onDestroy", g, asset);
+
+          // got the building, update position, all units repair
+          g.units
+            .member(asset, g.units)
+            .request()
+          ;
+
+          g.buildings
+            .member(asset, g.buildings)
+            .request()
+          ;
+
+
+
+          // deb("     G: %s onDestroy: %s", this, asset);
+
+          // if (this.units.match(asset)){
+          //   this.economy.request(1, this.units, this.position);
+
+          // } else if (this.buildings.match(asset)){
+          //   this.economy.request(1, this.buildings, this.position);
+
+          // }
+
+        },
+        onAttack: function(g, asset, enemy, type, damage){
+
+          g.log("onAttack", g, asset);
+
+          // asset
+          //   .lt(asset.health, 50)
+          //   .garrison()
+
+          // g.units
+          //   .member(asset, g.units)
+          //   .request()
+          // ;
 
           // deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
 
         },
         onBroadcast: function(){},
-        onInterval:  function(){
+        onInterval:  function(g, secs, tick){
+
+          g.log("onInterval", g);
+
+          g.units
+            .doing("idle")
+            .amount_eq(g.units.size)
+            .g
+            .dissolve()
+          ;
+
 
           // deb("     G: %s onInterval, blds: [%s/%s], states: %s", this, this.buildings.count, this.maxBuildings, H.prettify(this.units.states()));
 

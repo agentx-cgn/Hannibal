@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, debTable, print, logObject, exportJSON, logError, TESTERDATA, uneval, logPlayers, logStart */
+/*globals HANNIBAL, HANNIBAL_DEBUG, API3, uneval */
 
 /*--------------- L A U N C H E R   -------------------------------------------
 
@@ -9,67 +9,41 @@
   tested with 0 A.D. Alpha 17 Quercus
   V: 0.1, agentx, CGN, Nov, 2014
 
-  Credits:
-
-    kmeans: 
-    pythonic slicing:
-    helper:
-
 */
 
-// very first line, enjoy the rest
-var TIMESTART = Date.now();
 
-// may load from _debug.js
-var DEBUG = HANNIBAL_DEBUG || {};
+HANNIBAL = (function(H) {
 
-print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### --- " + new Date() + "\n");
-print("#! xdotool init\n");
-
-Engine.IncludeModule("common-api");
-
-var HANNIBAL = (function() {
-
-  var H = {
-    API: API3,
-    LIB: {},
-    throw: function(){
-      var 
-        msg = H.format.apply(null, H.toArray(arguments)),
-        stack = new Error().stack.split("\n").slice(1);
-      deb();
-      deb(msg);
-      stack.forEach(line => deb("  " + line));      
-      throw "\n*\n*";
-    },
-    extend: function (o){
-      Array.prototype.slice.call(arguments, 1)
-        .forEach(e => {Object.keys(e)
-          .forEach(k => o[k] = e[k]
-    );});},
-    chat: function(){}
-  };
-
-  // constructor
+  // API bot constructor
   H.Launcher = function(settings) {
+
+    var id = settings.player;
 
     API3.BaseAI.call(this, settings);
 
-    H.APP = this;
-
     H.extend(this, {
-      map:            DEBUG.map ? DEBUG.map : "unknown",
+
+      id:             id,
+      name:           "H" + id,
+      klass:          "launcher",
+      debug:          HANNIBAL_DEBUG ? HANNIBAL_DEBUG.bots[id] : {},
+      map:            HANNIBAL_DEBUG ? HANNIBAL_DEBUG.map : "unknown",
+      deb:            H.deb.bind(null, id),
+      chat:           H.chat.bind(null, id),
+
       settings:       settings,                            // from ai config dialog
       isInitialized:  false,                               // did that happen well?
       isTicking:      false,                               // toggles after first OnUpdate
       isFinished:     false,                               // there is still no winner
       noInitReported: false,                               // report init failure only once
       timing:         {all: 0},                            // used to identify perf. sinks in OnUpdate
-      context:        new H.LIB.Context("ctx1")            // create empty context
+      
     });
 
-    deb();
-    deb("------: Launcher.constructor.out");
+    // create empty context
+    this.context = new H.LIB.Context("C1", this);
+
+    this.deb("      : Launcher.out: ID: %s, debug: %s", this.id, uneval(this.debug));
 
   };
 
@@ -82,15 +56,31 @@ var HANNIBAL = (function() {
   };
   H.Launcher.prototype.CustomInit = function(gameState, sharedScript) {
 
-    var ss = sharedScript, gs = gameState;
+    var 
+      t0  = Date.now(),
+      deb = this.deb.bind(this), 
+      ss  = sharedScript, 
+      gs  = gameState,
+      civ = ss.playersData[this.id].civ;
 
-    logStart(ss, gs, this.settings);
-    logPlayers(ss.playersData);
+    // H.deb("      :");
+    // H.deb("      :");
+    H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s in", this.id, civ);
+
+
+    // move window
+    if (this.debug.xdo){
+      this.deb("#! xdotool init");
+    }
 
     // launch the stats extension
-    if (H.Config.numerus.enabled){
-      H.Numerus.init(ss, gs);          
+    if (this.debug.numerus){
+      H.Numerus.init(this.id, ss, gs);          
     }             
+
+    // debug
+    this.logStart(ss, gs, this.settings);
+    this.logPlayers(ss.playersData);
 
     // connect the context
     this.context.connectEngine(this, gameState, sharedScript, this.settings);
@@ -99,6 +89,12 @@ var HANNIBAL = (function() {
     // This bot faces the other players
     this.bot = this.context.createBot();
     
+    /* run scripted actions named in H.Config.sequence */
+    // deb();
+    // H.Tester.activate(this.map, this.id, this.context);
+    /* end scripter */
+
+
     /*
 
     Below is for development
@@ -106,7 +102,7 @@ var HANNIBAL = (function() {
     */
 
     var lines1, lines2, lines3, diff;
-    this.context.log();
+    // this.context.log();
 
     // lines1 = exportJSON(this.context.serialize(), "ctx1.serialized");
 
@@ -143,30 +139,34 @@ var HANNIBAL = (function() {
     // deb();
     // deb("################################################################################");
 
-    /* run scripted actions named in H.Config.sequence */
-    deb();
-    H.Tester.activate(DEBUG.map, this.context.villages.main);      
-    /* end scripter */
-
     /* testing triple store */
     this.context.culture.debug = 5;
-    // this.context.query(this.context.class2name("civilcentre") + " RESEARCH").execute("metadata", 5, 10, "next phases");
+    // this.context
+    //   .query(this.context.class2name("civilcentre") + " RESEARCH")
+    //   .params({format: "metadata", deb: 5, debmax: 10, comment: "next phases"});
+    //   .execute();
     this.context.culture.debug = 0;
     /* end testing triple store */
 
-    deb();
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+
+    // H.Config.deb = 0; // suppress further log line
 
     this.initialized = true;
-    // H.Config.deb = 0; // suppress further log line
+
+    this.deb("      :");
+    this.deb("      :");
+    H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s out %s msecs, ", this.id, civ, Date.now() - t0);
+
     return;
 
   };
   H.Launcher.prototype.OnUpdate = function(sharedScript) {
 
     var 
+      deb = this.deb.bind(this),
+      ss = sharedScript,
       t0 = Date.now(),
-      secs = (sharedScript.timeElapsed/1000).toFixed(1),
+      secs = (ss.timeElapsed/1000).toFixed(1),
       msgTiming = "";
 
     if (this.isFinished){return;} // API ????
@@ -180,17 +180,10 @@ var HANNIBAL = (function() {
     }
 
     if (!this.isTicking){
-      this.logFirstTick(t0);
+      this.logFirstTick(t0, ss.playersData[this.id].civ);
       this.isTicking = true;
     }
 
-    if (H.Tester.OnUpdate){
-      H.chat("OnUpdate");
-      H.Tester.OnUpdate();
-    } else {
-      // H.chat("no OnUpdate");
-    }
-    
     // keep API events from each turn, even if not processing
     this.context.events.collect(this.events);
 
@@ -204,9 +197,9 @@ var HANNIBAL = (function() {
       this.context.updateEngine(sharedScript);
 
       // log top row debug info
-      deb("STATUS: %s@%s, elapsed: %s secs, id: %s, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
-        PlayerID,
-        this.context.tick, secs, this.bot.id, 
+      deb("------: %s@%s, elapsed: %s secs, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+        this.id,
+        this.context.tick, secs, 
         this.bot.player.civ, this.context.culture.phases.current,
         H.count(this.bot.player.researchedTechs), 
         this.bot.player.resourceCounts.food,
@@ -216,13 +209,18 @@ var HANNIBAL = (function() {
       );
 
       this.timing.all = 0;
-      this.timing.tst = H.Tester.tick(           secs, this.context.tick);
+      this.timing.tst = 0;
+
+      // execute test scripts 
+      if (this.debug.tst){
+        this.timing.tst = H.Tester.tick(secs, this.context.tick, this.context);
+      }
 
       // THIS IS THE MAIN ACT
-      this.bot.tick(                             secs, this.context.tick, this.timing);
+      this.bot.tick(secs, this.context.tick, this.timing);
 
       // deb: collect stats
-      if (H.Config.numerus.enabled){
+      if (this.debug.numerus){
         H.Numerus.tick(secs, this.context.tick, sharedScript);
       }
 
@@ -235,8 +233,8 @@ var HANNIBAL = (function() {
       });
 
       // log row
-      deb("______: %s@%s timing: %s, all: %s %s", 
-        PlayerID,
+      deb("------: %s@%s timing: %s, all: %s %s", 
+        this.id,
         this.context.tick, 
         msgTiming, 
         this.timing.all, 
@@ -249,7 +247,7 @@ var HANNIBAL = (function() {
 
       // ------------- A C T I O N   E N D --------------------------------------
 
-      deb("  ");
+      deb("      :");
       
     }
 
@@ -259,19 +257,129 @@ var HANNIBAL = (function() {
 
   };
   H.Launcher.prototype.logNotInitialized = function() {
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-    deb();deb();
+    var deb = this.deb.bind(this);
+    deb("------: ### --- ### --- ### --- PID: %s, HANNIBAL: ", this.id, new Date());
+    deb();
     deb("ERROR : HANNIBAL IS NOT INITIALIZED !!!");
-    H.chat("HANNIBAL IS NOT INITIALIZED, check install.txt");
-    deb();deb();
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
+    this.chat("HANNIBAL IS NOT INITIALIZED, check install.txt");
+    deb();
+    deb("------: ### --- ### --- ### --- PID: %s, HANNIBAL: ", this.id, new Date());
   };
-  H.Launcher.prototype.logFirstTick = function(t0) {
-    var map = DEBUG.map ? DEBUG.map : "unkown";
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-    deb();deb();
-    deb("------: OnUpdate: startup: %s secs, map: '%s'", ((t0 - TIMESTART)/1000).toFixed(3), map);
+  H.Launcher.prototype.logFirstTick = function(t0, civ) {
+    var deb = this.deb.bind(this);
+    deb("------: HANNIBAL.firstTick: %s/%s, %s, after: %s secs", this.id, civ, this.map, ((t0 - H.MODULESTART)/1000).toFixed(1));
     deb();
   };
+  H.Launcher.prototype.logStart = function(ss, gs, settings){
 
-return H;}());
+    var deb = this.deb.bind(this), id = this.id;
+
+    deb("------: LAUNCHER.CustomInit: PID: %s, Players: %s, difficulty: %s", id, H.count(ss.playersData), settings.difficulty);
+    deb("      :");
+    deb("     A:     map from DEBUG: %s / %s", this.map, ss.gameType);
+    deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
+    deb("     A:          _entities: %s [  ]", H.count(ss._entities));
+    deb("     A:         _templates: %s [  ]", H.count(ss._templates));
+    deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
+    deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
+    deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
+    deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
+    deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
+    deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
+
+  };
+  H.Launcher.prototype.logPlayers = function(players){
+
+    var 
+      deb = this.deb, tab = H.tab, msg = "", head, props, format, tabs,
+      fmtAEN = item => item.map(b => b ? "1" : "0").join("");
+
+    deb();
+
+    head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut, colour".split(", ");
+    props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
+    tabs   = [  10,    6,   8,    10,        5,      6,       6,         6, 20];
+    format = {
+      isAlly:    fmtAEN,
+      isEnemy:   fmtAEN,
+      isNeutral: fmtAEN
+    };
+
+    H.zip(head, tabs, function(h, t){msg += tab(h, t);});
+    deb("PLAYER: " + msg);
+
+    H.each(players, function(id, player){
+      msg = "";
+      H.zip(props, tabs, function(p, t){
+        msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
+      });    
+      deb("     %s: %s", id, msg);
+    });
+
+  };
+  H.Launcher.prototype.diffJSON = function (a, b) {
+
+    // https://github.com/paldepind/dffptch
+    
+    var 
+      O = Object, keys = O.keys,
+      aKey, bKey, aVal, bVal, rDelta, shortAKey, 
+      aKeys = keys(a).sort(),
+      bKeys = keys(b).sort(),
+      delta = {}, adds = {}, mods = {}, dels = [], recurses = {},
+      aI = 0, bI = 0;
+
+    // Continue looping as long as we haven't reached the end of both keys lists
+
+    while(aKeys[aI] !== undefined || bKeys[bI]  !== undefined || false) {
+      
+      aKey = aKeys[aI]; 
+      bKey = bKeys[bI];
+      aVal = a[aKey];
+      bVal = b[bKey];
+      shortAKey = String.fromCharCode(aI+48);
+
+      if (aKey == bKey) {
+
+        // We are looking at two equal keys this is a
+        // change – possibly to an object or array
+        
+        if (O(aVal) === aVal && O(bVal) === bVal) {
+        
+          // Find changs in the object recursively
+          rDelta = H.diffJSON(aVal, bVal);
+        
+          // Add recursive delta if it contains modifications
+          if (keys(rDelta)) {recurses[shortAKey] = rDelta;}
+        
+        } else if (aVal !== bVal) {
+          mods[shortAKey] = bVal;
+        
+        }
+        
+        aI++; bI++;
+
+      } else if (aKey > bKey || !aKey) {
+        // aKey is ahead, this means keys have been added to b
+        adds[bKey] = bVal;
+        bI++;
+
+      } else {
+        // bKey is larger, keys have been deleted
+        dels.push(shortAKey);
+        aI++;
+
+      }
+    }
+
+    // We only add the change types to delta if they contains changes
+    if (dels[0]) delta.d = dels;
+    if (keys(adds)[0]) delta.a = adds;
+    if (keys(mods)[0]) delta.m = mods;
+    // if (keys(recurses)[0]) delta.r = recurses;
+    
+    return delta;
+
+  };
+
+return H; }(HANNIBAL));

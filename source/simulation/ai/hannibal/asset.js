@@ -14,6 +14,8 @@
 
 HANNIBAL = (function(H){
 
+  var deb = H.deb;
+
   H.LIB.Asset = function(context){
 
     H.extend(this, {
@@ -56,7 +58,8 @@ HANNIBAL = (function(H){
 
   H.LIB.Asset.prototype = {
     constructor: H.LIB.Asset,
-    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
+    get name () {if(!this.id){H.throw("asset no id");}return this.instance.name + ":" + this.property + "#" + this.id;},
+    toString: function(){return H.format("[%s %s[%s]]", this.klass, this.name, this.resources.join("|"));},
     log: function(){
       deb(" ASSET: %s %s res: %s", this.instance.name, this.property, this.resources.length);
       this.resources.forEach( id => {
@@ -105,6 +108,8 @@ HANNIBAL = (function(H){
     },
     toLog:    function(){return "    AST: " + this + " " + JSON.stringify(this, null, "      : ");},
     toOrder:  function(){
+
+      deb("   AST: toOrder: %s, id: %s", this, this.id);
       return {
         verb:   this.verb, 
         hcq:    this.hcq, 
@@ -113,13 +118,11 @@ HANNIBAL = (function(H){
       };
     },
     toSelection: function(resources){
-      // var id = this.context.idgen++;
       return (
         new H.LIB.Asset(this.context)
           .import()
           .initialize({
-            // id:        id,
-            name:      H.format("%s:%s#[%s]", this.instance.name, this.property, resources.join("|")),
+            id:        this.id, // same id !!!
             klass:     "asset.selection",
             instance:  this.instance, 
             property:  this.property, 

@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- B R A I N ---------------------------------------------------
 
@@ -69,8 +69,9 @@ HANNIBAL = (function(H){
   H.LIB.Brain = function(context){
 
     H.extend(this, {
-      name:  "brain",
+
       context:  context,
+
       imports:  [
         "events",
         "culture",
@@ -83,40 +84,22 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Brain.prototype = {
+  H.LIB.Brain.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Brain,
-    log: function(){},
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    deserialize: function(){
-      if (this.context.data[this.name]){
-        H.extend(this, this.context.data[this.name]);
-      }
-    },
-    serialize: function(){
-      return {};
-    },
-    initialize: function(){
-      return this;
-    },
+    log: function(){this.deb();this.deb(" BRAIN: all good");},
     activate: function(){
 
       this.events.on("Advance", msg => {
-        deb(" BRAIN: onAdvance: %s", msg.data.technology);
+        this.deb(" BRAIN: onAdvance: %s", msg.data.technology);
       });
 
       this.events.on("Attacked", "*", msg => {
-        deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
+        this.deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
       });
 
       this.events.on("BroadCast", msg => {
-        deb(" BRAIN: BroadCast: %s", uneval(msg));
+        this.deb(" BRAIN: BroadCast: %s", uneval(msg));
       });
 
     },
@@ -129,7 +112,7 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
 
 

@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, DEBUG, Engine, warn, error, print */
+/*globals HANNIBAL, HANNIBAL_DEBUG, uneval, print */
 
 /*--------------- D E B U G  --------------------------------------------------
 
@@ -31,271 +31,485 @@
 
 
 
-// used in JSON Export
-function logg(){
-  var args = arguments;
-  if (args.length === 0) {args = ["//"];}
-  if (args.length === 1) {args = ["%s", args[0]];}
-  print(HANNIBAL.format.apply(HANNIBAL, args) + "\n");
-}
+HANNIBAL = (function(H){
 
-function deb(){
-  // print(">>>> " + PlayerID);
-  var 
-    H    = HANNIBAL,
-    id   = PlayerID,
-    args = arguments, al = args.length,
-    msg = (
-      (al === 0) ? "**\n**" :
-      (al === 1) ? args[0] :
-        H.format.apply(H, args)
-      ) + "\n",
-    prefix   = msg.substr(0, 7).toUpperCase(),
-    deblevel = DEBUG.logLevels ? DEBUG.logLevels[id] : H.Config.deb || 0,
-    msglevel = (
-      prefix === "ERROR :" ? 1 :
-      prefix === "WARN  :" ? 2 :
-      prefix === "INFO  :" ? 3 :
-        4
-    );
+  H.extend(H, {
 
-  if (msglevel <= deblevel){print(msg);}
+    logFn: function (fn){return fn.toString().split("\n").join("").slice(0, 80) + "|...";},
 
-}
+    deb: function(/* id, msg */){
 
-var debTable = function (header, table, sort){
-  // has dependencies
-  var 
-    H = HANNIBAL,
-    line, lengths = [],
-    cols = table[0].length,
-    space = H.mulString(" ", 100);
+      // print("H.deb: args: " + uneval(arguments) + "\n");
 
-  H.loop(cols, () => lengths.push(0));
+      var 
+        args = H.toArray(arguments), al = args.length,
+        id   = (args[0] && H.isInteger(args[0])) ? args[0] : 0,
+        empty = ["      :\n" + id + "::      :"],
+        DEB  = HANNIBAL_DEBUG && HANNIBAL_DEBUG.bots ? HANNIBAL_DEBUG.bots[id] : {},
+        msg = H.format.apply(null, (
+          (al === 0)             ? empty            : // no args
+          (al  >  0 && id === 0) ? args.slice(0)    : // msg given as 0
+          (al === 1 && id  >  0)   ? empty          : // only id, no msg
+          (al   > 1 && id  >  0 && args[1] === undefined)     ? empty            : // id + []
+          (al   > 1 && id  >  0 && args.slice(1).length > 0)  ? args.slice(1)    : // id + [msg, ...]
+            print("ERROR: in H.deb: args: " + uneval(arguments) + "\n\n") // else 
+        )) + "\n",
+        prefix   = msg.substr(0, 7).toUpperCase(),
+        deblevel = DEB.log || H.Config.deb || 0,
+        msglevel = (
+          prefix === "ERROR :" ? 1 :
+          prefix === "WARN  :" ? 2 :
+          prefix === "INFO  :" ? 3 :
+            4
+        );
 
-  table.forEach(row => {
-    H.loop(cols, col => {
-      var str = String(row[col -1]);
-      if (str.length > lengths[col -1]){lengths[col -1] = str.length;}
-    });
-  });
+      if (msglevel <= deblevel){print(id + "::" + msg);}
 
-  deb("------: start %s", header || "table");
-  table
-    .sort((a,b) => a[sort] < b[sort] ? -1 : 1)
-    .forEach((row, i) => {
-      line = H.format("      : %s ", H.tab(i, 4));
-      row.forEach((item, col) => line += (item + space).slice(0, lengths[col] + 1));
-      deb(line);
-    });
+    },
+    printf: function(){
+      print(H.format.apply(H, arguments) + "\n");
+    },
+    logStart: function(ss, gs, settings){
 
-  deb("------: %s ", header || "table");
+      var H = HANNIBAL, id = settings.player;
 
+      H.deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
+      H.deb("      :");
+      H.deb("     A:     map from DEBUG: %s / %s", H.Debug.map ? H.Debug.map : "unkown", ss.gameType);
+      H.deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
+      H.deb("     A:          _entities: %s [  ]", H.count(ss._entities));
+      H.deb("     A:         _templates: %s [  ]", H.count(ss._templates));
+      H.deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
+      H.deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
+      H.deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
+      H.deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
+      H.deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
+      H.deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
 
-};
+    },
+    logPlayers: function(players){
 
-function exportJSON (obj, filename){
+      var 
+        H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
+        fmtAEN = item => item.map(b => b ? "1" : "0").join("");
 
-  var 
-    H = HANNIBAL,
-    file  = H.format("/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/%s.export", filename),
-    lines = JSON.stringify(obj, null, "  ").split("\n"),
-    count = lines.length;
+      H.deb();
 
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
+      head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut, colour".split(", ");
+      props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
+      tabs   = [  10,    6,   8,    10,        5,      6,       6,         6, 20];
+      format = {
+        isAlly:    fmtAEN,
+        isEnemy:   fmtAEN,
+        isNeutral: fmtAEN
+      };
 
-  deb();
-  deb("EXPORT: ", filename);
-  deb("EXPORT: %s", file);
+      H.zip(head, tabs, function(h, t){msg += tab(h, t);});
+      H.deb("PLAYER: " + msg);
 
-  print(H.format("#! open 0 %s\n", file));
-  logg("// EXPORTED %s at %s", filename, new Date());
+      H.each(players, function(id, player){
+        msg = "";
+        H.zip(props, tabs, function(p, t){
+          msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
+        });    
+        H.deb("     %s: %s", id, msg);
+      });
 
-  lines.forEach(line => logg(line));
-  // lines.forEach(logg);
-  
-  logg("// Export end of %s", filename);
-  print("#! close 0\n");
-  deb("EXPORT: Done");
+    },
+    diffJSON: function (a, b) {
 
-  return count;
+      // https://github.com/paldepind/dffptch
+      
+      var 
+        O = Object, keys = O.keys,
+        aKey, bKey, aVal, bVal, rDelta, shortAKey, 
+        aKeys = keys(a).sort(),
+        bKeys = keys(b).sort(),
+        delta = {}, adds = {}, mods = {}, dels = [], recurses = {},
+        aI = 0, bI = 0;
 
-}
+      // Continue looping as long as we haven't reached the end of both keys lists
 
-function logJSON(obj, header){
-  var lines = JSON.stringify(obj, null, "  ").split("\n");
-  deb("   LOG: JSON: %s", header);
-  lines.forEach(line => deb("      " + line));
-  deb("   LOG: ----------");
-}
+      while(aKeys[aI] !== undefined || bKeys[bI]  !== undefined || false) {
+        
+        aKey = aKeys[aI]; 
+        bKey = bKeys[bI];
+        aVal = a[aKey];
+        bVal = b[bKey];
+        shortAKey = String.fromCharCode(aI+48);
 
+        if (aKey == bKey) {
 
-function exportTemplates (tpls){
+          // We are looking at two equal keys this is a
+          // change – possibly to an object or array
+          
+          if (O(aVal) === aVal && O(bVal) === bVal) {
+          
+            // Find changs in the object recursively
+            rDelta = H.diffJSON(aVal, bVal);
+          
+            // Add recursive delta if it contains modifications
+            if (keys(rDelta)) {recurses[shortAKey] = rDelta;}
+          
+          } else if (aVal !== bVal) {
+            mods[shortAKey] = bVal;
+          
+          }
+          
+          aI++; bI++;
 
-  var 
-    H = HANNIBAL,
-    filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/templates-json.export";
+        } else if (aKey > bKey || !aKey) {
+          // aKey is ahead, this means keys have been added to b
+          adds[bKey] = bVal;
+          bI++;
 
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
+        } else {
+          // bKey is larger, keys have been deleted
+          dels.push(shortAKey);
+          aI++;
 
-  deb();
-  deb("EXPORT: templates");
-  deb("EXPORT: %s", filePattern);
-
-  print(H.format("#! open 0 %s\n", filePattern));
-  logg("// EXPORTED templates at %s", new Date());
-  JSON.stringify(tpls, null, "  ")
-    .split("\n")
-    .forEach(line => {
-      logg(line);
-    });
-  logg("// Export end of templates");
-  print("#! close 0\n");
-  deb("EXPORT: Done");
-
-}
-
-function exportTechTemplates (tpls){
-
-  var 
-    H = HANNIBAL,
-    filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/techtemplates-json.export";
-
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
-
-  deb();
-  deb("EXPORT: techtemplates");
-  deb("EXPORT: %s", filePattern);
-
-  print(H.format("#! open 0 %s\n", filePattern));
-  logg("// EXPORTED techtemplates at %s", new Date());
-  JSON.stringify(tpls, null, "  ")
-    .split("\n")
-    .forEach(line => {
-      logg(line);
-    });
-  logg("// Export end of techtemplates");
-  print("#! close 0\n");
-  deb("EXPORT: Done");
-
-}
-
-function exportTree (tree) {
-
-  var 
-    t, procs, prods,
-    tt = this.nodes, tpls = H.attribs(this.nodes),
-    filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
-
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }   
-
-  deb("  TREE: Export start ...");
-  print(H.format("#! open 0 %s\n", H.format(filePattern, this.civ)));
-  logg("// EXPORTED tree '%s' at %s", this.civ, new Date());
-
-  tpls.sort((a, b) => tt[a].order - tt[b].order);
-
-  tpls.forEach(function(tpln){
-
-    t = tt[tpln];
-
-    logg("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
-    logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
-    logg("     T:        %s", t.key);
-    logg("     T:        reqs: %s", t.requires || "none");
-    logg("     T:        flow: %s", t.flow ? JSON.stringify(t.flow) : "none");
-
-    logg("     T:        verb: %s", t.verb || "none");
-    prods = H.attribs(t.producers);
-    if (prods.length){
-      prods.forEach(p => logg("     T:          %s", p));
-    } else {
-      logg("     T:        NO PRODUCER");
-    }
-
-    logg("     T:        products: %s", t.products.count);
-    if (t.products.count){
-      ["train", "build", "research"].forEach(verb => {
-        procs = H.attribs(t.products[verb]);
-        if (procs.length){
-          logg("     T:          %s", verb);
-          procs.forEach(p => logg("     T:            %s", p));
         }
-      });
-    }
+      }
+
+      // We only add the change types to delta if they contains changes
+      if (dels[0]) delta.d = dels;
+      if (keys(adds)[0]) delta.a = adds;
+      if (keys(mods)[0]) delta.m = mods;
+      // if (keys(recurses)[0]) delta.r = recurses;
+      
+      return delta;
+
+    },
+
+    logObject: function(o, msg){
+      var inst = "unidentified";
+      msg = msg || "";
+      H.deb();
+      H.deb("Object [%s] : attributes: %s, comment: %s", inst, Object.keys(o).length, msg);
+      if (o.constructor){
+        H.deb("Object: %s", H.getAttribType("constructor", o.constructor));
+      }
+      H.logObjectShort(o);
+      H.deb("Object.prototype: %s attributes", H.count(Object.getPrototypeOf(o)));
+      if (H.count(Object.getPrototypeOf(o))){
+        H.logObjectShort(Object.getPrototypeOf(o));
+      }
+      // H.deb("Object.__proto__");
+      // H.logObjectShort(o.__proto__);
+      // H.deb("Object.prototype");
+      // if (o.prototype){
+      //   H.logObjectShort(o.prototype);
+      // }
+      H.deb("------: logObject end");
+    },
+    logObjectShort: function(o){
+      H.attribs(o)
+        .sort()
+        .forEach(a => H.deb(this.getAttribType(a, o[a])));
+    },
+    getAttribType: function(name, value){
+
+      var keys, body;
+
+      function toString(value){
+        return value.toString ? value.toString() : value+"";
+      }
+
+      switch (typeof value) {
+        case "string":
+        case "number":
+        case "undefined":
+        case "boolean":   return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
+        case "object":
+          if (Array.isArray(value)){
+            return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
+          } else if (value === null) {
+            return H.format("  %s: NULL", name);
+          } else {
+            keys = Object.keys(value);
+            return H.format("  %s: OBJECT [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
+          }
+        break;
+        case "function":
+          body = value.toString()
+            .split("\n").join("")
+            .split("\r").join("")
+            .split("\t").join(" ")
+            .split("     ").join(" ").split("    ").join(" ").split("   ").join(" ").split("  ").join(" ")
+            .slice(0, 100);
+          return H.format("  %s: %s", name, body);
+      }
+      return "WTF";
+    },
 
   });
 
-  print("#! close 0\n");
-  deb("  TREE: Export Done ...");
 
-}
+return H; }(HANNIBAL));
 
 
-function exportStore(civs){
-
-  // log history > 3,000 per civ, athens~2500, CRs not enforced.
-
-  var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
-
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
-
-  deb();deb();deb("EXPORT: %s", civs);
-
-  civs.forEach(function(civ){
-    print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
-    logg("// EXPORTED culture '%s' at %s", civ, new Date());
-    var culture = new H.Culture(civ), store = culture.store;
-    culture.loadDataNodes();           // from data to triple store
-    culture.readTemplates();           // from templates to culture
-    culture.loadTechTemplates();       // from templates to triple store
-    culture.loadTemplates();           // from templates to triple store
-    culture.finalize();                // clear up
-    logg("var store_%s = {", civ);
-      logg("  verbs: %s,", JSON.stringify(store.verbs));
-      logg("  nodes: {");
-      H.each(store.nodes, function(name, value){
-        delete value.template;
-        logg("    '%s': %s,", name, JSON.stringify(value));
-      });
-      logg("  },");
-      logg("  edges: [");
-      store.edges.forEach(function(edge){
-        logg("    ['%s', '%s', '%s'],", edge[0].name, edge[1], edge[2].name);
-      });
-      logg("  ],");
-    logg("};");
-    logg("// Export end of culture %s", civ);
-    print("#! close 0\n");
-  });
+// used in JSON Export
+// function logg(){
+//   var args = arguments;
+//   if (args.length === 0) {args = ["//"];}
+//   if (args.length === 1) {args = ["%s", args[0]];}
+//   print(HANNIBAL.format.apply(HANNIBAL, args) + "\n");
+// }
 
 
-}
+
+// var debTable = function (header, table, sort){
+//   // has dependencies
+//   var 
+//     H = HANNIBAL,
+//     line, lengths = [],
+//     cols = table[0].length,
+//     space = H.mulString(" ", 100);
+
+//   H.loop(cols, () => lengths.push(0));
+
+//   table.forEach(row => {
+//     H.loop(cols, col => {
+//       var str = String(row[col -1]);
+//       if (str.length > lengths[col -1]){lengths[col -1] = str.length;}
+//     });
+//   });
+
+//   deb("------: start %s", header || "table");
+//   table
+//     .sort((a,b) => a[sort] < b[sort] ? -1 : 1)
+//     .forEach((row, i) => {
+//       line = H.format("      : %s ", H.tab(i, 4));
+//       row.forEach((item, col) => line += (item + space).slice(0, lengths[col] + 1));
+//       deb(line);
+//     });
+
+//   deb("------: %s ", header || "table");
+
+
+// };
+
+// function exportJSON (obj, filename){
+
+//   var 
+//     H = HANNIBAL,
+//     file  = H.format("/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/%s.export", filename),
+//     lines = JSON.stringify(obj, null, "  ").split("\n"),
+//     count = lines.length;
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();
+//   deb("EXPORT: ", filename);
+//   deb("EXPORT: %s", file);
+
+//   print(H.format("#! open 0 %s\n", file));
+//   logg("// EXPORTED %s at %s", filename, new Date());
+
+//   lines.forEach(line => logg(line));
+//   // lines.forEach(logg);
+  
+//   logg("// Export end of %s", filename);
+//   print("#! close 0\n");
+//   deb("EXPORT: Done");
+
+//   return count;
+
+// }
+
+// function logPrettyJSON(obj, header){
+
+//   var attr, json;
+
+//   if(header){deb(header);}
+
+//   json = JSON.stringify(obj);
+
+//   if (json.length < 80){
+//     deb(json);
+//   } else {
+//     Object.keys(obj).sort().forEach(attr => {
+//       logPrettyJSON(obj[attr]);
+//     });
+//   }
+
+// }
+
+
+// function logJSON(obj, header){
+//   var lines = JSON.stringify(obj, null, "  ").split("\n");
+//   deb("   LOG: JSON: %s", header);
+//   lines.forEach(line => deb("      " + line));
+//   deb("   LOG: ----------");
+// }
+
+
+// function exportTemplates (tpls){
+
+//   var 
+//     H = HANNIBAL,
+//     filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/templates-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();
+//   deb("EXPORT: templates");
+//   deb("EXPORT: %s", filePattern);
+
+//   print(H.format("#! open 0 %s\n", filePattern));
+//   logg("// EXPORTED templates at %s", new Date());
+//   JSON.stringify(tpls, null, "  ")
+//     .split("\n")
+//     .forEach(line => {
+//       logg(line);
+//     });
+//   logg("// Export end of templates");
+//   print("#! close 0\n");
+//   deb("EXPORT: Done");
+
+// }
+
+// function exportTechTemplates (tpls){
+
+//   var 
+//     H = HANNIBAL,
+//     filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/techtemplates-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();
+//   deb("EXPORT: techtemplates");
+//   deb("EXPORT: %s", filePattern);
+
+//   print(H.format("#! open 0 %s\n", filePattern));
+//   logg("// EXPORTED techtemplates at %s", new Date());
+//   JSON.stringify(tpls, null, "  ")
+//     .split("\n")
+//     .forEach(line => {
+//       logg(line);
+//     });
+//   logg("// Export end of techtemplates");
+//   print("#! close 0\n");
+//   deb("EXPORT: Done");
+
+// }
+
+// function exportTree (tree) {
+
+//   var 
+//     t, procs, prods,
+//     tt = this.nodes, tpls = H.attribs(this.nodes),
+//     filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }   
+
+//   deb("  TREE: Export start ...");
+//   print(H.format("#! open 0 %s\n", H.format(filePattern, this.civ)));
+//   logg("// EXPORTED tree '%s' at %s", this.civ, new Date());
+
+//   tpls.sort((a, b) => tt[a].order - tt[b].order);
+
+//   tpls.forEach(function(tpln){
+
+//     t = tt[tpln];
+
+//     logg("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
+//     logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
+//     logg("     T:        %s", t.key);
+//     logg("     T:        reqs: %s", t.requires || "none");
+//     logg("     T:        flow: %s", t.flow ? JSON.stringify(t.flow) : "none");
+
+//     logg("     T:        verb: %s", t.verb || "none");
+//     prods = H.attribs(t.producers);
+//     if (prods.length){
+//       prods.forEach(p => logg("     T:          %s", p));
+//     } else {
+//       logg("     T:        NO PRODUCER");
+//     }
+
+//     logg("     T:        products: %s", t.products.count);
+//     if (t.products.count){
+//       ["train", "build", "research"].forEach(verb => {
+//         procs = H.attribs(t.products[verb]);
+//         if (procs.length){
+//           logg("     T:          %s", verb);
+//           procs.forEach(p => logg("     T:            %s", p));
+//         }
+//       });
+//     }
+
+//   });
+
+//   print("#! close 0\n");
+//   deb("  TREE: Export Done ...");
+
+// }
+
+
+// function exportStore(civs){
+
+//   // log history > 3,000 per civ, athens~2500, CRs not enforced.
+
+//   var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();deb();deb("EXPORT: %s", civs);
+
+//   civs.forEach(function(civ){
+//     print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
+//     logg("// EXPORTED culture '%s' at %s", civ, new Date());
+//     var culture = new H.Culture(civ), store = culture.store;
+//     culture.loadDataNodes();           // from data to triple store
+//     culture.readTemplates();           // from templates to culture
+//     culture.loadTechTemplates();       // from templates to triple store
+//     culture.loadTemplates();           // from templates to triple store
+//     culture.finalize();                // clear up
+//     logg("var store_%s = {", civ);
+//       logg("  verbs: %s,", JSON.stringify(store.verbs));
+//       logg("  nodes: {");
+//       H.each(store.nodes, function(name, value){
+//         delete value.template;
+//         logg("    '%s': %s,", name, JSON.stringify(value));
+//       });
+//       logg("  },");
+//       logg("  edges: [");
+//       store.edges.forEach(function(edge){
+//         logg("    ['%s', '%s', '%s'],", edge[0].name, edge[1], edge[2].name);
+//       });
+//       logg("  ],");
+//     logg("};");
+//     logg("// Export end of culture %s", civ);
+//     print("#! close 0\n");
+//   });
+
+
+// }
 
   // if (head === "ERROR :" && level > 0){
   //   print(msg);
@@ -321,122 +535,69 @@ function exportStore(civs){
 //   }
 // }
 
-var logObject = function(o, msg){
-  var inst = "unidentified";
-  msg = msg || "";
-  deb();
-  deb("Object [%s] : c: %s, keys: %s  ---------------", inst, msg, Object.keys(o).length);
-  if (o.constructor){
-    deb("Object", getAttribType("constructor", o.constructor));
-  }
-  logObjectShort(o);
-  deb("Object.__proto__");
-  logObjectShort(o.__proto__);
-  deb("Object.prototype");
-  if (o.prototype){
-    logObjectShort(o.prototype);
-  }
-  deb();
-};
-
-var logObjectShort = function(o){
-  HANNIBAL.attribs(o)
-    .sort()
-    // .map(function(a){return getAttribType(a, o[a]);})
-    // .forEach(function(line){deb(line);});
-    .map(function(a){deb(getAttribType(a, o[a]));});
-};
-
-var getAttribType = function(name, value){
-
-  var H = HANNIBAL, keys;
-
-  function toString(value){
-    return value.toString ? value.toString() : value+"";
-  }
-
-  switch (typeof value) {
-    case "string":
-    case "number":
-    case "undefined":
-    case "boolean":   return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
-    case "object":
-      if (Array.isArray(value)){
-        return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
-      } else if (value === null) {
-        return H.format("  %s: NULL", name);
-      } else {
-        keys = Object.keys(value);
-        return H.format("  %s: OBJECT [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
-      }
-    break;
-    case "function":
-      return H.format("  %s: %s", name, value.toSource().split("\n").join("").slice(0, 60));
-  }
-  return "WTF";
-};
-
-
-var debTemplates = function(templates){
-
-  var counter = 0;
-
-  deb(" TEMPL: %s ----------------------", H.attribs(templates).length);
-
-  // function getAttr(o){
-  //   if (o["Armour"] && o["Armour"]["Hack"] && ~~o["Armour"]["Hack"] > 7){
-  //     return(H.format("Armour.Hack: %s", o["Armour"]["Hack"]));
-  //   } else {
-  //     return false;
-  //   }
-
-  // }
-
-  // logObject(templates, "templates");
-
-    // Object [unidentified] : templates  ---------------
-    // Object  constructor: function Object() {[native code]}
-      // campaigns/army_mace_hero_alexander: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
-      // campaigns/army_mace_standard: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[26]
-      // campaigns/army_spart_hero_leonidas: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
-
-
-  var props = {};
-
-  H.each(templates, function(key, tpl){
-
-    if (counter < 30) {
-      // logObjectShort(tpl);
-      // if (getAttr(tpl)){
-      //   deb("  > %s", key);
-      //   deb("      @%s", tpl["@parent"]);
-      //   deb("      ", getAttr(tpl))
-      //   counter += 1;
-    }
-
-    H.attribs(tpl).forEach(function(attr){
-
-      if (props[attr] === undefined) {
-        props[attr]  = 0;
-      } else {
-        props[attr]  += 1;        
-      }
-
-    });
 
 
 
-  });
+// var debTemplates = function(templates){
 
-  var sorted = H.attribs(props).sort(function(a, b){return props[b] > props[a]; });
+//   var counter = 0;
 
-  sorted.forEach(function(attr){
-    deb("  %s: %s", attr, props[attr]);
-  });
+//   deb(" TEMPL: %s ----------------------", H.attribs(templates).length);
 
-  deb(" TEMPL: ----------------------");
+//   // function getAttr(o){
+//   //   if (o["Armour"] && o["Armour"]["Hack"] && ~~o["Armour"]["Hack"] > 7){
+//   //     return(H.format("Armour.Hack: %s", o["Armour"]["Hack"]));
+//   //   } else {
+//   //     return false;
+//   //   }
 
-};
+//   // }
+
+//   // logObject(templates, "templates");
+
+//     // Object [unidentified] : templates  ---------------
+//     // Object  constructor: function Object() {[native code]}
+//       // campaigns/army_mace_hero_alexander: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
+//       // campaigns/army_mace_standard: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[26]
+//       // campaigns/army_spart_hero_leonidas: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
+
+
+//   var props = {};
+
+//   H.each(templates, function(key, tpl){
+
+//     if (counter < 30) {
+//       // logObjectShort(tpl);
+//       // if (getAttr(tpl)){
+//       //   deb("  > %s", key);
+//       //   deb("      @%s", tpl["@parent"]);
+//       //   deb("      ", getAttr(tpl))
+//       //   counter += 1;
+//     }
+
+//     H.attribs(tpl).forEach(function(attr){
+
+//       if (props[attr] === undefined) {
+//         props[attr]  = 0;
+//       } else {
+//         props[attr]  += 1;        
+//       }
+
+//     });
+
+
+
+//   });
+
+//   var sorted = H.attribs(props).sort(function(a, b){return props[b] > props[a]; });
+
+//   sorted.forEach(function(attr){
+//     deb("  %s: %s", attr, props[attr]);
+//   });
+
+//   deb(" TEMPL: ----------------------");
+
+// };
 
 
 
@@ -449,162 +610,49 @@ var debTemplates = function(templates){
 
 // };
 
-// loggable functions
-function logFn(fn){return fn.toString().split("\n").join("").slice(0, 80);}
+// // loggable functions
+// function logFn(fn){return fn.toString().split("\n").join("").slice(0, 80);}
 
-// from events
-var logDispatcher = function (){
-  deb("  "); deb("      : Dispatcher");
-  H.each(H.Dispatcher, function(id, ar){
-    var tpl = H.Entities[id] ? H.Entities[id]._templateName : "???";
-    deb("  %s: len: %s, tpl: %s", H.tab(id, 4), ar.length, tpl);
-  });
-  deb("  "); 
-};
-
-
-var dumpPassability = function(mapname, passability){
-
-  // dumps all bits into single files
-  // works nicely with Gimp's File > open as Layers
-
-  var 
-    i, b, w = passability.width, h = passability.height, 
-    pass = passability.data, len = pass.length;
-
-  deb(); deb("DUMP  : passability %s, %s, %s", mapname, w, h);
-
-  [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512].forEach(b => {
-
-    var data = [];
-    i = len;
-    while (i--){
-      data[i] = pass[i] & b ? 128 : 255; // set bits are grey, not set white
-    }
-    data.length = len;
-    Engine.DumpImage(mapname + "-passability-" + b + ".png", data, w, h, 255);    
-
-  });
-
-};
+// // from events
+// var logDispatcher = function (){
+//   deb("  "); deb("      : Dispatcher");
+//   H.each(H.Dispatcher, function(id, ar){
+//     var tpl = H.Entities[id] ? H.Entities[id]._templateName : "???";
+//     deb("  %s: len: %s, tpl: %s", H.tab(id, 4), ar.length, tpl);
+//   });
+//   deb("  "); 
+// };
 
 
-var logStart = function(ss, gs, settings){
+// var dumpPassability = function(mapname, passability){
 
-  var H = HANNIBAL, id = settings.player;
+//   // dumps all bits into single files
+//   // works nicely with Gimp's File > open as Layers
 
-  deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
-  deb();
-  deb();
-  deb("     A:    map from tester:  %s", DEBUG.map ? DEBUG.map : "unkown");
-  deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
-  deb("     A:          _entities: %s [  ]", H.count(ss._entities));
-  deb("     A:         _templates: %s [  ]", H.count(ss._templates));
-  deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
-  deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
-  deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
-  deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
-  deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
-  deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
+//   var 
+//     i, b, w = passability.width, h = passability.height, 
+//     pass = passability.data, len = pass.length;
 
-};
+//   deb(); deb("DUMP  : passability %s, %s, %s", mapname, w, h);
 
-var logPlayers = function(players){
+//   [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512].forEach(b => {
 
-  var 
-    H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
-    fmtAEN = item => item.map(b => b ? "1" : "0").join("");
+//     var data = [];
+//     i = len;
+//     while (i--){
+//       data[i] = pass[i] & b ? 128 : 255; // set bits are grey, not set white
+//     }
+//     data.length = len;
+//     Engine.DumpImage(mapname + "-passability-" + b + ".png", data, w, h, 255);    
 
-  deb();
+//   });
 
-  head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut".split(", ");
-  props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral".split(", ");
-  tabs   = [  10,    6,   8,    10,        5,      6,       6,         6];
-  format = {
-    isAlly:    fmtAEN,
-    isEnemy:   fmtAEN,
-    isNeutral: fmtAEN
-  };
-
-  H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-  deb("PLAYER: " + msg);
-
-  H.each(players, function(id, player){
-    msg = "";
-    H.zip(props, tabs, function(p, t){
-      msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
-    });    
-    deb("     %s: %s", id, msg);
-  });
-
-};
+// };
 
 
 
-function diffJSON (a, b) {
 
-  // https://github.com/paldepind/dffptch
-  
-  var 
-    O = Object, keys = O.keys,
-    aKey, bKey, aVal, bVal, rDelta, shortAKey, 
-    aKeys = keys(a).sort(),
-    bKeys = keys(b).sort(),
-    delta = {}, adds = {}, mods = {}, dels = [], recurses = {},
-    aI = 0, bI = 0;
 
-  // Continue looping as long as we haven't reached the end of both keys lists
-
-  while(aKeys[aI] !== undefined || bKeys[bI]  !== undefined || false) {
-    
-    aKey = aKeys[aI]; 
-    bKey = bKeys[bI];
-    aVal = a[aKey];
-    bVal = b[bKey];
-    shortAKey = String.fromCharCode(aI+48);
-
-    if (aKey == bKey) {
-
-      // We are looking at two equal keys this is a
-      // change – possibly to an object or array
-      
-      if (O(aVal) === aVal && O(bVal) === bVal) {
-      
-        // Find changs in the object recursively
-        rDelta = diffJSON(aVal, bVal);
-      
-        // Add recursive delta if it contains modifications
-        if (keys(rDelta)) {recurses[shortAKey] = rDelta;}
-      
-      } else if (aVal !== bVal) {
-        mods[shortAKey] = bVal;
-      
-      }
-      
-      aI++; bI++;
-
-    } else if (aKey > bKey || !aKey) {
-      // aKey is ahead, this means keys have been added to b
-      adds[bKey] = bVal;
-      bI++;
-
-    } else {
-      // bKey is larger, keys have been deleted
-      dels.push(shortAKey);
-      aI++;
-
-    }
-  }
-
-  // We only add the change types to delta if they contains changes
-  if (dels[0]) delta.d = dels;
-  if (keys(adds)[0]) delta.a = adds;
-  if (keys(mods)[0]) delta.m = mods;
-  // if (keys(recurses)[0]) delta.r = recurses;
-  
-  return delta;
-
-}
 
 // /* play area */
 

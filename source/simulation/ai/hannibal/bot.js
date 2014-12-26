@@ -14,13 +14,12 @@
 
 HANNIBAL = (function(H){
 
-
   H.LIB.Bot = function(context){
 
     H.extend(this, {
 
-      klass:   "bot",
       context: context,
+
       imports: [
         "id",
         "player",
@@ -44,22 +43,11 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Bot.prototype = {
+  H.LIB.Bot.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Bot,
-    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     log: function(){
       deb(); deb("   BOT: loaded: %s", this);
-    },
-    clone: function(context){
-      return (
-        new H.LIB.Bot(context)
-          .import()
-          .deserialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
     },
     deserialize: function(data){
       return this;
@@ -129,7 +117,7 @@ HANNIBAL = (function(H){
 
     }
 
-  };
+  });
 
 return H; }(HANNIBAL));  
 

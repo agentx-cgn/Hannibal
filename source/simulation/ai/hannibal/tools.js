@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL */
 
 /*--------------- T O O L S ---------------------------------------------------
 
@@ -13,6 +13,8 @@
 
 
 HANNIBAL = (function(H) {
+
+  var deb = H.deb;
 
   H.Tools = H.Tools || {};
 
@@ -208,9 +210,9 @@ HANNIBAL = (function(H) {
 
     // a statistics extension, interacts with launcher.py
 
-    var ss, gs, key = 0, resolution = 10;
+    var id, ss, gs, key = 0, resolution = 10;
 
-    function out (data) {print(data + "\n");}
+    function out (data) {print(id + "::" + data + "\n");}
     function append (data){out("#! append 1 :" + data);}
 
     function tickData(id){
@@ -262,11 +264,13 @@ HANNIBAL = (function(H) {
     } 
 
     return {
-      init: function(sharedscript, gamestate){
+      init: function(pid, sharedscript, gamestate){
+        id = pid;
         ss = sharedscript;
         gs = gamestate;
         resolution = H.Config.numerus.resolution;
-        deb();deb("NUMRUS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
+        deb();
+        deb("NUMRUS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
         out("#! open 1 " + H.Config.numerus.file);
         out("#! append 1 :# Numerus Log from: " + new Date());
         H.each(ss.playersData, function(id){

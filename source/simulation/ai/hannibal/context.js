@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- C O N T E X T  ----------------------------------------------
 
@@ -14,10 +14,10 @@
 
 HANNIBAL = (function(H){
 
-  H.LIB.Context = function(name){
+  H.LIB.Context = function(key, launcher){
 
     this.defaults = {                                    // all primitive data
-      name:           name,                              // used in logs
+      key:            key,                               // used in logs
       connector:      "",                                // set by connecting
       time:           Date.now(),                        // time game created/saved 
       timeElapsed:    0,                                 // API data
@@ -26,19 +26,29 @@ HANNIBAL = (function(H){
       tick:           0,                                 // increments on BOT tick
     };
 
+    this.klass    = "context";
+    this.launcher = launcher;
+    this.parent   = launcher;
+    this.id       = launcher.id;
+    this.name     = launcher.name + ":" + key;
+    this.deb      = launcher.deb;
+
     // stateful support objects, ordered, no dependencies to following objects
     this.serializers = [
       "events", 
-      "culture",     // store, tree, phases
+      "culture",     // has childs: store, tree, phases
       "map",         // grids
       "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
+      "stats",       // located in eco
+      "orderqueue",  // located in eco
+      "producers",   // located in eco
       "economy",     // stats, producers, orderqueue
-      "military", 
-      "brain", 
-      // "bot", 
+      "military",    // attack groups and support buildings
+      "brain",       // keep information uptodate
+      // "bot",      // make decisions
     ];
 
     // action sequence to launch serializers
@@ -54,16 +64,16 @@ HANNIBAL = (function(H){
 
     // debug, avoid noisy logs during sequence
     this.logger = [
-      // "events", 
+      "events", 
       "culture",     // store, tree, phases
-      // "map",         // grids
+      "map",         // grids
       "resources",   // after map
-      // "villages", 
-      // "scanner",     // scanner after map, before groups
+      "villages", 
+      "scanner",     // scanner after map, before groups
       "groups",      // assets
       "economy",     // stats, producers, orderqueue
-      // "military", 
-      // "brain", 
+      "military", 
+      "brain", 
       "bot", 
     ];
 
@@ -73,13 +83,14 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Context.prototype = {
+  H.LIB.Context.prototype = H.mixin(
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Context,
     log: function(){
       var data = {};
       H.each(this.defaults, name => data[name] = this[name]);
-      deb();
-      deb("   CTX: %s", uneval(data));
+      this.deb();
+      this.deb("   CTX: %s", uneval(data));
     },
     runSequence: function(fn){
       this.sequence.forEach( action => {
@@ -94,7 +105,7 @@ HANNIBAL = (function(H){
     serialize: function(){
 
       var data = {
-        name:          this.name,
+        key:           this.key,
         connector:     this.connector,
         time:          Date.now(),
         timeElapsed:   this.timeElapsed,
@@ -151,12 +162,16 @@ HANNIBAL = (function(H){
 
         if (action === "create"){
           ctxClone[serializer] = this[serializer].clone(ctxClone);
+          ctxClone[serializer].klass   = serializer; 
+          ctxClone[serializer].parent  = ctxClone;
+          ctxClone[serializer].name    = ctxClone.name + ":" + serializer;
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
-          ( obj[action] && obj[action]() );
+          // ( obj[action] && obj[action]() );
+          obj[action]();
 
         } else {
-          deb("   IGN: logger: %s", serializer);
+          this.deb("   IGN: logger: %s", serializer);
         }
 
       });
@@ -190,13 +205,19 @@ HANNIBAL = (function(H){
 
         var obj = this[serializer];
 
-        // deb("   CTX: %s initialize: a: %s.%s", this.name, serializer, action);
+        // this.deb("   CTX: %s initialize: a: %s.%s, type: %s", this.name, serializer, action, (obj && typeof obj[action]));
 
         if (action === "create"){ 
           this[serializer] = new H.LIB[H.noun(serializer)](this);
+          this[serializer].klass   = serializer; 
+          this[serializer].parent  = this;
+          this[serializer].name    = this.name + ":" + serializer;
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
-          ( obj[action] && obj[action]() );
+          if (typeof obj[action] !== "function"){
+            H.logObject(obj, "obj");
+          }
+          obj[action]();
 
         } else {
           // logging for this serializer disabled
@@ -204,8 +225,6 @@ HANNIBAL = (function(H){
         }
 
       });
-
-      // deb("   CTX: %s initialized", this.name);
 
     },
     connectExplorer:  function(launcher){
@@ -238,7 +257,7 @@ HANNIBAL = (function(H){
         entities = gs.entities._entities,
         sanitize = H.saniTemplateName;
 
-      this.updateEngine = function(sharedScript){
+      this.updateEngine = sharedScript => {
         ss = sharedScript;
         this.timeElapsed        = ss.timeElapsed;
         this.territory          = ss.territoryMap;
@@ -258,7 +277,7 @@ HANNIBAL = (function(H){
         params:              H.toArray(arguments),
         launcher:            launcher,
 
-        id:                  settings.player,                   // bot id, used within 0 A.D.
+        // id:                  settings.player,                   // bot id, used within 0 A.D.
         difficulty:          settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
 
         phase:               gs.currentPhase(),          // num
@@ -322,7 +341,7 @@ HANNIBAL = (function(H){
 
           ids.forEach(function(id){
             if (!entities[id]){
-              deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
+              this.deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
             } else {
               curHits += entities[id]._entity.hitpoints;
               maxHits += entities[id].maxHitpoints();
@@ -340,6 +359,6 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
 return H; }(HANNIBAL));  

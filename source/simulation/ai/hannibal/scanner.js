@@ -36,17 +36,14 @@
 
 HANNIBAL = (function(H){
 
-
   // all instanciated scanner share the same map grid of visited region
-
-  var grid = null;
 
   H.LIB.Scanner = function(context){
 
     H.extend(this, {
 
-      name:  "scanner",
       context:  context,
+
       imports:  [
         "width",
         "height",
@@ -61,28 +58,21 @@ HANNIBAL = (function(H){
         attacks: null,
       },
 
+      grid: null,
+
     });
 
   };
 
-  H.LIB.Scanner.prototype = {
+  H.LIB.Scanner.prototype = H.mixin ( 
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Scanner,
     log: function(){},
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-    },
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    serialize: function(){
-      return {};
-    },
     initialize: function(){
       this.grids.scanner = this.map.scanner;
       this.grids.attacks = this.map.attacks;
     },
-    dump: function (name){grid.dump(name || "scouting", 255);},
+    dump: function (name, grid){grid.dump(name || "scouting", 255);},
     createDetector: function (position, vision){
 
       // Object Factory
@@ -109,7 +99,7 @@ HANNIBAL = (function(H){
         },
         isInvalid   = pos => {
           var [x, y] = [~~(pos[0]/cellsize), ~~(pos[1]/cellsize)];
-          return x < 0 || y < 0 || x >= grid.width || y >= grid.height;
+          return x < 0 || y < 0 || x >= this.grid.width || y >= this.grid.height;
         },
         isHostile = index => {
           return dataAttk[index] > 0;
@@ -135,7 +125,6 @@ HANNIBAL = (function(H){
         };
 
 
-      deb(" SCOUT: Scanner: pos: %s, rng: %s, ent: %s", posStart, rng, ent._templateName);
 
 
       queueNow.push(posStart);
@@ -254,12 +243,9 @@ HANNIBAL = (function(H){
       };
 
     }
-  };
+  });
 
-
-
-
-
+return H; }(HANNIBAL));
 
 
   // H.Scout = (function(){
@@ -548,6 +534,4 @@ HANNIBAL = (function(H){
 
 
   // }()).boot();
-
-return H; }(HANNIBAL));
 

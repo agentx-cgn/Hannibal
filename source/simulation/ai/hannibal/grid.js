@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, Uint8Array, Uint32Array, deb, logObject */
+/*globals HANNIBAL, logObject */
 
 /*--------------- G R I D S ---------------------------------------------------
 
@@ -14,13 +14,12 @@
 
 HANNIBAL = (function(H){
 
-
   H.LIB.Grid = function(context){
 
     H.extend(this, {
 
-      name:    "grid",
       context: context,
+
       imports: [
         "map",         // width, height
         "cellsize",
@@ -38,17 +37,14 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Grid.prototype = {
+  H.LIB.Grid.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Grid,
     log: function(name){
       var stats = {},i = this.length,data = this.data;
       while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
-      deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(name || this.title, 12), this.min(), this.max(), H.prettify(stats));
+      this.deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(name || this.title, 12), this.min(), this.max(), H.prettify(stats));
     },    
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
     serialize: function(){
       return {
         title:  this.title,
@@ -214,7 +210,7 @@ HANNIBAL = (function(H){
       return target;
 
     },
-  };
+  });
 
 
 // HANNIBAL = (function(H){

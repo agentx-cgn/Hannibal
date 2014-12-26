@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, Engine, deb, uneval */
+/*globals HANNIBAL, Engine, uneval */
 
 /*--------------- E F F E C T O R S -------------------------------------------
 
@@ -14,15 +14,14 @@
 
 HANNIBAL = (function(H){
 
-
-  // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
+  var deb = H.deb;
 
   H.LIB.Effector = function(context){
 
     H.extend(this, {
 
-      klass: "effector",
       context: context,
+
       imports: [
         "id",
         "map",
@@ -36,38 +35,19 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Effector.prototype = {
+  H.LIB.Effector.prototype = H.mixin(
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Effector,
-    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     log: function(){
-      deb();deb("   EFF: connector: '%s'", this.connector);        
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-  };
-
-  H.LIB.Effector.simulator = {
-
-    move: function(who, where){
-      if (who.length && where.length === 2){
-        who.forEach(id => {
-          this.simulation.entities[id].target = where;
-          this.simulation.entities[id].path = null;
-        });
-      } 
-    },
-
-    destroy: function(who){
-      if (who.length){
-        who.forEach(id => this.simulation.destroy(id));
-      }
-    },    
-
-  };
+      this.deb();
+      this.deb("   EFF: connector: '%s'", this.connector);        
+    }
+  });
 
   H.LIB.Effector.engine = {
+
+    // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
+
 
     // m.BaseAI.prototype.chatTeam = function(message)
     // {
@@ -98,10 +78,18 @@ HANNIBAL = (function(H){
     // break;
 
     dumpgrid: function(name, grid, threshold){
-      Engine.DumpImage(H.APP.map + "-" + name + ".png", grid.toArray(), grid.width, grid.height, threshold);    
+      var 
+        id = this.id, 
+        map = this.context.launcher.map,
+        filename = H.format("%s-%s-%s.png", id, map, name);
+      Engine.DumpImage(filename, grid.toArray(), grid.width, grid.height, threshold);    
     },
     dumparray: function(name, array, width, height, threshold){
-      Engine.DumpImage(H.APP.map + "-" + name + ".png", array, width, height, threshold);    
+      var 
+        id = this.id, 
+        map = this.context.launcher.map,
+        filename = H.format("%s-%s-%s.png", id, map, name);
+      Engine.DumpImage(filename, array, width, height, threshold);    
     },
     execute: function(command){
       Engine.PostCommand(this.id, command);
@@ -369,6 +357,23 @@ HANNIBAL = (function(H){
 
   };
 
+  H.LIB.Effector.simulator = {
+
+    move: function(who, where){
+      if (who.length && where.length === 2){
+        who.forEach(id => {
+          this.simulation.entities[id].target = where;
+          this.simulation.entities[id].path = null;
+        });
+      } 
+    },
+
+    destroy: function(who){
+      if (who.length){
+        who.forEach(id => this.simulation.destroy(id));
+      }
+    },    
+
+  };
 
 return H; }(HANNIBAL));
-

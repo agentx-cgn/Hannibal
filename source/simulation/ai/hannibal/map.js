@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals  HANNIBAL, Uint8Array, deb, uneval */
+/*globals  HANNIBAL, Uint8Array, uneval */
 
 /*--------------- M A P S -----------------------------------------------------
 
@@ -38,7 +38,6 @@ HANNIBAL = (function(H){
 
   var 
     TERRITORY_PLAYER_MASK = 0x3F, // 63
-    prit = H.prettify,
     pritShort = function (a){
       return (
         !Array.isArray(a) ? a :
@@ -53,8 +52,8 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:    "map",
       context: context,
+
       imports: [
         "id",
         "width",
@@ -86,11 +85,12 @@ HANNIBAL = (function(H){
   };
 
 
-  H.LIB.Map.prototype = {
+  H.LIB.Map.prototype = H.mixin(
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Map,
     log: function(){
-      deb();
-      deb("   MAP: width: %s, height: %s, cellsize: %s, grid: %s, length: %s", 
+      this.deb();
+      this.deb("   MAP: width: %s, height: %s, cellsize: %s, grid: %s, length: %s", 
         this.width, 
         this.height, 
         this.cellsize, 
@@ -101,14 +101,6 @@ HANNIBAL = (function(H){
 
       this.effector.dumparray("passability", this.passability.data, this.gridsize, this.gridsize, 255);    
       this.effector.dumparray("territory",   this.territory.data,   this.gridsize, this.gridsize, 255);    
-
-    },
-    clone: function(context){
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
     },
     serialize: function(){
       var data = {};
@@ -209,7 +201,7 @@ HANNIBAL = (function(H){
     },
     nearest: function(point, ids){
 
-      deb("   MAP: nearest: %s", uneval(arguments));
+      this.deb("   MAP: nearest: %s", uneval(arguments));
 
       var distance = 1e10, dis, result = 0, pos = 0.0;
 
@@ -583,7 +575,7 @@ HANNIBAL = (function(H){
             friendlyTiles.addInfluence(x, z, 20, -20);
 
           } else {
-            deb("WARNING: no influence for: %s", tpl);
+            this.deb("WARNING: no influence for: %s", tpl);
           }
 
         });
@@ -638,7 +630,7 @@ HANNIBAL = (function(H){
       }
 
       if (bestVal === -1) {
-        deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
+        this.deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
         return false;
       }
 
@@ -669,7 +661,7 @@ HANNIBAL = (function(H){
 
     }
   
-  };
+  });
 
 
 return H; }(HANNIBAL));

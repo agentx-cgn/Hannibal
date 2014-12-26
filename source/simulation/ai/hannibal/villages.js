@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- V I L L A G E S ---------------------------------------------
 
@@ -18,8 +18,8 @@ HANNIBAL = (function (H){
 
     H.extend(this, {
 
-      name:  "villages",
       context:  context,
+
       imports:  [
         "id",
         "map",
@@ -32,7 +32,7 @@ HANNIBAL = (function (H){
         "metadata",
       ],
 
-      main:      0,
+      main:      NaN,
       centres:   null, 
 
       counter: {
@@ -46,12 +46,13 @@ HANNIBAL = (function (H){
 
   };
 
-  H.LIB.Villages.prototype = {
+  H.LIB.Villages.prototype = H.mixin( 
+    H.LIB.Serializer.prototype, {
     contructor: H.LIB.Villages,
     log: function () {
-      deb();
-      deb("VILLGE:    main: %s, counts: %s", this.main, JSON.stringify(this.counter));
-      deb("     V: centres: %s", JSON.stringify(this.centres));
+      this.deb();
+      this.deb("  VILL:    main: %s, counts: %s", this.main, JSON.stringify(this.counter));
+      this.deb("     V: centres: %s", JSON.stringify(this.centres));
     },
     import: function () {
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -156,12 +157,12 @@ HANNIBAL = (function (H){
         };
 
       // find all CC
-      ccNodes = this.query("civcentre CONTAIN INGAME").forEach( node => {
-        this.centres[node.id] = [];
-      });
+      ccNodes = this
+        .query("civcentre CONTAIN INGAME")
+        .forEach( node => this.centres[node.id] = []);
 
       if (!ccNodes.length){
-        deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
+        this.deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
       }
 
       // deb();
@@ -256,6 +257,6 @@ HANNIBAL = (function (H){
 
     },
 
-  };
+  });
 
 return H; }(HANNIBAL));  

@@ -1,10 +1,11 @@
-// EXPORTED ctx2.serialized at Sat Dec 06 2014 16:21:08 GMT+0100 (CET)
+// EXPORTED ctx2.serialized at Mon Dec 08 2014 12:58:29 GMT+0100 (CET)
 {
-  "time": 1417879268354,
+  "name": "ctx1",
+  "connector": "engine",
+  "time": 1418039909943,
   "timeElapsed": 0,
   "idgen": 1,
   "id": 1,
-  "phase": 1,
   "turn": 0,
   "tick": 0,
   "difficulty": 2,
@@ -4187,7 +4188,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 10,
+            "count": 6,
             "train": {
               "units.athen.cavalry.javelinist.b": null,
               "units.athen.infantry.slinger.b": null,
@@ -4332,7 +4333,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 11,
+            "count": 7,
             "train": {
               "units.athen.cavalry.javelinist.b": null,
               "units.athen.cavalry.swordsman.b": null,
@@ -4492,7 +4493,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 13,
+            "count": 4,
             "train": {
               "units.athen.support.female.citizen.house": null
             },
@@ -4538,7 +4539,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 156,
+            "count": 12,
             "train": {},
             "build": {},
             "research": {
@@ -4586,7 +4587,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 20,
+            "count": 4,
             "train": {},
             "build": {},
             "research": {
@@ -4661,7 +4662,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 13,
+            "count": 4,
             "train": {
               "gaia.fauna.sheep": null
             },
@@ -4707,7 +4708,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 24,
+            "count": 8,
             "train": {
               "units.athen.ship.trireme": null,
               "units.athen.ship.bireme": null,
@@ -4757,7 +4758,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 43,
+            "count": 7,
             "train": {
               "units.athen.support.healer.b": null
             },
@@ -4806,7 +4807,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 3,
+            "count": 2,
             "train": {
               "units.athen.support.trader": null
             },
@@ -4974,7 +4975,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 6,
+            "count": 2,
             "train": {},
             "build": {},
             "research": {
@@ -5043,7 +5044,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 182,
+            "count": 13,
             "train": {},
             "build": {},
             "research": {
@@ -5090,7 +5091,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 20,
+            "count": 4,
             "train": {},
             "build": {},
             "research": {
@@ -5161,7 +5162,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 44,
+            "count": 8,
             "train": {
               "units.athen.mechanical.siege.lithobolos.packed": null,
               "units.athen.mechanical.siege.oxybeles.packed": null
@@ -5209,7 +5210,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 2,
+            "count": 1,
             "train": {},
             "build": {},
             "research": {
@@ -5318,7 +5319,7 @@
           },
           "verb": "build",
           "products": {
-            "count": 9,
+            "count": 5,
             "train": {
               "units.athen.hero.iphicrates": null,
               "units.athen.hero.pericles": null,

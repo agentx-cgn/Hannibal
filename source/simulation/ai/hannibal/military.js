@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- M I L I T A R Y ---------------------------------------------
 
@@ -19,8 +19,8 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:    "military",
       context: context,
+
       imports: [
         "events",
       ],
@@ -29,17 +29,10 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Military.prototype = {
+  H.LIB.Military.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Military,
-    log: function(){},
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
+    log: function(){this.deb();this.deb("   MIL: all good");},
     deserialize: function(){
       if (this.context.data[this.name]){
         H.extend(this, this.context.data[this.name]);
@@ -47,9 +40,6 @@ HANNIBAL = (function(H){
     },
     serialize: function(){
       return {};
-    },
-    initialize: function(){
-      return this;
     },
     activate: function(){
 
@@ -111,6 +101,6 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
 return H; }(HANNIBAL));  

@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval, logObject */
+/*globals HANNIBAL, uneval, logObject */
 
 /*--------------- R E S O U R C E S  ------------------------------------------
 
@@ -31,7 +31,7 @@ HANNIBAL = (function(H){
   */
 
 
-  function Resource(data){
+  function Resource(pid, data){
 
     //TODO remove API access, owner, template.Identity, resourceSupplyMax
 
@@ -45,13 +45,15 @@ HANNIBAL = (function(H){
       logObject(this);
     }
 
+    this.deb = H.deb.bind(null, pid);
+
   }
 
   Resource.prototype = {
     constructor: Resource,
     log: function(){
       var t = this;
-      deb("   RES: %s, %s, type: %s/%s, pos: %s, owner: %s, found: %s",
+      this.deb("   RES: %s, %s, type: %s/%s, pos: %s, owner: %s, found: %s",
         t.id, t.supply, t.generic, t.specific, t.position.map(c => ~~c), t.owner, t.found
       );
     },
@@ -87,7 +89,7 @@ HANNIBAL = (function(H){
 
       } else {
         this.consumed = true;
-        deb("   RES: res with id: '%s' was consumed, no entity", this.id);
+        this.deb("   RES: res with id: '%s' was consumed, no entity", this.id);
 
       }
 
@@ -103,8 +105,8 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:  "resources",
       context:  context,
+
       imports:  [
         "map",
         "config",
@@ -144,7 +146,8 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Resources.prototype = {
+  H.LIB.Resources.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Resources,
     log: function(){
       var 
@@ -154,27 +157,18 @@ HANNIBAL = (function(H){
         tabs   = [   6,     6,    8,    8,    6,    8];  
 
       // header
-      H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-      deb();
-      deb("RESRCS:                " + msg);
+      H.zip(head, tabs, (h, t) => msg += tab(h, t));
+      this.deb();
+      this.deb("  RESS:                " + msg);
 
       // lines
-      this.eachStats(function(generic, specific, stats){
+      this.eachStats( (generic, specific, stats) => {
         msg = "";
-        H.zip(props, tabs, function(p, t){
-          msg += tab(stats[p], t);
-        });    
+        H.zip(props, tabs, (p, t) => msg += tab(stats[p], t));    
         type = H.tab(generic + "." + specific, 13);
-        deb("     R: %s: %s", type, msg);
+        this.deb("     R: %s: %s", type, msg);
       });
 
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
       var data = {};
@@ -190,7 +184,7 @@ HANNIBAL = (function(H){
       if (this.context.data[this.name]){
         this.resources = this.context.data[this.name];
         this.eachAll((generic, specific, stats, id, res) => {
-          this.resources[generic][specific][id] = new Resource(H.mixin(res, {
+          this.resources[generic][specific][id] = new Resource(this.context.id, H.mixin(res, {
             map:      this.map,
             config:   this.config,
             context:  this.context,
@@ -217,7 +211,7 @@ HANNIBAL = (function(H){
             //TODO: whales
             if (this.resources[type.generic][type.specific]){
               counter += 1;
-              res = this.resources[type.generic][type.specific][ent.id()] = new Resource({
+              res = this.resources[type.generic][type.specific][ent.id()] = new Resource(this.context.id, {
                 id:       ~~id, 
                 map:      this.map,
                 config:   this.config,
@@ -228,7 +222,7 @@ HANNIBAL = (function(H){
               }).initialize();
 
             } else {
-              deb("ERROR : unknown resource type %s %s %s", type.generic, type.specific, ent._templateName);
+              this.deb("ERROR : unknown resource type %s %s %s", type.generic, type.specific, ent._templateName);
             }
 
           }
@@ -303,7 +297,7 @@ HANNIBAL = (function(H){
         });
 
       } else {
-        deb("ERROR : res.each: type: '%s' unknown", type);
+        this.deb("ERROR : res.each: type: '%s' unknown", type);
 
       }
 
@@ -415,7 +409,7 @@ HANNIBAL = (function(H){
           });
           
           if (!trees.length){
-            deb("   RES: kmeans: 0 trees");
+            this.deb("   RES: kmeans: 0 trees");
           
           } else {
 
@@ -426,14 +420,15 @@ HANNIBAL = (function(H){
             kmeans.setPoints(trees);
             kmeans.initCentroids();
             kmeans.cluster();
-            t1 = Date.now();
 
             // nearest cluster TODO: filter out centroids without trees
-            cid = kmeans.centroids.sort(function(a, b){
-              var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
-                  db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
-              return da - db;
-            })[0];
+            cid = kmeans.centroids
+              .filter(c => c.items > 0)
+              .sort((a, b) => {
+                var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
+                    db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
+                return da - db;
+              })[0];
             
             // nearest tree from that cluster TODO: nearest to tree from org loc of this cluster
             trees.sort(function(a, b){
@@ -442,7 +437,11 @@ HANNIBAL = (function(H){
               return da - db;
             });
             
-            deb("   RES: kmeans: %s trees, %s cluster, chose cluster with %s trees, %s msecs", 
+            t1 = Date.now();
+
+            // deb(H.attribs(trees[0].res));
+
+            this.deb("   RES: kmeans: %s trees, %s cluster, chose cluster with %s trees, %s msecs", 
               trees.length, 
               kmeans.centroids.length, 
               kmeans.centroids[0].items,
@@ -456,16 +455,16 @@ HANNIBAL = (function(H){
         break;
 
         default: 
-          deb("ERROR : unknown resource type: %s in nearest", type);
+          this.deb("ERROR : unknown resource type: %s in nearest", type);
 
       }
 
-      deb("   RES: nearest '%s': %s at %s", type, resource, H.fixed1(pos));
+      this.deb("   RES: nearest '%s': %s at %s", type, resource, H.fixed1(pos));
       // deb("   RES: attribs: %s", H.attribs(resource));
       return resource;
 
     },      
   
-  };
+  });
 
 return H; }(HANNIBAL));

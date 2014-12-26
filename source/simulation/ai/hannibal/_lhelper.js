@@ -22,6 +22,8 @@
 
 HANNIBAL = function(H){
 
+  var deb = H.deb;
+
 if (!H.extend){
   H.extend = function (o){
     Array.prototype.slice.call(arguments, 1)
@@ -153,6 +155,8 @@ H.extend(H, {
   pushUnique: function (a, e){if(a.indexOf(e)===-1){a.push(e);}return a;},
   pushflat:   function (a, b){b.forEach(i => a.push(i));},
   equal:      function (a, b){return JSON.stringify(a) === JSON.stringify(b);},
+  max:        Function.prototype.apply.bind(Math.max, null),
+  min:        Function.prototype.apply.bind(Math.min, null),
   mean:       function (a){return a.reduce(function(s,x){return (s+x);},0)/a.length;},
   median:     function (a){var al=a.length,m=~~(a.sort().length/2);return !al?null:al%2?a[m]:(a[m-1]+a[m])/2;},
   mode:       function (a){
