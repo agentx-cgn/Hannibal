@@ -43,7 +43,7 @@ HANNIBAL = (function(H){
     },
     activate: function(){
 
-      this.events.on("Attacked", "*", function (msg){
+      this.events.on("EntityAttacked", "*", function (msg){
 
       });
 

@@ -13,27 +13,26 @@
 
 */
 
+/*
+        "5": [() => H.Grids.dump(), "dumping maps"],
+        http://www.semicomplete.com/projects/xdotool/xdotool.xhtml#mouse_commands
+*/
+
 
 HANNIBAL = (function(H){
 
   // see gui.engine.methods.txt for remote control
 
-  var deb = H.deb;
-
   var 
     T = H.T || {},
-    CTX = null,
-    PID = NaN,
-    CC  = NaN, 
-    self, 
-    tick = 0, 
-    sequence = "", sequences, // sequence subset
-    chat = function(msg){Engine.PostCommand(PID, {"type": "chat", "message": msg});};
-
-    function ccloc(){
+    CTX = null, PID = NaN, CC  = NaN, 
+    self, tick = 0, sequence = "", 
+    chat  = (msg) => Engine.PostCommand(PID, {"type": "chat", "message": msg}),
+    ccloc = () => {
       var [x, y] = CTX.entities[CTX.villages.main].position();
       return x + ", " + y;
-    }
+    };
+
 
   H.extend(T, {
     quit: function(){
@@ -55,9 +54,16 @@ HANNIBAL = (function(H){
         return CTX.groups.launch({groupname: group, cc: CC});
       };
     },
-    supplier: function(supply, cc, size=2){
+    supplier: function(supply){
       return () => {
-        var config = {groupname: "g.supplier", cc: CC, supply: supply, size: size};
+        var config = {groupname: "g.supplier", cc: CC, supply: supply};
+        CTX.groups.launch(config);
+      };
+    },
+    builder: function(building, quantity){
+      return () => {
+        // H.deb("   TST: doing: CTX.groups.launch(config)");
+        var config = {groupname: "g.builder", cc: CC, building: building, quantity: quantity};
         CTX.groups.launch(config);
       };
     },
@@ -82,19 +88,13 @@ HANNIBAL = (function(H){
 
   });
 
-/*
-        "5": [() => H.Grids.dump(), "dumping maps"],
-        http://www.semicomplete.com/projects/xdotool/xdotool.xhtml#mouse_commands
-*/
-
-
   // if any of these evaluate to a string, it gets chatted
-  sequences = {
+  var sequences = {
     "random/brainland": {
         "0": [() => "< - START: " + sequence + " - >"],
-        "1": [T.camera(),                             "set camera on CC"],
-        "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        // "3": [T.supplier(      "food.fruit"), "launching 1 food.fruit supplier"], 
+        // "1": [T.camera(),                             "set camera on CC"],
+        // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
+        "1": [T.builder(      "house"), "building a house"], 
         // "4": [T.supplier(            "wood", 10), "launching 1 wood supplier"], 
         // "5": [T.supplier(           "metal", 10), "launching 1 metal supplier"], 
         // "6": [T.supplier(           "stone", 10), "launching 1 stone supplier"], 
@@ -112,17 +112,6 @@ HANNIBAL = (function(H){
         "5": [T.speed(5),                             "more speed"],
       // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
     },
-    "Forest Battle": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        "2": [T.chat("huhu"), "chatted"], 
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "aitest08m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        "2": [T.chat("huhu"), "chatted"], 
-        // "3": [T.launch("g.scouts", 44), "launching 1 scout"], 
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
     "Arcadia 02": {
         // "0": [() => "setting view",
         //       () => print("#! xdotool click --delay 30 --repeat 4 5\n"), 
@@ -134,14 +123,6 @@ HANNIBAL = (function(H){
         //      ],        
         "0": [T.supplier(      "food.fruit", 4752), "launching 1 food.fruit supplier"], 
         "1": [T.supplier(       "food.meat", 4752), "launching 1 food.meat supplier"], 
-        // "2": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        // "3": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
-        // "4": [T.launch("g.builder",          4752), "launching 1 scout"], 
-        // "5": [T.launch("g.scouts",           4752), "launching 1 scout"], 
-        // "6": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        // "7": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        // "8": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        "9": [T.supplier(           "metal", 4752), "launching 1 metal supplier"], 
        "10": [T.supplier(           "stone", 4752), "launching 1 stone supplier"], 
        "11": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
        "12": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
@@ -154,51 +135,7 @@ HANNIBAL = (function(H){
        // "71": [() => H.Groups.log(), "logging groups"],
       "1000": [T.quit()],
     },
-    "aitest06m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        // "2": [T.launch("g.scouts", 44), "launching 1 scout"], 
-        // "3": [() => H.Grids.dump(), "dumping grids"],
-        // "4": [() => H.Grids.log(),  "logging grids"],
-        "6": [() => H.Groups.log(), "logging groups"],
-        "7": [() => H.logIngames(), "logging ingames"],
-       "70": [() => H.logIngames(), "logging ingames"],
-       "71": [() => H.Groups.log(), "logging groups"],
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "aitest05m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        // "2": [T.launch("g.scouts", 44), "launching 1 scout"], 
-        "3": [() => H.Grids.dump(), "dumping grids"],
-        "4": [() => H.Grids.log(),  "logging grids"],
-       "20": [() => H.logIngames(), "logging ingames"],
-       "21": [() => H.Groups.log(), "logging groups"],
-       "70": [() => H.logIngames(), "logging ingames"],
-       "71": [() => H.Groups.log(), "logging groups"],
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "aitest04m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        // "3": [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 
-       "12": [T.destroy(44), "destroying centre"],
-       "14": [() => "calling for repair help"],
-       "15": [() => H.logIngames(), "logging ingames"],
-       "16": [() => H.Groups.log(), "logging groups"],
-       "70": [() => H.logIngames(), "logging ingames"],
-       "71": [() => H.Groups.log(), "logging groups"],
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "Xaitest03": {
-       "1": [() => "< - START: " + sequence + " - >"],
-       // "2": [T.launch("g.grainpicker", 44, 44), "launching 2 grainpickers"], 
-      "10": [() => "please wait a moment"],
-      "22": [T.destroy(216), "destroying field"],
-      "30": [T.destroy(223, 224, 225), "destroying female units"],
-      "44": [() => "ACTION"],
-      // "50": [T.launch("g.grainpicker", 44, 44, 44, 44, 44), "launching 5 grainpickers"], 
-     "210": [() => "< - FINIS: " + sequence + " - >"],
-    }
   };
-
 
   // fires functions at give tick num, 
   H.Tester = (function(){
@@ -206,24 +143,19 @@ HANNIBAL = (function(H){
     var t0, triggers;
     
     return {
-      boot:     function(){
-        self = this; 
-        return self;
-      },
-      // activate: function(seq, context){
-      //   CTX = context, PID = context.id; t0 = Date.now();
-      //   sequence = seq || H.Config.sequence;
-      //   deb("INFO  : PID: %s, TESTER.activated with CC: %s activated sequence: %s", PID, CC, sequence);
-      // },
+      boot:     function(){return (self = this);},
       log:      function(){
         var 
           cnt = H.count(sequences[sequence]),
           lst = H.attribs(sequences[sequence]).join(",");
-        deb("      :");
-        deb("      :");
-        deb("      : TESTER PID: %s CC: %s, running sequence: %s with %s ticks [%s]", PID, CC, sequence, cnt, lst);
-        deb("      :");
-        deb("      :");
+        H.deb(PID, "      :");
+        H.deb(PID, "INFO  : TESTER PID: %s sequence: %s with %s ticks [%s]", PID, sequence, cnt, lst);
+        H.deb(PID, "      :");
+      },
+      activate: function(seq, context){
+        CTX = context; PID = context.id;
+        sequence = seq || H.Config.sequence;
+        // deb("INFO  : PID: %s, TESTER.activated sequence: %s", PID, sequence);
       },
       evaluate: function(item){
         return (
@@ -233,16 +165,13 @@ HANNIBAL = (function(H){
             undefined
         );
       },
-      tick:     function(secs, tick, context){
-        CTX = context, PID = context.id; CC = context.villages.main; t0 = Date.now();
+      tick: function(secs, tick, context){
+        CTX = context; PID = context.id; CC = context.villages.main; t0 = Date.now();
         if (sequences[sequence]){
-          if (tick === 0){self.log();}  
-          if (sequences[sequence][+tick]){
-            triggers = sequences[sequence][+tick];
+          if (( triggers = sequences[sequence][~~tick] )){
             triggers.forEach(self.evaluate);
           }
         }
-        tick += 1;
         return Date.now() - t0;
       }
     };

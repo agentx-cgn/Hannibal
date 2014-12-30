@@ -94,8 +94,8 @@ HANNIBAL = (function(H){
         this.deb(" BRAIN: onAdvance: %s", msg.data.technology);
       });
 
-      this.events.on("Attacked", "*", msg => {
-        this.deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
+      this.events.on("EntityAttacked", "*", msg => {
+        this.deb(" BRAIN: EntityAttacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
       });
 
       this.events.on("BroadCast", msg => {

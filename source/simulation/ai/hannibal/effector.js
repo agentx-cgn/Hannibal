@@ -165,6 +165,8 @@ HANNIBAL = (function(H){
 
       // deb("   EFF: move: %s", uneval(arguments));
 
+      //TODO: make this queue
+
       if (who.length && where.length === 2){
 
         Engine.PostCommand(this.id, {type: "walk", 
@@ -284,6 +286,8 @@ HANNIBAL = (function(H){
     },
 
     repair: function(who, what){
+
+      //TODO: make this queue
 
       // deb("   EFF: repair: %s", uneval(arguments));
 

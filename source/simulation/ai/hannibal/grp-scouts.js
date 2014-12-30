@@ -14,117 +14,100 @@
 
 HANNIBAL = (function(H){
 
-  H.Groups = H.Groups || {};
-
   H.extend(H.Groups, {
-
 
     "g.scouts" : {
 
       /* Behaviour: 
-          to explore the map, 
+          to explore the land part of map, 
+          by feeding the scout grid with postions to analyse
           to avoid violent combat
           to report enemies + buildings
           to report resources, wood, metal, stone, animals
-          to fill the scout grid
+          to report job finished
+          to stay healthy
       */
-
-      // variables available in listener with *this*. All optional
 
       active:         true,           // ready to init/launch ...
       description:    "scouts",       // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
-
       interval:        2,             // call onInterval every x ticks
-      parent:         "",             // inherit useful features
 
-      capabilities:   "+area",        // (athen) give the economy a hint what this group provides.
+      listener: {  
 
+        onLaunch: function (w, config) {
 
-      // this got initialized by launcher
-      position:       null,           // coords of the group's position/activities
+          //scanner gives asset/scanner, verb/scan, attribute/target
 
-      counter:        0,
-      losses:         0,
-      // units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
+          w.group.size = config.size || 8;
+          w.units = ["exclusive", "cavalry CONTAIN SORT > speed"];
+          w.register("units");
+          w.import("scanner");
+          w.units.request();
 
-      scanner:       null,
-      target:        null,
+        }, onAssign: function(w, asset) {
 
-      exclusives:    function(options){
-        return {units : [options.size, ["exclusive", "cavalry CONTAIN SORT > speed"]]};
-      },
+          w.log("onAssign", w, asset);
 
-      // message queue sniffer
+          // first unit orders scanner
+          w.scanner.on
+            .member(asset, w.units)
+            .match(0, w.scanner.size)
+            .match(1, w.units.size)
+            .request()
+          ;
 
-      listener: {
+          // got scanner, pick unit to scan for w.target
+          w.units.on
+            .member(asset, w.scanner)
+            .scan("grid", w.target)
+          ;
 
-        onLaunch:    function(options /*cc, maxUnits*/){
+          // have too much units
+          g.units.on
+            .gt(g.unit.count, g.unit.size)
+            .unhealthy()
+            .release()
+          ;
 
-          this.options = options;
-          this.size    = options.size;
-          this.units   = this.exclusives(options).units[1];
-          this.register("units");                                // turn res definitions into res objects
-          this.economy.request(1, this.units, this.position);    // 1 unit is a good start
+        }, onDestroy: function(w, asset) {
 
-        },
-        onAssign:    function(asset){
+          // lost unit, double size, hence release unhealthy
+          w.units.on
+            .member(asset, w.units)
+            .request(w.units.count * 2)
+          ;
 
-          // deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
+        }, onAttack: function(w, asset, attacker, type, damage) {
 
-          if (!this.counter){
-            this.scanner = H.Scout.scanner(asset);  // inits search pattern with first unit
-            this.target = this.scanner.next(asset.location());
+          // with group spread, health low, flee
+          asset.on
+            .member(asset, w.units)
+            .lt(50, asset.health)
+            .gt(50, g.units.spread)
+            .scan("attacker", attacker)
+            .scan("grid", w.target)
+            .stance("defensive")
+            .flee(attacker)
+          ;
 
-          } else if (this.units.count > this.size) {
-            asset.release();
+          // with group spread, health low, all flee
+          g.units.on
+            .member(asset, w.units)
+            .lt(80, g.units.health)
+            .stance("defensive")
+            .flee(attacker)
+            .nearest(attacker)
+            .scan("attacker", attacker)
+          ;
 
-          } else {
-            asset.move(this.units.center);                        // all other move to last known location
+        }, onBroadcast: function(source, msg) {
 
-          }
-
-          this.counter += 1;
-
-        },
-        onDestroy:   function(asset){
-
-          deb("     G: %s onDestroy: %s", this, asset);
-
-          if (this.units.match(asset)){
-            this.losses += 1;
-            // succesively increment up to 5
-            var amount = Math.max(this.maxUnits - this.units.count, this.losses +1);
-            deb("AMOUNT: %s, max: %s, units: %s, losses: %s", amount, this.maxUnits, this.units.count, this.losses);
-            this.economy.request(amount, this.units, this.position);  
-          }      
-
-        },
-        onAttack:    function(asset, attacker, type, damage){
-
-          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, H.Entities[attacker] || attacker, damage.toFixed(1));
-
-          H.Scout.scanAttacker(attacker);
-
-          if (asset.health < 80){
-            if (this.units.spread > 50){
-              asset.stance("defensive");
-              asset.flee(attacker);
-            } else {
-              H.Scout.scan(this.units.nearest(this.target.point));
-              this.units.stance("defensive");
-              this.units.flee(attacker);
-            }
-          }
-
-        },
-        onBroadcast: function(source, msg){},
-        onRelease:   function(asset){
+        }, onRelease: function(asset) {
 
           deb("     G: %s onRelease: %s", this, asset);
 
-        },
-        onInterval:  function(secs, ticks){
+        }, onInterval:  function(secs, ticks) {
 
           // deb("     G: %s onInterval,  states: %s, health: %s", 
           //   this, H.prettify(this.units.states()), this.units.health
@@ -173,6 +156,7 @@ HANNIBAL = (function(H){
           // deb("     G: scout interval: %s msecs", Date.now() - t0);
 
         }
+
       }
     }
 

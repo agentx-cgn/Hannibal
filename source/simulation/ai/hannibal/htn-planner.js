@@ -25,8 +25,6 @@ HANNIBAL = (function(H){
     // prettyfies a task
     pritt = function(task){return fmt("[%s: %s]", task[0].name, task.slice(1).join(", "));};
 
-  H.HTN = H.HTN || {};                       
-
   H.HTN.Planner = function Planner(config) {
 
     var defaults = {

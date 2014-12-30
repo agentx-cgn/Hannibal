@@ -14,9 +14,6 @@
 
 HANNIBAL = (function(H){
 
-  H.HTN = H.HTN || {};                       
-  H.HTN.Economy = H.HTN.Economy || {};
-
   // helper
 
   function applyCosts(state, costs, multiplier){

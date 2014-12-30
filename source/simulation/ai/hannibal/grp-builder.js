@@ -31,73 +31,62 @@ HANNIBAL = (function(H){
       */
 
       active:         true,           // prepared for init/launch ...
-      description:    "builder",     // text field for humans 
+      description:    "builder",      // text field for humans 
       civilisations:  ["*"],          // 
       interval:       4,              // call onInterval every x ticks
 
-      listener: {
+      scripts: {
 
-        onLaunch: function(g, config /*cc, building, size, quantity*/){
+        launch: function(w, config /* building, quantity */){
 
-          g.log("onLaunch", g, uneval(config));
+          w.log("     G: launch %s %s", w, uneval(config));
 
-          g.size = g.size || config.size || 4;
-          g.quantity = g.quantity || config.quantity || 1;
+          w.buildings = ["exclusive", config.building];
+          w.units     = ["exclusive", config.building + " CONTAIN BUILDBY"];
 
-          g.buildings = ["exclusive", config.building];
-          g.units     = ["exclusive", config.building + " BUILDBY"];
+          w.units.size     = w.units.size     || config.size     || 4;
+          w.buildings.size = w.buildings.size || config.quantity || 1;
 
-          g.register("units", "buildings");
+          w.nounify("units", "buildings");
 
-          g.units.request();   
+          // H.logObject(w, "wwwwwwwwwwwwwww");
+          // H.logObject(w.units, "wwwwwwwwwwwwwww.units");
 
-          // this.options = options;
-
-          // this.buildings = ["exclusive", options.building]; // ???????????????
-          // this.units = this.exclusives(options).units[1];
-          // // this.units = ["exclusive", building + " BUILDBY"];
-          // this.quantity = options.size; //H.Config.civs[H.Bot.civ].builders;
-          // this.quantity = options.quantity;
-
-          // this.register("units", "buildings");
-          // this.economy.request(1, this.units, this.position);   
+          w.units.request();   
 
         },
-        onAssign: function(g, asset){
+        assign: function(w, item){
 
-          g.log("onAssign", g, asset);
+          w.log("     G: onAssign: %s, %s", w, item);
+
+          w.item = w.objectify("item", item);
          
           //  with first unit request structure to build
-          g.buildings
-            .member(asset, g.units)
-            .match(g.units.count, 1)
-            .request() // g.position
+          w.buildings
+            .member(item, w.units)
+            .match(w.units.count, 1)
+            .request() // w.position
           ;
 
-          // keep requesting units unitl size
-          g.units
-            .match(asset, g.units)
-            .lt(g.units.count, g.size)
-            .request()   // g.position
+          // keep requesting units until size
+          w.units
+            .member(w.item, w.units)
+            .lt(w.units.count, w.units.size)
+            .request()
           ;
 
-          // still on foundation, repair
-          asset
-            .member(asset, g.units)
-            .match(g.foundation)
-            .repair(g.foundation)
+          // got unit, send to repair
+          w.item
+            .member(w.item, w.units)
+            .repair(w.buildings)
           ;
-
 
           // got the building, update position, all units repair
-          g.units
-            .match(g.buildings, asset)
-            .relocate(asset.position)
-            .repair(asset)
+          w.units
+            .member(w.item, w.buildings)
+            .relocate(w.item.position)
+            .repair(w.item)
           ;
-
-
-
 
 
           // if (this.units.match(asset)){

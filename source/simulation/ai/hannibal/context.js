@@ -64,17 +64,17 @@ HANNIBAL = (function(H){
 
     // debug, avoid noisy logs during sequence
     this.logger = [
-      "events", 
+      // "events", 
       "culture",     // store, tree, phases
-      "map",         // grids
+      // "map",         // grids
       "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
-      "economy",     // stats, producers, orderqueue
-      "military", 
-      "brain", 
-      "bot", 
+      // "economy",     // stats, producers, orderqueue
+      // "military", 
+      // "brain", 
+      // "bot", 
     ];
 
     // set initial properties

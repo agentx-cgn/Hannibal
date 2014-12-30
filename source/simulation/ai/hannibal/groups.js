@@ -26,7 +26,7 @@ HANNIBAL = (function(H){
         "events",
         "culture",
         "query",
-        "entities",
+        "entities",  // position
         "resources", // used in supply groups
         "economy",
       ],
@@ -34,6 +34,9 @@ HANNIBAL = (function(H){
       instances: [],
 
     });
+
+    this.dsl = new H.DSL.Language(context, this, "groups").initialize();
+    this.initdsl();
 
   };
 
@@ -57,8 +60,18 @@ HANNIBAL = (function(H){
         });
     },
     serialize: function(){
-      return this.instances.map(instance => instance.serialize());
+      return this.instances.map(this.serializegroup);
     },
+    serializegroup: function(instance){
+      return {
+        id:        instance.id,
+        cc:        instance.cc,
+        groupname: instance.groupname,
+        name:      instance.name,
+        position:  instance.position,
+        assets:    instance.assets.map(asset => asset.serialize()),
+      };    
+     },
     initialize: function(){
 
       if (Array.isArray(this.context.data.groups)){
@@ -68,9 +81,14 @@ HANNIBAL = (function(H){
       
       } else {
         // load mayors and custodians from metadata
-        this.launchOperators();
+        // this.launchOperators();
 
       }
+
+      // H.deb("--------------");
+      // if (!this.dsl){
+      //   this.initdsl();
+      // }
 
       return this;
 
@@ -119,6 +137,87 @@ HANNIBAL = (function(H){
       });
 
       return Date.now() - t0;
+
+    },
+    run: function(instance, scriptname, params){
+
+      // calls a script in this dsl world
+      // assuming nouns and verbs are all set
+
+      this.dsl.reset();
+      this.dsl.select(instance);
+      params.unshift(this.dsl.world);
+      instance.scripts[scriptname].apply(instance, params);
+
+    },
+    objectify: function(instance, name, resources){
+
+      this.deb("  GRPS: objectify %s %s %s", instance, name, resources);
+
+    },
+    nounify: function(world, instance, noun){
+
+      // in a script world is asked to register a noun
+      // dsl callbacks handler with actor/instance and noun
+
+      this.deb("  GRPS: nounify %s %s", instance, noun);
+
+      return this.createAsset({
+        instance: instance,
+        property: noun,
+        definition: world[noun],
+      });
+
+    },
+    initdsl: function () {
+
+      this.deb("  GRPS: initdsl");
+
+      var 
+        self = this,
+        dsl = this.dsl,
+        w   = this.dsl.world;
+
+      // nouns and attributes are listed in corpus
+
+      dsl.setverbs({
+
+        "request":   function(amount){
+
+          // H.logObject(w.actor,   "w.actor");
+          // H.logObject(w.subject.host, "w.subject.host");
+
+          // group.instance, amount, asset, position)
+          self.request(w.actor.instance, amount || 1, w.subject.host, w.actor.instance.position);
+
+        },
+        "relocate":  (path)      => w.subject.position = path[path.length -1],
+        "move":      (path)      => this.effector(w.subject.list, path),
+        "repair":    (assets)    => this.effector.repair(w.subject.list, assets.list),
+        "gather":    (resources) => this.gather(w.subject.list, resources.list),
+        "attack":    (enemies)   => this.attack(w.subject.list, enemies.list),
+        "stance":    (stance)    => this.effector.stance(w.subject.list, stance),      
+        "format":    (format)    => this.effector.format(w.subject.list, format),
+        "dissolve":  ()          => this.dissolve(w.subject),
+        // "register":  (/*args*/)  => {
+
+        //   H.toArray(arguments).forEach( property => {
+
+        //     if (w.subject[property] instanceof H.LIB.Asset){
+        //       this.deb("  GRPS: did not register '%s' for %s", property, w.subject);
+            
+        //     } else {
+        //       w.subject[property] = this.createAsset({
+        //         definition: w.subject[property],
+        //         instance:   w.subject,
+        //         property:   property,
+        //       });
+        //     }
+
+        //   });
+
+        // }
+      });
 
     },
     launchOperators: function () {
@@ -190,18 +289,18 @@ HANNIBAL = (function(H){
     },
     createAsset: function(config){
 
-      // deb("  GRPS: createAsset.in: %s", H.attribs(config));
+      this.deb("  GRPS: createAsset.in: %s", H.attribs(config));
 
       var 
         asset = new H.LIB.Asset(this.context).import(), 
-        // id = config.id || this.context.idgen++,
         definition = config.definition, // || config.instance[config.property],
         verb = this.getAssetVerb(definition);
 
-      // deb("  GRPS: createAsset: id: %s, name: %s, def: ", id, name, definition);
-      // deb("  GRPS: createAsset: hcq: %s", this.expandHCQ(definition[1], config.instance));
+      // this.deb("  GRPS: createAsset: id: %s, name: %s, def: ", id, name, definition);
+      // this.deb("  GRPS: createAsset: hcq: %s", this.expandHCQ(definition[1], config.instance));
 
       asset.id = config.id || this.context.idgen++;
+      asset.name = config.instance.name + ":" + config.property + "#" + asset.id;
 
       // make known to group
       config.instance.assets.push(asset);
@@ -221,7 +320,7 @@ HANNIBAL = (function(H){
 
       asset.activate();
 
-      // deb("  GRPS: created Asset: %s, res: %s", asset, uneval(asset.resources));
+      this.deb("  GRPS: created Asset: %s, res: %s", asset, uneval(asset.resources));
       
       return asset;
     },   
@@ -329,17 +428,17 @@ HANNIBAL = (function(H){
 
     },
     claim: function( /* instance */ ){},
-    request: function(instance, amount, asset /* , location */ ){
+    request: function(instance, amount, asset, position){
       
-      // sanitize args
-      var 
-        args = H.toArray(arguments),
-        location = (
-          args.length === 3 ? [] : 
-          args[3].location ? args[3].location() :
-          Array.isArray(args[3]) ? args[3] :
-            []
-        );
+      // H.logObject(instance, "instance");
+      // H.logObject(asset, "asset");
+      // H.logObject(position, "position");
+
+      if (!(instance && amount && asset.id && position.length === 2)){
+
+        H.throw("groups.request fails: %s, %s, %s, %s", instance, amount, asset, position);
+
+      }
 
       this.deb("  GRPS: request: instance: %s, amount: %s, asset: %s, assetid: %s", instance, amount, asset, asset.id);
 
@@ -348,7 +447,7 @@ HANNIBAL = (function(H){
       this.economy.request({
         amount:     amount,
         cc:         instance.cc,
-        location:   location,
+        location:   position,
         verb:       asset.verb, 
         hcq:        asset.hcq, 
         source:     asset.id, 
@@ -358,6 +457,8 @@ HANNIBAL = (function(H){
     },
 
     launch: function(config){
+
+      this.deb("  GRPS: launch, %s", uneval(config));
 
       // Object Factory
 
@@ -372,18 +473,30 @@ HANNIBAL = (function(H){
       // registered props !!!
 
       var 
-        self = this,
-        instance  = {
-          klass:     "group",
-          id:        config.id || this.context.idgen++,
-          cc:        config.cc,
-          groupname: config.groupname,
-          listener:  {},
+        ccpos = this.entities[config.cc].position(),
+        instance = {id: config.id || this.context.idgen++};
 
-          resources: this.resources, // needs lexical signature
-          economy:   this.economy,   //
+      H.extend(instance, {
 
-        };
+        klass:     "group",
+        context:   this.context,
+        name:      config.groupname + "#" + instance.id,
+        id:        config.id || this.context.idgen++,
+        cc:        config.cc,
+        groupname: config.groupname,
+        scripts:   {},
+
+        resources: this.resources, // needs lexical signature
+
+        position:  config.position || ccpos || this.deb("ERROR : no pos in group"),
+        assets:    [],
+        run:       this.run.bind(this, instance),
+
+        toString: function(){return H.format("[%s %s]", this.klass, this.name);},
+
+
+      });
+
 
       // keep a reference
       this.instances.push(instance);
@@ -391,9 +504,10 @@ HANNIBAL = (function(H){
       // copies values from the groups' definition onto instance
       H.each(H.Groups[config.groupname], (prop, value) => {
         
-        if (prop === "listener") {
+        if (prop === "scripts") {
           H.each(value, (name, fn) => {
-            instance.listener[name] = fn.bind(instance);
+            // make 'this' in scripts point to instance
+            instance.scripts[name] = fn.bind(instance);
           });
 
         } else {
@@ -409,60 +523,11 @@ HANNIBAL = (function(H){
 
       });
 
-        // config:    config,
-
-      H.extend(instance, {
-        
-        name:      config.groupname + "#" + instance.id,
-        position:  config.position || this.map.getCenter([instance.cc]),
-        assets:    [],
-        detector:  null,
-
-        dissolve:  self.dissolve.bind(self, instance),
-        request:   self.request.bind(self, instance),
-        claim:     self.claim.bind(self, instance),
-        scan:      self.scan.bind(self, instance),
-        toString:  function(){return H.format("[%s %s]", this.klass, instance.name);},
-        register:  function(/* arguments */){
-          // deb("     G: %s register: %s", instance.name, uneval(arguments));
-
-          // transforms primitive definition into live object
-          // except already done by deserialization
-
-          H.toArray(arguments).forEach( property => {
-
-            if (instance[property] instanceof H.LIB.Asset){
-              this.deb("  GRPS: did not register '%s' for %s", property, instance);
-            
-            } else {
-              instance[property] = self.createAsset({
-                definition: instance[property],
-                instance:   instance,
-                property:   property,
-              });
-            }
-
-          });
-
-        },
-        serialize: function(){
-          return {
-            id:        instance.id,
-            cc:        instance.cc,
-            groupname: instance.groupname,
-            name:      instance.name,
-            position:  instance.position,
-            assets:    instance.assets.map(asset => asset.serialize()),
-          };
-        },
-
-      });
-      
       // deserialize and register assets
       if (config.assets) {
         config.assets.forEach(cfg => {
           instance[cfg.property] = cfg.definition;
-          instance[cfg.property] = self.createAsset(
+          instance[cfg.property] = this.createAsset(
             H.mixin(cfg, {instance:   instance})
           );
         });
@@ -472,7 +537,11 @@ HANNIBAL = (function(H){
       // deb("   GRP: launch %s args: %s", instance, uneval(config));
 
       // call and activate
-      instance.listener.onLaunch(config);
+      this.dsl.select(instance);
+
+      // H.logObject(this.dsl.world, "this.dsl.world");
+
+      instance.scripts.launch(this.dsl.world, config);
 
       return instance;
 
@@ -481,3 +550,38 @@ HANNIBAL = (function(H){
   });  
 
 return H; }(HANNIBAL));
+
+
+      // create the dsl
+
+      // H.extend(instance, {
+        
+      //   name:      config.groupname + "#" + instance.id,
+      //   position:  config.position || this.map.getCenter([instance.cc]),
+      //   assets:    [],
+      //   run: this.run.bind(this, instance),
+
+        // register:  function(/* arguments */){
+        //   // deb("     G: %s register: %s", instance.name, uneval(arguments));
+
+        //   // transforms primitive definition into live object
+        //   // except already done by deserialization
+
+        //   H.toArray(arguments).forEach( property => {
+
+        //     if (instance[property] instanceof H.LIB.Asset){
+        //       this.deb("  GRPS: did not register '%s' for %s", property, instance);
+            
+        //     } else {
+        //       instance[property] = self.createAsset({
+        //         definition: instance[property],
+        //         instance:   instance,
+        //         property:   property,
+        //       });
+        //     }
+
+        //   });
+
+        // },
+
+      // });

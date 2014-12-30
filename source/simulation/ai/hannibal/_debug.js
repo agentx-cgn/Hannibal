@@ -21,15 +21,15 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }, 
     "2": {
-      "log": 2, 
+      "log": 3, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }, 
@@ -37,7 +37,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }, 
@@ -45,7 +45,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }, 
@@ -53,7 +53,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }, 
@@ -61,7 +61,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }, 
@@ -69,7 +69,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }

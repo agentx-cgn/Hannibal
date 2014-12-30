@@ -17,6 +17,18 @@
 
 */
 
+/* 
+  current loading sequence
+    _debug
+    _hannibal
+    _launcher
+    _lhelper
+    _logger
+    a-z
+
+*/
+
+
 // very first line, enjoy the rest
 print("--------: HANNIBAL.MODUL: " + new Date() + " --- ### --- ### --- ### ---\n");
 
@@ -30,6 +42,9 @@ var HANNIBAL = (function() {
 
     API:    API3, 
     LIB:    {}, 
+    HTN:    {Economy: {}, Helper: {}}, 
+    DSL:    {Nouns: {}}, 
+    Data:   {Groups: {}}, 
     Groups: {},
     
     throw: function(){
@@ -54,13 +69,18 @@ var HANNIBAL = (function() {
 
   };
 
-  // This is a MIXIN (needs: this.[klass, name, context, imports])
+  /*
+
+    MIXINS,
+
+  */
   
+  // Serializer needs: this.[klass, name, context, imports])
   H.LIB.Serializer = function(){};
   H.LIB.Serializer.prototype = {
     constructor: H.LIB.Serializer,
     toString: function(){return H.format("[%s %s:%s]", this.klass, this.context.name, this.name);},
-    deb: function(){this.context.launcher.deb.apply(this, H.toArray(arguments));},
+    deb: function(){this.context.launcher.deb.apply(this, arguments);},
     log: function(){this.deb("   %s: logging", this.name.slice(0,3).toUpperCase());},
     logtick: function(){this.deb("   %s: logticking", this.name.slice(0,3).toUpperCase());},
     serialize: function(){return {};},

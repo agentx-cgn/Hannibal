@@ -14,8 +14,6 @@
 
 HANNIBAL = (function(H){
 
-  H.Groups = H.Groups || {};
-
   H.extend(H.Groups, {
 
     "g.mayor" : {
@@ -30,44 +28,36 @@ HANNIBAL = (function(H){
           
       */
 
+      // meta
       active:         true,           // prepared for init/launch ...
       description:    "mayor",        // text field for humans 
-      civilisations:  ["*"],          // 
-      interval:       4,              // call onInterval every x ticks
-      parent:         "",             // inherit useful features
+      civilisations:  ["*"],          // * = all, athen, cart, etc
+      interval:       4,              // call scripts.tick every x ticks ( tick ~ 1.6 sec)
 
-      technologies: [
-                      "unlock.females.house"
+      // these techs are known to possibly improve this group
+      technologies: [                 
+        "unlock.females.house"
       ],
 
-      position:       null,           // refers to the coords of the group's position/activities
-      structure:      [],             // still unkown asset, inits at game start
+      scripts: {
 
-      builders:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.cc = <cc>"],
+        launch: function(w, config){
 
-      attackLevel:    0,              // increases with every attack, halfs on interval
-      needsRepair:   80,              // a health level (per cent)
-      needsDefense:  10,              // an attack level
+          w.log("     G: onLaunch: %s, %s", w, uneval(config));
 
-      listener: {
-        onLaunch: function(options /*cc*/){
-
-          // deb("     G: launch %s %s", this, uneval(options));
-
-          // this.options = options;
-          // this.cc = options.cc;
-          this.register("builders");
+          w.units = ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.cc = <cc>"];
+          w.nounify("units");
 
         },
-        onConnect: function(listener){
+        connect: function(w, listener){
           // deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
-          this.structure.users.push(listener);
+          this.centre.users.push(listener);
         },
-        onDisConnect: function(listener){
+        disconnect: function(w, listener){
           deb("     G: %s onDisConnect, callsign: %s", this, listener.callsign);
-          H.remove(this.structure.users, listener);
+          H.remove(this.centre.users, listener);
         },
-        onAssign: function(asset){
+        assign: function(w, asset){
 
           deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
@@ -80,46 +70,46 @@ HANNIBAL = (function(H){
           this.cc = asset.resources[0];
 
           if (asset.isFoundation){
-            this.builders.nearest(30).repair(asset);
+            this.units.nearest(30).repair(asset);
           }
 
         },
-        onDestroy: function(asset){
+        destroy: function(w, asset){
 
           deb("     G: %s onDestroy: %s", this, asset);
 
-          this.economy.request(1, this.structure, this.position); // better location, pos is array
+          this.economy.request(1, this.centre, this.position); // better location, pos is array
 
         },
-        onAttack: function(asset, enemy, type, damage){
+        attack: function(w, asset, attacker, damage){
 
           deb("     G: %s onAttack %s", this, uneval(arguments));
 
           this.attackLevel += 1;
 
           if (this.attackLevel > this.needsDefense){
-            this.structure.users.nearest(20).forEach(function(user){
-              user.garrison(this.structure);
+            this.centre.users.nearest(20).forEach(function(user){
+              user.garrison(this.centre);
             });
           }
 
         },
-        onBroadcast: function(){},
-        onInterval: function(){
+        radio: function(w, sender, msg){},
+        tick:  function(w){
 
           // deb("     G: interval %s, attackLevel: %s, health: %s, states: %s", 
-          //     this.name, this.attackLevel, this.structure.health, H.prettify(this.structure.states())
+          //     this.name, this.attackLevel, this.centre.health, H.prettify(this.centre.states())
           // );
 
           this.attackLevel = ~~(this.attackLevel/2);
 
-          if (this.structure.isFoundation){
-            this.builders.nearest(30).repair(this.structure);
+          if (this.centre.isFoundation){
+            this.units.nearest(30).repair(this.centre);
           }        
 
-          // if (this.attackLevel === 0 && this.structure.health < this.needsRepair){
-          //   this.structure.users.nearest(30).forEach(function(user){
-          //     user.repair(this.structure);
+          // if (this.attackLevel === 0 && this.centre.health < this.needsRepair){
+          //   this.centre.users.nearest(30).forEach(function(user){
+          //     user.repair(this.centre);
           //   });
           // }
 

@@ -22,9 +22,6 @@ HANNIBAL = (function(H){
         return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
       };
 
-  H.HTN = H.HTN || {};
-  H.HTN.Helper = H.HTN.Helper || {};
-
   H.HTN.Helper.State = function(data){this.data = data || {};};
   H.HTN.Helper.State.prototype = {
     constructor: H.HTN.Helper.State,

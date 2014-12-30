@@ -14,9 +14,6 @@
 
 HANNIBAL = (function(H){
 
-  H.HTN = H.HTN || {};                       
-  H.HTN.Economy = H.HTN.Economy || {};
-
   var m, o, planner, tree, nodes, prit, sani, fmt,
       cacheProducer   = {},
       cacheTechnology = {},

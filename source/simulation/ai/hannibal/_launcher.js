@@ -211,6 +211,11 @@ HANNIBAL = (function(H) {
       this.timing.all = 0;
       this.timing.tst = 0;
 
+      if (this.context.tick === 0 && this.debug.tst){
+        H.Tester.activate(this.map, this.context); 
+        H.Tester.log(); 
+      }
+
       // execute test scripts 
       if (this.debug.tst){
         this.timing.tst = H.Tester.tick(secs, this.context.tick, this.context);

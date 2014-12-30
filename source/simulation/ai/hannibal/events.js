@@ -70,6 +70,7 @@ HANNIBAL = (function(H){
         "OrderReady",
         "BroadCast",
         "EntityCreated",
+        "EntityAttacked",
       ],
 
       // saves the listeners
@@ -402,7 +403,7 @@ HANNIBAL = (function(H){
 
       if (this.entities[e.target]){
 
-        this.fire("Attacked", {
+        this.fire("EntityAttacked", {
           player: this.entities[e.target].owner(),
           id:     e.target,
           id2:    e.attacker,
