@@ -166,7 +166,7 @@ HANNIBAL = (function(H){
     logTick: function(){
       var count, name, id, allocs, queue, t = H.tab;
       if ((count = H.count(this.producers))){
-        this.deb("   PDC: have %s producers", count);
+        // this.deb("   PDC: have %s producers", count);
         if (false){
           this.deb("*");
           H.attribs(this.producers)
@@ -274,7 +274,7 @@ HANNIBAL = (function(H){
         if(!found && producer.queue.length){
           if (H.delete(producer.queue, task => task === taskidOrTech)){
             found = true;
-            this.deb("   PDC: unqueue: removed task: %s from queue: %s | %s", taskidOrTech, producer.queue, producer.name);
+            // this.deb("   PDC: unqueue: removed task: %s from queue: %s | %s", taskidOrTech, producer.queue, producer.name);
           }
         }
       });
@@ -469,7 +469,7 @@ HANNIBAL = (function(H){
         return {
           name:      node.name,
           key:       node.key,
-          cstAT:     node.costs,
+          costs:     node.costs,
           qualifies: true,
           producer:  null,
           info:      ""
@@ -629,8 +629,8 @@ HANNIBAL = (function(H){
 
       var 
         msg  = "", tb = H.tab,
-        header = "  id,     verb, amt, pro, rem, nodes, flags,                 source | template".split(","),
-        tabs   = "   4,       10,   5,   5,   5,     7,     7,                    24".split(",").map(s => ~~s),
+        header = "  id,     verb, amt, pro, rem, nodes, flags,                 source, template".split(","),
+        tabs   = "   4,       10,   5,   5,   5,     7,     7,                    24, 12".split(",").map(s => ~~s),
         head   = header.map(String.trim).slice(0, -1),
         retr = {
           id:       o => "#" + o.id,
@@ -640,7 +640,8 @@ HANNIBAL = (function(H){
           pro:      o => o.processing,
           nodes:    o => o.nodes ? o.nodes.length : 0,
           flags:    o => (o.product ? "P" : "_"),
-          source:   o => this.groups.findAsset(o.source).name || "no source :(",
+          source:   o => o.source, //this.groups.findAsset(o.source).name || "no source :(",
+          template: o => "tplXXXXXX",
         };
 
       this.deb("   ORQ: length: %s, rep: %s", this.queue.length, uneval(this.report));
@@ -682,8 +683,14 @@ HANNIBAL = (function(H){
     },
     delete: function(fn){return H.delete(this.queue, fn);},
     find: function(fn){
-      var i = this.queue.length;
-      while(i--){if (fn(this.queue[i])){return this.queue[i];}}
+      var i, il = this.queue.length;
+      for (i=0; i<il; i++){
+        if (fn(this.queue[i])){
+          return this.queue[i];
+        }
+      }
+      this.deb("   ORQ: have %s, %s", this.queue.length, this.queue.map(o => o.id).join("|"));
+      H.throw("WARN  : no order found in queue with: %s", fn);
       return undefined;
     },
     process: function(){
@@ -898,6 +905,7 @@ HANNIBAL = (function(H){
         producers.register(msg.id);
         producers.unqueue("train", msg.data.task); 
 
+        // this.deb("   ECO: findOrder: %s, %s", msg.data.order, typeof msg.data.order);
         order = orderqueue.find(order => order.id === msg.data.order);
         order.remaining  -= 1;
         order.processing -= 1;
@@ -913,7 +921,9 @@ HANNIBAL = (function(H){
       // new metadata
       events.on("AIMetadata", msg => {
 
-        order = orderqueue.find(msg.data.order);
+        this.deb("   ECO: on AIMetadata, msg.data.order: %s", msg.data.order);
+
+        order = orderqueue.find(order => order.id === msg.data.order);
         order.remaining  -= 1;
         order.processing -= 1;
 
@@ -967,11 +977,11 @@ HANNIBAL = (function(H){
       var  
         objorder,
         // debug
-        sourcename = this.groups.findAsset(order.source).name,  // this is an asset id
+        source = this.groups.findAsset(order.source),  // this is an asset id
         loc = (order.location === undefined) ? "undefined" : H.fixed1(order.location);
 
       if (order.verb === "build" && order.location.length !== 2){
-        H.throw("ERROR : %s order without position, source: %s", order.verb, sourcename);
+        H.throw("ERROR : %s order without position, source: %s", order.verb, source);
       }
 
       objorder = new H.LIB.Order(this.context).import().initialize(order);
@@ -983,7 +993,7 @@ HANNIBAL = (function(H){
         objorder.amount, 
         objorder.cc || "NO CC" , 
         loc, 
-        sourcename,  // that's an asset
+        source,  // that's an asset
         objorder.shared, 
         objorder.hcq.slice(0, 40)
       );
@@ -1020,6 +1030,8 @@ HANNIBAL = (function(H){
       } else if (order.verb === "build") {
         pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
         this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
+
+        // this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(pos), uneval([order.x, order.z]), product.key);
 
       }
 

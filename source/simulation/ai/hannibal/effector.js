@@ -14,8 +14,6 @@
 
 HANNIBAL = (function(H){
 
-  var deb = H.deb;
-
   H.LIB.Effector = function(context){
 
     H.extend(this, {
@@ -103,7 +101,7 @@ HANNIBAL = (function(H){
     
     format: function(who, what){
 
-      deb("   EFF: format: %s", uneval(arguments));
+      this.deb("   EFF: format: %s", uneval(arguments));
 
       // Scatter, Line Open, Box, passive, standground
 
@@ -115,7 +113,7 @@ HANNIBAL = (function(H){
           queued:   false 
         });
 
-      } else { deb("   EFF: ignored format : %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored format : %s", uneval(arguments)); }
 
     },
 
@@ -131,13 +129,13 @@ HANNIBAL = (function(H){
           queued:   false 
         });
 
-      } else { deb("   EFF: ignored stance: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored stance: %s", uneval(arguments)); }
 
     },
 
     flee: function(who, whom){
 
-      deb("   EFF: flee: %s", uneval(arguments));
+      this.deb("   EFF: flee: %s", uneval(arguments));
 
       var posWho, posWhom, direction, distance;
 
@@ -157,13 +155,13 @@ HANNIBAL = (function(H){
           queued: false
         });
 
-      } else { deb("   EFF: ignored flee: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored flee: %s", uneval(arguments)); }
 
     },
 
     move: function(who, where){
 
-      // deb("   EFF: move: %s", uneval(arguments));
+      // this.deb("   EFF: move: %s", uneval(arguments));
 
       //TODO: make this queue
 
@@ -177,13 +175,13 @@ HANNIBAL = (function(H){
         });
 
       } 
-      // else { deb("   EFF: ignored move %s", uneval(arguments));}
+      // else { this.deb("   EFF: ignored move %s", uneval(arguments));}
 
     },
 
     destroy: function(who){
 
-      deb("   EFF: destroy: %s", uneval(arguments));
+      this.deb("   EFF: destroy: %s", uneval(arguments));
 
       if (who.length){
 
@@ -191,13 +189,13 @@ HANNIBAL = (function(H){
           entities: who
         });
 
-      } else { deb("   EFF: ignored destroy who: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored destroy who: %s", uneval(arguments)); }
 
     },
 
     garrison:     function(who, where){
 
-      deb("   EFF: garrison: %s", uneval(arguments));
+      this.deb("   EFF: garrison: %s", uneval(arguments));
 
       if (who.length && H.isInteger(where)){
 
@@ -207,13 +205,13 @@ HANNIBAL = (function(H){
           queued:   false
         });
 
-      } else { deb("   EFF: ignored garrison: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored garrison: %s", uneval(arguments)); }
 
     },
 
     collect: function (who, what){
 
-      deb("   EFF: collect: %s", uneval(arguments));
+      this.deb("   EFF: collect: %s", uneval(arguments));
 
       if (what.length && who.length){
 
@@ -234,13 +232,13 @@ HANNIBAL = (function(H){
 
         H.Resources.consume(what);
 
-      } else { deb("   EFF: ignored collect: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored collect: %s", uneval(arguments)); }
 
     },
 
     skim: function (who, what){
 
-      deb("   EFF: skim: %s", uneval(arguments));
+      this.deb("   EFF: skim: %s", uneval(arguments));
 
       if (who.length, what){
 
@@ -259,7 +257,7 @@ HANNIBAL = (function(H){
 
         });
 
-      } else {deb("   EFF: ignored skim:", uneval(arguments)); }
+      } else {this.deb("   EFF: ignored skim:", uneval(arguments)); }
 
       // case "gather-near-position":
       //   GetFormationUnitAIs(entities, player).forEach(function(cmpUnitAI) {
@@ -271,7 +269,7 @@ HANNIBAL = (function(H){
 
     gather: function(who, what){
 
-      // deb("   EFF: gather: %s", uneval(arguments));
+      // this.deb("   EFF: gather: %s", uneval(arguments));
 
       if (who.length && H.isInteger(what)){
 
@@ -281,32 +279,37 @@ HANNIBAL = (function(H){
           queued:   false
         });
 
-      } else { deb("   EFF: ignored gather: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored gather: %s", uneval(arguments)); }
 
     },
 
     repair: function(who, what){
 
-      //TODO: make this queue
+      //TODO: make deal with large whos
 
       // deb("   EFF: repair: %s", uneval(arguments));
 
-      if (who.length && H.isInteger(what)){
+      if (who.length && what.length){
 
-        Engine.PostCommand(this.id, {type: "repair", 
-          entities: who,  // Array
-          target:   what, // Int
-          autocontinue: true, 
-          queued: false
+        what.forEach( (id, index) => {
+
+          Engine.PostCommand(this.id, {type: "repair", 
+            entities: who,  // Array
+            target:   id,   // Int
+            autocontinue: true, 
+            queued: (index > 0)
+          });
+
         });
 
-      } else { deb("   EFF: ignored repair: %s, who, what", uneval(arguments));}
+
+      } else { this.deb("   EFF: ignored repair: %s, who, what", uneval(arguments));}
 
     },
 
     train: function(who, what, amount, metadata){
 
-      deb("   EFF: train: %s, id: %s", uneval(arguments), uneval(this.id));
+      this.deb("   EFF: train: %s, id: %s", uneval(arguments), uneval(this.id));
 
       if (who.length && this.templates[what] && amount){
 
@@ -317,13 +320,13 @@ HANNIBAL = (function(H){
           metadata: metadata || {} //{order: order.id}
         }); 
 
-      } else { deb("   EFF: ignored train: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored train: %s", uneval(arguments)); }
 
     },
 
     construct: function(who, what, pos, metadata){
 
-      deb("   EFF: construct: %s", uneval(arguments));
+      this.deb("   EFF: construct: %s", uneval(arguments));
 
       if (who.length && H.isInteger(who[0]) && this.templates[what] && pos.length >= 2){
 
@@ -339,13 +342,13 @@ HANNIBAL = (function(H){
           metadata:     metadata || {} // {order: order.id}
         });  
 
-      } else { deb("   EFF: ignored construct: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored construct: %s", uneval(arguments)); }
 
     },
 
     research: function(who, what){
 
-      deb("   EFF: research: %s", uneval(arguments));
+      this.deb("   EFF: research: %s", uneval(arguments));
 
       if (H.isInteger(who) && H.TechTemplates[what]){
 
@@ -354,7 +357,7 @@ HANNIBAL = (function(H){
           template: what 
         }); 
 
-      } else { deb("   EFF: ignored research: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored research: %s", uneval(arguments)); }
 
     },
 

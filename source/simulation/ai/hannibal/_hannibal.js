@@ -79,7 +79,7 @@ var HANNIBAL = (function() {
   H.LIB.Serializer = function(){};
   H.LIB.Serializer.prototype = {
     constructor: H.LIB.Serializer,
-    toString: function(){return H.format("[%s %s:%s]", this.klass, this.context.name, this.name);},
+    toString: function(){return H.format("[%s %s:%s]", this.klass || "no klass", this.context.name, this.name || "no name");},
     deb: function(){this.context.launcher.deb.apply(this, arguments);},
     log: function(){this.deb("   %s: logging", this.name.slice(0,3).toUpperCase());},
     logtick: function(){this.deb("   %s: logticking", this.name.slice(0,3).toUpperCase());},

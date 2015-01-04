@@ -29,6 +29,8 @@ HANNIBAL = (function(H){
         "entities",  // position
         "resources", // used in supply groups
         "economy",
+        "orderqueue",
+        "effector",
       ],
 
       instances: [],
@@ -85,11 +87,6 @@ HANNIBAL = (function(H){
 
       }
 
-      // H.deb("--------------");
-      // if (!this.dsl){
-      //   this.initdsl();
-      // }
-
       return this;
 
     },
@@ -97,27 +94,30 @@ HANNIBAL = (function(H){
 
       var host, order, instance;
 
-      this.events.on("AIMetadata", function (msg){
+      this.events.on("AIMetadata", msg => {
 
-        order = this.economy.orders[msg.data.order];
+        // this.deb("  GRPS: on AIMetadata, looking for order id: %s/%s", msg.data.order, typeof msg.data.order);
+        // this.deb("  GRPS: meta: %s", uneval(this.metadata[msg.id]));
 
-        if (order && order.shared){
+        // order = this.orderqueue.find(order => order.id === msg.data.order);
 
-          host = this.launch({name: "g.custodian", cc: order.cc});
-          host.structure = ["private", "INGAME WITH id = " + msg.id];
-          host.structure = this.createAsset({
-            id: this.context.idgen++,
-            instance: host,
-            property: "structure",
-          });
+        // if (order && order.shared){
 
-          this.metadata[msg.id].opname = host.name;
-          this.metadata[msg.id].opid   = host.id;
+        //   host = this.launch({name: "g.custodian", cc: order.cc});
+        //   host.structure = ["private", "INGAME WITH id = " + msg.id];
+        //   host.structure = this.createAsset({
+        //     id: this.context.idgen++,
+        //     instance: host,
+        //     property: "structure",
+        //   });
 
-          instance = this.instances.find(i => i.id === order.instance);
-          host.listener.onConnect(instance.listener);
+        //   this.metadata[msg.id].opname = host.name;
+        //   this.metadata[msg.id].opid   = host.id;
 
-        }
+        //   instance = this.instances.find(i => i.id === order.instance);
+        //   host.listener.onConnect(instance.listener);
+
+        // }
 
       });
 
@@ -131,74 +131,69 @@ HANNIBAL = (function(H){
       
       this.instances.forEach(instance => {
         interval = ~~instance.interval; 
-        if (interval > 0 && (tick % interval === 0) && instance.listener.onInterval){ 
-          instance.listener.onInterval(secs, tick);
+        if (interval > 0 && (tick % interval === 0) && instance.scripts.tick){ 
+          this.callWorld(instance, "interval", [secs, tick]);
         }
       });
 
       return Date.now() - t0;
 
     },
-    run: function(instance, scriptname, params){
+    callWorld: function(instance, scriptname, params){
 
       // calls a script in this dsl world
       // assuming nouns and verbs are all set
 
-      this.dsl.reset();
-      this.dsl.select(instance);
-      params.unshift(this.dsl.world);
-      instance.scripts[scriptname].apply(instance, params);
+      this.dsl.run(this.dsl.world, instance, instance.scripts[scriptname], params);
 
     },
-    objectify: function(instance, name, resources){
+    // objectify: function(instance, name, resources){
 
-      this.deb("  GRPS: objectify %s %s %s", instance, name, resources);
+    //   // this.deb("  GRPS: objectify %s %s %s", instance, name, resources);
 
-    },
+    // },
     nounify: function(world, instance, noun){
 
       // in a script world is asked to register a noun
       // dsl callbacks handler with actor/instance and noun
 
-      this.deb("  GRPS: nounify %s %s", instance, noun);
+      this.deb("  GRPS: nounify %s %s, def: %s, size: %s", instance, noun, world[noun], world[noun].size);
 
       return this.createAsset({
-        instance: instance,
-        property: noun,
+        instance:   instance,
+        property:   noun,
         definition: world[noun],
+        size:       world[noun].size,
       });
 
     },
     initdsl: function () {
 
-      this.deb("  GRPS: initdsl");
-
-      var 
-        self = this,
-        dsl = this.dsl,
-        w   = this.dsl.world;
-
       // nouns and attributes are listed in corpus
 
-      dsl.setverbs({
+      this.deb("  GRPS: initdsl");
 
-        "request":   function(amount){
+      var self = this, w = this.dsl.world;
 
-          // H.logObject(w.actor,   "w.actor");
-          // H.logObject(w.subject.host, "w.subject.host");
+      this.dsl.setverbs({
 
-          // group.instance, amount, asset, position)
-          self.request(w.actor.instance, amount || 1, w.subject.host, w.actor.instance.position);
+        "request":   function(sub, obj, amount){
+          self.request(w.actor.instance, amount || 1, sub.host, w.actor.instance.position);
+        },
+        "relocate":  (sub, obj, path)   => sub.host.position = path[path.length -1],
+        "move":      (sub, obj, path)   => this.effector(sub.list, path),
+        "stance":    (sub, obj, stance) => this.effector.stance(sub.list, stance),      
+        "format":    (sub, obj, format) => this.effector.format(sub.list, format),
+        "gather":    (sub, obj)         => this.gather(sub.list, obj.list),
+        "attack":    (sub, obj)         => this.attack(sub.list, obj.list),
+        "dissolve":  (sub)              => this.dissolve(sub),
+        "repair":    (sub, obj)         => {
+
+          this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
+          this.effector.repair(sub.list, obj.list);
 
         },
-        "relocate":  (path)      => w.subject.position = path[path.length -1],
-        "move":      (path)      => this.effector(w.subject.list, path),
-        "repair":    (assets)    => this.effector.repair(w.subject.list, assets.list),
-        "gather":    (resources) => this.gather(w.subject.list, resources.list),
-        "attack":    (enemies)   => this.attack(w.subject.list, enemies.list),
-        "stance":    (stance)    => this.effector.stance(w.subject.list, stance),      
-        "format":    (format)    => this.effector.format(w.subject.list, format),
-        "dissolve":  ()          => this.dissolve(w.subject),
+
         // "register":  (/*args*/)  => {
 
         //   H.toArray(arguments).forEach( property => {
@@ -255,9 +250,9 @@ HANNIBAL = (function(H){
       });
 
     },    
-    findGroups: function (fn){
-      return this.instances.filter(fn);
-    },
+    // findGroups: function (fn){
+    //   return this.instances.filter(fn);
+    // },
     findAsset: function (idOrFn){
 
       // deb("findAsset: %s", uneval(idOrFn));
@@ -283,13 +278,13 @@ HANNIBAL = (function(H){
         }
       }
       
-      this.log();
-      return null;
+      this.deb("WARN  : no asset found: with %s", idOrFn);
+      return undefined;
 
     },
     createAsset: function(config){
 
-      this.deb("  GRPS: createAsset.in: %s", H.attribs(config));
+      // this.deb("  GRPS: createAsset.in: def: %s", config.definition);
 
       var 
         asset = new H.LIB.Asset(this.context).import(), 
@@ -308,6 +303,7 @@ HANNIBAL = (function(H){
       asset.initialize({
         instance:    config.instance,
         definition:  definition,
+        size:        config.size,
         users:       config.users     || [],
         resources:   config.resources || [],
         property:    config.property,
@@ -320,7 +316,7 @@ HANNIBAL = (function(H){
 
       asset.activate();
 
-      this.deb("  GRPS: created Asset: %s, res: %s", asset, uneval(asset.resources));
+      this.deb("  GRPS: createAsset: %s, res: %s", asset, uneval(asset.resources));
       
       return asset;
     },   
@@ -490,7 +486,7 @@ HANNIBAL = (function(H){
 
         position:  config.position || ccpos || this.deb("ERROR : no pos in group"),
         assets:    [],
-        run:       this.run.bind(this, instance),
+        // run:       this.callWorld.bind(this, instance),
 
         toString: function(){return H.format("[%s %s]", this.klass, this.name);},
 
@@ -536,12 +532,8 @@ HANNIBAL = (function(H){
       // log before launching
       // deb("   GRP: launch %s args: %s", instance, uneval(config));
 
-      // call and activate
-      this.dsl.select(instance);
-
-      // H.logObject(this.dsl.world, "this.dsl.world");
-
-      instance.scripts.launch(this.dsl.world, config);
+      // call dsl to run with world, actor, function and params
+      this.callWorld(instance, "launch", [config]);
 
       return instance;
 

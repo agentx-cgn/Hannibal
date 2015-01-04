@@ -646,9 +646,9 @@ HANNIBAL = (function(H){
         this.loadById(msg.id);
       });
 
-      this.events.on("TrainingFinished", msg => {
-        this.loadById(msg.id);
-      });
+      // this.events.on("TrainingFinished", msg => {
+      //   this.loadById(msg.id);
+      // });
 
       // this.events.on("EntityRenamed", msg => {
         // covered by create/destroy

@@ -60,11 +60,15 @@ HANNIBAL = (function(H){
         CTX.groups.launch(config);
       };
     },
-    builder: function(building, quantity){
+    builder: function(building, size, quantity){
       return () => {
-        // H.deb("   TST: doing: CTX.groups.launch(config)");
-        var config = {groupname: "g.builder", cc: CC, building: building, quantity: quantity};
-        CTX.groups.launch(config);
+        CTX.groups.launch({
+          groupname: "g.builder", 
+          cc: CC, 
+          building: building, 
+          quantity: quantity, 
+          size: size
+        });
       };
     },
     speed: function(rate){
@@ -94,7 +98,7 @@ HANNIBAL = (function(H){
         "0": [() => "< - START: " + sequence + " - >"],
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        "1": [T.builder(      "house"), "building a house"], 
+        "1": [T.builder(      "house CONTAIN"), "building a house"], 
         // "4": [T.supplier(            "wood", 10), "launching 1 wood supplier"], 
         // "5": [T.supplier(           "metal", 10), "launching 1 metal supplier"], 
         // "6": [T.supplier(           "stone", 10), "launching 1 stone supplier"], 

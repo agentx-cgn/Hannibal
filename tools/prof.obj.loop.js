@@ -8,14 +8,15 @@
 
 */ 
 
-
-
 var
   t0 = dateNow(),
-  tab = function (s,l){l=l||8;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);},
+  tab     = function (s,l){l=l||8;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);},
   toArray = function (a){return Array.prototype.slice.call(a);},
-  format = function (){var a=toArray(arguments),s=a[0].split("%s"),p=a.slice(1).concat([""]),c=0;return s.map(function(t){return t + p[c++];}).join("");},
-  deb = function(){print((dateNow() - t0).toFixed(1), format.apply(null, arguments));};
+  format  = function (){var a=toArray(arguments),s=a[0].split("%s"),p=a.slice(1).concat([""]),c=0;return s.map(function(t){return t + p[c++];}).join("");},
+  deb     = function(){print((dateNow() - t0).toFixed(1), format.apply(null, arguments));},
+
+// http://primes.utm.edu/lists/small/10000.txt  
+  slow    = function (n, i){for(i=n;n%--i;);return i===1;};
 
 print();
 deb("Start V: %s, O: %s", version(), options());
@@ -38,7 +39,10 @@ var dummy = {
   "0": function (key, value){return;},                      // does nothing 
   "1": function (key, value){return "a";},                  // return string
   "2": function (key, value){return value === value;},      // a simple compare
-  "3": function (key, value){return (value + value + value).slice(0, 10).contains("XXXXXX");}, // do something
+  // "3": function (key, value){return (value + value + value).slice(0, 10).contains("XXXXXX");}, // do something
+  // "3": function (key, value){return slow(104729);}, // do something
+  // "3": function (key, value){return slow(10099);}, // do something
+  "3": function (key, value){return slow(5011);}, // do something
 };
 
 // the different lopp types
@@ -116,9 +120,9 @@ function result () {
   Object.keys(timing).forEach(k => {
     var avg = parseFloat((timing[k].reduce((a, b) => a + b, 0) / timing[k].length)).toFixed(1);
     if (avg > 2){
-      deb("p%s avg: %s list: %s", k, tab(avg, 5), JSON.stringify(timing[k].map(n => parseFloat(n.toFixed(1)))));
+      deb("p%s avg: %s list: %s", k, tab(avg, 6), JSON.stringify(timing[k].map(n => parseFloat(n.toFixed(1)))));
     } else {
-      deb("p%s avg: %s list: %s", k, tab(avg, 5), JSON.stringify(timing[k].map(n => Math.round(n))));
+      deb("p%s avg: %s list: %s", k, tab(avg, 6), JSON.stringify(timing[k].map(n => Math.round(n))));
     }
   });
   print();

@@ -1,9 +1,9 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, uneval */
 
-/*--------------- GROUP: M I N E R --------------------------------------------
+/*--------------- GROUP:  B U I L D E R ---------------------------------------
 
-
+  a group to build any buildings
 
 
 
@@ -19,8 +19,6 @@ HANNIBAL = (function(H){
     "g.builder" : {
 
       /*
-        a group without units solely for the first/biggest CC
-
         Behaviour: 
           builds structures until quantity or
           builds houses until 
@@ -33,171 +31,160 @@ HANNIBAL = (function(H){
       active:         true,           // prepared for init/launch ...
       description:    "builder",      // text field for humans 
       civilisations:  ["*"],          // 
-      interval:       4,              // call onInterval every x ticks
+      interval:       5,              // call tick() every x ticks, prefer primes here
+
+
+      // DSL World scripts
 
       scripts: {
 
-        launch: function(w, config /* building, quantity */){
+        launch: function launch (w, config /* building, quantity */) {
 
-          w.log("     G: launch %s %s", w, uneval(config));
+          w.deb("     G: launch %s %s", w, uneval(config));
 
           w.buildings = ["exclusive", config.building];
-          w.units     = ["exclusive", config.building + " CONTAIN BUILDBY"];
+          w.units     = ["exclusive", config.building + " BUILDBY"];
 
-          w.units.size     = w.units.size     || config.size     || 4;
-          w.buildings.size = w.buildings.size || config.quantity || 1;
+          w.units.size     = w.units.size     || config.size     || 10;
+          w.buildings.size = w.buildings.size || config.quantity ||  2;
 
-          w.nounify("units", "buildings");
+          // w.nounify("units", "buildings");
+          w.nounify("buildings", "units");
 
-          // H.logObject(w, "wwwwwwwwwwwwwww");
-          // H.logObject(w.units, "wwwwwwwwwwwwwww.units");
+          w.units.on.request();   
 
-          w.units.request();   
+        
+        // a request was successful
 
-        },
-        assign: function(w, item){
+        }, assign: function assign (w, item) {
 
-          w.log("     G: onAssign: %s, %s", w, item);
+          w.deb();
+          w.deb("     G: assign.0: %s, %s", w, item);
 
-          w.item = w.objectify("item", item);
-         
-          //  with first unit request structure to build
-          w.buildings
-            .member(item, w.units)
-            .match(w.units.count, 1)
-            .request() // w.position
-          ;
+          w.objectify("item", item);
 
           // keep requesting units until size
-          w.units
-            .member(w.item, w.units)
+          w.units.on
+            .member(w.item)
             .lt(w.units.count, w.units.size)
             .request()
           ;
 
+          w.deb("     G: assign.1: %s, %s", w, item);
+
+          //  the first unit requests structure to build, exits
+          w.units.on
+            .member(w.item)
+            .match(w.units.count, 1)
+            .match(w.buildings.count, 0)
+            .buildings.do.request() 
+            .exit
+          ;
+
+          w.deb("     G: ASSIGN.2: %s, %s", w, item);
+
+          // got the foundation, update position, all units repair, exits
+          w.buildings.on
+            .member(w.item)
+            .match(w.item.foundation)
+            .log("gotchafoundation")
+            // .group.do
+            // .relocate(w.item.position)
+            .units.do.repair(w.item)
+            .exit
+          ;
+
+          w.deb("     G: ASSIGN.3: %s, %s", w, item);
+
+          // got the buildings, check order next, exits
+          w.buildings.on
+            .member(w.item)
+            .match(!w.item.foundation)
+            .log("gotchaconstruction")
+            .lt(w.buildings.count, w.buildings.size)
+            .request()
+            .exit
+          ;
+
+          w.deb("     G: ASSIGN.4: %s, %s", w, item);
+
           // got unit, send to repair
-          w.item
-            .member(w.item, w.units)
-            .repair(w.buildings)
+          w.item.on
+            .member(w.item)
+            .repair(w.buildings)  
           ;
 
-          // got the building, update position, all units repair
+          w.deb("     G: assign.out: %s, %s", w, item);
+          w.deb();
+
+
+        }, destroy: function destroy (w, item) {
+
+          w.deb("     G: destroy: %s, %s", w, item);
+
+          w.objectify("item", item);
+
+          // lost unit, request another
           w.units
-            .member(w.item, w.buildings)
-            .relocate(w.item.position)
-            .repair(w.item)
-          ;
-
-
-          // if (this.units.match(asset)){
-
-          //   if (this.units.count === 1){
-          //     this.economy.request(1, this.buildings, this.position);   
-          //   }
-
-          //   if (this.units.count < this.size){
-          //     this.economy.request(1, this.units, this.position);   
-          //   }
-
-          //   if (this.foundation){
-          //     // deb("---------> : %s", this.foundation.health);
-          //     asset.repair(this.foundation);
-          //   }
-
-          // } else if (this.buildings.match(asset)){
-
-          //   this.position = asset;
-
-          //   if (asset.isFoundation){
-          //     this.foundation = asset;
-          //     this.units.repair(asset);
-            
-          //   } else if (asset.isStructure){
-          //     if (this.buildings.count < this.quantity){
-          //       this.economy.request(1, this.buildings, this.position);
-
-          //     } else {
-          //       this.dissolve();
-          //     }
-
-          //   }
-
-          // }
-
-
-        },
-        onDestroy: function(g, asset){
-
-          g.log("onDestroy", g, asset);
-
-          // got the building, update position, all units repair
-          g.units
-            .member(asset, g.units)
+            .member(w.item)
             .request()
           ;
 
-          g.buildings
-            .member(asset, g.buildings)
+          // lost building, request another
+          w.buildings
+            .member(w.item)
             .request()
           ;
 
 
+        // there are enemies and gaya
 
-          // deb("     G: %s onDestroy: %s", this, asset);
+        }, attack: function attack (w, item, enemy, type, damage) {
 
-          // if (this.units.match(asset)){
-          //   this.economy.request(1, this.units, this.position);
+          w.deb("     G: attack: %s, %s, %s, %s", w, item, enemy, type, damage);
 
-          // } else if (this.buildings.match(asset)){
-          //   this.economy.request(1, this.buildings, this.position);
+          w.objectify("item",  item);
+          // w.objectify("enemy", enemy);
 
-          // }
+          // don't care about buildings, exits
+          w.builings
+            .member(w.item)
+            .exit
+          ;
 
-        },
-        onAttack: function(g, asset, enemy, type, damage){
+          // avoid loosing unit
+          w.units
+            .member(w.item)
+            .lt(w.item.health, 50)
+            .item.do.garrison()
+          ;
 
-          g.log("onAttack", g, asset);
+        }, radio: function radio () {
 
-          // asset
-          //   .lt(asset.health, 50)
-          //   .garrison()
+          // may help with other close by village tasks
 
-          // g.units
-          //   .member(asset, g.units)
-          //   .request()
+
+        }, interval:  function interval (w, secs, tick) {
+
+          w.deb("     G: tick: %s, %s secs", w, secs);
+
+          // w.units.on
+          //   .doing("idle")
+          //   .match(w.units.size)
+          //   .group.do.dissolve()
           // ;
 
-          // deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
-
-        },
-        onBroadcast: function(){},
-        onInterval:  function(g, secs, tick){
-
-          g.log("onInterval", g);
-
-          g.units
-            .doing("idle")
-            .amount_eq(g.units.size)
-            .g
-            .dissolve()
-          ;
-
-
-          // deb("     G: %s onInterval, blds: [%s/%s], states: %s", this, this.buildings.count, this.maxBuildings, H.prettify(this.units.states()));
-
-          // if (!this.units.count){return;}
-
-          // if (this.units.doing("idle").count === this.units.count){
-          //   if (this.buildings.count >= this.maxBuildings){
-          //     this.dissolve();
-          //     deb("      G: %s finished building ", this, this.buildings);
-          //   }
-          // }
-
+          // // avoid loosing units
+          // w.units
+          //   .doing("!garrison")
+          //   .doing("!healing")
+          //   .having("health < 30")
+          //   .heal()
+          // ;
 
         }
 
-      } // listener
+      } // end scripts
 
     }
 

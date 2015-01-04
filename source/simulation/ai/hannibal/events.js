@@ -161,7 +161,7 @@ HANNIBAL = (function(H){
           .reduce((a, b) => a + b, 0);
       
       if (sum){
-        this.deb.apply(null, [msgTick].concat(lengths));
+        this.deb.apply(this, [msgTick].concat(lengths));
       }
 
     },
@@ -324,7 +324,7 @@ HANNIBAL = (function(H){
         this.createEvents[id] = tpln;
 
       } else {
-        // this.deb("  EVTS: Create ent: %s, own: %s, tpl: %s, mats: %s", id, owner, tpln, H.attribs(e));
+        this.deb("   EVT: Create ent: %s, own: %s, tpl: %s, mats: %s", id, player, tpln, H.attribs(e));
         this.fire("EntityCreated", {
           player: player,
           id:     id,
@@ -342,6 +342,8 @@ HANNIBAL = (function(H){
       // listener: assets, culture, producers
 
       this.deb("   EVT: EntityRenamed %s" , uneval(e));
+      this.deb("   EVT: EntityRenamed %s, %s", e.entity, this.entities[e.entity] || "unknown");
+      this.deb("   EVT: EntityRenamed %s, %s", e.newentity, this.entities[e.newentity] || "unknown");
 
       var msg = this.fire("EntityRenamed", {
         player: this.entities[e.newentity].owner(),

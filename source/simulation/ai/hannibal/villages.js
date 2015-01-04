@@ -88,18 +88,18 @@ HANNIBAL = (function (H){
     },
     activate: function () {
 
-      this.events.on("ConstructionFinished", function (msg){
+      this.events.on("ConstructionFinished", msg => {
 
-        var order = this.objects(this.metadata[msg.id].order);
+        // var order = this.objects(this.metadata[msg.id].order);
 
-        if (order.cc){
-          this.metadata[msg.id].cc = order.cc;
-          // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
-        }
+        // if (order.cc){
+        //   this.metadata[msg.id].cc = order.cc;
+        //   // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
+        // }
 
       });
 
-      this.events.on("BroadCast", function (msg){
+      this.events.on("BroadCast", msg => {
 
         if (msg.data.group === "g.builder"){
 

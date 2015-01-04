@@ -194,12 +194,6 @@ HANNIBAL = (function(H){
       if (H.count(Object.getPrototypeOf(o))){
         H.logObjectShort(Object.getPrototypeOf(o));
       }
-      // H.deb("Object.__proto__");
-      // H.logObjectShort(o.__proto__);
-      // H.deb("Object.prototype");
-      // if (o.prototype){
-      //   H.logObjectShort(o.prototype);
-      // }
       H.deb("------: logObject end");
     },
     logObjectShort: function(o){
@@ -235,9 +229,12 @@ HANNIBAL = (function(H){
             .split("\n").join("")
             .split("\r").join("")
             .split("\t").join(" ")
-            .split("     ").join(" ").split("    ").join(" ").split("   ").join(" ").split("  ").join(" ")
+            .split("     ").join(" ")
+            .split("    ").join(" ")
+            .split("   ").join(" ")
+            .split("  ").join(" ")
             .slice(0, 100);
-          return H.format("  %s: %s", name, body);
+          return H.format("  %s: FUNCTION %s (...)", name, body);
       }
       return "WTF";
     },

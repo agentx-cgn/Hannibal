@@ -67,7 +67,7 @@ HANNIBAL = (function(H){
       // "events", 
       "culture",     // store, tree, phases
       // "map",         // grids
-      "resources",   // after map
+      // "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
@@ -259,6 +259,10 @@ HANNIBAL = (function(H){
 
       this.updateEngine = sharedScript => {
         ss = sharedScript;
+
+        this.sharedscript       = ss; // tmp for map
+        this.gamestate          = ss.gameState[this.id]; // tmp for map
+
         this.timeElapsed        = ss.timeElapsed;
         this.territory          = ss.territoryMap;
         this.passability        = ss.passabilityMap;
@@ -315,6 +319,10 @@ HANNIBAL = (function(H){
         // API ro/dynamic
         // sanitize UnitAI state // TODO: check if function works too
         unitstates:          new Proxy({}, {get: (proxy, id) => {
+
+          print("unitstates: " + id);
+          this.deb("   CTX: unitstates of id: %s, %s", id, entities[id]._templateName || "no template");
+
           return (
             entities[id] && entities[id]._entity.unitAIState ? 
               H.replace(entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :

@@ -22,8 +22,6 @@
 
 HANNIBAL = function(H){
 
-  var deb = H.deb;
-
 if (!H.extend){
   H.extend = function (o){
     Array.prototype.slice.call(arguments, 1)
@@ -306,7 +304,18 @@ H.extend(H, {
   count:      function (o){return Object.keys(o).length;},
   values:     function (o){return Object.keys(o).map(function(k){return o[k];});},
   // each:       function (o,fn){Object.keys(o).forEach(k => fn(k, o[k]));},
-  each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}},
+  // each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}},
+  each:       function (){
+    var 
+      args = H.toArray(arguments),
+      objs = args.slice(0, -1),
+      fn   = args.slice(-1)[0];
+      objs.forEach(o => {
+        var i, k, a = Object.keys(o), al= a.length;
+        for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}
+      });
+  }
+
 
 });
 

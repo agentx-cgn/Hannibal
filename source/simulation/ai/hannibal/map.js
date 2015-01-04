@@ -62,6 +62,7 @@ HANNIBAL = (function(H){
         "effector",
         "events",
         "entities",           
+        "templates",           
         "players",            // isEnemy
       ],
 
@@ -374,7 +375,8 @@ HANNIBAL = (function(H){
     createObstructionMap: function(accessIndex, template){
 
       var 
-        gs = H.Bot.gameState, PID = H.Bot.id, 
+        // gs = H.Bot.gameState, PID = H.Bot.id, 
+        gs = this.context.gamestate, PID = this.id, 
         tilePlayer, 
         x, y, z, pos, i, okay = false,
         ix1, ix2, ix3, ix4,
@@ -507,23 +509,29 @@ HANNIBAL = (function(H){
     findGoodPosition: function(tpl, position, angle) {
 
       var x, z, j, len, value, bestIdx, bestVal, bestTile, secondBest, 
-          gs       = H.Bot.gameState,
-          cellSize = gs.cellSize,
+          // gs       = H.Bot.gameState,
+          gs       = this.context.gamestate,
+          // cellSize = gs.cellSize,
+          cellSize = this.cellsize,
           template = gs.getTemplate(tpl),
-          obstructionMap   = H.Map.createObstructionMap(0, template),
-          friendlyTiles    = new H.API.Map(gs.sharedScript),
+          // template = this.templates[tpl],
+          // obstructionMap   = H.Map.createObstructionMap(0, template),
+          obstructionMap   = this.createObstructionMap(0, template),
+          // friendlyTiles    = new H.API.Map(gs.sharedScript),
+          friendlyTiles    = new H.API.Map(this.context.sharedscript),
           alreadyHasHouses = false,
-          radius = 0;
+          radius = 0,
+          result;
       
       angle  = angle === undefined ? H.Config.angle : angle;
 
-      // deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
+      // this.deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
       
-      //obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
+      // obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
 
       if (template.buildCategory() !== "Dock"){obstructionMap.expandInfluences();}
 
-      //obstructionMap.dumpIm(template.buildCategory() + "_obstructions.png");
+      // obstructionMap.dumpIm(template.buildCategory() + "_obstructions.png");
 
       // Compute each tile's closeness to friendly structures:
 
@@ -596,7 +604,7 @@ HANNIBAL = (function(H){
       }
       
 
-      //friendlyTiles.dumpIm(template.buildCategory() + "_" +gameState.getTimeElapsed() + ".png", 200);
+      // friendlyTiles.dumpIm(template.buildCategory() + "_" + gs.getTimeElapsed() + ".png", 200);
       
       // Find target building's approximate obstruction radius, and expand by a bit to make sure we're not too close, this
       // allows room for units to walk between buildings.
@@ -609,6 +617,8 @@ HANNIBAL = (function(H){
         template.resourceDropsiteTypes() === undefined ? ~~(template.obstructionRadius() / cellSize) + 2 :
         Math.ceil(template.obstructionRadius() / cellSize)
       );
+
+      // this.deb("   MAP: findGoodPosition radius %s", radius);
       
       // further contract cause walls
       // Note: I'm currently destroying them so that doesn't matter.
@@ -634,6 +644,13 @@ HANNIBAL = (function(H){
         return false;
       }
 
+      // this.deb("   MAP: findGoodPosition: tile: %s, idx: %s, val: %s, fwidth: %s, cs: %s", 
+      //   bestTile, 
+      //   bestIdx, 
+      //   bestVal, 
+      //   friendlyTiles.width,
+      //   cellSize
+      // );
       
       //friendlyTiles.setInfluence((bestIdx % friendlyTiles.width), Math.floor(bestIdx / friendlyTiles.width), 1, 200);
       //friendlyTiles.dumpIm(template.buildCategory() + "_" +gameState.getTimeElapsed() + ".png", 200);
@@ -651,13 +668,19 @@ HANNIBAL = (function(H){
 
       // deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
 
-      return {
+
+
+      result = {
         "x" : x,
         "z" : z,
         "angle" : angle,
         "xx" : secondBest[0],
         "zz" : secondBest[1]
       };
+
+      // this.deb("   MAP: findGoodPosition: res: %s", uneval(result));
+
+      return result;
 
     }
   

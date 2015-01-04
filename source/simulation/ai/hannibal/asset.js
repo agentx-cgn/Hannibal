@@ -39,9 +39,9 @@ HANNIBAL = (function(H){
         "OrderReady",
         "AIMetadata",
         "TrainingFinished",
-        "EntityRenamed",
         "ConstructionFinished",
-        "Attacked",
+        "EntityRenamed",
+        "EntityAttacked",
         "Destroy",
       ],
 
@@ -93,35 +93,25 @@ HANNIBAL = (function(H){
       return {
         id:         this.id,
         users:      H.deepcopy(this.users),
+        size:       this.size,
         property:   this.property,
         resources:  H.deepcopy(this.resources),
         definition: H.deepcopy(this.definition),
       };
     },
-    // toLog:    function(){return "    AST: " + this + " " + JSON.stringify(this, null, "      : ");},
-    // toOrder:  function(){
-
-    //   deb("   AST: toOrder: %s, id: %s", this, this.id);
-    //   return {
-    //     verb:   this.verb, 
-    //     hcq:    this.hcq, 
-    //     source: this.id, 
-    //     shared: this.shared
-    //   };
+    // toSelection: function(resources){
+    //   return (
+    //     new H.LIB.Asset(this.context)
+    //       .import()
+    //       .initialize({
+    //         id:        this.id, // same id !!!
+    //         klass:     "asset.selection",
+    //         instance:  this.instance, 
+    //         property:  this.property, 
+    //         resources: resources,
+    //       })
+    //   );
     // },
-    toSelection: function(resources){
-      return (
-        new H.LIB.Asset(this.context)
-          .import()
-          .initialize({
-            id:        this.id, // same id !!!
-            klass:     "asset.selection",
-            instance:  this.instance, 
-            property:  this.property, 
-            resources: resources,
-          })
-      );
-    },
     activate: function(){
       this.eventlist.forEach(e => this.events.on(e, this.handler));
     },
@@ -138,14 +128,15 @@ HANNIBAL = (function(H){
     // events
     listener: function(msg){
 
-      var 
-        dslobject, id = msg.id, dsl = this.groups.dsl;
+      var dslobject, id = msg.id, dsl = this.groups.dsl;
 
       if (msg.name === "OrderReady"){
 
         if (msg.data.source === this.id){
 
-          this.deb("   AST: listener.OrderReady: %s %s, res: %s, %s", msg.name, this, this.resources, uneval(msg));
+          // this.deb("   AST: OrderReady: %s %s", this.id, this);
+          // this.deb("   AST: OrderReady: %s %s, res: %s, %s", this, msg.name, this.resources, uneval(msg));
+          this.deb("   AST: OrderReady: id: %s, tpl: %s", id, this.entities[id]._templateName);
 
           // take over ownership
           this.metadata[id].opid   = this.instance.id;
@@ -153,19 +144,14 @@ HANNIBAL = (function(H){
 
           this.resources.push(id);
 
-          // dslobject = this.groups.objectify(this.instance, "asset", [id]);
           dslobject = {
-            resources: [id], 
-            name: "item",
-            toString : () => H.format("[dslobject item[%s]", id)
+            name:        "item",
+            resources:   [id], 
+            foundation:  this.entities[id]._templateName.contains("foundation"),
+            toString :   () => H.format("[dslobject item[%s]]", id)
           };
 
-          if (this.verb === "build"){
-            dslobject.isFoundation = this.entities[id]._templateName.contains("foundation");
-          }
-
-          // this.groups.run(this.instance, "assign", [dsl.world.asset]);
-          this.groups.run(this.instance, "assign", [dslobject]);
+          this.groups.callWorld(this.instance, "assign", [dslobject]);
 
         } // else { deb("   AST: no match: %s -> %s | %s", msg.data.source, this.id, this.name);}
 
@@ -204,11 +190,15 @@ HANNIBAL = (function(H){
 
         } else if (msg.name === "ConstructionFinished") {
 
-          dsl.select(this.instance);
-          dsl.noun("asset", "entity", [id]);
-          dsl.world.asset.isFoundation = false;
-          dsl.world.asset.isStructure  = true;
-          this.groups.signal("OnAssign", [dsl.world.asset]);
+
+          dslobject = {
+            name:        "item",
+            resources:   [id], 
+            foundation:  false,
+            toString :   () => H.format("[dslobject item[%s]]", id)
+          };
+
+          this.groups.callWorld(this.instance, "assign", [dslobject]);
 
         }
 
