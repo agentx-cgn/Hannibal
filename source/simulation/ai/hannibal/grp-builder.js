@@ -45,11 +45,14 @@ HANNIBAL = (function(H){
           w.buildings = ["exclusive", config.building];
           w.units     = ["exclusive", config.building + " BUILDBY"];
 
-          w.units.size     = w.units.size     || config.size     || 10;
+          w.units.size     = w.units.size     || config.size     ||  5;
           w.buildings.size = w.buildings.size || config.quantity ||  2;
 
-          // w.nounify("units", "buildings");
-          w.nounify("buildings", "units");
+          w.deb("     G: launch.1 exe: %s, pro: %s", w.execute, w.proceed);
+
+          w.nounify("units", "buildings");
+
+          w.deb("     G: launch.2 exe: %s, pro: %s", w.execute, w.proceed);
 
           w.units.on.request();   
 
@@ -63,6 +66,9 @@ HANNIBAL = (function(H){
 
           w.objectify("item", item);
 
+
+          w.deb("     G: assign.1: %s, %s######", w, item);
+
           // keep requesting units until size
           w.units.on
             .member(w.item)
@@ -70,7 +76,7 @@ HANNIBAL = (function(H){
             .request()
           ;
 
-          w.deb("     G: assign.1: %s, %s", w, item);
+          w.deb("     G: assign.2: %s, %s######", w, item);
 
           //  the first unit requests structure to build, exits
           w.units.on
@@ -81,7 +87,7 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          w.deb("     G: ASSIGN.2: %s, %s", w, item);
+          w.deb("     G: assign.3: %s, %s", w, item);
 
           // got the foundation, update position, all units repair, exits
           w.buildings.on
@@ -94,7 +100,7 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          w.deb("     G: ASSIGN.3: %s, %s", w, item);
+          w.deb("     G: assign.4: %s, %s", w, item);
 
           // got the buildings, check order next, exits
           w.buildings.on
@@ -106,7 +112,7 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          w.deb("     G: ASSIGN.4: %s, %s", w, item);
+          w.deb("     G: assign.5: %s, %s", w, item);
 
           // got unit, send to repair
           w.item.on

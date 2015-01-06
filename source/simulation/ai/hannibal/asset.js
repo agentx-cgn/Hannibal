@@ -128,7 +128,11 @@ HANNIBAL = (function(H){
     // events
     listener: function(msg){
 
-      var dslobject, id = msg.id, dsl = this.groups.dsl;
+      var 
+        dslobject, 
+        id = msg.id, 
+        tpln = this.entities[id]._templateName,
+        dsl = this.groups.dsl;
 
       if (msg.name === "OrderReady"){
 
@@ -136,7 +140,7 @@ HANNIBAL = (function(H){
 
           // this.deb("   AST: OrderReady: %s %s", this.id, this);
           // this.deb("   AST: OrderReady: %s %s, res: %s, %s", this, msg.name, this.resources, uneval(msg));
-          this.deb("   AST: OrderReady: id: %s, tpl: %s", id, this.entities[id]._templateName);
+          this.deb("   AST: OrderReady: id: %s, tpl: %s", id, tpln);
 
           // take over ownership
           this.metadata[id].opid   = this.instance.id;
@@ -147,7 +151,7 @@ HANNIBAL = (function(H){
           dslobject = {
             name:        "item",
             resources:   [id], 
-            foundation:  this.entities[id]._templateName.contains("foundation"),
+            foundation:  tpln.contains("foundation"),
             toString :   () => H.format("[dslobject item[%s]]", id)
           };
 

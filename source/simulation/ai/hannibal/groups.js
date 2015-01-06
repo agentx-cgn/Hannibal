@@ -38,7 +38,6 @@ HANNIBAL = (function(H){
     });
 
     this.dsl = new H.DSL.Language(context, this, "groups").initialize();
-    this.initdsl();
 
   };
 
@@ -144,7 +143,7 @@ HANNIBAL = (function(H){
       // calls a script in this dsl world
       // assuming nouns and verbs are all set
 
-      this.dsl.run(this.dsl.world, instance, instance.scripts[scriptname], params);
+      this.dsl.runScript(instance.world, instance, instance.scripts[scriptname], params);
 
     },
     // objectify: function(instance, name, resources){
@@ -167,52 +166,34 @@ HANNIBAL = (function(H){
       });
 
     },
-    initdsl: function () {
+    getverbs: function () {
 
       // nouns and attributes are listed in corpus
 
-      this.deb("  GRPS: initdsl");
+      var self = this;
 
-      var self = this, w = this.dsl.world;
+      return {
 
-      this.dsl.setverbs({
-
-        "request":   function(sub, obj, amount){
-          self.request(w.actor.instance, amount || 1, sub.host, w.actor.instance.position);
+        request:   (act, sub, obj, amount) => {
+          this.request(act, amount || 1, sub.host, act.position);
         },
-        "relocate":  (sub, obj, path)   => sub.host.position = path[path.length -1],
-        "move":      (sub, obj, path)   => this.effector(sub.list, path),
-        "stance":    (sub, obj, stance) => this.effector.stance(sub.list, stance),      
-        "format":    (sub, obj, format) => this.effector.format(sub.list, format),
-        "gather":    (sub, obj)         => this.gather(sub.list, obj.list),
-        "attack":    (sub, obj)         => this.attack(sub.list, obj.list),
-        "dissolve":  (sub)              => this.dissolve(sub),
-        "repair":    (sub, obj)         => {
+        relocate:  (act, sub, obj, path)   => sub.host.position = path[path.length -1],
+        move:      (act, sub, obj, path)   => this.effector(sub.list, path),
+        stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
+        format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
+        gather:    (act, sub, obj)         => this.gather(sub.list, obj.list),
+        attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
+        dissolve:  (act, sub)              => this.dissolve(sub),
+        repair:    (act, sub, obj)         => {
 
+          // TODO: skip buildings with health > 90%
           this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
           this.effector.repair(sub.list, obj.list);
 
         },
+        shelter:   (act, sub, obj)        => null,
 
-        // "register":  (/*args*/)  => {
-
-        //   H.toArray(arguments).forEach( property => {
-
-        //     if (w.subject[property] instanceof H.LIB.Asset){
-        //       this.deb("  GRPS: did not register '%s' for %s", property, w.subject);
-            
-        //     } else {
-        //       w.subject[property] = this.createAsset({
-        //         definition: w.subject[property],
-        //         instance:   w.subject,
-        //         property:   property,
-        //       });
-        //     }
-
-        //   });
-
-        // }
-      });
+      };
 
     },
     launchOperators: function () {
@@ -373,6 +354,7 @@ HANNIBAL = (function(H){
     },     
     dissolve: function(instance){
 
+      this.dsl.deleteWorld(instance);
       instance.assets.forEach(asset => asset.release());
       instance.assets = null;
       H.remove(this.instances, instance);
@@ -470,7 +452,10 @@ HANNIBAL = (function(H){
 
       var 
         ccpos = this.entities[config.cc].position(),
-        instance = {id: config.id || this.context.idgen++};
+        instance = {id: config.id || this.context.idgen++},
+        world = this.dsl.createWorld(instance);
+
+      this.dsl.setverbs(world, this.getverbs());
 
       H.extend(instance, {
 
@@ -481,6 +466,8 @@ HANNIBAL = (function(H){
         cc:        config.cc,
         groupname: config.groupname,
         scripts:   {},
+
+        world:     world,
 
         resources: this.resources, // needs lexical signature
 
