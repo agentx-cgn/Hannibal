@@ -143,7 +143,7 @@ H.extend(H, {
   },
   contains:   function (a, e){return a.indexOf(e)!==-1;},
   toFixed:    function (a, n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
-  rotate:     function (a, n){return a.concat(a.splice(0,n));},
+  rotate:     function (a, n){n = n % a.length; return a.concat(a.splice(0,n));},
   // unique:     function (a){var u=[];a.forEach(function(i){if(u.indexOf(i)===-1){u.push(i);}});return u;},
   sample:     function (a, n){var l=a.length;n=n||1;return H.range(n).map(function(){return a[~~(Math.random() * l)];});},
   removeAll:  function (a, v){var i,j,l;for(i=0,j=0,l=a.length;i<l;i++) {if(a[i]!==v){a[j++]=a[i];}}a.length=j;},

@@ -972,7 +972,7 @@ HANNIBAL = (function(H){
       //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
       //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
 
-      this.deb("  EREQ: order: %s", uneval(order));
+      // this.deb("  EREQ: order: %s", uneval(order));
 
       var  
         objorder,

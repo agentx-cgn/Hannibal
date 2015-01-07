@@ -114,16 +114,18 @@ HANNIBAL = (function(H){
 
   });
 
-  H.LIB.Query = function(store, query, debug){
+  H.LIB.Query = function(store, query){
 
     H.extend(this, {
 
-      debug: debug || 0,
-
       context: store.context,
 
-      result: null,
-      ops:    NaN,
+      // timing
+      t0:         Date.now(),
+      t1:         0,
+
+      results:    null,
+      ops:        NaN,
 
       fromCache:  false,
       store:      store,
@@ -144,9 +146,10 @@ HANNIBAL = (function(H){
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Query,
     logNodes: function (){
-      if (this.debug > 0 && this.fromCache){this.deb("     Q: %s recs from cache: %s", this.result.length, this.query);}
-      if (this.debug > 0){this.deb("     Q: executed: msecs: %s, records: %s, ops: %s", this.t1, this.result.length, this.ops);}
-      if (this.debug > 1){this.logResult(this.result, this.params.fmt, this.params.max);}
+      var deb = this.params.deb;
+      if (deb > 0 && this.fromCache){this.deb("     Q: %s recs from cache: %s", this.results.length, this.query);}
+      if (deb > 0){this.deb("     Q: executed: msecs: %s, records: %s, ops: %s", this.t1, this.results.length, this.ops);}
+      if (deb > 1){this.logResult(this.results, this.params.fmt, this.params.max);}
     },
     sanitize: function(phrase){
       phrase = H.replace(phrase, "\n", " ");
@@ -161,31 +164,31 @@ HANNIBAL = (function(H){
       return this;
     },
     count: function(){
-      this.result = this.result || this.execute();
-      return this.result.length;
+      this.results = this.results || this.execute();
+      return this.results.length;
     },
     first: function(){
-      this.result = this.result || this.execute();
-      return this.result.length ? this.result[0] : null;
+      this.results = this.results || this.execute();
+      return this.results.length ? this.results[0] : null;
     },
     filter: function(fn, that){
-      this.result = this.result || this.execute();
-      return this.result.filter(fn, that);
+      this.results = this.results || this.execute();
+      return this.results.filter(fn, that);
     },
     forEach: function(fn, that){
-      this.result = this.result || this.execute();
-      this.result.forEach(fn, that);
-      return this.result;
+      this.results = this.results || this.execute();
+      this.results.forEach(fn, that);
+      return this.results;
     },
     map: function(fn, that){
-      this.result = this.result || this.execute();
-      return this.result.map(fn, that);
+      this.results = this.results || this.execute();
+      return this.results.map(fn, that);
     },
 
     checkCache: function(){
 
       var 
-        result = null, 
+        results = null, 
         check = (
           this.query.indexOf("INGAME") === -1 &&
           this.query.indexOf("TECHINGAME") === -1 &&
@@ -193,7 +196,7 @@ HANNIBAL = (function(H){
       );
 
       if (check){
-        result = this.store.cache[this.query].result;
+        results = this.store.cache[this.query].results;
         this.fromCache = true;
         this.store.cache[this.query].hits += 1;
         this.store.cacheHit += 1;
@@ -203,7 +206,7 @@ HANNIBAL = (function(H){
 
       }
 
-      return result;
+      return results;
 
     },
 
@@ -256,6 +259,7 @@ HANNIBAL = (function(H){
       clauses.forEach( clause => {
 
         if (this.isString(clause) || clause.length === 1){
+
           push(clause);
 
         } else if (this.isVerb(clause[0])) {
@@ -267,9 +271,7 @@ HANNIBAL = (function(H){
           } else {
             push([clause[0]]);
           }
-          // subClauses.forEach(function(clause){
-          //   out.push(clause);
-          // });
+
           subClauses.forEach(push);
 
         } else {
@@ -285,30 +287,17 @@ HANNIBAL = (function(H){
     execute: function(){
 
       var
-        t1,  t0 = Date.now(), 
         ops     = this.ops = 0,
         cacheDrop = "",
         self    = this,
         tree    = this.tree,
 
-        // verbs   = this.verbs,
-        // keys    = this.keys,
         edges   = this.store.edges,     //  = [source, verb, target]
         nodes   = this.store.nodes,     //  = {name:{}}
-
         cache   = this.store.cache,
         
-        // format  = this.params.fmt,
-        // debug   = this.params.deb,
-        // debmax  = this.params.max,
-        comment = this.params.cmt,
-        
         // returns always an array
-        results = this.result = [],               
-
-        // isKey =    t => ~keys.indexOf(t),
-        // isVerb =   t => ~verbs.indexOf(t),
-        // isString = t => typeof t === "string",
+        results = [],               
 
         // return strings without quotes
         parse =    v => {
@@ -318,9 +307,9 @@ HANNIBAL = (function(H){
 
       // Cached ?
       if (( results = this.checkCache() )){
-        t1 = Date.now() - t0;
+        this.t1 = Date.now() - this.t0;
         this.logNodes();
-        return this.prepResults(results, ops, t1);
+        return this.prepResults(results, ops, this.t1);
 
       } else {
         // we start with all nodes as result
@@ -330,10 +319,10 @@ HANNIBAL = (function(H){
       }
 
 
-      if (this.debug > 1){
+      if (this.params.deb > 1){
         this.deb("      :");
         this.deb("     Q: q: '%s'", self.query);
-        this.deb("      : c: '%s'", comment || "no comment");
+        this.deb("      : c: '%s'", this.params.com || "no comment");
       }
 
       tree.forEach( clause => {
@@ -425,8 +414,9 @@ HANNIBAL = (function(H){
       });
 
       // from here there is a result set of nodes
+      this.results = results;
 
-      t1 = Date.now() - t0;
+      this.t1 = Date.now() - this.t0;
 
       // put in cache
       if (cache.length > this.store.cacheSlots){
@@ -436,11 +426,11 @@ HANNIBAL = (function(H){
         if (this.debug > 0){this.deb("     Q: cache drop: hits: %s, qry: %s", cache[cacheDrop].hits, cache[cacheDrop]);}
         delete cache[cacheDrop];
       }
-      cache[this.query] = {hits: 0, result: results};
+      cache[this.query] = {hits: 0, results: results};
 
       this.logNodes();
 
-      return this.prepResults(results, ops, t1);
+      return this.prepResults(results, ops, this.t1);
 
     },
     sortResults: function (oper, attr, results, ops){
@@ -458,16 +448,16 @@ HANNIBAL = (function(H){
       return [ops, out];
 
     },
-    reduceByVerb: function (verb, edges, result, ops){
+    reduceByVerb: function (verb, edges, results, ops){
 
       // this has to be VERY fast
 
-      var e = 0|0, out = [], r = result.length|0, eLen = edges.length|0;
+      var e = 0|0, out = [], r = results.length|0, eLen = edges.length|0;
 
       while(r--){
         e = eLen;
         while(e--){
-          if (edges[e][0] === result[r] && edges[e][1] === verb){
+          if (edges[e][0] === results[r] && edges[e][1] === verb){
             ops++; 
             out.push(edges[e][2]);
           }
@@ -479,7 +469,7 @@ HANNIBAL = (function(H){
     },
     logResult: function (result, format, debmax){
 
-      var i, meta, node, c, p, t = H.tab, deb = this.deb;
+      var i, meta, node, c, p, t = H.tab, deb = this.deb.bind(this);
 
       debmax = debmax || 20;
       format = format || "";

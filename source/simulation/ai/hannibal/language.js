@@ -116,7 +116,6 @@ HANNIBAL = (function(H){
         proceed:  false,
 
         nouns:      {},
-        // attributes:{},
         subject:  null,   // currently active subject
         object:   null,   // temporarely active object
 
@@ -146,7 +145,7 @@ HANNIBAL = (function(H){
         },
 
         reset: () => {
-          this.deb("   DSL: world reset from sentence: %s", world.sentence);
+          // this.deb("   DSL: world reset from sentence: %s", world.sentence);
           world.sentence = [];
           world.proceed  = true;
           world.execute  = true;
@@ -160,7 +159,7 @@ HANNIBAL = (function(H){
 
         objectify:  (name, obj) => {
 
-          this.deb("   DSL: objectifying: %s for %s", name, world.actor);
+          // this.deb("   DSL: objectifying: %s for %s", name, world.actor);
           this.setnoun(world, name, new this.corpus.nouns[name](obj, name));
 
         },
@@ -168,7 +167,7 @@ HANNIBAL = (function(H){
 
           H.toArray(arguments).forEach( noun => {
 
-            this.deb("   DSL: nounifying: %s for %s", noun, world.actor);
+            // this.deb("   DSL: nounifying: %s for %s", noun, world.actor);
             
             var host = this.handler.nounify(world, actor, noun);
             this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
@@ -204,18 +203,20 @@ HANNIBAL = (function(H){
 
     },
     runScript: function(world, actor, script, params){
+      var t0 = Date.now();
       this.world = world;
       this.scriptname = script.name;
-      world.actor = actor;
       world.reset();
+      world.actor = actor;
       params.unshift(world);
       script.apply(actor, params);
+      // this.deb("   DSL: runScript in %s msec %s %s", Date.now() - t0, script.name, actor);
     },
     setverbs: function(world, verbs){
       H.each(verbs, (verb, fn) => this.setverb(world, verb, fn));
     },
     setnoun:  function(world, noun, obj){
-      this.deb("   DSL: setnoun: %s", noun);
+      // this.deb("   DSL: setnoun: %s", noun);
       world.nouns[noun] = obj;
       Object.defineProperty(world, noun, {
           configurable: true, enumerable: true, 
@@ -223,40 +224,40 @@ HANNIBAL = (function(H){
             if (this.execute){
               this.sentence.push(["o:", noun]);
               this.object = obj;
-              this.deb("   DSL: setobject: %s", noun);
+              // this.deb("   DSL: setobject: %s", noun);
             } else {
-              this.deb("   DSL: ignored setobject: %s", noun);
+              // this.deb("   DSL: ignored setobject: %s", noun);
             }
             return this;
           }
       });
     },
     setverb:  function(world, verb, fn){
-      this.deb("   DSL: setverb: %s", verb);
+      // this.deb("   DSL: setverb: %s", verb);
       world[verb] = () => {
-        var args = H.toArray(arguments);
+        var args = H.toArray(arguments); //, world = this.world;
         if (world.execute && world.proceed){
           world.sentence.push(["v:", verb]);
           args.unshift(world.actor, world.subject, world.object);
           fn.apply(world, args);
-          this.deb("   DSL: applied verb '%s' args: %s", verb, args);
+          // this.deb("   DSL: applied verb '%s' args: %s", verb, args);
         } else {
-          this.deb("   DSL: ignored: verb '%s' pro: %s, exe: %s", verb, world.proceed, world.execute);
+          // this.deb("   DSL: ignored: verb '%s' pro: %s, exe: %s", verb, world.proceed, world.execute);
         }
         return world;
       };
     },
     setattribute:  function(world, attribute, fn){
-      this.deb("   DSL: setattribute: %s", attribute);
+      // this.deb("   DSL: setattribute: %s", attribute);
       Object.defineProperty(world, attribute, {
           configurable: true, enumerable: true, 
           get: function () {
             this.sentence.push(["a:", attribute]);
             if (this.execute && this.proceed){
-              this.deb("   DSL: read attribute '%s'", attribute);
-              return fn.call(this, this.object);
+              // this.deb("   DSL: read attribute '%s'", attribute);
+              return fn.apply(this, [this.subject, this.object]);
             } else {
-              this.deb("   DSL: ignored attribute '%s' pro: %s, exe: %s", attribute, this.proceed, this.execute);
+              // this.deb("   DSL: ignored attribute '%s' pro: %s, exe: %s", attribute, this.proceed, this.execute);
               return null;
             }
           }
@@ -343,6 +344,7 @@ HANNIBAL = (function(H){
             this.sentence = ["s:", this.object.name];
             this.subject = this.object;
             // this.deb("   DSL: on setsubject: %s", this.subject);
+            // this.deb("--.on.out");
           }
           return this;
         },
@@ -368,6 +370,7 @@ HANNIBAL = (function(H){
             this.object  = null;
             this.execute = false; 
             this.proceed = false; 
+            // this.deb("   DSL: EXIT ================");
           }
           return this;
         },
@@ -423,19 +426,22 @@ HANNIBAL = (function(H){
         "dropsite":    H.DSL.Nouns.Entities,   
       },
       attributes: {
-        position:     function(o){return H.Map.getCenter(o.list);}, 
-        health:       function(o){return H.DSL.Helper.health(o.list);}, 
-        vision:       function(o){return H.DSL.Helper.vision(o.list);}, 
-        count:        function(o){return o.list.length;}, 
-        size:         function(o){return o.size;}, 
-        foundation:   function(o){return o.foundation;}, 
+        position:     function(s, o){return H.Map.getCenter(o.list);}, 
+        health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
+        vision:       function(s, o){return H.DSL.Helper.vision(o.list);}, 
+        count:        function(s, o){return o.list.length;}, 
+        size:         function(s, o){return o.size;}, 
+        foundation:   function(s, o){return o.foundation;}, 
+        distance:     function(s, o){
+          return this.map.distance(this.map.getCenter(s.list), this.map.getCenter(o.list));
+        }, 
       },
       modifier: {
         member: function(act, s, o){
 
           // H.logObject(s, "member.s");
 
-          this.deb("   DSL: member.in: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
+          // this.deb("   DSL: member.in: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
 
           this.proceed = this.proceed ? (
             s && o && s.list && o.list && 
@@ -443,7 +449,7 @@ HANNIBAL = (function(H){
             o.list.every(r => s.list.indexOf(r) !== -1)
           ) : false;
 
-          this.deb("   DSL: member.out: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
+          // this.deb("   DSL: member.out: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
 
           return this;
         },

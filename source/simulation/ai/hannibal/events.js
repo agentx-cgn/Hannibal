@@ -341,9 +341,12 @@ HANNIBAL = (function(H){
 
       // listener: assets, culture, producers
 
-      this.deb("   EVT: EntityRenamed %s" , uneval(e));
-      this.deb("   EVT: EntityRenamed %s, %s", e.entity, this.entities[e.entity] || "unknown");
-      this.deb("   EVT: EntityRenamed %s, %s", e.newentity, this.entities[e.newentity] || "unknown");
+      // this.deb("   EVT: EntityRenamed %s" , uneval(e));
+
+      this.deb("   EVT: EntityRenamed %s, %s => %s, %s", 
+        e.entity,    this.entities[e.entity]    || "unknown",
+        e.newentity, this.entities[e.newentity] || "unknown"
+      );
 
       var msg = this.fire("EntityRenamed", {
         player: this.entities[e.newentity].owner(),

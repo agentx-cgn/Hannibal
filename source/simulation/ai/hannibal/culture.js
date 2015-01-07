@@ -566,12 +566,12 @@ HANNIBAL = (function(H){
         this.cntEdges,
         this.cntIngames
       );
-      this.query("INGAME SORT < id")
-        .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "culture.log: ingames"})
-        .execute();
       this.phases.log();
       this.tree.log();
       this.store.log();
+      this.query("INGAME SORT < id")
+        .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "culture.log: ingames"})
+        .execute();
 
     },
     serialize: function(){

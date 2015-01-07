@@ -269,15 +269,39 @@ HANNIBAL = (function(H){
 
     gather: function(who, what){
 
-      // this.deb("   EFF: gather: %s", uneval(arguments));
+      this.deb("   EFF: gather: %s", uneval(arguments));
 
-      if (who.length && H.isInteger(what)){
+      if (who.length && what.length){
 
-        Engine.PostCommand(this.id, {type: "gather", 
-          entities: who, 
-          target:   what, 
-          queued:   false
-        });
+        if (what.length === 1){
+
+          // all units gather this
+          Engine.PostCommand(this.id, {type: "gather", 
+            entities: who,      // array
+            target:   what[0],  // int
+            queued:   false
+          });
+
+        } else {
+
+          // let units gather in queue
+          who.forEach(whoid => {
+
+            what = H.rotate(what, 1);
+
+            what.forEach( (whatid, index) => {
+
+              Engine.PostCommand(this.id, {type: "gather", 
+                entities: [whoid],   // array
+                target:   whatid,    // int
+                queued:   index > 0
+              });
+
+            });
+
+          });
+
+        }
 
       } else { this.deb("   EFF: ignored gather: %s", uneval(arguments)); }
 

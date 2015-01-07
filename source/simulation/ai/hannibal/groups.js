@@ -178,10 +178,10 @@ HANNIBAL = (function(H){
           this.request(act, amount || 1, sub.host, act.position);
         },
         relocate:  (act, sub, obj, path)   => sub.host.position = path[path.length -1],
-        move:      (act, sub, obj, path)   => this.effector(sub.list, path),
+        move:      (act, sub, obj, path)   => this.effector.move(sub.list, path),
+        gather:    (act, sub, obj)         => this.effector.gather(sub.list, obj.list),
         stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
         format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
-        gather:    (act, sub, obj)         => this.gather(sub.list, obj.list),
         attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
         dissolve:  (act, sub)              => this.dissolve(sub),
         repair:    (act, sub, obj)         => {
@@ -191,7 +191,7 @@ HANNIBAL = (function(H){
           this.effector.repair(sub.list, obj.list);
 
         },
-        shelter:   (act, sub, obj)        => null,
+        shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
 
       };
 

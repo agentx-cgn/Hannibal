@@ -229,12 +229,15 @@ HANNIBAL = (function (H){
 
             if (~~id === this.main){
               this.counter.mayors += 1;
+              this.counter.shared += 1;
               this.metadata[id].opname = "g.mayor";
+              this.metadata[id].opmode = "shared";
               // deb("     V: set opname to 'g.mayor' for %s", ent);
 
             } else if (this.isShared(ent)){
               this.counter.shared += 1;
               this.metadata[id].opname = "g.custodian";
+              this.metadata[id].opmode = "shared";
               // deb("     V: set opname to 'g.custodian' for %s", ent);
 
             } else {

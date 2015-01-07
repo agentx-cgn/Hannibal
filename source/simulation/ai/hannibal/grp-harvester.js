@@ -33,21 +33,23 @@ HANNIBAL = (function(H){
       interval:       10,             // call onInterval every x ticks
 
       technologies: [                 // these techs help
-                      "gather.capacity.wheelbarrow",
-                      "celts.special.gather.crop.rotation",
-                      "gather.farming.plows"
+        "gather.capacity.wheelbarrow",
+        "celts.special.gather.crop.rotation",
+        "gather.farming.plows"
       ],
 
       scripts: {
 
         // game started, something launched this group
-        launch: function launch (w, config /* size */) {
+        launch: function launch (w, config) {
 
-          w.units    = ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0"];
+          w.units    = ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0"];
           w.field    = ["exclusive", "food.grain PROVIDEDBY"];
-          w.dropsite = ["exclusive", "food ACCEPTEDBY"];
+          w.dropsite = ["shared", "food ACCEPTEDBY"]; //TODO: exclude docks
 
-          w.units.size = w.units.size || config.size ||  5;
+          w.units.size    = 5;
+          w.field.size    = 1;
+          w.dropsite.size = 1;
 
           w.nounify("units", "field", "dropsite");
 
@@ -58,14 +60,14 @@ HANNIBAL = (function(H){
 
         }, assign: function assign (w, item) {
 
-          w.deb("     G: assign.0: %s, %s", w, item);
+          // w.deb("     G: assign.0: %s, %s", w, item);
 
           w.objectify("item", item);
 
           // got dropsite, request unit, exits
           w.dropsite.on
             .member(w.item)
-            .units.on.request()
+            .units.do.request()
             .exit
           ;
 
@@ -76,6 +78,8 @@ HANNIBAL = (function(H){
             .request()
           ;
 
+          // w.deb("     G: assign.3: %s, %s", w, item);
+
           //  the first unit requests field, exits
           w.units.on
             .member(w.item)
@@ -85,19 +89,26 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // got the field foundation, update position, all units repair, exits
-          w.field.on
+          //  got unit let repair/gather, exits
+          w.units.on
             .member(w.item)
-            .match(w.field.foundation)
-            .units.do.repair(w.item)
+            .match(w.field.count, 1)
+            .item.do.repair(w.field)  // relies on autocontinue
             .exit
           ;
 
-          // got the field, check order next, exits
+          // got the field foundation, update position, all units repair, exits
           w.field.on
-            .member(w.field)
-            .match(!w.field.foundation)
-            .log("gotchaconstruction")
+            .member(w.item)
+            .match(w.item.foundation)
+            .units.do.repair(w.field)
+            .exit
+          ;
+
+          // got the field, exits
+          w.field.on
+            .member(w.item)
+            .match(!w.item.foundation)
             .units.do.gather(w.field)
             .exit
           ;

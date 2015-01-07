@@ -129,14 +129,15 @@ HANNIBAL = (function(H){
     listener: function(msg){
 
       var 
-        dslobject, 
+        dslobject, tpln, 
         id = msg.id, 
-        tpln = this.entities[id]._templateName,
         dsl = this.groups.dsl;
 
       if (msg.name === "OrderReady"){
 
         if (msg.data.source === this.id){
+
+          tpln = this.entities[id]._templateName;
 
           // this.deb("   AST: OrderReady: %s %s", this.id, this);
           // this.deb("   AST: OrderReady: %s %s, res: %s, %s", this, msg.name, this.resources, uneval(msg));
