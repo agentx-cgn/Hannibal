@@ -275,15 +275,28 @@ HANNIBAL = (function(H){
   H.DSL.Nouns.Group = function(host, name){
     this.name = name;
     this.host = host;
-    this.verbs = [
-      "dissolve",
-    ];
     this.update();
   };
   H.DSL.Nouns.Group.prototype = {
     constructor: H.DSL.Nouns.Group,
     toString: function(){return H.format("[noun:group %s]", this.name);},
     update: function(){
+    }
+  };
+
+  H.DSL.Nouns.Resources = function(host, name){
+    this.name = name;
+    this.host = host;
+    this.update();
+  };
+  H.DSL.Nouns.Resources.prototype = {
+    constructor: H.DSL.Nouns.Resources,
+    toString: function(){return H.format("[noun:group %s]", this.name);},
+    update: function(){
+      this.list = this.host.resources.slice();
+      this.size = this.host.size;
+      this.position = this.host.position;
+      this.isresource = this.host.isresource || false;
     }
   };
 
@@ -303,6 +316,7 @@ HANNIBAL = (function(H){
       this.size = this.host.size;
       this.position = this.host.position;
       this.foundation = this.host.foundation || false;
+      this.isresource = this.host.isresource || false;
     }
   };
 
@@ -417,11 +431,11 @@ HANNIBAL = (function(H){
         "village":     H.DSL.Nouns.Village, 
         "scanner":     H.DSL.Nouns.Scanner,   
         "centre":      H.DSL.Nouns.Entities, 
+        "resources":   H.DSL.Nouns.Resources, 
         "buildings":   H.DSL.Nouns.Entities, 
         "units":       H.DSL.Nouns.Entities,   
         "item":        H.DSL.Nouns.Entities,   
         "attacker":    H.DSL.Nouns.Entities,   
-        "resources":   H.DSL.Nouns.Entities,   
         "field":       H.DSL.Nouns.Entities,   
         "dropsite":    H.DSL.Nouns.Entities,   
       },
@@ -439,15 +453,21 @@ HANNIBAL = (function(H){
       modifier: {
         member: function(act, s, o){
 
-          // H.logObject(s, "member.s");
-
           // this.deb("   DSL: member.in: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
 
-          this.proceed = this.proceed ? (
-            s && o && s.list && o.list && 
-            s.list.length && o.list.length &&
-            o.list.every(r => s.list.indexOf(r) !== -1)
-          ) : false;
+          if (s instanceof H.DSL.Nouns.Resources){
+            // relies on groups have only single resource asset
+            this.proceed = o.isresource;
+            this.deb("   DSL: match s = resource and o = res %s", o.isresource);
+
+          } else {
+            this.proceed = this.proceed ? (
+              s && o && s.list && o.list && 
+              s.list.length && o.list.length &&
+              o.list.every(r => s.list.indexOf(r) !== -1)
+            ) : false;
+
+          }
 
           // this.deb("   DSL: member.out: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
 

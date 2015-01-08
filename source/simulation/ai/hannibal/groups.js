@@ -158,19 +158,23 @@ HANNIBAL = (function(H){
 
       this.deb("  GRPS: nounify %s %s, def: %s, size: %s", instance, noun, world[noun], world[noun].size);
 
-      return this.createAsset({
-        instance:   instance,
-        property:   noun,
-        definition: world[noun],
-        size:       world[noun].size,
-      });
+      if (instance === world[noun]){
+        // special case group !== asset
+        return instance;
+
+      } else {
+        return this.createAsset({
+          instance:   instance,
+          property:   noun,
+          definition: world[noun],
+          size:       world[noun].size,
+        });
+      }
 
     },
     getverbs: function () {
 
       // nouns and attributes are listed in corpus
-
-      var self = this;
 
       return {
 
@@ -183,7 +187,7 @@ HANNIBAL = (function(H){
         stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
         format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
         attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
-        dissolve:  (act, sub)              => this.dissolve(sub),
+        dissolve:  (act, sub)              => this.dissolve(sub.host),
         repair:    (act, sub, obj)         => {
 
           // TODO: skip buildings with health > 90%
@@ -305,11 +309,16 @@ HANNIBAL = (function(H){
 
       var found = false, treenode, verb;
 
-      if (typeof definition[1] === "object"){
+      if (definition[0] === "resource"){
+        return "find";
 
+      } else if (definition[0] === "claim"){
         return "claim";
 
-      } else if (typeof definition[1] === "string") {
+      } else if (
+        definition[0] === "dynamic"   || 
+        definition[0] === "shared"    || 
+        definition[0] === "exclusive" ){
 
         this.query(definition[1]).forEach( node => {  // mind units.athen.infantry.archer.a
           if(!found && (treenode = this.culture.tree.nodes[node.name]) && treenode.verb){ 
@@ -451,11 +460,16 @@ HANNIBAL = (function(H){
       // registered props !!!
 
       var 
+        world, 
         ccpos = this.entities[config.cc].position(),
-        instance = {id: config.id || this.context.idgen++},
-        world = this.dsl.createWorld(instance);
+        instance = {id: config.id || this.context.idgen++};
 
+      // prepare a dsl world
+      world = this.dsl.createWorld(instance);
       this.dsl.setverbs(world, this.getverbs());
+      world.group = instance;
+      world.group.size = 1
+      world.nounify("group");
 
       H.extend(instance, {
 
@@ -473,7 +487,6 @@ HANNIBAL = (function(H){
 
         position:  config.position || ccpos || this.deb("ERROR : no pos in group"),
         assets:    [],
-        // run:       this.callWorld.bind(this, instance),
 
         toString: function(){return H.format("[%s %s]", this.klass, this.name);},
 
@@ -529,38 +542,3 @@ HANNIBAL = (function(H){
   });  
 
 return H; }(HANNIBAL));
-
-
-      // create the dsl
-
-      // H.extend(instance, {
-        
-      //   name:      config.groupname + "#" + instance.id,
-      //   position:  config.position || this.map.getCenter([instance.cc]),
-      //   assets:    [],
-      //   run: this.run.bind(this, instance),
-
-        // register:  function(/* arguments */){
-        //   // deb("     G: %s register: %s", instance.name, uneval(arguments));
-
-        //   // transforms primitive definition into live object
-        //   // except already done by deserialization
-
-        //   H.toArray(arguments).forEach( property => {
-
-        //     if (instance[property] instanceof H.LIB.Asset){
-        //       this.deb("  GRPS: did not register '%s' for %s", property, instance);
-            
-        //     } else {
-        //       instance[property] = self.createAsset({
-        //         definition: instance[property],
-        //         instance:   instance,
-        //         property:   property,
-        //       });
-        //     }
-
-        //   });
-
-        // },
-
-      // });

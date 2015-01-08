@@ -51,6 +51,9 @@ HANNIBAL = (function(H){
       this.deb();
       this.deb("  STAT: stock: %s", JSON.stringify(this.stock));
     },
+    logTick: function(){
+      this.deb("  STAT: stock: %s", JSON.stringify(this.stock));
+    },
     initialize: function(){
       this.tick();
       return this;
@@ -88,6 +91,9 @@ HANNIBAL = (function(H){
         t0 = Date.now(), curHits = 1, maxHits = 1, 
         gathered  = this.player.statistics.resourcesGathered,
         available = this.player.resourceCounts;
+
+      // update
+      this.import();
           
       // gather diffs
       this.gatherables.forEach( prop => { 
@@ -409,6 +415,7 @@ HANNIBAL = (function(H){
         "culture",
         "technologies",
         "events",
+        "resources",
       ],
 
     });
@@ -554,6 +561,9 @@ HANNIBAL = (function(H){
 
       var verb = this.verb, hcq = (
 
+        // looking for a resource
+        verb === "find" ? this.hcq :
+
         // looking for a technology
         verb === "research" ? this.hcq :
 
@@ -571,7 +581,17 @@ HANNIBAL = (function(H){
       
       );
 
-      if (verb === "train" || verb === "build"){
+      if (verb === "find"){
+        // assuming order done
+        this.remaining = 0; 
+        this.events.fire("OrderReady", {
+          player: this.context.id,
+          id:     NaN,
+          data:   {order: this.id, source: this.source, resources: this.resources.find(this)}
+        });
+
+
+      } else if (verb === "train" || verb === "build"){
         this.query(hcq)
           .execute()
           .slice(0, this.remaining - this.processing)
@@ -583,6 +603,7 @@ HANNIBAL = (function(H){
               data:   {order: this.id, source: this.source}
           });
         });
+
       } else {
         this.deb("   ORD: assignExisting: looking for '%s' ????????", this.hcq);
       }
@@ -791,6 +812,7 @@ HANNIBAL = (function(H){
         "query",
         "groups",
         "metadata",
+        // "resources",
       ],
       childs: [
         "stats",
@@ -813,6 +835,8 @@ HANNIBAL = (function(H){
     log: function(){this.childs.forEach(child => this[child].log());
 
     }, logTick: function(){
+
+      this.childs.forEach(child => this[child].logTick());
       
       // var 
       //   stock = this.stats.stock, 
@@ -1032,6 +1056,9 @@ HANNIBAL = (function(H){
         this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
 
         // this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(pos), uneval([order.x, order.z]), product.key);
+
+      } else if (order.verb === "find") {
+        H.throw("ECO: find order leaked into do()");
 
       }
 

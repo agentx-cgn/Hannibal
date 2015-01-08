@@ -34,171 +34,158 @@ HANNIBAL = (function(H){
       active:         true,           // prepared for init/launch ...
       description:    "supplier",     // text field for humans 
       civilisations:  ["*"],          // 
-      interval:       4,              // call onInterval every x ticks
-      parent:         "",             // inherit useful features
-
-      defaults:       {
-        size:         2,
-      },
+      interval:       5,              // call onInterval every x ticks
 
       technologies: [                 // these techs help
-                      "gather.lumbering.ironaxes",
-                      "gather.capacity.wheelbarrow",
-                      "gather.wicker.baskets", // ?? only fruits
-                      "gather.mining.wedgemallet",
-                      "gather.mining.silvermining",    
-                      "gather.mining.shaftmining",
+        "gather.lumbering.ironaxes",
+        "gather.capacity.wheelbarrow",
+        "gather.wicker.baskets", // ?? only fruits
+        "gather.mining.wedgemallet",
+        "gather.mining.silvermining",    
+        "gather.mining.shaftmining",
       ],
 
-      position:       null,           // refers to the coords of the group's position/activities
+      scripts: {
 
-      units:          null,           // assets defined in onLaunch
-      dropsite:       null,
-      dropsites:      null,
+        launch: function launch (w, config /* supply, size */){
 
-      attackLevel:    0,              // increases with every attack, halfs on interval
-      needsRepair:   80,              // a health level (per cent)
-      needsDefense:  10,              // an attack level
+          w.deb("     G: onlaunch %s, %s", w, uneval(config));
 
-      exclusives:    function(options){
-        return {units : [options.size, (
-          options.supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
-          options.supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
-          options.supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
-          options.supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
-          options.supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
-            deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", options.supply)
-        )]};
-      },
-
-      listener: {
-
-        onLaunch: function(options /*cc, supply, size*/){
-
-          deb("     G: onlaunch %s", uneval(arguments));
-
-          // this.options   = options;
-          this.size   = options.size || this.defaults.size;
-          this.supply = options.supply;
-          this.target = this.resources.nearest(this.position, this.supply);
-
-          if (!this.target){
-            deb("     G: onLaunch dissolving %s no target for %s", this, this.supply);
-            this.dissolve(); 
-            return;
-          
-          } else {
-            this.position  = this.target.position;
-            deb("     G: onLaunch %s have target for %s: %s", this, this.supply, this.target);
-
-          }
-
-          this.units = this.exclusives(options).units[1];
-
-          this.dropsite = (
-            this.supply === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
-            this.supply === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
-            this.supply === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
-            this.supply === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
-            this.supply === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
-              deb(" ERROR: unknown supply '%s' for supply group", this.supply)
+          w.units = (
+            config.supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
+            config.supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
+            config.supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
+            config.supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
+            config.supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
+              deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", config.supply)
           );
 
-          this.dropsites = (
-            this.supply === "metal"      ?  ["dynamic",    "metal ACCEPTEDBY INGAME"] :
-            this.supply === "stone"      ?  ["dynamic",    "stone ACCEPTEDBY INGAME"] :
-            this.supply === "wood"       ?  ["dynamic",    "wood  ACCEPTEDBY INGAME"] :
-            this.supply === "food.fruit" ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-            this.supply === "food.meat"  ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-              deb(" ERROR: unknown supply '%s' for supply group", this.supply)
+          w.dropsite = (
+            config.supply === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
+            config.supply === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
+            config.supply === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
+            config.supply === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
+            config.supply === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
+              deb(" ERROR: unknown supply '%s' for supply group", config.supply)
           );
 
-          this.register("units", "dropsite", "dropsites");
-          // this.request(1, this.units, this.position);   
-          this.request(2, this.units, this.position);   
+          w.units.size     = config.size || 10;
+          w.dropsite.size  = 1;
+          w.resources      = ["resource", config.supply];
+          w.resources.size = 10; // upper limit, the groups handles
 
-        },
-        onAssign: function(asset){
+          w.nounify("units", "resources", "dropsite");
 
-          deb("     G: onAssign %s : got %s, pos: %s", this, asset, H.fixed1(this.position));
-         
-          if (this.units.match(asset)){
+          w.resources.on.request(10); // may get less
 
-            if (this.units.count === 1){
-              if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
-                this.request(1, this.dropsite, this.position); 
-              }  
-            }
 
-            deb("     G: onAssign %s units: %s/%s", this, this.units.count, this.size);
-            if (this.units.count < this.size){
-              this.request(1, this.units, this.position);   
-            }
+        }, assign: function assign (w, item) {
 
-            if (this.target){
-              asset.gather(this.target);
-            } else {
-              deb("  WARN: %s with res: %s has no target", this, this.supply);
-            }
+          w.deb("     G: assign.0: %s, %s", w, item);
 
-          } else if (this.dropsite.match(asset)){
+          w.objectify("item", item);
 
-            if (asset.isFoundation){this.units.repair(asset);}
-            if (asset.isStructure){this.units.gather(this.target);}
+          // got empty resource, dissolve group
+          w.resources.on
+            .member(w.item)
+            .match(w.resources.count, 0)
+            .group.do.dissolve()  
+            .exit
+          ;
 
-          } else {
-            deb("     G: onAssign %s no match", this);
+          // got initial resources, request unit, exits
+          w.resources.on
+            .member(w.item)
+            .match(w.units.count, 0)
+            .units.do.request()
+            .exit
+          ;
 
-          }
+          // got initial unit, request dropsite, exits
+          w.units.on
+            .member(w.item)
+            .match(w.dropsite.count, 0)
+            .dropsite.do.request()
+            .exit
+          ;
 
-        },
-        onDestroy: function(asset){
+          // got initial dropsite foundation, units repair
+          w.dropsite.on
+            .member(w.item)
+            .match(w.item.foundation)
+            .units.do.repair(w.dropsite)
+          ;
 
-          deb("     G: onDestroy %s : %s", this, asset);
+          // got initial dropsite, units gather
+          w.dropsite.on
+            .member(w.item)
+            .match(!!w.item.foundation)
+            .units.do.gather(w.resources)
+          ;
 
-          if (this.units.match(asset)){
-            this.request(1, this.units, this.position);
+          // keep requesting units until size
+          w.units.on
+            .member(w.item)
+            .lt(w.units.count, w.units.size)
+            .request()
+          ;
 
-          } else if (this.dropsite.match(asset)){
-            // this.request(1, this.dropsite, this.position);
+          // got another resource, units gather
+          w.resources.on
+            .member(w.item)
+            .units.do.gather(w.resources)
+          ;
 
-          }
 
-        },
-        onAttack: function(asset, enemy, type, damage){
+        }, destroy: function destroy (w, item) {
 
-          deb("     G: onAttack %s : %s by %s, damage: %s", this, asset, enemy, damage);
+          w.deb("     G: destroy: %s, %s", w, item);
 
-        },
-        onBroadcast: function(){},
-        onInterval:  function(){
+          w.objectify("item", item);
 
-          // deb("     G: %s onInterval, res: %s, states: %s", this, this.supply, H.prettify(this.units.states()));
+          // lost unit, request another
+          w.units
+            .member(w.item)
+            .request()
+          ;
 
-          if (!this.units.count){return;}
+          // lost dropsite, request another
+          w.dropsite
+            .member(w.item)
+            .request()
+          ;
 
-          if (this.units.doing("idle").count === this.size){
-            this.dissolve();
-            deb("      G: onInterval %s finished supplying %s, all (%s) idle", this, this.size, this.supply);
-          
-          } else if (this.units.doing("idle").count > 0){
+        }, attack: function attack (w, item, enemy, type, damage) {
 
-            // this.resources.update(this.supply);
-            this.target = this.resources.nearest(this.position, this.supply);
-            
-            if (this.target){
-              this.units.doing("idle").gather(this.target);
-            } else {
-              deb("WARN  : %s with res: %s has no target", this, this.supply);
-            }              
-            
-            
-          }
+          w.deb("     G: destroy: %s, %s %s %s %s", w, item, enemy, type, damage);
 
+
+        }, radio: function radio (w, msg) {
+
+          w.deb("     G: %s radio %s, %s", this, msg);
+
+
+        }, interval:  function interval(w, tick, secs) {
+
+          w.deb("     G: interval: %s, %s secs", w, secs);
+
+          // run out of resources, request more, exits
+          w.resources.on
+            .match(w.resources.count, 0)
+            .request()
+            .exit
+          ;
+
+          // idle units should gather
+          w.units.on
+            .doing("idle")
+            .gather(w.resources)
+          ;
 
         }
 
-      } // listener
+
+      } // end script
 
     }
 

@@ -71,6 +71,7 @@ HANNIBAL = (function(H){
         "BroadCast",
         "EntityCreated",
         "EntityAttacked",
+        // "ResourceFound",
       ],
 
       // saves the listeners

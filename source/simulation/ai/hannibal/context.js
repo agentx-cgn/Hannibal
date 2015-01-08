@@ -51,6 +51,17 @@ HANNIBAL = (function(H){
       // "bot",      // make decisions
     ];
 
+    // this props need an update each tick, because sharedscript changed
+    this.updates = [
+      "timeElapsed",
+      "territory",
+      "passability",
+      "passabilityClasses",
+      "techtemplates",
+      "player",
+      "players",
+    ];
+
     // action sequence to launch serializers
     this.sequence = [
       "create",        // either new Obj or Obj.clone
@@ -258,6 +269,9 @@ HANNIBAL = (function(H){
         sanitize = H.saniTemplateName;
 
       this.updateEngine = sharedScript => {
+
+        // this.updates is here relevant
+
         ss = sharedScript;
 
         this.sharedscript       = ss; // tmp for map
@@ -272,7 +286,6 @@ HANNIBAL = (function(H){
         this.players            = ss.playersData;
         // this.metadata           = ss._entityMetadata[this.id];
       };
-
 
       H.extend(this, {
 

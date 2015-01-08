@@ -139,7 +139,7 @@ HANNIBAL = (function(H){
 
         }, attack: function attack (w, item, enemy, type, damage){
 
-          w.log("     G: attack.0: %s, %s", w, item);
+          w.deb("     G: attack.0: %s, %s", w, item);
 
           w.field.on
             .member(w.item)
@@ -150,20 +150,23 @@ HANNIBAL = (function(H){
 
         }, release: function release (w, item) {
 
-          w.log("     G: release.0: %s, %s", w, item);
+          w.deb("     G: release.0: %s, %s", w, item);
 
 
         // group radio
 
         }, radio: function radio (w, source, msg){
 
-          w.log("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
+          w.deb("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
 
 
         // defined by this.interval
 
-        }, interval: function interval (){
+        }, interval: function interval (w, tick, secs){
 
+          w.deb("     G: interval: %s, %s secs", w, secs);
+
+          
           // w.units.on
           //   .doing("idle")
           //   .match(w.units.size)

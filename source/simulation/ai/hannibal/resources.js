@@ -110,6 +110,7 @@ HANNIBAL = (function(H){
       imports:  [
         "map",
         "config",
+        "groups",
         "entities",
       ],
 
@@ -250,6 +251,18 @@ HANNIBAL = (function(H){
 
     },
     activate: function(){},
+    find: function(order){
+
+      // fire event with resources or none if not avail
+      // ,amount,cc,location,verb,hcq,source,shared,id,processing,remaining,product,x,z,nodes
+
+      var asset = this.groups.findAsset(asset => asset.id === order.source);
+
+      this.deb("  RESS: got find request: %s, res: %s, loc: %s, from: %s", order.amount, order.hcq, order.location, asset);
+
+      return [];
+
+    },
     availability: function( /* arguments */ ){
 
         var 

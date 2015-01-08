@@ -46,7 +46,7 @@ HANNIBAL = (function(H){
           w.units     = ["exclusive", config.building + " BUILDBY"];
 
           w.units.size     = w.units.size     || config.size     ||  5;
-          w.buildings.size = w.buildings.size || config.quantity ||  2;
+          w.buildings.size = w.buildings.size || config.quantity ||  1;
 
           w.nounify("units", "buildings");
           w.units.on.request();   
@@ -144,14 +144,14 @@ HANNIBAL = (function(H){
             .item.do.garrison()
           ;
 
-        }, radio: function radio () {
+        }, radio: function radio (w, msg) {
 
-          // may help with other close by village tasks
+          w.deb("     G: radio: %s, %s secs", w, msg);
 
 
         }, interval:  function interval (w, secs, tick) {
 
-          w.deb("     G: tick: %s, %s secs", w, secs);
+          w.deb("     G: interval: %s, %s secs", w, secs);
 
           // w.units.on
           //   .doing("idle")
