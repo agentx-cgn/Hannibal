@@ -78,7 +78,7 @@ HANNIBAL = (function(H){
       // "events", 
       "culture",     // store, tree, phases
       // "map",         // grids
-      // "resources",   // after map
+      "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
@@ -333,8 +333,8 @@ HANNIBAL = (function(H){
         // sanitize UnitAI state // TODO: check if function works too
         unitstates:          new Proxy({}, {get: (proxy, id) => {
 
-          print("unitstates: " + id);
-          this.deb("   CTX: unitstates of id: %s, %s", id, entities[id]._templateName || "no template");
+          // print("unitstates: " + id);
+          // this.deb("   CTX: unitstates of id: %s, %s", id, entities[id]._templateName || "no template");
 
           return (
             entities[id] && entities[id]._entity.unitAIState ? 

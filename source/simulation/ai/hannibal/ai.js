@@ -21,8 +21,6 @@ HANNIBAL = (function(H){
 
   var deb = H.deb;
 
-  H.AI = H.AI || {};
-
   H.AI.KMeans = (function () {
 
     /** Constructor */

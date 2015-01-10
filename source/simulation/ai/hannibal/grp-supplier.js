@@ -26,20 +26,20 @@ HANNIBAL = (function(H){
         a group without units solely for the first/biggest CC
 
         Behaviour: 
-          to exploit resources like ruins, mines with stone
+          to exploit resources like ruins, trees, mines
           to build a dropsite if needed
           
       */
 
-      active:         true,           // prepared for init/launch ...
-      description:    "supplier",     // text field for humans 
-      civilisations:  ["*"],          // 
-      interval:       5,              // call onInterval every x ticks
+      active:         true,             // prepared for init/launch ...
+      description:    "supplier",       // text field for humans 
+      civilisations:  ["*"],            // 
+      interval:       5,                // call scripts.interval every x ticks
 
-      technologies: [                 // these techs help
+      technologies: [                   // these techs help
         "gather.lumbering.ironaxes",
         "gather.capacity.wheelbarrow",
-        "gather.wicker.baskets", // ?? only fruits
+        "gather.wicker.baskets",          // ?? only fruits
         "gather.mining.wedgemallet",
         "gather.mining.silvermining",    
         "gather.mining.shaftmining",
@@ -49,39 +49,60 @@ HANNIBAL = (function(H){
 
         launch: function launch (w, config /* supply, size */){
 
+          var supply = config.supply;
+
           w.deb("     G: onlaunch %s, %s", w, uneval(config));
 
+          w.resources = ["resource", supply];
+
           w.units = (
-            config.supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
-            config.supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
-            config.supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
-            config.supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
-            config.supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
-              deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", config.supply)
+            supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
+            supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
+            supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
+            supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
+            supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
+              deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", supply)
           );
 
           w.dropsite = (
-            config.supply === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
-            config.supply === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
-            config.supply === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
-            config.supply === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
-            config.supply === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
+            supply === "metal"      ?  ["shared", "metal ACCEPTEDBY"] :
+            supply === "stone"      ?  ["shared", "stone ACCEPTEDBY"] :
+            supply === "wood"       ?  ["shared", "wood ACCEPTEDBY"]  :
+            supply === "food.fruit" ?  ["shared", "food ACCEPTEDBY"]  :
+            supply === "food.meat"  ?  ["shared", "food ACCEPTEDBY"]  :
+              deb(" ERROR: unknown supply '%s' for supply group", supply)
+          );
+
+          w.resources.size = (
+            supply === "metal"      ?  1  :
+            supply === "stone"      ?  1  :
+            supply === "wood"       ?  10 :
+            supply === "food.fruit" ?  5  :
+            supply === "food.meat"  ?  5  :
               deb(" ERROR: unknown supply '%s' for supply group", config.supply)
           );
 
-          w.units.size     = config.size || 10;
+          w.units.size = (
+            supply === "metal"      ?  10 :
+            supply === "stone"      ?  10 :
+            supply === "wood"       ?  10 :
+            supply === "food.fruit" ?  5  :
+            supply === "food.meat"  ?  2  :
+              deb(" ERROR: unknown supply '%s' for supply group", config.supply)
+          );
+
           w.dropsite.size  = 1;
-          w.resources      = ["resource", config.supply];
-          w.resources.size = 10; // upper limit, the groups handles
 
           w.nounify("units", "resources", "dropsite");
 
-          w.resources.on.request(10); // may get less
+          w.resources.on.request(w.resources.size); // may get less
 
 
         }, assign: function assign (w, item) {
 
           w.deb("     G: assign.0: %s, %s", w, item);
+
+          w.debug = true;
 
           w.objectify("item", item);
 
@@ -101,12 +122,11 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // got initial unit, request dropsite, exits
+          // got initial unit, request dropsite
           w.units.on
             .member(w.item)
             .match(w.dropsite.count, 0)
             .dropsite.do.request()
-            .exit
           ;
 
           // got initial dropsite foundation, units repair
@@ -119,18 +139,26 @@ HANNIBAL = (function(H){
           // got initial dropsite, units gather
           w.dropsite.on
             .member(w.item)
-            .match(!!w.item.foundation)
+            .match(!w.item.foundation)
             .units.do.gather(w.resources)
           ;
 
           // keep requesting units until size
           w.units.on
             .member(w.item)
+            .echo("units: " + w.units.count + w.units.size)
             .lt(w.units.count, w.units.size)
             .request()
           ;
 
-          // got another resource, units gather
+          // got unit, let gather on next resource
+          w.units.on
+            .member(w.item)
+            .resources.do.shift()
+            .item.do.gather(w.resources)
+          ;
+
+          // got another resource, all units gather
           w.resources.on
             .member(w.item)
             .units.do.gather(w.resources)

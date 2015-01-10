@@ -561,8 +561,9 @@ HANNIBAL = (function(H){
 
       var verb = this.verb, hcq = (
 
-        // looking for a resource
+        // looking for a virtual asset
         verb === "find" ? this.hcq :
+        verb === "path" ? this.hcq :
 
         // looking for a technology
         verb === "research" ? this.hcq :
@@ -581,7 +582,20 @@ HANNIBAL = (function(H){
       
       );
 
-      if (verb === "find"){
+      if (verb === "path"){
+        // assuming order done
+        this.remaining = 0; 
+        this.events.fire("OrderReady", {
+          player: this.context.id,
+          id:     NaN,
+          data:   {
+            order: this.id, 
+            source: this.source, 
+            resources: new H.LIB.Path(this.context, this.hcq).path
+          }
+        });
+
+      } else if (verb === "find"){
         // assuming order done
         this.remaining = 0; 
         this.events.fire("OrderReady", {
@@ -1059,6 +1073,8 @@ HANNIBAL = (function(H){
 
       } else if (order.verb === "find") {
         H.throw("ECO: find order leaked into do()");
+      } else if (order.verb === "path") {
+        H.throw("ECO: path order leaked into do()");
 
       }
 
@@ -1093,214 +1109,6 @@ HANNIBAL = (function(H){
   });
 
 return H; }(HANNIBAL));
-
-
-
-  // H.Economy = (function(){
-
-  //       flowBarrack  = tree[cls("barracks")].flow;
-  //       flowCentre   = tree[cls("civcentre")].flow;
-  //       flowFortress = tree[cls("fortress")].flow;
-
-  //       deb("   ECO: max flow centre  : %s ", uneval(flowCentre));
-  //       deb("   ECO: max flow barracks: %s ", uneval(flowBarrack));
-  //       deb("   ECO: max flow fortress: %s ", uneval(flowFortress));
-
-  //     },
-
-  //       // sort availability by stock
-  //       self.availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
-
-
-  //       // H.OrderQueue.process();
-  //       // H.OrderQueue.log();
-  //       self.orderqueue.process();
-
-  //       // deb("orderqueue: %s", H.attribs(self.orderqueue));
-
-  //       self.orderqueue.log();
-  //       self.logTick();
-        
-  //       return Date.now() - t0;
-
-  //     },
-  //     activate: function(){
-
-  //       var node, order;
-
-  //       H.Events.on("EntityRenamed", function (msg){
-
-  //         node = H.QRY("INGAME WITH id = " + msg.id).first();
-  //         if (node){
-  //           self.producers.remove(node);
-  //         } else {
-  //           deb("WARN  : eco.activate.EntityRenamed: id %s no ingame", msg.id);
-  //         }
-
-  //         node = H.QRY("INGAME WITH id = " + msg.id2).first();
-  //         if (node){
-  //           self.producers.register(node.name);
-  //         } else {
-  //           deb("WARN  : eco.activate.EntityRenamed: id2 %s no ingame", msg.id);
-  //         }
-  //       });
-
-  //       H.Events.on("Advance", function (msg){
-  //         // works, but...
-  //         if (self.orderqueue.delete(order => order.hcq === msg.data.technology)){
-  //           self.producers.unqueue("research", msg.data.technology);
-  //           deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
-  //         }        
-  //       });
-
-  //       H.Events.on("ConstructionFinished", function (msg){
-  //         self.producers.register(H.QRY("INGAME WITH id = " + msg.id).first().name);
-  //         // H.Producers.loadById(msg.id);
-  //       });
-
-  //       H.Events.on("TrainingFinished", function (msg){
-
-  //         deb("   ECO: TrainingFinished id: %s, meta: %s", msg.id, uneval(H.MetaData[msg.id]));
-
-  //         node = H.QRY("INGAME WITH id = " + msg.id).first();
-  //         if (node){
-  //           self.producers.register(node.name);
-  //         } else {
-  //           deb("WARN  : eco.activate.TrainingFinished: id %s no ingame", msg.id);
-  //         }
-
-  //         // self.producers.register(H.QRY("INGAME WITH id = " + msg.id).first().name);
-  //         // H.Producers.loadById(msg.id);
-  //         self.producers.unqueue("train", msg.data.task); 
-
-  //         order = H.Objects(msg.data.order);
-  //         order.remaining  -= 1;
-  //         order.processing -= 1;
-          
-  //         // H.Objects(order.source).listener("Ready", id);  
-  //          H.Events.fire("OrderReady", {
-  //           player: H.Bot.id,
-  //           id:     msg.id,
-  //           data:   {order: msg.data.order, source: order.source}
-  //         });
-
-  //       });
-
-  //       H.Events.on("AIMetadata", function (msg){
-
-  //         order = H.Objects(msg.data.order);
-  //         order.remaining  -= 1;
-  //         order.processing -= 1;
-
-  //         deb("   ECO: on AIMetadata order: #%s from %s", order.id, H.Objects(order.source).name);
-          
-  //         // H.Objects(order.source).listener("Ready", id);  
-  //         H.Events.fire("OrderReady", {
-  //           player: H.Bot.id,
-  //           id:     msg.id,
-  //           data:   {order: msg.data.order, source: order.source}
-  //         });
-
-  //       });
-
-  //       // H.Events.on("Advance", function (msg){
-  //       //   self.producers.unqueue("research", msg.data.technology);  
-  //       // });
-
-  //       H.Events.on("Destroy", function (msg){
-  //         self.producers.remove(msg.id);
-  //         // deb("   ECO: got Event destroy for id: %s", msg.id);
-  //       });
-
-
-  //     },
-  //     monitorGoals: function(){
-
-  //     },
-  //     getPhaseNecessities: function(context){ // phase, centre, tick
-        
-  //       var 
-  //         cls = H.class2name,
-  //         cc  = context.centre,
-  //         housePopu = H.QRY(cls("house")).first().costs.population * -1,
-          
-  //         technologies = [],
-  //         launches = {
-
-  //           "phase.village": [
-
-  //              //  tck, amount,       group,        params
-  //              [   2, [1, "g.supplier",   {cc: cc, size: 4, resource: "food.fruit"}]],
-  //              [   2, [1, "g.supplier",   {cc: cc, size: 1, resource: "food.meat"}]],
-  //              [   2, [1, "g.supplier",   {cc: cc, size: 5, resource: "wood"}]],
-  //              [   3, [1, "g.builder",    {cc: cc, size: 2, building: cls("house"),      quantity: 2}]],
-  //              [   4, [1, "g.builder",    {cc: cc, size: 2, building: cls("farmstead"),  quantity: 1}]],
-  //              [   4, [1, "g.builder",    {cc: cc, size: 2, building: cls("storehouse"), quantity: 1}]],
-  //              [  10, [1, "g.harvester",  {cc: cc, size: 5}]],
-  //              [  20, [1, "g.supplier",   {cc: cc, size: 5, resource: "stone"}]],
-  //              [  30, [1, "g.supplier",   {cc: cc, size: 5, resource: "metal"}]],
-
-  //           ],
-  //           "phase.town" :   [
-  //              [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "wood"}]],
-  //              [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "stone"}]],
-  //              [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "metal"}]],
-
-  //           ],
-  //           "phase.city" :   [
-
-  //           ],
-  //         };
-
-  //       return {
-  //         launches: launches,
-  //         technologies: technologies,
-  //         messages: messages,
-  //       };
-
-  //     },
-  //     updateActions: function(phase){
-
-  //       var 
-  //         groups,
-  //         ressTargets = {
-  //           "food":  0,
-  //           "wood":  0,
-  //           "stone": 0,
-  //           "metal": 0,
-  //           "pop":   0,
-  //         };
-
-  //       deb();deb();deb("   ECO: updateActions phase: %s", phase);
-  //       self.planner  = H.Brain.requestPlanner(phase);
-
-  //       // deb("     E: planner.result.data: %s", uneval(planner.result.data));
-
-  //       ressTargets.food  = self.planner.result.data.cost.food  || 0 + self.planner.result.data.ress.food;
-  //       ressTargets.wood  = self.planner.result.data.cost.wood  || 0 + self.planner.result.data.ress.wood;
-  //       ressTargets.metal = self.planner.result.data.cost.metal || 0 + self.planner.result.data.ress.metal;
-  //       ressTargets.stone = self.planner.result.data.cost.stone || 0 + self.planner.result.data.ress.stone;
-
-  //       deb("     E: ress: %s", uneval(ressTargets));
-
-  //       goals = self.getActions(self.planner);
-
-  //       groups = H.Brain.requestGroups(phase);
-  //       groups.forEach(g => deb("     E: group: %s", g));
-
-  //       groups.forEach(group => {
-  //         var [count, name, cc, options] = group;
-  //         H.extend(options, {name: name, cc: cc});
-  //         H.loop(count, () => {
-  //           H.Groups.launch(options);
-  //         });
-  //       });
-
-  //       // H.Groups.log();
-
-  //       deb("   ECO: updateActions -------");deb();
-
-  //     },
 
 
 

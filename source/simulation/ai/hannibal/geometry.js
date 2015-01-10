@@ -12,6 +12,9 @@
 
 */
 
+// abs,acos,asin,atan,atan2,ceil,clz32,cos,exp,floor,imul,fround,log,max,min,pow,
+// random,round,sin,sqrt,tan,log10,log2,log1p,expm1,cosh,sinh,tanh,acosh,asinh,atanh,
+// hypot,trunc,sign,cbrt,E,LOG2E,LOG10E,LN2,LN10,PI,SQRT2,SQRT1_2
 
 
 HANNIBAL = (function(H){
@@ -19,8 +22,6 @@ HANNIBAL = (function(H){
   var 
     PIH = Math.PI / 2,
     PI2 = Math.PI * 2;
-
-  H.Geometry = {};
 
   H.Geometry.Point = function (x, y){
     this.x = x;

@@ -137,11 +137,17 @@ HANNIBAL = (function(H){
 
         if (msg.data.source === this.id){
 
-          if (this.verb === "find"){
+          if (this.verb === "path"){
+
+            ids = msg.data.resources;
+            tpln = "path";
+            this.resources = msg.data.resources.slice();
+
+          } else if (this.verb === "find"){
 
             ids = msg.data.resources;
             tpln = "resources";
-            this.resources = msg.data.resources.slice(0);
+            this.resources = msg.data.resources.slice();
 
           } else {
 
@@ -160,6 +166,7 @@ HANNIBAL = (function(H){
           dslobject = {
             name:        "item",
             resources:   ids, 
+            ispath:      tpln.contains("path"),
             isresource:  tpln.contains("resources"),
             foundation:  tpln.contains("foundation"),
             toString :   () => H.format("[dslobject item[%s]]", id)

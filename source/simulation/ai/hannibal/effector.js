@@ -179,6 +179,23 @@ HANNIBAL = (function(H){
 
     },
 
+    spread: function(who, where){
+
+      this.deb("   EFF: spread: %s", uneval(arguments));
+
+      // distributes units on given points, lengths may differ
+
+      if (who.length && where.length){
+
+        who.forEach( (id, index) => {
+          this.move([id], where[index % where.length]);
+        });
+
+      } 
+      // else { this.deb("   EFF: ignored spread %s", uneval(arguments));}
+
+    },
+
     destroy: function(who){
 
       this.deb("   EFF: destroy: %s", uneval(arguments));

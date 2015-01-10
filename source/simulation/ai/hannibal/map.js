@@ -74,7 +74,7 @@ HANNIBAL = (function(H){
         "obstacles",          // where units can move, dynamic
         "claims",             // reserved space in villages, dynamic
         "attacks",            // where attacks happened, w/ radius, dynamic
-        "scanner",            // used by scouts
+        "scanner",            // used by scouts to mark explored area
       ],
 
       length:        0,
@@ -166,6 +166,7 @@ HANNIBAL = (function(H){
       return Date.now() - t0;
 
     },    
+    center: function(){return [this.width/2, this.height/2]},
     mapPosToGridPos: function(p){
       return [~~(p[0] / this.cellsize), ~~(p[1] / this.cellsize)];
     },

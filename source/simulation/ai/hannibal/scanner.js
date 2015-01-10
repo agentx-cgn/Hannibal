@@ -71,6 +71,7 @@ HANNIBAL = (function(H){
     initialize: function(){
       this.grids.scanner = this.map.scanner;
       this.grids.attacks = this.map.attacks;
+      return this;
     },
     dump: function (name, grid){grid.dump(name || "scouting", 255);},
     createDetector: function (position, vision){

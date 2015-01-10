@@ -253,14 +253,24 @@ HANNIBAL = (function(H){
     activate: function(){},
     find: function(order){
 
-      // fire event with resources or none if not avail
+      // return array of resource ids, sorted
       // ,amount,cc,location,verb,hcq,source,shared,id,processing,remaining,product,x,z,nodes
 
-      var asset = this.groups.findAsset(asset => asset.id === order.source);
+      var 
+        asset  = this.groups.findAsset(asset => asset.id === order.source),
+        result = this.nearest(order.location, order.hcq)
+          .slice(0, order.amount)
+          .map(res => res.id);
 
-      this.deb("  RESS: got find request: %s, res: %s, loc: %s, from: %s", order.amount, order.hcq, order.location, asset);
+      this.deb("  RESS: find: %s, res: %s, loc: %s, from: %s || result: %s", 
+        order.amount, 
+        order.hcq, 
+        order.location, 
+        asset,
+        result
+      );
 
-      return [];
+      return result;
 
     },
     availability: function( /* arguments */ ){
@@ -353,17 +363,15 @@ HANNIBAL = (function(H){
         }            
       });
     },
-    nearest: function(loc, type){
+    nearest: function(pos, type){
 
-      var 
-        t0, t1, resource, distance, kmeans, trees, cid,
-        resFound = null, 
-        dis = 1e7, 
-        pos = Array.isArray(loc) ? loc : loc.location();
+      var t0 = Date.now(), t1, resources = [], kmeans, trees, cid;
 
       // deb("   RES: looking for nearest '%s' at %s", generic, pos);
 
       switch (type){
+
+        // first without clustering
         case "stone":
         case "stone.ruin":
         case "stone.rock":
@@ -375,36 +383,30 @@ HANNIBAL = (function(H){
         case "treasure.metal":
         case "treasure.stone":
         case "food.fruit":
-        case "food.grain": // untested
+        case "food.grain": // done by harvester
         case "food.whale": // untested
         case "food.fish":  // untested
           this.eachType(type, (generic, specific, id, res) => {
             if (this.entities[id]){
               if (res.found && !res.consumed){
-                distance = this.map.distance(pos, res.position);
-                if (distance < dis){resFound = res; dis = distance;}
+                resources.push(res);
               }
-            } else {
-              res.consumed = true;
-            }
+            } else { res.consumed = true; }
           });
-          resource = resFound;
         break;
 
-        case "food.meat": // has prey check
+        // same with prey check
+        case "food.meat": 
           this.each(this.resources.food, (id, res) => {
             if (this.entities[id]){
               if (res.found && !res.consumed && res.isPrey){
-                distance = this.map.distance(pos, res.position);
-                if (distance < dis){resFound = res; dis = distance;}
+                resources.push(res);
               }
-            } else {
-              res.consumed = true;
-            }
+            } else { res.consumed = true; }
           });
-          resource = resFound;
         break;
 
+        // trees come in clusters
         case "wood":
         case "wood.ruins":
         case "wood.tree":
@@ -416,17 +418,11 @@ HANNIBAL = (function(H){
               if (res.found && !res.consumed){
                 trees.push({x: res.position[0], z: res.position[1], id: id, res: res});
               }
-            } else {
-              res.consumed = true;
-            }
+            } else { res.consumed = true; }
           });
           
-          if (!trees.length){
-            this.deb("   RES: kmeans: 0 trees");
-          
-          } else {
+          if (trees.length){
 
-            t0 = Date.now();
             kmeans = new H.AI.KMeans();
             kmeans.k = 3; // map size !!!!
             kmeans.maxIterations = 50;
@@ -434,21 +430,17 @@ HANNIBAL = (function(H){
             kmeans.initCentroids();
             kmeans.cluster();
 
-            // nearest cluster TODO: filter out centroids without trees
+            // get nearest cluster
             cid = kmeans.centroids
               .filter(c => c.items > 0)
               .sort((a, b) => {
                 var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
                     db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
                 return da - db;
-              })[0];
-            
-            // nearest tree from that cluster TODO: nearest to tree from org loc of this cluster
-            trees.sort(function(a, b){
-              var da = (a.x - cid.x) * (a.x - cid.x) + (a.z - cid.z) * (a.z - cid.z),
-                  db = (b.x - cid.x) * (b.x - cid.x) + (b.z - cid.z) * (b.z - cid.z);
-              return da - db;
-            });
+            })[0];
+
+            // 
+            resources = kmeans.centroids[cid].map(item => item.res);
             
             t1 = Date.now();
 
@@ -461,20 +453,34 @@ HANNIBAL = (function(H){
               t1-t0
             );
 
-          }
+          } else {
+            this.deb("   RES: kmeans: 0 trees");
+            resources = trees;
 
-          resource = trees.length ? trees[0].res : null;
+          }
 
         break;
 
         default: 
-          this.deb("ERROR : unknown resource type: %s in nearest", type);
+          this.deb("ERROR : RESS unknown resource type: %s in nearest", type);
 
       }
 
-      this.deb("   RES: nearest '%s': %s at %s", type, resource, H.fixed1(pos));
-      // deb("   RES: attribs: %s", H.attribs(resource));
-      return resource;
+      // sort by distance to pos, nearest first
+      resources.sort(function(a, b){
+        var 
+          dax = a.position[0] - pos[0],
+          day = a.position[1] - pos[1],
+          dbx = b.position[0] - pos[0],
+          dby = b.position[1] - pos[1],
+          da = dax * dax + day * day,
+          db = dbx * dbx + dby * dby;
+        return da < db ? 1 : -1;
+      });
+
+      this.deb("  RESS: nearest '%s': %s for %s", type, resources.length, H.fixed1(pos));
+
+      return resources;
 
     },      
   

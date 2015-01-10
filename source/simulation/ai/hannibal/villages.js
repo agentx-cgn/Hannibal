@@ -28,12 +28,14 @@ HANNIBAL = (function (H){
         "groups",
         "config",
         "objects",
-        "entities", // hasClass
+        "entities",     // hasClass
         "metadata",
       ],
 
-      main:      NaN,
-      centres:   null, 
+      main:      NaN,        // id of first centre
+      centres:   null,       // list of centres
+      theta:     NaN,        // rads of main to center of map
+      angle:     NaN,        // angle
 
       counter: {
         units:  0,
@@ -51,7 +53,7 @@ HANNIBAL = (function (H){
     contructor: H.LIB.Villages,
     log: function () {
       this.deb();
-      this.deb("  VILL:    main: %s, counts: %s", this.main, JSON.stringify(this.counter));
+      this.deb("  VILL:    main: %s, angle: %s, counts: %s", this.main, this.angle.toFixed(1), JSON.stringify(this.counter));
       this.deb("     V: centres: %s", JSON.stringify(this.centres));
     },
     import: function () {
@@ -148,7 +150,7 @@ HANNIBAL = (function (H){
     organizeVillages: function () {
 
       var 
-        ccNodes, ccId, getMain = () => {
+        ccNodes, ccId, posMain, posCenter, getMain = () => {
           var max = -1, cic;
           H.each(this.centres, (id, list) => {
             if (list.length > max){cic = id; max = list.length;}
@@ -198,7 +200,11 @@ HANNIBAL = (function (H){
 
       });
 
-      this.main = getMain();
+      this.main  = getMain();
+      posMain    = this.entities[this.main].position();
+      posCenter  = this.map.center();
+      this.theta = Math.atan2(posCenter[1] - posMain[1], posCenter[0] - posMain[0]);
+      this.angle = this.theta * 180 / Math.PI;
 
       H.each(this.centres, (id, amount) => {
         // deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === this.main ? "X" : ""));

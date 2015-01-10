@@ -71,16 +71,19 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
+      imports: [
+        "map"
+      ],
+
       klass:         "dsl:language",
       context:       context,
+
       corpusname:    corpus,
       corpus:        H.DSL.Corpora[corpus],
       handler:       handler,  
 
-      verbs:         null,
-
+      verbs:         {},
       world:         null,
-      worlds:        null,
 
       scriptname:    ""
 
@@ -94,16 +97,6 @@ HANNIBAL = (function(H){
   H.DSL.Language.prototype = H.mixin (
     H.LIB.Serializer.prototype, {
     constructor: H.DSL.Language,
-    initialize: function(){
-
-      this.worlds = new Map();
-      this.verbs = {};
-
-      // prepare nouns
-      // H.each(this.corpus.nouns, (noun, obj) => this.nouns[noun] = obj);
-
-      return this;
-    },
     createWorld: function(actor){
 
       var self = this, world = {actor: actor};
@@ -112,41 +105,19 @@ HANNIBAL = (function(H){
       
       H.extend(world, {
 
-        execute:  false,
-        proceed:  false,
+        dsl:      this,      // uplink
+
+        execute:  false,     // script execution is enabled
+        proceed:  false,     // sentence execution is enabled
 
         nouns:      {},
-        subject:  null,   // currently active subject
-        object:   null,   // temporarely active object
-
-        // debug
-        sentence: [],
-        toString: () => H.format("[world %s]", this.corpusname),
-        deb:      function(){
-          self.deb.apply(self, arguments);
-          return world;
-        },
-        log:      function(){
-          var msg = H.format.apply(null, arguments);
-          if (world.execute && world.proceed){
-            world.deb("------: ");
-            world.deb("      : " + msg);
-            world.deb("      :    actor: %s, script: %s", world.actor, self.scriptname);
-            world.deb("      :  subject: %s, object: %s", world.subject, world.object);
-            world.deb("      : sentence: %s", world.sentence);
-            H.each(self.corpus.nouns, noun => {
-              if (world[noun]){
-                world.deb("      : %s -> %s", noun, world[noun]);
-              }
-            });
-            world.deb("------: ");
-          }
-          return world;
-        },
+        subject:  null,      // currently active subject
+        object:   null,      // currently active object
 
         reset: () => {
           // this.deb("   DSL: world reset from sentence: %s", world.sentence);
           world.sentence = [];
+          world.debug    = false;
           world.proceed  = true;
           world.execute  = true;
           world.subject  = null;
@@ -173,7 +144,39 @@ HANNIBAL = (function(H){
             this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
 
           });
-        }
+        },
+
+        // debug
+        sentence: [],
+        toString: () => H.format("[world %s]", this.corpusname),
+        deb:      function(){
+          self.deb.apply(self, arguments);
+          return world;
+        },
+        log:      function(){
+          var msg = H.format.apply(null, arguments);
+          if (world.execute && world.proceed){
+            world.deb("------: ");
+            world.deb("      : " + msg);
+            world.deb("      :    actor: %s, script: %s", world.actor, self.scriptname);
+            world.deb("      :  subject: %s, object: %s", world.subject, world.object);
+            world.deb("      : sentence: %s", world.sentence);
+            H.each(self.corpus.nouns, noun => {
+              if (world[noun]){
+                world.deb("      : %s -> %s", noun, world[noun]);
+              }
+            });
+            world.deb("------: ");
+          }
+          return world;
+        },
+        // echo:   function(act, sub, obj, a){
+        echo:   function(){
+          if (world.execute && world.proceed){
+            world.deb("   WLD: echo: %s", H.format.apply(null, arguments));
+          }
+          return world;
+        },
 
       });
   
@@ -197,23 +200,27 @@ HANNIBAL = (function(H){
         (name, fn) => this.setattribute(world, name, fn)
       );      
 
-      this.worlds.set(actor, world);
-      
+      // points
+      H.each(
+        this.corpus.methods, 
+        (name, fn) => this.setgetter(world, name, fn)
+      );      
+
       return world;
 
     },
     runScript: function(world, actor, script, params){
-      var t0 = Date.now();
+      var t1, t0 = Date.now();
       this.world = world;
       this.scriptname = script.name;
       world.reset();
       world.actor = actor;
       params.unshift(world);
       script.apply(actor, params);
-      // this.deb("   DSL: runScript in %s msec %s %s", Date.now() - t0, script.name, actor);
-    },
-    setverbs: function(world, verbs){
-      H.each(verbs, (verb, fn) => this.setverb(world, verb, fn));
+      t1 = Date.now();
+      if(t1 - t0 > 2){
+        this.deb("WARN  : DSL: runScript took %s msec %s %s", t1 - t0, script.name, actor);
+      }
     },
     setnoun:  function(world, noun, obj){
       // this.deb("   DSL: setnoun: %s", noun);
@@ -232,11 +239,15 @@ HANNIBAL = (function(H){
           }
       });
     },
+    setverbs: function(world, verbs){
+      H.each(verbs, (verb, fn) => this.setverb(world, verb, fn));
+    },
     setverb:  function(world, verb, fn){
       // this.deb("   DSL: setverb: %s", verb);
       world[verb] = () => {
         var args = H.toArray(arguments); //, world = this.world;
         if (world.execute && world.proceed){
+          if (world.debug){this.deb("   WLD: %s %s %s", world.subject.name, verb, world.object.name);}
           world.sentence.push(["v:", verb]);
           args.unshift(world.actor, world.subject, world.object);
           fn.apply(world, args);
@@ -263,8 +274,22 @@ HANNIBAL = (function(H){
           }
       });
     },
-    deleteWorld: function(actor){
-      this.worlds.delete(actor);
+    setgetter:  function(world, method, fn){
+      this.deb("   DSL: setgetter: %s", method);
+      // this.deb("   DSL: setverb: %s", method);
+      world[method] = () => {
+        var args = H.toArray(arguments); //, world = this.world;
+        if (world.execute && world.proceed){
+          if (world.debug){this.deb("   WLD: %s %s %s", world.subject.name, method, world.object.name);}
+          world.sentence.push(["m:", method]);
+          args.unshift(world.subject, world.object);
+          return fn.apply(world, args);
+          // this.deb("   DSL: applied method '%s' args: %s", method, args);
+        } else {
+          // this.deb("   DSL: ignored: method '%s' pro: %s, exe: %s", method, world.proceed, world.execute);
+        }
+        return null;
+      };
     },
   
   });
@@ -281,6 +306,7 @@ HANNIBAL = (function(H){
     constructor: H.DSL.Nouns.Group,
     toString: function(){return H.format("[noun:group %s]", this.name);},
     update: function(){
+      this.position = this.host.position;
     }
   };
 
@@ -428,27 +454,49 @@ HANNIBAL = (function(H){
       // verbs are defined in groups.js
       nouns : {
         "group":       H.DSL.Nouns.Group,
+        "path":        H.DSL.Nouns.Entities,
         "village":     H.DSL.Nouns.Village, 
         "scanner":     H.DSL.Nouns.Scanner,   
-        "centre":      H.DSL.Nouns.Entities, 
         "resources":   H.DSL.Nouns.Resources, 
-        "buildings":   H.DSL.Nouns.Entities, 
-        "units":       H.DSL.Nouns.Entities,   
-        "item":        H.DSL.Nouns.Entities,   
+
         "attacker":    H.DSL.Nouns.Entities,   
-        "field":       H.DSL.Nouns.Entities,   
+        "buildings":   H.DSL.Nouns.Entities, 
+        "centre":      H.DSL.Nouns.Entities, 
         "dropsite":    H.DSL.Nouns.Entities,   
+        "field":       H.DSL.Nouns.Entities,   
+        "item":        H.DSL.Nouns.Entities,   
+        "units":       H.DSL.Nouns.Entities,   
+      },
+      methods: {
+        points: function(s, o, selector){
+          return [o.list[selector]];
+        },
       },
       attributes: {
-        position:     function(s, o){return H.Map.getCenter(o.list);}, 
-        health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
-        vision:       function(s, o){return H.DSL.Helper.vision(o.list);}, 
+        // health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
+        // vision:       function(s, o){return H.DSL.Helper.vision(o.list);}, 
         count:        function(s, o){return o.list.length;}, 
         size:         function(s, o){return o.size;}, 
         foundation:   function(s, o){return o.foundation;}, 
         distance:     function(s, o){
-          return this.map.distance(this.map.getCenter(s.list), this.map.getCenter(o.list));
+          return this.dsl.map.distance (
+            this.map.dsl.getCenter(s.list), 
+            this.map.dsl.getCenter(o.list)
+          );
         }, 
+        direction:    function(s, o){
+          var 
+            spos = this.dsl.map.getCenter(s.list),
+            opos = this.dsl.map.getCenter(o.list);
+          return [ opos[0] - spos[0], opos[1] - spos[1] ];
+        },
+        position:     function(s, o){
+          if (o instanceof H.DSL.Nouns.Group){
+            return o.position;
+          } else {
+            return this.dsl.map.getCenter(o.list);
+          }
+        },
       },
       modifier: {
         member: function(act, s, o){
@@ -458,7 +506,7 @@ HANNIBAL = (function(H){
           if (s instanceof H.DSL.Nouns.Resources){
             // relies on groups have only single resource asset
             this.proceed = o.isresource;
-            this.deb("   DSL: match s = resource and o = res %s", o.isresource);
+            // this.deb("   DSL: match s = resource and o = res %s", o.isresource);
 
           } else {
             this.proceed = this.proceed ? (

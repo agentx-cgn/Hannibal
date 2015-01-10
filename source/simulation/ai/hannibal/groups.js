@@ -31,13 +31,14 @@ HANNIBAL = (function(H){
         "economy",
         "orderqueue",
         "effector",
+        "unitstates",
       ],
 
       instances: [],
 
     });
 
-    this.dsl = new H.DSL.Language(context, this, "groups").initialize();
+    this.dsl = new H.DSL.Language(context, this, "groups").import().initialize();
 
   };
 
@@ -130,7 +131,7 @@ HANNIBAL = (function(H){
       
       this.instances.forEach(instance => {
         interval = ~~instance.interval; 
-        if (interval > 0 && (tick % interval === 0) && instance.scripts.tick){ 
+        if (interval > 0 && (tick % interval === 0) && instance.scripts.interval){ 
           this.callWorld(instance, "interval", [secs, tick]);
         }
       });
@@ -174,20 +175,23 @@ HANNIBAL = (function(H){
     },
     getverbs: function () {
 
+      var path;
+
       // nouns and attributes are listed in corpus
 
       return {
 
-        request:   (act, sub, obj, amount) => {
-          this.request(act, amount || 1, sub.host, act.position);
-        },
+        request:   (act, sub, obj, n)      => this.request(act, n || 1, sub.host, act.position),
         relocate:  (act, sub, obj, path)   => sub.host.position = path[path.length -1],
         move:      (act, sub, obj, path)   => this.effector.move(sub.list, path),
+        spread:    (act, sub, obj, path)   => this.effector.spread(sub.list, obj.list),
         gather:    (act, sub, obj)         => this.effector.gather(sub.list, obj.list),
         stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
         format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
         attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
         dissolve:  (act, sub)              => this.dissolve(sub.host),
+        shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
+        doing:     (act, sub, obj, filter) => sub.list = this.doing(sub.list, filter),
         repair:    (act, sub, obj)         => {
 
           // TODO: skip buildings with health > 90%
@@ -195,7 +199,15 @@ HANNIBAL = (function(H){
           this.effector.repair(sub.list, obj.list);
 
         },
-        shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
+        shift:     (act, sub, obj, n)         => {
+          sub.list = H.rotate(sub.list, n || 1);
+          sub.host.resources = H.rotate(sub.host.resources, n || 1);
+        },
+        modify:    (act, sub, obj, definition) => {
+          path = new H.LIB.Path(this.context, sub.list).modify(definition).path;
+          sub.host.resources = path;
+          sub.update();
+        },
 
       };
 
@@ -312,6 +324,9 @@ HANNIBAL = (function(H){
       if (definition[0] === "resource"){
         return "find";
 
+      } else if (definition[0] === "path"){
+        return "path";
+
       } else if (definition[0] === "claim"){
         return "claim";
 
@@ -395,6 +410,34 @@ HANNIBAL = (function(H){
       return instance;
 
     },
+    doing: function(list, filter){ 
+
+      // filters ids in list on unit ai state
+      // e.g. "idle"
+
+      var 
+        ids = [], 
+        states = [],
+        actions = filter.split(" ").filter(a => !!a);
+
+      actions.forEach(action => {
+        list.forEach(id => {
+          var state = this.unitstates[id];
+          states.push(state);
+          if (action[0] === "!"){
+            if (state !== action.slice(1)){ids.push(id);}
+          } else {
+            if (state === action){ids.push(id);}
+          }
+        });
+      });
+
+      // this.deb("  GRPS: doing from: %s to %s by %s || found: %s", list, ids, filter, states);
+      this.deb("  GRPS: doing found: %s", states);
+
+      return ids;
+
+    },    
     scan: function(instance, positionOrAsset){
       // needs work
       var position, vision;
@@ -468,7 +511,7 @@ HANNIBAL = (function(H){
       world = this.dsl.createWorld(instance);
       this.dsl.setverbs(world, this.getverbs());
       world.group = instance;
-      world.group.size = 1
+      world.group.size = 1;
       world.nounify("group");
 
       H.extend(instance, {

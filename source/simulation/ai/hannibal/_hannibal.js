@@ -3,7 +3,7 @@
 
 /*--------------- H A N N I B A L ---------------------------------------------
 
-  This is load first by 0 A.D.
+  This is loaded first by 0 A.D.
   Home: https://github.com/noiv/Hannibal/blob/master/README.md
 
   tested with 0 A.D. Alpha 17 Quercus
@@ -12,16 +12,14 @@
   Credits:
 
     kmeans: 
-    pythonic slicing:
     helper:
 
 */
 
 /* 
-  current loading sequence
+  loading sequence:
     _debug
     _hannibal
-    _launcher
     _lhelper
     _logger
     a-z
@@ -40,12 +38,14 @@ var HANNIBAL = (function() {
 
     MODULESTART: Date.now(),
 
-    API:    API3, 
-    LIB:    {}, 
-    HTN:    {Economy: {}, Helper: {}}, 
-    DSL:    {Nouns: {}}, 
-    Data:   {Groups: {}}, 
-    Groups: {},
+    API:      API3, 
+    AI:       {}, 
+    LIB:      {}, 
+    HTN:      {Economy: {}, Helper: {}}, 
+    DSL:      {Nouns: {}}, 
+    Data:     {Groups: {}}, 
+    Groups:   {},
+    Geometry: {},
     
     throw: function(){
       var 
