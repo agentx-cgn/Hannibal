@@ -1,5 +1,5 @@
 var HANNIBAL_DEBUG = {
-  "map": "random/brainland", 
+  "map": "random/alpine_lakes", 
   "bots": {
     "1": {
       "log": 4, 

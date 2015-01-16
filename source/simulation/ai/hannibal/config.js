@@ -20,8 +20,7 @@ HANNIBAL = (function(H){
     deb:      4,                   // enables messages to dbgView via _xdebug.js.deb()
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
-    // "" disables H.Tester
-    sequence:                "brain02",
+    sequence:                "random/brainland",
     // sequence: "Forest Battle",
 
     // enable psy-ops

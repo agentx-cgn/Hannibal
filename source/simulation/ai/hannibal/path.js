@@ -150,7 +150,7 @@ HANNIBAL = (function(H){
     },
     translate: function(x, z){
 
-      // displaces all point by x,z of vector
+      // displaces all point by x, z 
 
       var p = this.path;
 
@@ -176,7 +176,10 @@ HANNIBAL = (function(H){
       this.log("translatep.in");
 
       loop(p.length, n => {
-        p[n] = [ p[n][0] + radius * cosr, p[n][1] + radius * sinr ];
+        p[n] = [ 
+          p[n][0] + radius * cosr, 
+          p[n][1] + radius * sinr 
+        ];
       });
 
       this.log("translatep.out");
@@ -184,7 +187,7 @@ HANNIBAL = (function(H){
     },
     rotate: function(angle){
 
-      // rotate path around its center by angle (degrees)
+      // rotates path counter clockwise around its center by angle (degrees)
 
       var 
         p    = this.path,
@@ -194,13 +197,17 @@ HANNIBAL = (function(H){
         cosr = cos(rads);
 
       loop(p.length, n => {
-        p[n] = rotatedPoint(p[n], org, sinr, cosr);
+        p[n] = [
+          cosr * (p[n][0] - org[0]) - sinr * (p[n][1] - org[1]) + p[n][0],
+          sinr * (p[n][0] - org[0]) + cosr * (p[n][1] - org[1]) + p[n][1]
+        ];
       });
 
     },
     linspace: function(pt1, pt2){
 
-      // put cords on a straight line between pt1, pt2, including both
+      // puts coords evenly distributed on a straight line between pt1, pt2, 
+      // including both
 
       var 
         p = this.path,
@@ -208,7 +215,10 @@ HANNIBAL = (function(H){
         sz = (pt2[1] - pt1[1]) / p.length;
 
       loop(p.length, n => {
-        p[n] = [pt1[0] + n * sx, pt1[1] + n * sz];
+        p[n] = [
+          pt1[0] + n * sx, 
+          pt1[1] + n * sz
+        ];
       });
 
     },

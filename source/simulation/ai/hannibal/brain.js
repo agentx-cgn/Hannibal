@@ -29,6 +29,26 @@
 HANNIBAL = (function(H){
 
   var 
+    goals = {
+      expandVill:  {
+        valid:        true,
+        done:         false,
+        constuctions: ["house-vill", "farmstead", "storehouse", "blacksmith", "field", "barracks", "dock"],
+        check:        function(){if (!this.valid || this.done){return true;} else {return false;}}
+      },
+      expandTown:  {
+        valid:        true,
+        done:         false,
+        constuctions: ["house-town", "market", "temple", "shipyard"],
+        check:        function(){return false;}
+      },
+      expandCity:  {
+        valid:        true,
+        done:         false,
+        constuctions: ["house-city", "fortress", "wall"],
+        check:        function(){return false;}
+      },
+    },
     parameters = {
 
     // Dimensions
@@ -64,6 +84,35 @@ HANNIBAL = (function(H){
   };
 
   function class2name (klass) {return H.QRY(klass + " CONTAIN").first().name;}
+
+
+  H.LIB.Goals = function(context){
+
+    H.extend(this, {
+
+      context:  context,
+
+      imports:  [
+        "events",
+        "culture",
+        "economy",
+        "query",
+        "villages",
+      ],
+
+    });
+
+  };
+
+  H.LIB.Goals.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
+    constructor: H.LIB.Goals,
+    log: function(){this.deb();this.deb(" Goals: all good");},
+  });
+
+
+
+
 
 
   H.LIB.Brain = function(context){

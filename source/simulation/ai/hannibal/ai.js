@@ -11,6 +11,7 @@
                 License: https://raw.githubusercontent.com/bgrins/javascript-astar/master/LICENSE
   Binary Heap : Marijn Haverbeke, Credit: http://eloquentjavascript.net/appendix2.html
                 License: http://creativecommons.org/licenses/by/3.0/
+  Flow Field  : Corey Birnbaum, Credit: https://github.com/vonWolfehaus/FlowField
 
   V: 0.1, agentx, CGN, JUl, 2014
 
@@ -298,7 +299,28 @@ HANNIBAL = (function(H){
     this.visited = false;
     this.closed  = false;
     this.parent  = null;
-  }
+  };
+
+  H.AI.GraphFromFunction = function(grid, fnWeight){
+
+    var
+      graph = new H.AI.Graph(grid.data),
+      node = null, y = 0, size = grid.size, x = size;
+
+    while (x--) {
+      graph.grid[x] = [];
+      y = size; 
+      while(y--) {
+        node = new H.AI.GraphNode(x, y, fnWeight(x + y * size));
+        graph.grid[x][y] = node;
+        graph.nodes.push(node);
+      }
+    }
+    // graph.clear();
+    return graph;
+
+  };
+
 
   H.AI.Graph = function (data, options) {
 
@@ -309,8 +331,8 @@ HANNIBAL = (function(H){
     this.nodes = [];
     this.grid  = [];
 
-    this.init();
-    this.clear();
+    // this.init();
+    // this.clear();
 
   };
 
@@ -328,6 +350,8 @@ HANNIBAL = (function(H){
           this.nodes.push(node);
         }
       }
+      this.clear();
+      return this;
     },
     clear: function() {
       var i, l = this.nodes.length, node;
@@ -342,7 +366,7 @@ HANNIBAL = (function(H){
         node.parent  = null;
       }      
     },
-    setNeighbors: function(neighbors, node) {
+    setNeighbors8: function(neighbors, node) {
 
       var x = node.x, y = node.y, grid = this.grid;
 
@@ -355,6 +379,16 @@ HANNIBAL = (function(H){
       neighbors[5] = grid[x+1][y-1];
       neighbors[6] = grid[x-1][y+1];
       neighbors[7] = grid[x+1][y+1];
+
+    },
+    setNeighbors4: function(neighbors, node) {
+
+      var x = node.x, y = node.y, grid = this.grid;
+
+      neighbors[0] = grid[x-1][y];
+      neighbors[1] = grid[x+1][y];
+      neighbors[2] = grid[x][y-1];
+      neighbors[3] = grid[x][y+1];
 
     }
 
@@ -373,7 +407,7 @@ HANNIBAL = (function(H){
   H.AI.BinaryHeap = function(){
     this.content = [];
     this.length  = 0;
-  }
+  };
   
   H.AI.BinaryHeap.prototype = {
     constructor: H.AI.BinaryHeap,
@@ -580,7 +614,7 @@ HANNIBAL = (function(H){
         }
         
         currentNode.closed = true;                    // Normal case -- move currentNode from open to closed, process each of its neighbors.
-        graph.setNeighbors(neighbors, currentNode);   // Find all neighbors for the current node.
+        graph.setNeighbors8(neighbors, currentNode);   // Find all neighbors for the current node.
 
         for (i = 0; i < 8; i++) {
 
@@ -638,6 +672,118 @@ HANNIBAL = (function(H){
         {path: pathTo(closestNode), success: false, nodes: visited} :
         {path: [], success: false, nodes: visited}
       );
+
+    }
+
+  };
+
+  /*
+    Takes the terrain + regions + start coords to return a int field
+    with each coord pointing to start along the terrain
+
+  */
+
+  H.AI.FlowField = {
+
+    create: function(terrain, regions, coords){
+
+      var 
+        i, a, b, n, dx, dz, currentNode, grid, length, neighbor, distance, theta,
+        INTRAD = 128 / Math.PI,
+        SQRT2  = Math.sqrt(2),
+        [x, z] = coords,
+        size   = terrain.size,
+        field  = new Uint8Array(terrain.length),
+        reg    = regions.data[x + z * size],
+        openlist  = [], neighbors = [null, null, null, null],
+        graph  = new H.AI.GraphFromFunction(terrain, function(idx){
+          // only given region, otherwise walls
+          return regions.data[idx] === reg ? 1 : 0;
+        }),
+        grid = graph.grid,
+
+        counter = 0,
+        test = [];
+
+
+      deb("FlowField: coords: %s, regindex: %s, length: %s", coords, reg, size * size);
+
+
+      // first entry
+      openlist.push(grid[x][z]);
+
+      while (openlist.length){
+
+        currentNode = openlist.shift();
+        currentNode.closed = true;         
+
+        x = currentNode.x;           
+        z = currentNode.y;           
+
+        graph.setNeighbors8(neighbors, currentNode);
+
+        for (i = 0; i < 8; i++) {
+
+          neighbor = neighbors[i];
+
+          if (neighbor.closed || neighbor.weight === 0 || neighbor.visited) {continue;}
+
+          distance = (
+            currentNode.x === neighbor.x ? 1 :
+            currentNode.y === neighbor.y ? 1 :
+              SQRT2
+          );
+
+          // deb("%s, %s, %s", neighbor.x, neighbor.y, currentNode.f +1);
+
+          neighbor.f = currentNode.f + distance;
+          neighbor.visited = true;
+          openlist.push(neighbor);
+
+        }
+
+      }
+
+      for (x=0; x<size; x++){
+        for (z=0; z<size; z++){
+
+          counter += 1;
+
+          n = grid[x][z];
+          
+          test[x + z * size] = n.f % 256;
+
+          // a  = x -1 >= 0   && grid[x-1][z].weight !== 0 ? grid[x-1][z].f : n.f;
+          // b  = x +1 < size && grid[x+1][z].weight !== 0 ? grid[x+1][z].f : n.f;
+          // dx = a - b;
+
+          // a  = z -1 >= 0   && grid[x][z-1].weight !== 0 ? grid[x][z-1].f : n.f;
+          // b  = z +1 < size && grid[x][z+1].weight !== 0 ? grid[x][z+1].f : n.f;
+          // dz = a - b;
+
+          a = x === 0 || x === size -1 ? n.f : grid[x-1][z].weight === 0 ? grid[x+1][z].f : grid[x-1][z].f;
+          b = x === 0 || x === size -1 ? n.f : grid[x+1][z].weight === 0 ? grid[x-1][z].f : grid[x+1][z].f;
+          dx = a - b;
+
+          a = z === 0 || z === size -1 ? n.f : grid[x][z-1].weight === 0 ? grid[x][z+1].f : grid[x][z-1].f;
+          b = z === 0 || z === size -1 ? n.f : grid[x][z+1].weight === 0 ? grid[x][z-1].f : grid[x][z+1].f;
+          dz = a - b;
+
+          theta = Math.atan2(dz, dx);
+
+          // deb("%s, %s, %s, %s, theta: %s", x, z, dx, dz, theta);
+
+          field[x + size * z] = ~~(Math.atan2(dz, dx) * INTRAD) + 128;
+
+          // if (counter > 1000) return;
+
+        }
+      }
+
+      deb("FlowField: coords: %s, regindex: %s, length: %s, counter: %s", coords, reg, size * size, counter);
+
+
+      return [field, test];
 
     }
 

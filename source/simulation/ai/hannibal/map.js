@@ -1,10 +1,9 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals  HANNIBAL, Uint8Array, uneval */
+/*globals  HANNIBAL, Uint8Array, uneval, logObject */
 
 /*--------------- M A P S -----------------------------------------------------
 
-  Deals with map aspects in coordinates, grids + 
-  cosmetic rewite offindGoodPosition, createObstructionsmap from Aegis
+  Deals with map aspects in coordinates, contains all grids and fields
 
 
   tested with 0 A.D. Alpha 17 Quercus
@@ -12,6 +11,36 @@
 
 */
 
+/* 
+  naming conventions:
+    positions: array of floats [x, z] in map dmension (m)
+    coords:    array of ints [x, z] in grid dimension (m/grid.cellsize)
+    grids:     one dimensional int arrays having width === height
+    fields:    one dimensional float arrays having width === height
+    size:      width or height of grids
+    cell:      area covered in map by grid index
+    index:     pointer into grid, index = x + y * size
+    length:    width * height
+    id:        a single entity id, int
+    ids:       array of entity ids e.g. [45, 46, ...]
+    distance:  float, scalar in map positions
+
+*/ 
+
+/* 
+  grids: 
+    terrain:         water, land, shore, etc, static
+    regionswater:    connected water cells, static
+    regionsland:     connected land cells, static
+    obstructions:    where buildings can be placed, dynamic
+    obstacles:       where units can move, dynamic
+    claims:          reserved space in villages, dynamic
+    attacks:         where attacks happened, w/ radius, dynamic
+    scanner:         used by scouts to mark explored area
+
+*/
+
+// http://www.nayuki.io/res/smallest-enclosing-circle/smallestenclosingcircle.js
 // http://stackoverflow.com/questions/4826453/get-two-lower-bytes-from-int-variable
 
 // sharedScript.passabilityClasses
@@ -36,8 +65,16 @@
 
 HANNIBAL = (function(H){
 
-  var 
+  const 
+
     TERRITORY_PLAYER_MASK = 0x3F, // 63
+
+    sin = Math.sin,
+    cos = Math.cos,
+    sqrt = Math.sqrt,
+    PI2  = Math.PI * 2,
+    PIH  = Math.PI / 2,
+
     pritShort = function (a){
       return (
         !Array.isArray(a) ? a :
@@ -63,6 +100,7 @@ HANNIBAL = (function(H){
         "events",
         "entities",           
         "templates",           
+        "villages",           
         "players",            // isEnemy
       ],
 
@@ -120,12 +158,10 @@ HANNIBAL = (function(H){
           }
         });
       }
-
       this.territory   = this.context.territory;
       this.passability = this.context.passability;
       this.length      = this.passability.data.length;
       this.gridsize    = this.passability.width; // only squares here
-
     },
     initialize: function(){
 
@@ -149,6 +185,22 @@ HANNIBAL = (function(H){
       return this;
 
     },
+    finalize: function(){
+
+      var coords, field, test;
+
+      coords = this.mapPosToGridCoords(this.entities[this.villages.main].position());
+
+      this.deb("   MAP: finalize: terrain coords: %s, size: %s, length: %s", coords, this.terrain.size, this.terrain.length);
+      this.deb("   MAP: finalize: land    coords: %s, size: %s, length: %s", coords, this.regionsland.size, this.regionsland.length);
+
+      [field, test] = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
+      // this.flowfield = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
+
+      this.effector.dumparray("flowfield", field, this.gridsize, this.gridsize, 255);
+      this.effector.dumparray("test", test, this.gridsize, this.gridsize, 255);
+
+    },
     activate: function(){
 
       this.events.on("Attack", msg => {
@@ -165,121 +217,202 @@ HANNIBAL = (function(H){
 
       return Date.now() - t0;
 
-    },    
-    center: function(){return [this.width/2, this.height/2]},
-    mapPosToGridPos: function(p){
-      return [~~(p[0] / this.cellsize), ~~(p[1] / this.cellsize)];
-    },
-    mapPosToIndex: function(p){
-      var [x, y] = this.mapPosToGridPos(p);
-      return x + y * this.gridsize;
-    },
-    distanceTo: function(ids, pos){
-      // deb("   MAP: distanceTo: args: %s", uneval(arguments));
-      var center = this.getCenter(ids);
-      return this.distance(center, pos);
-    },
-    distance: function(a, b){
+
+    /*#########################################################################
+    
+      simple map infos, calculations and converters
+
+    */
+
+    }, center: function(){
+
+      return [this.width/2, this.height/2];
+
+    }, mapPosToGridCoords: function(pos, grid){
+
+      var cellsize = grid ? grid.cellsize : this.cellsize;
+      return [~~(pos[0] / cellsize), ~~(pos[1] / cellsize)];
+
+    }, mapPosToGridIndex: function(pos, grid){
+
+      var 
+        size = grid && grid.size ? grid.size : this.gridsize,
+        [x, y] = this.mapPosToGridCoords(pos);
+      
+      return x + y * size;
+
+    }, distance: function(a, b){
+
+      // distance between 2 positions
+
       if (!a.length || !b.length || a.length !== 2 || b.length !== 2){
         H.throw("ERROR : map.distance wrong args: ", uneval(arguments));
       }
+
       var dx = a[0] - b[0], dz = a[1] - b[1];
       return Math.sqrt(dx * dx + dz * dz);
-    },
-    isOwnTerritory: function(p){
-      var 
-        index  = this.mapPosToIndex(p),
-        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
 
-      // deb("isOwnTerritory: %s", index);
+    }, distanceTo: function(ids, pos){
 
-      return player === this.context.id;
-    },
-    isEnemyTerritory: function(pos){
-      var 
-        index  = this.mapPosToGridIndex(pos),
-        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
-      return this.players.isEnemy[player];
-    },
-    nearest: function(point, ids){
+      // distance of n entities to position
 
-      this.deb("   MAP: nearest: %s", uneval(arguments));
+      var center = this.getCenterPos(ids);
+      return this.distance(center, pos);
 
-      var distance = 1e10, dis, result = 0, pos = 0.0;
+    }, nearestId: function(point, ids){
 
-      ids.forEach(id => {
-        pos = this.entities[id].position();
-        dis = this.distance(point, pos);
-        if ( dis < distance){
-          distance = dis; result = id;
-        } 
-      });
-      return result;
+      // return closest id 
 
-    },
-    getSpread: function(ids){
+        var dis = 0.0, mindis = 1e10, result = NaN, pos = 0.0;
+
+        ids.forEach(id => {
+          pos = this.entities[id].position();
+          dis = this.distance(point, pos);
+          if ( dis < mindis ){
+            mindis = dis; 
+            result = id;
+          } 
+        });
+
+        return result;
+
+    }, getSpread: function(ids){
+
+      // longest side of enclosing axis parallel rectangle 
+
       var 
         poss = ids.map(id => this.entities[id].position()),
         xs = poss.map(pos => pos[0]),
         zs = poss.map(pos => pos[1]),
-        minx = Math.max.apply(Math, xs),
-        minz = Math.max.apply(Math, zs),
+        minx = Math.min.apply(Math, xs),
+        minz = Math.min.apply(Math, zs),
         maxx = Math.max.apply(Math, xs),
-        maxz = Math.max.apply(Math, zs),
-        disx = maxx - minx,
-        disz = maxz - minz;
-      return Math.max(disx, disz);
-    },
-    centerOf: function(poss){
-      // deb("   MAP: centerOf.in %s", pritShort(poss));
+        maxz = Math.max.apply(Math, zs);
+
+      return Math.max(maxx - minx, maxz - minz);
+
+
+    }, centerOf: function(poss){
+
+      // center position of positions
+
       var out = [0, 0], len = poss.length;
-      poss.forEach(function(pos){
-        if (pos.length){
-          out[0] += pos[0];
-          out[1] += pos[1];
-        } else { 
-          len -= 1;
-        }
+
+      poss.forEach( pos => {
+        out[0] += pos[0];
+        out[1] += pos[1];
       });
+
       return [out[0] / len, out[1] / len];
-    },
-    getCenter: function(ids){
 
-      // deb("   MAP: getCenter: %s", H.prettify(ids));
+    }, getCenter: function(ids){
 
-      if (!ids || ids.length === 0){
-        H.throw(H.format("Map.getCenter with unusable param: '%s'", uneval(ids)));
-      }
+      // center position of entities
 
-      return this.centerOf( 
-        ids
-          .filter(id => !!this.entities[id])
+      return this.centerOf ( 
+        ids.filter(id => !!this.entities[id])
           .map(id => this.entities[id].position())
       );
 
-    },
-    updateGrid: function(name){
+
+    /*#########################################################################
+
+      simple infos about positions or index
+
+    */
+
+    }, isOwnTerritory: function(pos){
+
+      this.deb("   MAP: isOwnTerritory %s", uneval(arguments));
+
+      var 
+        index  = this.mapPosToGridIndex(pos, this.territory),
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
+
+      return player === this.context.id;
+
+    }, isInOwnTerritory: function(id){
+
+      var 
+        pos    = this.entities[id]._entity.position,
+        index  = this.mapPosToGridIndex(pos, this.territory),
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK,
+        result = player === this.context.id;
+
+      // this.deb("   MAP: isInOwnTerritory %s => %s, player: %s", uneval(arguments), result, player);
+
+      return result;
+
+    }, isEnemyTerritory: function(pos){
+
+      var 
+        index  = this.mapPosToGridIndex(pos, this.territory),
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
+
+      return this.players.isEnemy[player];
+
+
+    /*#########################################################################
+
+      advanced computations on grids
+
+    */
+
+
+    }, fillCircle: function(grid, pos, radius, value){
+
+      // fills a circle into grid with value
+      
+      var 
+        z = 0|0, x = 0|0, idx = 0|0, 
+        r = radius/grid.cellsize, rr = r * r,
+        len = grid.length|0,
+        size = grid.size|0,
+        [cx, cz] = pos;
+
+      // hints
+      cx=cx|0; cz=cz|0; r=r|0; value=value|0; rr=rr|0;
+
+      for(z =-r; z<=r; z++){
+        for(x=-r; x<=r; x++){
+
+          if(x * x + z * z <= rr){
+
+            idx = (cx + x) + size * (cz + z);
+            
+            if (idx >= 0 && idx < len){
+              grid[idx] = value;
+            }
+
+          }
+
+        }
+      }
+
+
+    }, updateGrid: function(name){
+
+      // intializes terrain, regionsland, regionswater
 
       var 
         t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
         terr, regl, regw, mask, counter = 0;
 
+      if (name === "terrain"){
 
       // translates into internal terrain (land, water, forbidden, steep, error)
-
-      if (name === "terrain"){
 
         src = this.passability.data;
         tgt = this.terrain.data;
 
         while(i--){s = src[i]; tgt[i] = (
-                                                                  (s & 64)   ?   0 :   //  border      //   0
-                         (s &  8) && !(s & 16)                && !(s & 64)   ?   4 :   //  land        //  32
-            !(s & 4) && !(s &  8)                             && !(s & 64)   ?   8 :   //  shallow     //  64
-             (s & 4) && !(s &  8) && !(s & 16)                && !(s & 64)   ?  16 :   //  mixed       //  92
-                                      (s & 16)  && !(s & 32)  && !(s & 64)   ?  32 :   //  deep water  // 128
-             (s & 4) &&               (s & 16)  &&  (s & 32)  && !(s & 64)   ?  64 :   //  steep land  // 192
-               255                                                                     //  error       // 255
+                                                                  (s & 64)   ?   0 :   //     0, border
+                         (s &  8) && !(s & 16)                && !(s & 64)   ?   4 :   //    32, land
+            !(s & 4) && !(s &  8)                             && !(s & 64)   ?   8 :   //    64, shallow
+             (s & 4) && !(s &  8) && !(s & 16)                && !(s & 64)   ?  16 :   //    92, mixed
+                                      (s & 16)  && !(s & 32)  && !(s & 64)   ?  32 :   //   128, deep water
+             (s & 4) &&               (s & 16)  &&  (s & 32)  && !(s & 64)   ?  64 :   //   192, steep land
+               255                                                                     //   255, error
           );
         }
         t1 = Date.now();
@@ -287,9 +420,9 @@ HANNIBAL = (function(H){
         // deb("   MAP: updated: terrain, ms: %s", t1 - t0);
 
 
-      // detects unconnected land regions
-
       } else if (name === "regionsland") {
+
+        // detects unconnected land regions
 
         mask = 16 + 8 + 4;
         terr = this.terrain.data;
@@ -327,17 +460,21 @@ HANNIBAL = (function(H){
 
       } else {
         // deb("   MAP: initGrid: unknown grid: %s", name);
+        
       }
 
-    },
-    fillRegion: function(src, tgt, mask, index, region){
+    }, fillRegion: function(src, tgt, mask, index, region){
+
+      // flood fills tgt starting at index with region based on src and mask
+      // used by land water regions grids
+      // avoids push/pop, bc slow
 
       var 
         width = this.gridsize,
         i, idx, nextX, nextY,
         y = ~~(index / width) | 0,
         x = index % width | 0,
-        stack = [x, y], pointer = 2, // push/pop is too slow
+        stack = [x, y], pointer = 2, 
         dx = [ 0, -1, +1,  0], 
         dy = [-1,  0,  0, +1]; 
 
@@ -365,8 +502,25 @@ HANNIBAL = (function(H){
 
       }
 
-    },   
-    createTerritoryMap: function() {
+
+    }, scan: function(pos, radius){
+
+      // scans the map for treasure and mines
+      // reports findings to context.resources
+      // marks covered cells in scanner grid based on radius and position
+      // returns up to 4 new positions to scan, aligned to villages.theta
+
+      this.resources.markFound(pos, radius);
+
+
+
+    /*#########################################################################
+
+      TODO: rewrite
+
+    */
+
+    }, createTerritoryMap: function() {
       var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
       map.getOwner      = function(p) {return this.point(p) & TERRITORY_PLAYER_MASK;};
       map.getOwnerIndex = function(p) {return this.map[p]   & TERRITORY_PLAYER_MASK;};

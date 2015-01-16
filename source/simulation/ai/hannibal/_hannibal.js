@@ -98,7 +98,4 @@ var HANNIBAL = (function() {
     },
   };  
 
-
-
-
 return H;}());

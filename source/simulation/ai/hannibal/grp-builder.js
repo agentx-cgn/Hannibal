@@ -42,8 +42,8 @@ HANNIBAL = (function(H){
 
           w.deb("     G: launch %s %s", w, uneval(config));
 
-          w.buildings = ["exclusive", config.building];
-          w.units     = ["exclusive", config.building + " BUILDBY"];
+          w.buildings = ["exclusive", config.building + " CONTAIN"];
+          w.units     = ["exclusive", config.building + " CONTAIN BUILDBY"];
 
           w.units.size     = w.units.size     || config.size     ||  5;
           w.buildings.size = w.buildings.size || config.quantity ||  1;

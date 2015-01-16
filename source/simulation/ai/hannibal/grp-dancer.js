@@ -39,7 +39,7 @@ HANNIBAL = (function(H){
           w.units       = ["exclusive", "food.grain GATHEREDBY"];
           w.units.size  = 5;
 
-          path          = w.units.size + "; translate " + pos + "; translatep 0, 70; circle 5";
+          path          = w.units.size + "; translate " + pos + "; translatep 0 70; circle 5";
           w.path        = ["path", path];
           w.path.size   = w.units.size;
 

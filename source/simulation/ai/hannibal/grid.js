@@ -65,6 +65,7 @@ HANNIBAL = (function(H){
       this.width  = this.map.width  / this.cellsize;
       this.height = this.map.height / this.cellsize;
       this.length = this.width * this.height;
+      this.size   = this.width;
 
       if (!this.data){
         this.title  = config.title || "grid" + this.context.idgen++;

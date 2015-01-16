@@ -139,6 +139,8 @@ HANNIBAL = (function(H){
             test = H.Resources.nearest(pos, "treasure"),
             treasures = test ? [test] : [];
 
+
+          // TODO ask resources explicetly for treausre
           this.resources.markFound(pos, rng);
 
           // // make resources in range visible, check for treasure

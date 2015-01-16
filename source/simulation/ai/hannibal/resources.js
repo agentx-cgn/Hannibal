@@ -83,7 +83,8 @@ HANNIBAL = (function(H){
           resources: [this.id],   // make asset gatherable
           isPrey:    this.config.data.prey.indexOf(specficname) !== -1,
           maxSupply: ent.resourceSupplyMax(),
-          found:     this.found ? true : this.map.isOwnTerritory(ent.position()) ? true : false,
+          // found:     this.found ? true : this.map.isOwnTerritory(ent.position()) ? true : false,
+          found:     this.found ? true : this.map.isInOwnTerritory(this.id) ? true : false,
           supply:    ent.resourceSupplyAmount(),
         });
 
@@ -356,9 +357,9 @@ HANNIBAL = (function(H){
         }
       });
     },
-    markFound: function(pos, range){ //TODO
+    markFound: function(pos, radius){ //TODO: slow
       this.eachAll( (generic, specific, stats, id, res) => {
-        if (this.map.distance(pos, res.position) < range){
+        if (this.map.distance(pos, res.position) < radius){
           res.found = true;
         }            
       });

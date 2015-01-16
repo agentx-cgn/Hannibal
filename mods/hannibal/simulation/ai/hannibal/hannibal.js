@@ -1,9 +1,9 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals Engine, API3, deb, debTable, print, logObject, exportJSON, logError, TESTERDATA, uneval, logPlayers, logStart */
+/*globals HANNIBAL_DEBUG, Engine, API3, print, uneval */
 
-/*--------------- L A U N C H E R   -------------------------------------------
+/*--------------- H A N N I B A L ---------------------------------------------
 
-  Launches an AI/Bot in a fresh or saved context.
+  This is loaded first by 0 A.D.
   Home: https://github.com/noiv/Hannibal/blob/master/README.md
 
   tested with 0 A.D. Alpha 17 Quercus
@@ -12,262 +12,91 @@
   Credits:
 
     kmeans: 
-    pythonic slicing:
     helper:
 
 */
 
-// very first line, enjoy the rest
-var TIMESTART = Date.now();
+/* 
+  loading sequence:
+    _debug
+    _hannibal
+    _lhelper
+    _logger
+    a-z
 
-print("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### --- " + new Date() + "\n");
-print("#! xdotool init\n");
+*/
+
+
+// very first line, enjoy the rest
+print("--------: HANNIBAL.MODUL: " + new Date() + " --- ### --- ### --- ### ---\n");
 
 Engine.IncludeModule("common-api");
 
 var HANNIBAL = (function() {
 
   var H = {
-    API: API3,
-    LIB: {},
+
+    MODULESTART: Date.now(),
+
+    API:      API3, 
+    AI:       {}, 
+    LIB:      {}, 
+    HTN:      {Economy: {}, Helper: {}}, 
+    DSL:      {Nouns: {}}, 
+    Data:     {Groups: {}}, 
+    Groups:   {},
+    Geometry: {},
+    
     throw: function(){
       var 
         msg = H.format.apply(null, H.toArray(arguments)),
         stack = new Error().stack.split("\n").slice(1);
-      deb();
-      deb(msg);
-      stack.forEach(line => deb("  " + line));      
+      H.deb();
+      H.deb(msg);
+      stack.forEach(line => H.deb("  " + line));      
       throw "\n*\n*";
     },
+    
     extend: function (o){
       Array.prototype.slice.call(arguments, 1)
         .forEach(e => {Object.keys(e)
           .forEach(k => o[k] = e[k]
     );});},
-    chat: function(){}
-  };
-
-  // constructor
-  H.Launcher = function(settings) {
-
-    API3.BaseAI.call(this, settings);
-
-    H.extend(this, {
-      map:            TESTERDATA && TESTERDATA.map ? TESTERDATA.map : "unknown",
-      settings:       settings,                            // from ai config dialog
-      isInitialized:  false,                               // did that happen well?
-      isTicking:      false,                               // toggles after first OnUpdate
-      isFinished:     false,                               // there is still no winner
-      noInitReported: false,                               // report init failure only once
-      timing:         {all: 0},                            // used to identify perf. sinks in OnUpdate
-      context:        new H.LIB.Context("ctx1")            // create empty context
-    });
-
-    deb();
-    deb("------: Launcher.constructor.out");
-
-  };
-
-  H.Launcher.prototype = new H.API.BaseAI();
-  H.Launcher.prototype.Deserialize = function(data /*, sharedScript */ ){
-    this.context.deserialize(data);
-  };
-  H.Launcher.prototype.Serialize = function(){
-    return this.context.serialize();
-  };
-  H.Launcher.prototype.CustomInit = function(gameState, sharedScript) {
-
-    var ss = sharedScript, gs = gameState;
-
-    logStart(ss, gs, this.settings);
-    logPlayers(ss.playersData);
-
-    H.APP = this;
-
-    // launch the stats extension
-    if (H.Config.numerus.enabled){
-      H.Numerus.init(ss, gs);          
-    }             
-
-    // connect the context
-    this.context.connectEngine(this, gameState, sharedScript, this.settings);
-    this.context.initialize(H.Config);
-
-    // This bot faces the other players
-    this.bot = this.context.createBot();
     
-    /*
-
-    Below is for development
-
-    */
-
-    var lines1, lines2, lines3, diff;
-    this.context.log();
-
-    // lines1 = exportJSON(this.context.serialize(), "ctx1.serialized");
-
-    // deb();
-    // deb("################################################################################");
-    // deb();
-
-    // clone second context to compare serialization
-    // this.secondContext = this.context.clone();
-    // this.secondBot     = this.secondContext.createBot();
-    // lines2 = exportJSON(this.secondContext.serialize(), "ctx2.serialized");
-    
-    // deb();
-    // deb("################################################################################");
-    // deb();
-
-    // third context via de/serialize
-    // this.thirdContext = new H.LIB.Context("ctx3");
-    // this.thirdContext.deserialize(this.context.serialize());
-    // this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
-    // this.thirdContext.initialize(H.Config);
-
-    // diff = diffJSON(this.context.serialize(), this.thirdContext.serialize());
-    // logJSON(diff, "ctx1 vs. ctx3");
-
-    // this.thirdContext.log();
-    // this.thirdBot     = this.thirdContext.createBot();
-    // lines3 = exportJSON(this.thirdContext.serialize(), "ctx3.serialized");
-
-    // deb();
-    // deb("SRLIAZ: ctx 1: %s lines", lines1);
-    // deb("SRLIAZ: ctx 2: %s lines", lines2);
-    // deb("SRLIAZ: ctx 3: %s lines", lines3);
-    // deb();
-    // deb("################################################################################");
-
-    /* run scripted actions named in H.Config.sequence */
-    deb();
-    H.Tester.activate();      
-    /* end scripter */
-
-    /* testing triple store */
-    this.context.culture.debug = 5;
-    // this.context.query(this.context.class2name("civilcentre") + " RESEARCH").execute("metadata", 5, 10, "next phases");
-    this.context.culture.debug = 0;
-    /* end testing triple store */
-
-    deb();
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-
-    this.initialized = true;
-    // H.Config.deb = 0; // suppress further log line
-    return;
+    chat: function(id, msg){
+      Engine.PostCommand(id, {"type": "chat", "message": id + "::" + msg});
+    },
 
   };
-  H.Launcher.prototype.OnUpdate = function(sharedScript) {
 
-    var 
-      t0 = Date.now(),
-      secs = (sharedScript.timeElapsed/1000).toFixed(1),
-      msgTiming = "";
+  /*
 
-    if (this.isFinished){return;} // API ????
+    MIXINS,
 
-    if (!this.initialized){
-      if (!this.noInitReported){
-        this.logNotInitialized();
-      }
-      this.noInitReported = true;
-      return;      
-    }
-
-    if (!this.isTicking){
-      this.logFirstTick(t0);
-      this.isTicking = true;
-    }
-
-    if (H.Tester.OnUpdate){
-      H.chat("OnUpdate");
-      H.Tester.OnUpdate();
-    } else {
-      // H.chat("no OnUpdate");
-    }
-    
-    // keep API events from each turn, even if not processing
-    this.context.events.collect(this.events);
-
-
-    // ------------- A C T I O N   S T A R T ----------------------------------
-
-    // Run the update every n turns, offset depending on player ID to balance the load
-    if ((this.turn + this.player) % 8 === 5) {
-
-      // update context
-      this.context.updateEngine(sharedScript);
-
-      // log top row debug info
-      deb("STATUS: @%s, elapsed: %s secs, id: %s, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
-        this.context.tick, secs, this.bot.id, 
-        this.bot.player.civ, this.context.culture.phases.current,
-        H.count(this.bot.player.researchedTechs), 
-        this.bot.player.resourceCounts.food,
-        this.bot.player.resourceCounts.wood,
-        this.bot.player.resourceCounts.metal,
-        this.bot.player.resourceCounts.stone
-      );
-
-      this.timing.all = 0;
-      this.timing.tst = H.Tester.tick(           secs, this.context.tick);
-
-      // THIS IS THE MAIN ACT
-      this.bot.tick(                             secs, this.context.tick, this.timing);
-
-      // deb: collect stats
-      if (H.Config.numerus.enabled){
-        H.Numerus.tick(secs, this.context.tick, sharedScript);
-      }
-
-      // prepare bottom row debug info
-      H.each(this.timing, (name, msecs) => {
-        if (name !== "all"){
-          msgTiming += H.format(", %s: %s", name, msecs);
-        }
-        this.timing.all += msecs;
-      });
-
-      // log row
-      deb("______: @%s timing: %s, all: %s %s", 
-        this.context.tick, 
-        msgTiming, 
-        this.timing.all, 
-        this.timing.all >= 100 ? "!!!!!!!!" : ""
-      );
-
-      // increase tick number
-      this.context.tick++;
-
-
-      // ------------- A C T I O N   E N D --------------------------------------
-
-      deb("  ");
-      
-    }
-
-    // increase turn number
-    this.context.turn++;
-    this.turn++;
-
-  };
-  H.Launcher.prototype.logNotInitialized = function() {
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-    deb();deb();
-    deb("ERROR : HANNIBAL IS NOT INITIALIZED !!!");
-    H.chat("HANNIBAL IS NOT INITIALIZED, check install.txt");
-    deb();deb();
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-  };
-  H.Launcher.prototype.logFirstTick = function(t0) {
-    var map = TESTERDATA ? TESTERDATA.map : "unkown";
-    deb("---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---  ### ---");
-    deb();deb();
-    deb("------: OnUpdate: startup: %s secs, map: '%s'", ((t0 - TIMESTART)/1000).toFixed(3), map);
-    deb();
-  };
+  */
+  
+  // Serializer needs: this.[klass, name, context, imports])
+  H.LIB.Serializer = function(){};
+  H.LIB.Serializer.prototype = {
+    constructor: H.LIB.Serializer,
+    toString: function(){return H.format("[%s %s:%s]", this.klass || "no klass", this.context.name, this.name || "no name");},
+    deb: function(){this.context.launcher.deb.apply(this, arguments);},
+    log: function(){this.deb("   %s: logging", this.name.slice(0,3).toUpperCase());},
+    logtick: function(){this.deb("   %s: logticking", this.name.slice(0,3).toUpperCase());},
+    serialize: function(){return {};},
+    deserialize: function(){return this;},
+    initialize: function(){return this;},
+    finalize: function(){return this;},
+    activate: function(){return this;},
+    import: function(){
+      this.imports.forEach(imp => this[imp] = this.context[imp]);
+      return this;
+    },
+    clone: function(context){
+      context.data[this.klass] = this.serialize();
+      return new H.LIB[H.noun(this.name)](context);
+    },
+  };  
 
 return H;}());
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
@@ -415,7 +244,7 @@ H.extend(H, {
   },
   contains:   function (a, e){return a.indexOf(e)!==-1;},
   toFixed:    function (a, n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
-  rotate:     function (a, n){return a.concat(a.splice(0,n));},
+  rotate:     function (a, n){n = n % a.length; return a.concat(a.splice(0,n));},
   // unique:     function (a){var u=[];a.forEach(function(i){if(u.indexOf(i)===-1){u.push(i);}});return u;},
   sample:     function (a, n){var l=a.length;n=n||1;return H.range(n).map(function(){return a[~~(Math.random() * l)];});},
   removeAll:  function (a, v){var i,j,l;for(i=0,j=0,l=a.length;i<l;i++) {if(a[i]!==v){a[j++]=a[i];}}a.length=j;},
@@ -425,6 +254,8 @@ H.extend(H, {
   pushUnique: function (a, e){if(a.indexOf(e)===-1){a.push(e);}return a;},
   pushflat:   function (a, b){b.forEach(i => a.push(i));},
   equal:      function (a, b){return JSON.stringify(a) === JSON.stringify(b);},
+  max:        Function.prototype.apply.bind(Math.max, null),
+  min:        Function.prototype.apply.bind(Math.min, null),
   mean:       function (a){return a.reduce(function(s,x){return (s+x);},0)/a.length;},
   median:     function (a){var al=a.length,m=~~(a.sort().length/2);return !al?null:al%2?a[m]:(a[m-1]+a[m])/2;},
   mode:       function (a){
@@ -574,7 +405,18 @@ H.extend(H, {
   count:      function (o){return Object.keys(o).length;},
   values:     function (o){return Object.keys(o).map(function(k){return o[k];});},
   // each:       function (o,fn){Object.keys(o).forEach(k => fn(k, o[k]));},
-  each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}},
+  // each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}},
+  each:       function (){
+    var 
+      args = H.toArray(arguments),
+      objs = args.slice(0, -1),
+      fn   = args.slice(-1)[0];
+      objs.forEach(o => {
+        var i, k, a = Object.keys(o), al= a.length;
+        for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}
+      });
+  }
+
 
 });
 
@@ -754,7 +596,7 @@ return H; }(HANNIBAL);
 //         this[j] = temp;
 //     }
 // };/*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, TESTERDATA, Engine, warn, error, print */
+/*globals HANNIBAL, HANNIBAL_DEBUG, uneval, print */
 
 /*--------------- D E B U G  --------------------------------------------------
 
@@ -786,269 +628,482 @@ return H; }(HANNIBAL);
 
 
 
-// used in JSON Export
-function logg(){
-  var args = arguments;
-  if (args.length === 0) {args = ["//"];}
-  if (args.length === 1) {args = ["%s", args[0]];}
-  print(HANNIBAL.format.apply(HANNIBAL, args) + "\n");
-}
+HANNIBAL = (function(H){
 
-function deb(){
-  var 
-    H = HANNIBAL,
-    args = arguments, al = args.length,
-    msg = (
-      (al === 0) ? "**\n**" :
-      (al === 1) ? args[0] :
-        H.format.apply(H, args)
-      ) + "\n",
-    prefix = msg.substr(0, 7).toUpperCase(),
-    deblevel = H.Config.deb || 0,
-    msglevel = (
-      prefix === "ERROR :" ? 1 :
-      prefix === "WARN  :" ? 2 :
-      prefix === "INFO  :" ? 3 :
-        4
-    );
+  H.extend(H, {
 
-  if (msglevel <= deblevel){print(msg);}
+    logFn: function (fn){return fn.toString().split("\n").join("").slice(0, 80) + "|...";},
 
-}
+    deb: function(/* id, msg */){
 
-var debTable = function (header, table, sort){
-  // has dependencies
-  var 
-    H = HANNIBAL,
-    line, lengths = [],
-    cols = table[0].length,
-    space = H.mulString(" ", 100);
+      // print("H.deb: args: " + uneval(arguments) + "\n");
 
-  H.loop(cols, () => lengths.push(0));
+      var 
+        args = H.toArray(arguments), al = args.length,
+        id   = (args[0] && H.isInteger(args[0])) ? args[0] : 0,
+        empty = ["      :\n" + id + "::      :"],
+        DEB  = HANNIBAL_DEBUG && HANNIBAL_DEBUG.bots ? HANNIBAL_DEBUG.bots[id] : {},
+        msg = H.format.apply(null, (
+          (al === 0)             ? empty            : // no args
+          (al  >  0 && id === 0) ? args.slice(0)    : // msg given as 0
+          (al === 1 && id  >  0)   ? empty          : // only id, no msg
+          (al   > 1 && id  >  0 && args[1] === undefined)     ? empty            : // id + []
+          (al   > 1 && id  >  0 && args.slice(1).length > 0)  ? args.slice(1)    : // id + [msg, ...]
+            print("ERROR: in H.deb: args: " + uneval(arguments) + "\n\n") // else 
+        )) + "\n",
+        prefix   = msg.substr(0, 7).toUpperCase(),
+        deblevel = DEB.log || H.Config.deb || 0,
+        msglevel = (
+          prefix === "ERROR :" ? 1 :
+          prefix === "WARN  :" ? 2 :
+          prefix === "INFO  :" ? 3 :
+            4
+        );
 
-  table.forEach(row => {
-    H.loop(cols, col => {
-      var str = String(row[col -1]);
-      if (str.length > lengths[col -1]){lengths[col -1] = str.length;}
-    });
-  });
+      if (msglevel <= deblevel){print(id + "::" + msg);}
 
-  deb("------: start %s", header || "table");
-  table
-    .sort((a,b) => a[sort] < b[sort] ? -1 : 1)
-    .forEach((row, i) => {
-      line = H.format("      : %s ", H.tab(i, 4));
-      row.forEach((item, col) => line += (item + space).slice(0, lengths[col] + 1));
-      deb(line);
-    });
+    },
+    printf: function(){
+      print(H.format.apply(H, arguments) + "\n");
+    },
+    logStart: function(ss, gs, settings){
 
-  deb("------: %s ", header || "table");
+      var H = HANNIBAL, id = settings.player;
 
+      H.deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
+      H.deb("      :");
+      H.deb("     A:     map from DEBUG: %s / %s", H.Debug.map ? H.Debug.map : "unkown", ss.gameType);
+      H.deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
+      H.deb("     A:          _entities: %s [  ]", H.count(ss._entities));
+      H.deb("     A:         _templates: %s [  ]", H.count(ss._templates));
+      H.deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
+      H.deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
+      H.deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
+      H.deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
+      H.deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
+      H.deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
 
-};
+    },
+    logPlayers: function(players){
 
-function exportJSON (obj, filename){
+      var 
+        H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
+        fmtAEN = item => item.map(b => b ? "1" : "0").join("");
 
-  var 
-    H = HANNIBAL,
-    file  = H.format("/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/%s.export", filename),
-    lines = JSON.stringify(obj, null, "  ").split("\n"),
-    count = lines.length;
+      H.deb();
 
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
+      head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut, colour".split(", ");
+      props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
+      tabs   = [  10,    6,   8,    10,        5,      6,       6,         6, 20];
+      format = {
+        isAlly:    fmtAEN,
+        isEnemy:   fmtAEN,
+        isNeutral: fmtAEN
+      };
 
-  deb();
-  deb("EXPORT: ", filename);
-  deb("EXPORT: %s", file);
+      H.zip(head, tabs, function(h, t){msg += tab(h, t);});
+      H.deb("PLAYER: " + msg);
 
-  print(H.format("#! open 0 %s\n", file));
-  logg("// EXPORTED %s at %s", filename, new Date());
+      H.each(players, function(id, player){
+        msg = "";
+        H.zip(props, tabs, function(p, t){
+          msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
+        });    
+        H.deb("     %s: %s", id, msg);
+      });
 
-  lines.forEach(line => logg(line));
-  // lines.forEach(logg);
-  
-  logg("// Export end of %s", filename);
-  print("#! close 0\n");
-  deb("EXPORT: Done");
+    },
+    diffJSON: function (a, b) {
 
-  return count;
+      // https://github.com/paldepind/dffptch
+      
+      var 
+        O = Object, keys = O.keys,
+        aKey, bKey, aVal, bVal, rDelta, shortAKey, 
+        aKeys = keys(a).sort(),
+        bKeys = keys(b).sort(),
+        delta = {}, adds = {}, mods = {}, dels = [], recurses = {},
+        aI = 0, bI = 0;
 
-}
+      // Continue looping as long as we haven't reached the end of both keys lists
 
-function logJSON(obj, header){
-  var lines = JSON.stringify(obj, null, "  ").split("\n");
-  deb("   LOG: JSON: %s", header);
-  lines.forEach(line => deb("      " + line));
-  deb("   LOG: ----------");
-}
+      while(aKeys[aI] !== undefined || bKeys[bI]  !== undefined || false) {
+        
+        aKey = aKeys[aI]; 
+        bKey = bKeys[bI];
+        aVal = a[aKey];
+        bVal = b[bKey];
+        shortAKey = String.fromCharCode(aI+48);
 
+        if (aKey == bKey) {
 
-function exportTemplates (tpls){
+          // We are looking at two equal keys this is a
+          // change – possibly to an object or array
+          
+          if (O(aVal) === aVal && O(bVal) === bVal) {
+          
+            // Find changs in the object recursively
+            rDelta = H.diffJSON(aVal, bVal);
+          
+            // Add recursive delta if it contains modifications
+            if (keys(rDelta)) {recurses[shortAKey] = rDelta;}
+          
+          } else if (aVal !== bVal) {
+            mods[shortAKey] = bVal;
+          
+          }
+          
+          aI++; bI++;
 
-  var 
-    H = HANNIBAL,
-    filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/templates-json.export";
+        } else if (aKey > bKey || !aKey) {
+          // aKey is ahead, this means keys have been added to b
+          adds[bKey] = bVal;
+          bI++;
 
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
+        } else {
+          // bKey is larger, keys have been deleted
+          dels.push(shortAKey);
+          aI++;
 
-  deb();
-  deb("EXPORT: templates");
-  deb("EXPORT: %s", filePattern);
-
-  print(H.format("#! open 0 %s\n", filePattern));
-  logg("// EXPORTED templates at %s", new Date());
-  JSON.stringify(tpls, null, "  ")
-    .split("\n")
-    .forEach(line => {
-      logg(line);
-    });
-  logg("// Export end of templates");
-  print("#! close 0\n");
-  deb("EXPORT: Done");
-
-}
-
-function exportTechTemplates (tpls){
-
-  var 
-    H = HANNIBAL,
-    filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/techtemplates-json.export";
-
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
-
-  deb();
-  deb("EXPORT: techtemplates");
-  deb("EXPORT: %s", filePattern);
-
-  print(H.format("#! open 0 %s\n", filePattern));
-  logg("// EXPORTED techtemplates at %s", new Date());
-  JSON.stringify(tpls, null, "  ")
-    .split("\n")
-    .forEach(line => {
-      logg(line);
-    });
-  logg("// Export end of techtemplates");
-  print("#! close 0\n");
-  deb("EXPORT: Done");
-
-}
-
-function exportTree (tree) {
-
-  var 
-    t, procs, prods,
-    tt = this.nodes, tpls = H.attribs(this.nodes),
-    filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
-
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }   
-
-  deb("  TREE: Export start ...");
-  print(H.format("#! open 0 %s\n", H.format(filePattern, this.civ)));
-  logg("// EXPORTED tree '%s' at %s", this.civ, new Date());
-
-  tpls.sort((a, b) => tt[a].order - tt[b].order);
-
-  tpls.forEach(function(tpln){
-
-    t = tt[tpln];
-
-    logg("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
-    logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
-    logg("     T:        %s", t.key);
-    logg("     T:        reqs: %s", t.requires || "none");
-    logg("     T:        flow: %s", t.flow ? JSON.stringify(t.flow) : "none");
-
-    logg("     T:        verb: %s", t.verb || "none");
-    prods = H.attribs(t.producers);
-    if (prods.length){
-      prods.forEach(p => logg("     T:          %s", p));
-    } else {
-      logg("     T:        NO PRODUCER");
-    }
-
-    logg("     T:        products: %s", t.products.count);
-    if (t.products.count){
-      ["train", "build", "research"].forEach(verb => {
-        procs = H.attribs(t.products[verb]);
-        if (procs.length){
-          logg("     T:          %s", verb);
-          procs.forEach(p => logg("     T:            %s", p));
         }
-      });
-    }
+      }
+
+      // We only add the change types to delta if they contains changes
+      if (dels[0]) delta.d = dels;
+      if (keys(adds)[0]) delta.a = adds;
+      if (keys(mods)[0]) delta.m = mods;
+      // if (keys(recurses)[0]) delta.r = recurses;
+      
+      return delta;
+
+    },
+
+    logObject: function(o, msg){
+      var inst = "unidentified";
+      msg = msg || "";
+      H.deb();
+      H.deb("Object [%s] : attributes: %s, comment: %s", inst, Object.keys(o).length, msg);
+      if (o.constructor){
+        H.deb("Object: %s", H.getAttribType("constructor", o.constructor));
+      }
+      H.logObjectShort(o);
+      H.deb("Object.prototype: %s attributes", H.count(Object.getPrototypeOf(o)));
+      if (H.count(Object.getPrototypeOf(o))){
+        H.logObjectShort(Object.getPrototypeOf(o));
+      }
+      H.deb("------: logObject end");
+    },
+    logObjectShort: function(o){
+      H.attribs(o)
+        .sort()
+        .forEach(a => H.deb(this.getAttribType(a, o[a])));
+    },
+    getAttribType: function(name, value){
+
+      var keys, body;
+
+      function toString(value){
+        return value.toString ? value.toString() : value+"";
+      }
+
+      switch (typeof value) {
+        case "string":
+        case "number":
+        case "undefined":
+        case "boolean":   return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
+        case "object":
+          if (Array.isArray(value)){
+            return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
+          } else if (value === null) {
+            return H.format("  %s: NULL", name);
+          } else {
+            keys = Object.keys(value);
+            return H.format("  %s: OBJECT [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
+          }
+        break;
+        case "function":
+          body = value.toString()
+            .split("\n").join("")
+            .split("\r").join("")
+            .split("\t").join(" ")
+            .split("     ").join(" ")
+            .split("    ").join(" ")
+            .split("   ").join(" ")
+            .split("  ").join(" ")
+            .slice(0, 100);
+          return H.format("  %s: FUNCTION %s (...)", name, body);
+      }
+      return "WTF";
+    },
 
   });
 
-  print("#! close 0\n");
-  deb("  TREE: Export Done ...");
 
-}
+return H; }(HANNIBAL));
 
 
-function exportStore(civs){
-
-  // log history > 3,000 per civ, athens~2500, CRs not enforced.
-
-  var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
-
-  function logg(){
-    print ( arguments.length === 0 ? 
-      "#! append 0 ://\n" : 
-      "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-    );
-  }    
-
-  deb();deb();deb("EXPORT: %s", civs);
-
-  civs.forEach(function(civ){
-    print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
-    logg("// EXPORTED culture '%s' at %s", civ, new Date());
-    var culture = new H.Culture(civ), store = culture.store;
-    culture.loadDataNodes();           // from data to triple store
-    culture.readTemplates();           // from templates to culture
-    culture.loadTechTemplates();       // from templates to triple store
-    culture.loadTemplates();           // from templates to triple store
-    culture.finalize();                // clear up
-    logg("var store_%s = {", civ);
-      logg("  verbs: %s,", JSON.stringify(store.verbs));
-      logg("  nodes: {");
-      H.each(store.nodes, function(name, value){
-        delete value.template;
-        logg("    '%s': %s,", name, JSON.stringify(value));
-      });
-      logg("  },");
-      logg("  edges: [");
-      store.edges.forEach(function(edge){
-        logg("    ['%s', '%s', '%s'],", edge[0].name, edge[1], edge[2].name);
-      });
-      logg("  ],");
-    logg("};");
-    logg("// Export end of culture %s", civ);
-    print("#! close 0\n");
-  });
+// used in JSON Export
+// function logg(){
+//   var args = arguments;
+//   if (args.length === 0) {args = ["//"];}
+//   if (args.length === 1) {args = ["%s", args[0]];}
+//   print(HANNIBAL.format.apply(HANNIBAL, args) + "\n");
+// }
 
 
-}
+
+// var debTable = function (header, table, sort){
+//   // has dependencies
+//   var 
+//     H = HANNIBAL,
+//     line, lengths = [],
+//     cols = table[0].length,
+//     space = H.mulString(" ", 100);
+
+//   H.loop(cols, () => lengths.push(0));
+
+//   table.forEach(row => {
+//     H.loop(cols, col => {
+//       var str = String(row[col -1]);
+//       if (str.length > lengths[col -1]){lengths[col -1] = str.length;}
+//     });
+//   });
+
+//   deb("------: start %s", header || "table");
+//   table
+//     .sort((a,b) => a[sort] < b[sort] ? -1 : 1)
+//     .forEach((row, i) => {
+//       line = H.format("      : %s ", H.tab(i, 4));
+//       row.forEach((item, col) => line += (item + space).slice(0, lengths[col] + 1));
+//       deb(line);
+//     });
+
+//   deb("------: %s ", header || "table");
+
+
+// };
+
+// function exportJSON (obj, filename){
+
+//   var 
+//     H = HANNIBAL,
+//     file  = H.format("/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/%s.export", filename),
+//     lines = JSON.stringify(obj, null, "  ").split("\n"),
+//     count = lines.length;
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();
+//   deb("EXPORT: ", filename);
+//   deb("EXPORT: %s", file);
+
+//   print(H.format("#! open 0 %s\n", file));
+//   logg("// EXPORTED %s at %s", filename, new Date());
+
+//   lines.forEach(line => logg(line));
+//   // lines.forEach(logg);
+  
+//   logg("// Export end of %s", filename);
+//   print("#! close 0\n");
+//   deb("EXPORT: Done");
+
+//   return count;
+
+// }
+
+// function logPrettyJSON(obj, header){
+
+//   var attr, json;
+
+//   if(header){deb(header);}
+
+//   json = JSON.stringify(obj);
+
+//   if (json.length < 80){
+//     deb(json);
+//   } else {
+//     Object.keys(obj).sort().forEach(attr => {
+//       logPrettyJSON(obj[attr]);
+//     });
+//   }
+
+// }
+
+
+// function logJSON(obj, header){
+//   var lines = JSON.stringify(obj, null, "  ").split("\n");
+//   deb("   LOG: JSON: %s", header);
+//   lines.forEach(line => deb("      " + line));
+//   deb("   LOG: ----------");
+// }
+
+
+// function exportTemplates (tpls){
+
+//   var 
+//     H = HANNIBAL,
+//     filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/templates-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();
+//   deb("EXPORT: templates");
+//   deb("EXPORT: %s", filePattern);
+
+//   print(H.format("#! open 0 %s\n", filePattern));
+//   logg("// EXPORTED templates at %s", new Date());
+//   JSON.stringify(tpls, null, "  ")
+//     .split("\n")
+//     .forEach(line => {
+//       logg(line);
+//     });
+//   logg("// Export end of templates");
+//   print("#! close 0\n");
+//   deb("EXPORT: Done");
+
+// }
+
+// function exportTechTemplates (tpls){
+
+//   var 
+//     H = HANNIBAL,
+//     filePattern = "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/techtemplates-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();
+//   deb("EXPORT: techtemplates");
+//   deb("EXPORT: %s", filePattern);
+
+//   print(H.format("#! open 0 %s\n", filePattern));
+//   logg("// EXPORTED techtemplates at %s", new Date());
+//   JSON.stringify(tpls, null, "  ")
+//     .split("\n")
+//     .forEach(line => {
+//       logg(line);
+//     });
+//   logg("// Export end of techtemplates");
+//   print("#! close 0\n");
+//   deb("EXPORT: Done");
+
+// }
+
+// function exportTree (tree) {
+
+//   var 
+//     t, procs, prods,
+//     tt = this.nodes, tpls = H.attribs(this.nodes),
+//     filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }   
+
+//   deb("  TREE: Export start ...");
+//   print(H.format("#! open 0 %s\n", H.format(filePattern, this.civ)));
+//   logg("// EXPORTED tree '%s' at %s", this.civ, new Date());
+
+//   tpls.sort((a, b) => tt[a].order - tt[b].order);
+
+//   tpls.forEach(function(tpln){
+
+//     t = tt[tpln];
+
+//     logg("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
+//     logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
+//     logg("     T:        %s", t.key);
+//     logg("     T:        reqs: %s", t.requires || "none");
+//     logg("     T:        flow: %s", t.flow ? JSON.stringify(t.flow) : "none");
+
+//     logg("     T:        verb: %s", t.verb || "none");
+//     prods = H.attribs(t.producers);
+//     if (prods.length){
+//       prods.forEach(p => logg("     T:          %s", p));
+//     } else {
+//       logg("     T:        NO PRODUCER");
+//     }
+
+//     logg("     T:        products: %s", t.products.count);
+//     if (t.products.count){
+//       ["train", "build", "research"].forEach(verb => {
+//         procs = H.attribs(t.products[verb]);
+//         if (procs.length){
+//           logg("     T:          %s", verb);
+//           procs.forEach(p => logg("     T:            %s", p));
+//         }
+//       });
+//     }
+
+//   });
+
+//   print("#! close 0\n");
+//   deb("  TREE: Export Done ...");
+
+// }
+
+
+// function exportStore(civs){
+
+//   // log history > 3,000 per civ, athens~2500, CRs not enforced.
+
+//   var filePattern = "/home/noiv/.local/share/0ad/mods/public/simulation/ai/hannibal/explorer/data/%s-01-json.export";
+
+//   function logg(){
+//     print ( arguments.length === 0 ? 
+//       "#! append 0 ://\n" : 
+//       "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+//     );
+//   }    
+
+//   deb();deb();deb("EXPORT: %s", civs);
+
+//   civs.forEach(function(civ){
+//     print(H.format("#! open 0 %s\n", H.format(filePattern, civ)));
+//     logg("// EXPORTED culture '%s' at %s", civ, new Date());
+//     var culture = new H.Culture(civ), store = culture.store;
+//     culture.loadDataNodes();           // from data to triple store
+//     culture.readTemplates();           // from templates to culture
+//     culture.loadTechTemplates();       // from templates to triple store
+//     culture.loadTemplates();           // from templates to triple store
+//     culture.finalize();                // clear up
+//     logg("var store_%s = {", civ);
+//       logg("  verbs: %s,", JSON.stringify(store.verbs));
+//       logg("  nodes: {");
+//       H.each(store.nodes, function(name, value){
+//         delete value.template;
+//         logg("    '%s': %s,", name, JSON.stringify(value));
+//       });
+//       logg("  },");
+//       logg("  edges: [");
+//       store.edges.forEach(function(edge){
+//         logg("    ['%s', '%s', '%s'],", edge[0].name, edge[1], edge[2].name);
+//       });
+//       logg("  ],");
+//     logg("};");
+//     logg("// Export end of culture %s", civ);
+//     print("#! close 0\n");
+//   });
+
+
+// }
 
   // if (head === "ERROR :" && level > 0){
   //   print(msg);
@@ -1074,122 +1129,69 @@ function exportStore(civs){
 //   }
 // }
 
-var logObject = function(o, msg){
-  var inst = "unidentified";
-  msg = msg || "";
-  deb();
-  deb("Object [%s] : c: %s, keys: %s  ---------------", inst, msg, Object.keys(o).length);
-  if (o.constructor){
-    deb("Object", getAttribType("constructor", o.constructor));
-  }
-  logObjectShort(o);
-  deb("Object.__proto__");
-  logObjectShort(o.__proto__);
-  deb("Object.prototype");
-  if (o.prototype){
-    logObjectShort(o.prototype);
-  }
-  deb();
-};
-
-var logObjectShort = function(o){
-  HANNIBAL.attribs(o)
-    .sort()
-    // .map(function(a){return getAttribType(a, o[a]);})
-    // .forEach(function(line){deb(line);});
-    .map(function(a){deb(getAttribType(a, o[a]));});
-};
-
-var getAttribType = function(name, value){
-
-  var H = HANNIBAL, keys;
-
-  function toString(value){
-    return value.toString ? value.toString() : value+"";
-  }
-
-  switch (typeof value) {
-    case "string":
-    case "number":
-    case "undefined":
-    case "boolean":   return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
-    case "object":
-      if (Array.isArray(value)){
-        return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
-      } else if (value === null) {
-        return H.format("  %s: NULL", name);
-      } else {
-        keys = Object.keys(value);
-        return H.format("  %s: OBJECT [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
-      }
-    break;
-    case "function":
-      return H.format("  %s: %s", name, value.toSource().split("\n").join("").slice(0, 60));
-  }
-  return "WTF";
-};
-
-
-var debTemplates = function(templates){
-
-  var counter = 0;
-
-  deb(" TEMPL: %s ----------------------", H.attribs(templates).length);
-
-  // function getAttr(o){
-  //   if (o["Armour"] && o["Armour"]["Hack"] && ~~o["Armour"]["Hack"] > 7){
-  //     return(H.format("Armour.Hack: %s", o["Armour"]["Hack"]));
-  //   } else {
-  //     return false;
-  //   }
-
-  // }
-
-  // logObject(templates, "templates");
-
-    // Object [unidentified] : templates  ---------------
-    // Object  constructor: function Object() {[native code]}
-      // campaigns/army_mace_hero_alexander: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
-      // campaigns/army_mace_standard: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[26]
-      // campaigns/army_spart_hero_leonidas: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
-
-
-  var props = {};
-
-  H.each(templates, function(key, tpl){
-
-    if (counter < 30) {
-      // logObjectShort(tpl);
-      // if (getAttr(tpl)){
-      //   deb("  > %s", key);
-      //   deb("      @%s", tpl["@parent"]);
-      //   deb("      ", getAttr(tpl))
-      //   counter += 1;
-    }
-
-    H.attribs(tpl).forEach(function(attr){
-
-      if (props[attr] === undefined) {
-        props[attr]  = 0;
-      } else {
-        props[attr]  += 1;        
-      }
-
-    });
 
 
 
-  });
+// var debTemplates = function(templates){
 
-  var sorted = H.attribs(props).sort(function(a, b){return props[b] > props[a]; });
+//   var counter = 0;
 
-  sorted.forEach(function(attr){
-    deb("  %s: %s", attr, props[attr]);
-  });
+//   deb(" TEMPL: %s ----------------------", H.attribs(templates).length);
 
-  deb(" TEMPL: ----------------------");
+//   // function getAttr(o){
+//   //   if (o["Armour"] && o["Armour"]["Hack"] && ~~o["Armour"]["Hack"] > 7){
+//   //     return(H.format("Armour.Hack: %s", o["Armour"]["Hack"]));
+//   //   } else {
+//   //     return false;
+//   //   }
 
-};
+//   // }
+
+//   // logObject(templates, "templates");
+
+//     // Object [unidentified] : templates  ---------------
+//     // Object  constructor: function Object() {[native code]}
+//       // campaigns/army_mace_hero_alexander: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
+//       // campaigns/army_mace_standard: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[26]
+//       // campaigns/army_spart_hero_leonidas: OBJECT (@parent, AIProxy, Armour, Attack, Cost, ...)[27]
+
+
+//   var props = {};
+
+//   H.each(templates, function(key, tpl){
+
+//     if (counter < 30) {
+//       // logObjectShort(tpl);
+//       // if (getAttr(tpl)){
+//       //   deb("  > %s", key);
+//       //   deb("      @%s", tpl["@parent"]);
+//       //   deb("      ", getAttr(tpl))
+//       //   counter += 1;
+//     }
+
+//     H.attribs(tpl).forEach(function(attr){
+
+//       if (props[attr] === undefined) {
+//         props[attr]  = 0;
+//       } else {
+//         props[attr]  += 1;        
+//       }
+
+//     });
+
+
+
+//   });
+
+//   var sorted = H.attribs(props).sort(function(a, b){return props[b] > props[a]; });
+
+//   sorted.forEach(function(attr){
+//     deb("  %s: %s", attr, props[attr]);
+//   });
+
+//   deb(" TEMPL: ----------------------");
+
+// };
 
 
 
@@ -1202,162 +1204,49 @@ var debTemplates = function(templates){
 
 // };
 
-// loggable functions
-function logFn(fn){return fn.toString().split("\n").join("").slice(0, 80);}
+// // loggable functions
+// function logFn(fn){return fn.toString().split("\n").join("").slice(0, 80);}
 
-// from events
-var logDispatcher = function (){
-  deb("  "); deb("      : Dispatcher");
-  H.each(H.Dispatcher, function(id, ar){
-    var tpl = H.Entities[id] ? H.Entities[id]._templateName : "???";
-    deb("  %s: len: %s, tpl: %s", H.tab(id, 4), ar.length, tpl);
-  });
-  deb("  "); 
-};
-
-
-var dumpPassability = function(mapname, passability){
-
-  // dumps all bits into single files
-  // works nicely with Gimp's File > open as Layers
-
-  var 
-    i, b, w = passability.width, h = passability.height, 
-    pass = passability.data, len = pass.length;
-
-  deb(); deb("DUMP  : passability %s, %s, %s", mapname, w, h);
-
-  [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512].forEach(b => {
-
-    var data = [];
-    i = len;
-    while (i--){
-      data[i] = pass[i] & b ? 128 : 255; // set bits are grey, not set white
-    }
-    data.length = len;
-    Engine.DumpImage(mapname + "-passability-" + b + ".png", data, w, h, 255);    
-
-  });
-
-};
+// // from events
+// var logDispatcher = function (){
+//   deb("  "); deb("      : Dispatcher");
+//   H.each(H.Dispatcher, function(id, ar){
+//     var tpl = H.Entities[id] ? H.Entities[id]._templateName : "???";
+//     deb("  %s: len: %s, tpl: %s", H.tab(id, 4), ar.length, tpl);
+//   });
+//   deb("  "); 
+// };
 
 
-var logStart = function(ss, gs, settings){
+// var dumpPassability = function(mapname, passability){
 
-  var H = HANNIBAL, id = settings.player;
+//   // dumps all bits into single files
+//   // works nicely with Gimp's File > open as Layers
 
-  deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
-  deb();
-  deb();
-  deb("     A:    map from tester:  %s", TESTERDATA ? TESTERDATA.map : "unkown");
-  deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
-  deb("     A:          _entities: %s [  ]", H.count(ss._entities));
-  deb("     A:         _templates: %s [  ]", H.count(ss._templates));
-  deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
-  deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
-  deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
-  deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
-  deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
-  deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
+//   var 
+//     i, b, w = passability.width, h = passability.height, 
+//     pass = passability.data, len = pass.length;
 
-};
+//   deb(); deb("DUMP  : passability %s, %s, %s", mapname, w, h);
 
-var logPlayers = function(players){
+//   [0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512].forEach(b => {
 
-  var 
-    H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
-    fmtAEN = item => item.map(b => b ? "1" : "0").join("");
+//     var data = [];
+//     i = len;
+//     while (i--){
+//       data[i] = pass[i] & b ? 128 : 255; // set bits are grey, not set white
+//     }
+//     data.length = len;
+//     Engine.DumpImage(mapname + "-passability-" + b + ".png", data, w, h, 255);    
 
-  deb();
+//   });
 
-  head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut".split(", ");
-  props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral".split(", ");
-  tabs   = [  10,    6,   8,    10,        5,      6,       6,         6];
-  format = {
-    isAlly:    fmtAEN,
-    isEnemy:   fmtAEN,
-    isNeutral: fmtAEN
-  };
-
-  H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-  deb("PLAYER: " + msg);
-
-  H.each(players, function(id, player){
-    msg = "";
-    H.zip(props, tabs, function(p, t){
-      msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
-    });    
-    deb("     %s: %s", id, msg);
-  });
-
-};
+// };
 
 
 
-function diffJSON (a, b) {
 
-  // https://github.com/paldepind/dffptch
-  
-  var 
-    O = Object, keys = O.keys,
-    aKey, bKey, aVal, bVal, rDelta, shortAKey, 
-    aKeys = keys(a).sort(),
-    bKeys = keys(b).sort(),
-    delta = {}, adds = {}, mods = {}, dels = [], recurses = {},
-    aI = 0, bI = 0;
 
-  // Continue looping as long as we haven't reached the end of both keys lists
-
-  while(aKeys[aI] !== undefined || bKeys[bI]  !== undefined || false) {
-    
-    aKey = aKeys[aI]; 
-    bKey = bKeys[bI];
-    aVal = a[aKey];
-    bVal = b[bKey];
-    shortAKey = String.fromCharCode(aI+48);
-
-    if (aKey == bKey) {
-
-      // We are looking at two equal keys this is a
-      // change – possibly to an object or array
-      
-      if (O(aVal) === aVal && O(bVal) === bVal) {
-      
-        // Find changs in the object recursively
-        rDelta = diffJSON(aVal, bVal);
-      
-        // Add recursive delta if it contains modifications
-        if (keys(rDelta)) {recurses[shortAKey] = rDelta;}
-      
-      } else if (aVal !== bVal) {
-        mods[shortAKey] = bVal;
-      
-      }
-      
-      aI++; bI++;
-
-    } else if (aKey > bKey || !aKey) {
-      // aKey is ahead, this means keys have been added to b
-      adds[bKey] = bVal;
-      bI++;
-
-    } else {
-      // bKey is larger, keys have been deleted
-      dels.push(shortAKey);
-      aI++;
-
-    }
-  }
-
-  // We only add the change types to delta if they contains changes
-  if (dels[0]) delta.d = dels;
-  if (keys(adds)[0]) delta.a = adds;
-  if (keys(mods)[0]) delta.m = mods;
-  // if (keys(recurses)[0]) delta.r = recurses;
-  
-  return delta;
-
-}
 
 // /* play area */
 
@@ -1552,6 +1441,7 @@ function diffJSON (a, b) {
                 License: https://raw.githubusercontent.com/bgrins/javascript-astar/master/LICENSE
   Binary Heap : Marijn Haverbeke, Credit: http://eloquentjavascript.net/appendix2.html
                 License: http://creativecommons.org/licenses/by/3.0/
+  Flow Field  : Corey Birnbaum, Credit: https://github.com/vonWolfehaus/FlowField
 
   V: 0.1, agentx, CGN, JUl, 2014
 
@@ -1560,7 +1450,7 @@ function diffJSON (a, b) {
 
 HANNIBAL = (function(H){
 
-  H.AI = H.AI || {};
+  var deb = H.deb;
 
   H.AI.KMeans = (function () {
 
@@ -1839,7 +1729,28 @@ HANNIBAL = (function(H){
     this.visited = false;
     this.closed  = false;
     this.parent  = null;
-  }
+  };
+
+  H.AI.GraphFromFunction = function(grid, fnWeight){
+
+    var
+      graph = new H.AI.Graph(grid.data),
+      node = null, y = 0, size = grid.size, x = size;
+
+    while (x--) {
+      graph.grid[x] = [];
+      y = size; 
+      while(y--) {
+        node = new H.AI.GraphNode(x, y, fnWeight(x + y * size));
+        graph.grid[x][y] = node;
+        graph.nodes.push(node);
+      }
+    }
+    // graph.clear();
+    return graph;
+
+  };
+
 
   H.AI.Graph = function (data, options) {
 
@@ -1850,8 +1761,8 @@ HANNIBAL = (function(H){
     this.nodes = [];
     this.grid  = [];
 
-    this.init();
-    this.clear();
+    // this.init();
+    // this.clear();
 
   };
 
@@ -1869,6 +1780,8 @@ HANNIBAL = (function(H){
           this.nodes.push(node);
         }
       }
+      this.clear();
+      return this;
     },
     clear: function() {
       var i, l = this.nodes.length, node;
@@ -1883,7 +1796,7 @@ HANNIBAL = (function(H){
         node.parent  = null;
       }      
     },
-    setNeighbors: function(neighbors, node) {
+    setNeighbors8: function(neighbors, node) {
 
       var x = node.x, y = node.y, grid = this.grid;
 
@@ -1896,6 +1809,16 @@ HANNIBAL = (function(H){
       neighbors[5] = grid[x+1][y-1];
       neighbors[6] = grid[x-1][y+1];
       neighbors[7] = grid[x+1][y+1];
+
+    },
+    setNeighbors4: function(neighbors, node) {
+
+      var x = node.x, y = node.y, grid = this.grid;
+
+      neighbors[0] = grid[x-1][y];
+      neighbors[1] = grid[x+1][y];
+      neighbors[2] = grid[x][y-1];
+      neighbors[3] = grid[x][y+1];
 
     }
 
@@ -1914,7 +1837,7 @@ HANNIBAL = (function(H){
   H.AI.BinaryHeap = function(){
     this.content = [];
     this.length  = 0;
-  }
+  };
   
   H.AI.BinaryHeap.prototype = {
     constructor: H.AI.BinaryHeap,
@@ -2121,7 +2044,7 @@ HANNIBAL = (function(H){
         }
         
         currentNode.closed = true;                    // Normal case -- move currentNode from open to closed, process each of its neighbors.
-        graph.setNeighbors(neighbors, currentNode);   // Find all neighbors for the current node.
+        graph.setNeighbors8(neighbors, currentNode);   // Find all neighbors for the current node.
 
         for (i = 0; i < 8; i++) {
 
@@ -2184,9 +2107,113 @@ HANNIBAL = (function(H){
 
   };
 
+  /*
+    Takes the terrain + regions + start coords to return a int field
+    with each coord pointing to start along the terrain
+
+  */
+
+  H.AI.FlowField = {
+
+    create: function(terrain, regions, coords){
+
+      var 
+        i, a, b, n, dx, dz, currentNode, grid, length, neighbor, distance, theta,
+        INTRAD = 128 / Math.PI,
+        SQRT2  = Math.sqrt(2),
+        [x, z] = coords,
+        size   = terrain.size,
+        field  = new Uint8Array(terrain.length),
+        reg    = regions.data[x + z * size],
+        openlist  = [], neighbors = [null, null, null, null],
+        graph  = new H.AI.GraphFromFunction(terrain, function(idx){
+          // only given region, otherwise walls
+          return regions.data[idx] === reg ? 1 : 0;
+        }),
+        grid = graph.grid,
+
+        counter = 0,
+        test = [];
+
+
+      deb("FlowField: coords: %s, regindex: %s, length: %s", coords, reg, size * size);
+
+
+      // first entry
+      openlist.push(grid[x][z]);
+
+      while (openlist.length){
+
+        currentNode = openlist.shift();
+        currentNode.closed = true;         
+
+        x = currentNode.x;           
+        z = currentNode.y;           
+
+        graph.setNeighbors8(neighbors, currentNode);
+
+        for (i = 0; i < 8; i++) {
+
+          neighbor = neighbors[i];
+
+          if (neighbor.closed || neighbor.weight === 0 || neighbor.visited) {continue;}
+
+          distance = (
+            currentNode.x === neighbor.x ? 1 :
+            currentNode.y === neighbor.y ? 1 :
+              SQRT2
+          );
+
+          // deb("%s, %s, %s", neighbor.x, neighbor.y, currentNode.f +1);
+
+          neighbor.f = currentNode.f + distance;
+          neighbor.visited = true;
+          openlist.push(neighbor);
+
+        }
+
+      }
+
+      for (x=0; x<size; x++){
+        for (z=0; z<size; z++){
+
+          counter += 1;
+
+          n = grid[x][z];
+          
+          test[x + z * size] = n.f % 256;
+
+          a  = x -1 >= 0   && grid[x-1][z].weight !== 0 ? grid[x-1][z].f : n.f;
+          b  = x +1 < size && grid[x+1][z].weight !== 0 ? grid[x+1][z].f : n.f;
+          dx = a - b;
+
+          a  = z -1 >= 0   && grid[x][z-1].weight !== 0 ? grid[x][z-1].f : n.f;
+          b  = z +1 < size && grid[x][z+1].weight !== 0 ? grid[x][z+1].f : n.f;
+          dz = a - b;
+
+          theta = Math.atan2(dz, dx);
+
+          // deb("%s, %s, %s, %s, theta: %s", x, z, dx, dz, theta);
+
+          field[x + size * z] = ~~(Math.atan2(dz, dx) * INTRAD) + 128;
+
+          // if (counter > 1000) return;
+
+        }
+      }
+
+      deb("FlowField: coords: %s, regindex: %s, length: %s, counter: %s", coords, reg, size * size, counter);
+
+
+      return [field, test];
+
+    }
+
+  };
+
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- A S S E T S -------------------------------------------------
 
@@ -2205,8 +2232,10 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      klass:    "asset",
       context:  context,
+
+      klass: "asset",
+
       imports:  [
         "map",
         // "health",
@@ -2217,16 +2246,16 @@ HANNIBAL = (function(H){
         "groups",
         "metadata",
         "unitstates",
-        "entities", // attackTypes, position
+        "entities", // attackTypes, position, _templateName
       ],
 
       eventlist: [
         "OrderReady",
         "AIMetadata",
         "TrainingFinished",
-        "EntityRenamed",
         "ConstructionFinished",
-        "Attacked",
+        "EntityRenamed",
+        "EntityAttacked",
         "Destroy",
       ],
 
@@ -2241,30 +2270,25 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Asset.prototype = {
+  H.LIB.Asset.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Asset,
-    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
+    toString: function(){return H.format("[%s %s[%s]]", this.klass, this.name, this.resources.join("|"));},
     log: function(){
-      deb(" ASSET: %s %s res: %s", this.instance.name, this.property, this.resources.length);
+      this.deb(" ASSET: %s %s res: %s", this.instance.name, this.property, this.resources.length);
       this.resources.forEach( id => {
-        deb("     A: %s, %s", this.id, this.entities[id]._templateName);
+        this.deb("     A: %s, %s", this.id, this.entities[id]._templateName);
       });
     },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.klass)](context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    initialize: function (data){
+    initialize: function (config){
 
-      // name ??
-      // id
+      H.extend(this, config);
+
+      this.name = config.instance.name + ":" + config.property + "#" + this.id;
+
+      // name         ??
+      // id           ??
+      // type         // entities, devices
       // instance     // the parent group 
       // property     // property name
       // resources    // array of ids
@@ -2273,8 +2297,6 @@ HANNIBAL = (function(H){
       // shared       // or private
       // definition   // from group's assets
       // users        // list of ??? for shared asset users
-
-      H.extend(this, data);
 
       // deb("   AST: initialized: %s for %s with hcq: %s", this, this.instance, this.hcq || "unknown");
 
@@ -2285,35 +2307,25 @@ HANNIBAL = (function(H){
       return {
         id:         this.id,
         users:      H.deepcopy(this.users),
+        size:       this.size,
         property:   this.property,
         resources:  H.deepcopy(this.resources),
         definition: H.deepcopy(this.definition),
       };
     },
-    toLog:    function(){return "    AST: " + this + " " + JSON.stringify(this, null, "      : ");},
-    toOrder:  function(){
-      return {
-        verb:   this.verb, 
-        hcq:    this.hcq, 
-        source: this.id, 
-        shared: this.shared
-      };
-    },
-    toSelection: function(resources){
-      // var id = this.context.idgen++;
-      return (
-        new H.LIB.Asset(this.context)
-          .import()
-          .initialize({
-            // id:        id,
-            name:      H.format("%s:%s#[%s]", this.instance.name, this.property, resources.join("|")),
-            klass:     "asset.selection",
-            instance:  this.instance, 
-            property:  this.property, 
-            resources: resources,
-          })
-      );
-    },
+    // toSelection: function(resources){
+    //   return (
+    //     new H.LIB.Asset(this.context)
+    //       .import()
+    //       .initialize({
+    //         id:        this.id, // same id !!!
+    //         klass:     "asset.selection",
+    //         instance:  this.instance, 
+    //         property:  this.property, 
+    //         resources: resources,
+    //       })
+    //   );
+    // },
     activate: function(){
       this.eventlist.forEach(e => this.events.on(e, this.handler));
     },
@@ -2327,205 +2339,54 @@ HANNIBAL = (function(H){
       // deb("   ASS: releasing %s", uneval(this.resources));          
     },
 
-    // asset properties
-    get health () {return this.health(this.resources);},
-    get count  () {return this.resources.length;},
-    get first  () {return this.toSelection(this.resources.slice(0, 1));},
-    get firstid() {return this.resources[0];},
-    get center () {return this.map.getCenter(this.resources);},
-    get spread () {return this.map.getSpread(this.resources);},
-    get uaistates (){
-      var state = {};
-      this.resources.forEach(id => state[id] = this.unitstates[id]);
-      return state;
-    },      
-
-    // asset effector actions
-    destroy:  function(   ){this.effector.destroy(this.resources);},
-    move:     function(pos){this.effector.move(this.resources, pos);},
-    format:   function(fmt){this.effector.format(this.resources, fmt);},
-    stance:   function(stc){this.effector.stance(this.resources, stc);},
-    flee:     function(atk){this.effector.flee(this.resources, [atk.id]);},
-    garrison: function(ast){this.effector.garrison(this.resources, ast.resources[0]);},
-    gather:   function(ast){this.effector.gather(this.resources, ast.resources[0]);},
-    collect:  function(tgs){this.effector.collect(this.resources, tgs.map(t => t.resources[0]));},
-    repair:   function(ast){
-      if (!ast.resources.length){H.throw("asset.repair: no resources");}
-      this.effector.repair(this.resources, ast.firstid);
-    },
-
-    // asset helper
-    match: function (asset){
-      if(!this.resources){
-        H.throw("ERROR : asset.match: this no resources " + this.name);
-        return false;
-      } else if (!asset.resources){
-        H.throw("ERROR : asset.match: asset no resources " + asset);
-        return false;
-      }
-      // deb("   AST: match %s in %s", uneval(asset.resources[0]), uneval(this.resources));
-      return H.contains(this.resources, asset.resources[0]);
-    },
-    forEach: function(fn){
-
-      // this.units.doing("idle").forEach(function(unit){
-      //   this.units.stance("aggressive");
-      //   unit.move(this.target.point);
-      // });
-
-      this.resources.forEach(id => {
-        fn.call(this.instance, this.toSelection([id]));
-      });
-
-    },
-
-    // asset info
-    distanceTo: function(pos){this.map.distanceTo(this.resources, pos);},
-    doing: function(/* [who,] filters */){ 
-
-      // filters resources on unit ai state
-
-      var 
-        ids = [], 
-        al      = arguments.length,
-        who     = (al === 1) ? this.resources : arguments[0],
-        filters = (al === 1) ? arguments[0] : arguments[1],
-        actions = filters.split(" ").filter(a => !!a);
-
-      actions.forEach(action => {
-        who.forEach(id => {
-          var state = this.unitstates[id];
-          if (action[0] === "!"){
-            if (state !== action.slice(1)){ids.push(id);}
-          } else {
-            if (state === action){ids.push(id);}
-          }
-        });
-      });
-
-      // deb("doing: actions: %s, states: %s, ids: %s", 
-      //   actions, H.prettify(self.states(resources)), ids
-      // );
-
-      return this.toSelection(ids);
-
-    },
-    exists: function(amount){
-      // for dynamic assets
-      var hcq = this.groups.expandHCQ(this.definition[1], this.instance);
-      return this.query(hcq).execute().length >= (amount || 1);
-    },
-    nearest: function(param){
-
-      var hcq, pos, sorter, nodes, ids;
-
-      // look for nearest from hcq
-      if (H.isInteger(param)){
-
-        hcq = this.groups.expandHCQ(this.definition[1], this.instance);
-
-        // deb("   AST: nearest param: %s, hcq: %s", param, hcq);
-
-        pos = ( Array.isArray(this.instance.position) ? 
-            this.instance.position : 
-            this.instance.position.location()
-        );
-        // deb("   AST: nearest pos: %s", pos);
-        sorter = (na, nb) => {
-          return (
-            this.map.distance(na.position, pos) - 
-            this.map.distance(nb.position, pos)
-          );
-        };
-        nodes = this.query(hcq).execute().sort(sorter); // "node", 5, 5, "nearest"
-        ids = nodes.map(node => node.id).slice(0, param || 1);
-
-      // look for closest to point
-      } else if (Array.isArray(param)){
-        ids = [this.map.nearest(param, this.resources)];
-
-      } else {
-        H.throw("WARN  : Asset.nearest: got strange param: %s", param);
-        // deb("WARN  : Asset.nearest: got strange param: %s", param);
-
-      }
-
-      // deb("   AST: nearest %s ids: %s, param: %s", this.name, ids, param);
-
-      return this.toSelection(ids);
-      
-    },
-    location:   function(id){
-
-      // this should get a position for just everything
-
-      var loc = [];
-
-      if (id) {
-        loc = this.map.getCenter([id]);
-        // deb("   AST: location id: %s of %s, loc: %s", id, this, loc);
-
-      } else if (this.position){
-        loc = this.position.location();
-        // deb("   AST: location this.position: %s of %s, loc: %s", this.position, this, loc);
-
-      } else if (this.users.length) { // priotize shared, 
-        // loc = this.map.centerOf(this.users.map(function(listener){
-        //   var group = H.Objects(listener.callsign.split("#")[1]);
-        //   if (group.position){
-        //     return group.position.location();
-        //   } else {
-        //     return [];
-        //   }
-        // }));
-        // deb("   AST: location users: %s of %s, loc: %s", H.prettify(this.users), this, loc);
-
-      } else if (this.resources.length){
-        // only undestroyed entities, with valid position
-        // loc = H.Map.getCenter(this.resources.filter(id => !!H.Entities[id] && !!H.Entities[id].position() ));
-        loc = this.map.getCenter(this.resources);
-        // deb("   AST: location resources: %s of %s, loc: %s", H.prettify(this.resources), this, loc);
-
-      } else {
-        deb("  WARN: AST found no location for %s, res: %s", this, uneval(this.resources));
-
-      }
-
-      return loc;
-
-    },    
-
     // events
     listener: function(msg){
 
-      var asset, tpln, ent, maxRanges, attacker, id = msg.id;
+      var 
+        dslobject, tpln, ids, 
+        id = msg.id, 
+        dsl = this.groups.dsl;
 
       if (msg.name === "OrderReady"){
 
         if (msg.data.source === this.id){
 
-          deb("   AST: listener.do: %s %s, res: %s, %s", msg.name, this, this.resources, uneval(msg));
+          if (this.verb === "path"){
 
-          asset = this.toSelection([id]);
+            ids = msg.data.resources;
+            tpln = "path";
+            this.resources = msg.data.resources.slice();
 
-          // take over ownership
-          this.metadata[id].opid   = this.instance.id;
-          this.metadata[id].opname = this.instance.name;
+          } else if (this.verb === "find"){
 
-          if (this.verb === "build"){
+            ids = msg.data.resources;
+            tpln = "resources";
+            this.resources = msg.data.resources.slice();
+
+          } else {
+
+            ids = [id];
             tpln = this.entities[id]._templateName;
-            if (tpln.contains("foundation")){
-              this.isFoundation = true; //?? too greedy
-              asset.isFoundation = true;
-            } else {
-              this.isStructure = true;  //??
-              asset.isStructure = true;
-            }
+            this.resources.push(id);
+
+            // take over ownership
+            this.metadata[id].opid   = this.instance.id;
+            this.metadata[id].opname = this.instance.name;
+
           }
 
-          // finalize
-          this.resources.push(id);
-          this.instance.listener.onAssign(asset);          
+          this.deb("   AST: OrderReady: %s ids: [%s], tpl: %s", this.verb, ids, tpln);
+
+          dslobject = {
+            name:        "item",
+            resources:   ids, 
+            ispath:      tpln.contains("path"),
+            isresource:  tpln.contains("resources"),
+            foundation:  tpln.contains("foundation"),
+            toString :   () => H.format("[dslobject item[%s]]", id)
+          };
+
+          this.groups.callWorld(this.instance, "assign", [dslobject]);
 
         } // else { deb("   AST: no match: %s -> %s | %s", msg.data.source, this.id, this.name);}
 
@@ -2534,58 +2395,52 @@ HANNIBAL = (function(H){
 
         if (msg.name === "Destroy") {
 
-          deb("   AST: listener Destroy: %s, %s", this.name, uneval(msg));
+          this.deb("   AST: listener Destroy: %s, %s", this.name, uneval(msg));
 
           // no need to tell group about succesful foundations
           if (!msg.data.foundation){
-            asset = this.toSelection([id]);
-            this.instance.listener.onDestroy(asset);
+            dsl.select(this.instance);
+            dsl.noun("asset", "entity", [id]);
+            this.groups.signal("onDestroy", [dsl.world.asset]);
+
           }
 
           // remove after so match works in instance
           H.remove(this.resources, id);
 
 
-        } else if (msg.name === "Attacked") {
+        } else if (msg.name === "EntityAttacked") {
 
-          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
-
-          ent = this.entities[msg.id2];
-          asset = this.toSelection([id]);
-          maxRanges = ent.attackTypes().map(type => ent.attackRange(type).max);
-          attacker = {
-            id: msg.id2,
-            position: ent.position(),
-            range: Math.max.apply(Math, maxRanges)
-          };
-
-          this.instance.listener.onAttack(asset, attacker, msg.data.type, msg.data.damage);
+          dsl.select(this.instance);
+          dsl.noun("asset", "entity", [id]);
+          dsl.noun("attacker", "entity", [msg.id2]);
+          this.groups.signal("onAttack", [dsl.world.asset, dsl.world.attacker, msg.data.type, msg.data.damage]);
 
 
         } else if (msg.name === "EntityRenamed") {
 
-          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
-
           H.remove(this.resources, id);
           this.resources.push(msg.id2);
 
+
         } else if (msg.name === "ConstructionFinished") {
 
-          // deb("   AST: X listener: %s, %s", this.name, uneval(msg));
 
-          this.isFoundation = false;
-          this.isStructure = true;
-          asset = this.toSelection([id]);
-          asset.isFoundation = false;
-          asset.isStructure = true;
-          this.instance.listener.onAssign(asset);
+          dslobject = {
+            name:        "item",
+            resources:   [id], 
+            foundation:  false,
+            toString :   () => H.format("[dslobject item[%s]]", id)
+          };
+
+          this.groups.callWorld(this.instance, "assign", [dslobject]);
 
         }
 
       }
 
     },
-  };
+  });
 
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
@@ -2604,13 +2459,12 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-
   H.LIB.Bot = function(context){
 
     H.extend(this, {
 
-      klass:   "bot",
       context: context,
+
       imports: [
         "id",
         "player",
@@ -2630,26 +2484,15 @@ HANNIBAL = (function(H){
 
     });
 
-    this.name = H.format("%s:%s", this.context.name, "bot");
+    this.name = H.format("%s:%s#%s", this.context.name, "bot", this.context.id);
 
   };
 
-  H.LIB.Bot.prototype = {
+  H.LIB.Bot.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Bot,
-    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     log: function(){
-      deb("   BOT: loaded: %s", this);
-    },
-    clone: function(context){
-      return (
-        new H.LIB.Bot(context)
-          .import()
-          .deserialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
+      deb(); deb("   BOT: loaded: %s", this);
     },
     deserialize: function(data){
       return this;
@@ -2719,12 +2562,12 @@ HANNIBAL = (function(H){
 
     }
 
-  };
+  });
 
 return H; }(HANNIBAL));  
 
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, H, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- B R A I N ---------------------------------------------------
 
@@ -2754,6 +2597,26 @@ return H; }(HANNIBAL));
 HANNIBAL = (function(H){
 
   var 
+    goals = {
+      expandVill:  {
+        valid:        true,
+        done:         false,
+        constuctions: ["house-vill", "farmstead", "storehouse", "blacksmith", "field", "barracks", "dock"],
+        check:        function(){if (!this.valid || this.done){return true;} else {return false;}}
+      },
+      expandTown:  {
+        valid:        true,
+        done:         false,
+        constuctions: ["house-town", "market", "temple", "shipyard"],
+        check:        function(){return false;}
+      },
+      expandCity:  {
+        valid:        true,
+        done:         false,
+        constuctions: ["house-city", "fortress", "wall"],
+        check:        function(){return false;}
+      },
+    },
     parameters = {
 
     // Dimensions
@@ -2791,11 +2654,12 @@ HANNIBAL = (function(H){
   function class2name (klass) {return H.QRY(klass + " CONTAIN").first().name;}
 
 
-  H.LIB.Brain = function(context){
+  H.LIB.Goals = function(context){
 
     H.extend(this, {
-      name:  "brain",
+
       context:  context,
+
       imports:  [
         "events",
         "culture",
@@ -2808,40 +2672,51 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Brain.prototype = {
+  H.LIB.Goals.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
+    constructor: H.LIB.Goals,
+    log: function(){this.deb();this.deb(" Goals: all good");},
+  });
+
+
+
+
+
+
+  H.LIB.Brain = function(context){
+
+    H.extend(this, {
+
+      context:  context,
+
+      imports:  [
+        "events",
+        "culture",
+        "economy",
+        "query",
+        "villages",
+      ],
+
+    });
+
+  };
+
+  H.LIB.Brain.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Brain,
-    log: function(){},
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    deserialize: function(){
-      if (this.context.data[this.name]){
-        H.extend(this, this.context.data[this.name]);
-      }
-    },
-    serialize: function(){
-      return {};
-    },
-    initialize: function(){
-      return this;
-    },
+    log: function(){this.deb();this.deb(" BRAIN: all good");},
     activate: function(){
 
       this.events.on("Advance", msg => {
-        deb(" BRAIN: onAdvance: %s", msg.data.technology);
+        this.deb(" BRAIN: onAdvance: %s", msg.data.technology);
       });
 
-      this.events.on("Attacked", "*", msg => {
-        deb(" BRAIN: Attacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
+      this.events.on("EntityAttacked", "*", msg => {
+        this.deb(" BRAIN: EntityAttacked: damage: %s, type: %s", msg.data.damage, msg.data.type);
       });
 
       this.events.on("BroadCast", msg => {
-        deb(" BRAIN: BroadCast: %s", uneval(msg));
+        this.deb(" BRAIN: BroadCast: %s", uneval(msg));
       });
 
     },
@@ -2854,7 +2729,7 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
 
 
@@ -3207,8 +3082,7 @@ HANNIBAL = (function(H){
     deb:      4,                   // enables messages to dbgView via _xdebug.js.deb()
     con:      1,                   // enables messages to the in game console via _xdebug.js.con()
 
-    // "" disables H.Tester
-    sequence:                "brain02",
+    sequence:                "random/brainland",
     // sequence: "Forest Battle",
 
     // enable psy-ops
@@ -3382,7 +3256,7 @@ HANNIBAL = (function(H){
 
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- C O N T E X T  ----------------------------------------------
 
@@ -3397,10 +3271,10 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-  H.LIB.Context = function(name){
+  H.LIB.Context = function(key, launcher){
 
     this.defaults = {                                    // all primitive data
-      name:           name,                              // used in logs
+      key:            key,                               // used in logs
       connector:      "",                                // set by connecting
       time:           Date.now(),                        // time game created/saved 
       timeElapsed:    0,                                 // API data
@@ -3409,19 +3283,40 @@ HANNIBAL = (function(H){
       tick:           0,                                 // increments on BOT tick
     };
 
+    this.klass    = "context";
+    this.launcher = launcher;
+    this.parent   = launcher;
+    this.id       = launcher.id;
+    this.name     = launcher.name + ":" + key;
+    this.deb      = launcher.deb;
+
     // stateful support objects, ordered, no dependencies to following objects
     this.serializers = [
       "events", 
-      "culture",     // store, tree, phases
+      "culture",     // has childs: store, tree, phases
       "map",         // grids
       "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
+      "stats",       // located in eco
+      "orderqueue",  // located in eco
+      "producers",   // located in eco
       "economy",     // stats, producers, orderqueue
-      "military", 
-      "brain", 
-      // "bot", 
+      "military",    // attack groups and support buildings
+      "brain",       // keep information uptodate
+      // "bot",      // make decisions
+    ];
+
+    // this props need an update each tick, because sharedscript changed
+    this.updates = [
+      "timeElapsed",
+      "territory",
+      "passability",
+      "passabilityClasses",
+      "techtemplates",
+      "player",
+      "players",
     ];
 
     // action sequence to launch serializers
@@ -3440,11 +3335,11 @@ HANNIBAL = (function(H){
       // "events", 
       "culture",     // store, tree, phases
       // "map",         // grids
-      // "resources",   // after map
-      // "villages", 
-      // "scanner",     // scanner after map, before groups
+      "resources",   // after map
+      "villages", 
+      "scanner",     // scanner after map, before groups
       "groups",      // assets
-      "economy",     // stats, producers, orderqueue
+      // "economy",     // stats, producers, orderqueue
       // "military", 
       // "brain", 
       // "bot", 
@@ -3456,12 +3351,14 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Context.prototype = {
+  H.LIB.Context.prototype = H.mixin(
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Context,
     log: function(){
       var data = {};
       H.each(this.defaults, name => data[name] = this[name]);
-      deb("   CTX: %s", uneval(data));
+      this.deb();
+      this.deb("   CTX: %s", uneval(data));
     },
     runSequence: function(fn){
       this.sequence.forEach( action => {
@@ -3476,7 +3373,7 @@ HANNIBAL = (function(H){
     serialize: function(){
 
       var data = {
-        name:          this.name,
+        key:           this.key,
         connector:     this.connector,
         time:          Date.now(),
         timeElapsed:   this.timeElapsed,
@@ -3533,12 +3430,16 @@ HANNIBAL = (function(H){
 
         if (action === "create"){
           ctxClone[serializer] = this[serializer].clone(ctxClone);
+          ctxClone[serializer].klass   = serializer; 
+          ctxClone[serializer].parent  = ctxClone;
+          ctxClone[serializer].name    = ctxClone.name + ":" + serializer;
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
-          ( obj[action] && obj[action]() );
+          // ( obj[action] && obj[action]() );
+          obj[action]();
 
         } else {
-          deb("   IGN: logger: %s", serializer);
+          this.deb("   IGN: logger: %s", serializer);
         }
 
       });
@@ -3572,13 +3473,19 @@ HANNIBAL = (function(H){
 
         var obj = this[serializer];
 
-        // deb("   CTX: %s initialize: a: %s.%s", this.name, serializer, action);
+        // this.deb("   CTX: %s initialize: a: %s.%s, type: %s", this.name, serializer, action, (obj && typeof obj[action]));
 
         if (action === "create"){ 
           this[serializer] = new H.LIB[H.noun(serializer)](this);
+          this[serializer].klass   = serializer; 
+          this[serializer].parent  = this;
+          this[serializer].name    = this.name + ":" + serializer;
 
         } else if (!(action === "log" && !H.contains(this.logger, serializer))){
-          ( obj[action] && obj[action]() );
+          if (typeof obj[action] !== "function"){
+            H.logObject(obj, "obj");
+          }
+          obj[action]();
 
         } else {
           // logging for this serializer disabled
@@ -3586,8 +3493,6 @@ HANNIBAL = (function(H){
         }
 
       });
-
-      deb("   CTX: %s initialized", this.name);
 
     },
     connectExplorer:  function(launcher){
@@ -3620,8 +3525,15 @@ HANNIBAL = (function(H){
         entities = gs.entities._entities,
         sanitize = H.saniTemplateName;
 
-      this.updateEngine = function(sharedScript){
+      this.updateEngine = sharedScript => {
+
+        // this.updates is here relevant
+
         ss = sharedScript;
+
+        this.sharedscript       = ss; // tmp for map
+        this.gamestate          = ss.gameState[this.id]; // tmp for map
+
         this.timeElapsed        = ss.timeElapsed;
         this.territory          = ss.territoryMap;
         this.passability        = ss.passabilityMap;
@@ -3632,7 +3544,6 @@ HANNIBAL = (function(H){
         // this.metadata           = ss._entityMetadata[this.id];
       };
 
-
       H.extend(this, {
 
         connector:           "engine",
@@ -3640,7 +3551,7 @@ HANNIBAL = (function(H){
         params:              H.toArray(arguments),
         launcher:            launcher,
 
-        id:                  settings.player,                   // bot id, used within 0 A.D.
+        // id:                  settings.player,                   // bot id, used within 0 A.D.
         difficulty:          settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
 
         phase:               gs.currentPhase(),          // num
@@ -3678,6 +3589,10 @@ HANNIBAL = (function(H){
         // API ro/dynamic
         // sanitize UnitAI state // TODO: check if function works too
         unitstates:          new Proxy({}, {get: (proxy, id) => {
+
+          // print("unitstates: " + id);
+          // this.deb("   CTX: unitstates of id: %s, %s", id, entities[id]._templateName || "no template");
+
           return (
             entities[id] && entities[id]._entity.unitAIState ? 
               H.replace(entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
@@ -3704,7 +3619,7 @@ HANNIBAL = (function(H){
 
           ids.forEach(function(id){
             if (!entities[id]){
-              deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
+              this.deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
             } else {
               curHits += entities[id]._entity.hitpoints;
               maxHits += entities[id].maxHitpoints();
@@ -3722,11 +3637,11 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
 return H; }(HANNIBAL));  
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, logObject, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- C U L T U R E  ----------------------------------------------
 
@@ -3745,8 +3660,8 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:     "phases",
-      context:  context,
+      context: context,
+
       imports:  [
         "phase",
         "query",
@@ -3766,18 +3681,15 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Phases.prototype = {
+  H.LIB.Phases.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Phases,
     log: function(){
-      deb();
-      deb("PHASES: current: '%s'", this.current);
-      deb("     P: 1: %s", JSON.stringify(this["1"]));
-      deb("     P: 2: %s", JSON.stringify(this["2"]));
-      deb("     P: 3: %s", JSON.stringify(this["3"]));
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
+      this.deb();
+      this.deb("PHASES: current: '%s'", this.current);
+      this.deb("     P: 1: %s", JSON.stringify(this["1"]));
+      this.deb("     P: 2: %s", JSON.stringify(this["2"]));
+      this.deb("     P: 3: %s", JSON.stringify(this["3"]));
     },
     serialize: function(){
       return {
@@ -3827,7 +3739,7 @@ HANNIBAL = (function(H){
         if ((phase = this.find(msg.data.key))){
           this.context.phase = phase.idx;
           this.current = phase.abbr;
-          deb("PHASES: onAdvance: set new phase %s", this.current);
+          this.deb("PHASES: onAdvance: set new phase %s", this.current);
         }
       });      
     },
@@ -3841,14 +3753,14 @@ HANNIBAL = (function(H){
       return undefined; //H.throw("phases.find: '%s' unknown", phase);
     },
 
-  };
+  });
 
   H.LIB.Tree = function(context){
 
     H.extend(this, {
 
-      name:  "tree",
-      context:  context,
+      context: context,
+
       imports:  [
         "id",
         "player",
@@ -3865,20 +3777,19 @@ HANNIBAL = (function(H){
       sources:    null,
       names:      null,
       keys:       null,
+      
       cntSources: 0,
 
     });
 
   };
 
-  H.LIB.Tree.prototype = {
+  H.LIB.Tree.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Tree,
     log: function(){
-      deb(); deb("  TREE: expanded %s sources into %s nodes", this.cntSources, H.count(this.nodes));
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
+      this.deb(); 
+      this.deb("  TREE: expanded %s sources into %s nodes", this.cntSources, H.count(this.nodes));
     },
     deserialize: function(data){
       this.nodes = data;
@@ -3964,7 +3875,7 @@ HANNIBAL = (function(H){
       // after initialize AND deserialize
 
       var 
-        tech, name, producers, nodes = this.nodes, t0 = Date.now(),
+        tech, name, producers, nodes = this.nodes,
         phases = this.culture.phases,
         operMapper = {
           "BUILDBY":       "build_structures",
@@ -4154,7 +4065,14 @@ HANNIBAL = (function(H){
       var 
         tpln, key, tpl, name, src, test, depth = 0,
         phases = this.culture.phases,
-        push = item => this.sources.push([depth, item]);
+        push = (item) => {
+          var k = item.replace(/\{civ\}/g, this.civ);
+          if(!(this.templates[k] || this.techtemplates[k])){
+            this.deb("WARN  : tree.build: unknown template: '%s' in civ: %s from '%s'", k, this.civ, key);
+          } else {
+            this.sources.push([depth, item]);
+          }
+        };
 
       H.consume(this.sources, src => {
 
@@ -4186,7 +4104,7 @@ HANNIBAL = (function(H){
             operator:      null,    // planner.operator
           };
 
-          // unit promotion
+          // unit promotion, create warning with celt fortress
           if(key.slice(-2) === "_b"){
             push(key.slice(0, -2) + "_e");
             push(key.slice(0, -2) + "_a");
@@ -4230,14 +4148,14 @@ HANNIBAL = (function(H){
 
     },
 
-  };    
+  });    
 
   H.LIB.Culture = function(context){
 
     H.extend(this, {
 
-      name:    "culture",
       context: context,
+
       imports: [
         "id",
         "player",
@@ -4248,6 +4166,7 @@ HANNIBAL = (function(H){
         "templates",
         "techtemplates",
       ],
+
       childs: [
         "store",
         "phases",
@@ -4275,11 +4194,13 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Culture.prototype = {
-    constructor: H.Culture,
+
+  H.LIB.Culture.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
+    constructor: H.LIB.Culture,
     log: function (){
-      deb();
-      deb("  CULT: civ: %s, templates: %s, %s verbs, %s nodes, %s edges, %s ingames", 
+      this.deb();
+      this.deb("  CULT: civ: %s, templates: %s, %s verbs, %s nodes, %s edges, %s ingames", 
         this.civ,
         H.count(this.templates),
         this.verbs.length,
@@ -4287,18 +4208,13 @@ HANNIBAL = (function(H){
         this.cntEdges,
         this.cntIngames
       );
-      this.query("INGAME SORT < id").execute("metadata", 5, 80, "culture.log: ingames with metadata");
       this.phases.log();
       this.tree.log();
       this.store.log();
+      this.query("INGAME SORT < id")
+        .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "culture.log: ingames"})
+        .execute();
 
-    },
-    import: function (){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function (context){
-      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
       return {
@@ -4320,7 +4236,7 @@ HANNIBAL = (function(H){
     },
     finalize: function (){
 
-      H.each(this.store.nodes, (name, node) => {
+      H.each(this.store.nodes, name => {
         delete this.store.nodes[name].template;
         delete this.store.nodes[name].classes;
       });
@@ -4376,11 +4292,11 @@ HANNIBAL = (function(H){
       //   this.loadById(msg.id);
       // });
 
-      this.events.on("EntityRenamed", msg => {
-        this.loadById(msg.id2);
-        H.Triggers.add(-1, this.removeById.bind(this, msg.id));
+      // this.events.on("EntityRenamed", msg => {
+        // covered by create/destroy
+        // this.loadById(msg.id2);
         // this.removeById(msg.id);
-      });
+      // });
 
       // this.events.on("AIMetadata", msg => {
       //   this.loadById(msg.id);
@@ -4392,9 +4308,9 @@ HANNIBAL = (function(H){
         }
       });
 
-      this.events.on("Advance", this.tree.id, msg => {
+      // this.events.on("Advance", this.tree.id, msg => {
         // this.loadByName(msg.data.technology);
-      });
+      // });
 
     },
 
@@ -4426,7 +4342,7 @@ HANNIBAL = (function(H){
           node = self.addNode(name, tpln, template);
           counter += 1;     
 
-          if (conf.deb){deb("     C: Node added: %s for %s", name, type);}
+          if (conf.deb){this.deb("     C: Node added: %s for %s", name, type);}
 
         });
 
@@ -4512,7 +4428,7 @@ HANNIBAL = (function(H){
     loadEntities: function(){
 
       var 
-        targetNodes = [], cntEdges = 0, key, name, 
+        targetNodes = [], key, name, 
         nodeSource, nodeSourceName, 
         sani = H.saniTemplateName;
 
@@ -4535,8 +4451,8 @@ HANNIBAL = (function(H){
         nodeSourceName = nodeTarget.name.split("#")[0];
         nodeSource = this.store.nodes[nodeSourceName];
 
-        if (!nodeSource){deb("ERROR : loadEntities nodeSource: %s", nodeSourceName);}
-        if (!nodeTarget){deb("ERROR : loadEntities nodeTarget: %s", nodeTarget.name);}
+        if (!nodeSource){this.deb("ERROR : loadEntities nodeSource: %s", nodeSourceName);}
+        if (!nodeTarget){this.deb("ERROR : loadEntities nodeTarget: %s", nodeTarget.name);}
 
         this.store.addEdge(nodeSource, "ingame",      nodeTarget);
         this.store.addEdge(nodeTarget, "describedby", nodeSource);
@@ -4622,8 +4538,10 @@ HANNIBAL = (function(H){
         delete this.store.nodes[node.name];
 
       } else {
-        deb("WARN  : culture.removeById failed on id: %s, tpl: %s", id, tpln);
-        this.query("INGAME SORT < id").execute("metadata", 5, 50, "removeById: ingames with metadata");
+        this.deb("WARN  : culture.removeById failed on id: %s, tpl: %s", id, tpln);
+        this.query("INGAME SORT < id")
+          .parameter({fmt: "metadata", deb: 5, max: 50, cmt: "removeById: ingames with metadata"})
+          .execute();
 
       }
 
@@ -4698,7 +4616,7 @@ HANNIBAL = (function(H){
         }},
         "slots": {enumerable: true, get: function(){
           if (!node.capacity){
-            deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, entities[id].templateName() || "???");
+            this.deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, entities[id].templateName() || "???");
             return undefined;
           }
           var freeSlots = node.capacity - entities[id].garrisoned.length;
@@ -4715,6 +4633,7 @@ HANNIBAL = (function(H){
       });
     },
     logNode: function(node){
+      var deb = this.deb;
       deb("    %s", node.name);
       deb("      : key  %s", node.key);
       deb("      : type %s", node.type);
@@ -4969,7 +4888,7 @@ HANNIBAL = (function(H){
     },
     createEdges: function(verb, inverse, msg, test, targets, debug){
 
-      var store = this.store, nodeTarget, counter = 0;
+      var store = this.store, nodeTarget, counter = 0, deb = this.deb;
 
       debug = debug || false;
 
@@ -5079,7 +4998,7 @@ HANNIBAL = (function(H){
           var ents = H.replace(node.template.Builder.Entities._string.toLowerCase(), "\n", " ");
           if (ents.search("{civ}") !== -1){
             if(!node.template.Identity.Civ){
-              deb("ERROR : {civ} but no Indetity.Civ");
+              this.deb("ERROR : {civ} but no Indetity.Civ");
             } else {
               ents = H.replace(ents, "{civ}", node.template.Identity.Civ);
             }
@@ -5105,7 +5024,7 @@ HANNIBAL = (function(H){
           var ents = H.replace(node.template.ProductionQueue.Entities._string.toLowerCase(), "\n", " ");
           if (ents.search("{civ}") !== -1){
             if(!node.template.Identity.Civ){
-              deb("ERROR : {civ} but no Indetity.Civ");
+              this.deb("ERROR : {civ} but no Indetity.Civ");
             } else {
               ents = H.replace(ents, "{civ}", node.template.Identity.Civ);
             }
@@ -5222,29 +5141,7 @@ HANNIBAL = (function(H){
 
     }    
 
-  };
-
-  // H.Culture = function(tree, debug){
-
-  //   deb();deb();deb("  CULT: build culture/store for player id: %s, %s", tree.id, tree.civ);
-
-  //   this.debug = debug || 0;
-
-  //   this.civ  = tree.civ;
-  //   this.tree = tree;
-  //   this.tree.culture = this;
-
-  //   this.verbs = H.Data.verbs;
-  //   this.store = new H.LIB.Store(tree.civ);
-  //   this.verbs.forEach(this.store.addVerb.bind(this.store)); //??
-
-  //   // stores nodes found in templates
-  //   this.classes = [];
-  //   this.technologies = [];
-  //   this.resources = [];
-  //   this.resourcetypes = [];
-
-  // };
+  });
 
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
@@ -5263,20 +5160,17 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-  H.Data = H.Data || {};
-
-  H.Data.Groups = H.Data.Groups || {};
-
+  // group scripts
   H.Data.Groups.whitelist = [
-    "onLaunch",       // group instance launched
-    "onAssign",       // resource added to asset
-    "onDestroy",      // final call
-    "onAttack",       // enemies become a thread
-    "onInterval",     // ticking
-    "onConnect",      // user added to shared asset
-    "onDisConnect",   // remove user from shared asset
-    "onBroadcast",    // bot radio
-    "onRelease"       // de-garrison
+    "launch",       // group instance launched
+    "assign",       // resource added to asset
+    "destroy",      // final call
+    "attack",       // enemies become a thread
+    "tick",         // ticking
+    "connect",      // user added to shared asset
+    "disConnect",   // remove user from shared asset
+    "radio",        // bot radio
+    "release"       // de-garrison
   ];
 
   // Triple Store Verbs, in order of frequency with ingames first
@@ -5532,7 +5426,7 @@ HANNIBAL = (function(H){
 
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- E C O N O M Y -----------------------------------------------
 
@@ -5555,7 +5449,6 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      klass:    "stats",
       context:  context,
       imports:  [
         "player"
@@ -5578,26 +5471,18 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Stats.prototype = {
+  H.LIB.Stats.prototype = H.mixin(
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Stats,
-    toString: function(){return H.format("[%s %s:%s]", this.klass, this.context.name, this.name);},
     log: function(){
-      deb();
-      deb("   STS: stock: %s", JSON.stringify(this.stock));
+      this.deb();
+      this.deb("  STAT: stock: %s", JSON.stringify(this.stock));
+    },
+    logTick: function(){
+      this.deb("  STAT: stock: %s", JSON.stringify(this.stock));
     },
     initialize: function(){
       this.tick();
-      return this;
-    },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .deserialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
     deserialize: function(data){ // child
@@ -5633,6 +5518,9 @@ HANNIBAL = (function(H){
         t0 = Date.now(), curHits = 1, maxHits = 1, 
         gathered  = this.player.statistics.resourcesGathered,
         available = this.player.resourceCounts;
+
+      // update
+      this.import();
           
       // gather diffs
       this.gatherables.forEach( prop => { 
@@ -5657,14 +5545,14 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
   H.LIB.Producers = function(context){
 
     H.extend(this, {
 
-      name:    "producers",
       context: context,
+
       imports: [
         "query",
         "culture",
@@ -5690,55 +5578,46 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Producers.prototype = {
+  H.LIB.Producers.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Producers,
     log: function(){
       var count;
-      deb();
+      this.deb();
       if ((count = H.count(this.producers))){
-        deb("   PDC: have %s producers", count);
+        this.deb("   PDC: have %s producers", count);
         H.attribs(this.producers)
           .sort((a, b) => ~~a < ~~b ? -1 : 1)
           .forEach( nameid => {
             var [name, id] = nameid.split("#");
-            deb("   PDC: %s %s", id, this.infoProducer(name));
+            this.deb("     P: %s %s", id, this.infoProducer(name));
         });
       } else {
-        deb("   PDC: log: no producer registered");
+        this.deb("   PDC: log: no producer registered");
       }
     },
     logTick: function(){
       var count, name, id, allocs, queue, t = H.tab;
       if ((count = H.count(this.producers))){
-        deb("   PDC: have %s producers", count);
-        deb("*");
-        H.attribs(this.producers)
-          // .filter(a => this.producers[a].queue.length)
-          .sort((a, b) => this.producers[a].queue.length > this.producers[b].queue.length ? -1 : 1)
-          .forEach( nameid => {
-            [name, id] = nameid.split("#");
-            allocs = this.producers[nameid].allocs;
-            queue  = this.producers[nameid].queue;
-            deb("     P: %s %s %s ", t("#" + id, 4), t(allocs,3), uneval(queue), nameid);
-        });
-        deb("*");
+        // this.deb("   PDC: have %s producers", count);
+        if (false){
+          this.deb("*");
+          H.attribs(this.producers)
+            // .filter(a => this.producers[a].queue.length)
+            .sort((a, b) => this.producers[a].queue.length > this.producers[b].queue.length ? -1 : 1)
+            .forEach( nameid => {
+              [name, id] = nameid.split("#");
+              allocs = this.producers[nameid].allocs;
+              queue  = this.producers[nameid].queue;
+              this.deb("     P: %s %s %s ", t("#" + id, 4), t(allocs,3), uneval(queue), nameid);
+          });
+          this.deb("*");
+        }
       } else {
-        deb("   PDC: log: no producer registered");
+        this.deb("   PDC: log: no producer registered");
       }
     },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
     deserialize: function(data){ // child
-      deb("   PDC: deserialize.in: %s", uneval(data));
       this.producers = data ? data : null; //{};
       return this;
     },
@@ -5750,11 +5629,9 @@ HANNIBAL = (function(H){
       return this;
     },
     finalize: function(){
-      // deb("   PDC: finalize.in: %s", uneval(this.producers));
       if (!this.producers){
         this.producers = {};
-        // this.query("INGAME").execute().forEach(this.register.bind(this));
-        this.query("INGAME").execute().forEach(this.register, this);
+        this.query("INGAME").forEach(this.register, this);
       }
     },
     infoProducer: function(name){
@@ -5808,7 +5685,7 @@ HANNIBAL = (function(H){
       H.each(this.producers, (nameid, info) => {
         if (info.id === id){
           delete this.producers[nameid];
-          deb("   PDC: removed id: %s, name: %s", id, info.name);
+          this.deb("   PDC: removed id: %s, name: %s", id, info.name);
         }        
       });
 
@@ -5818,7 +5695,7 @@ HANNIBAL = (function(H){
     // },
     queue: function(producer, taskidOrTech){
       producer.queue.push(taskidOrTech);
-      deb("   PDC: queued: task: %s in queue: %s | %s", taskidOrTech, producer.queue, producer.name);
+      this.deb("   PDC: queued: task: %s in queue: %s | %s", taskidOrTech, producer.queue, producer.name);
     },
     unqueue: function(verb, taskidOrTech){
 
@@ -5830,13 +5707,13 @@ HANNIBAL = (function(H){
         if(!found && producer.queue.length){
           if (H.delete(producer.queue, task => task === taskidOrTech)){
             found = true;
-            deb("   PDC: unqueue: removed task: %s from queue: %s | %s", taskidOrTech, producer.queue, producer.name);
+            // this.deb("   PDC: unqueue: removed task: %s from queue: %s | %s", taskidOrTech, producer.queue, producer.name);
           }
         }
       });
 
       if (!found) {
-        deb("   PDC: unqueue: not found in any queue: %s, %s", verb, taskidOrTech);
+        this.deb("   PDC: unqueue: not found in any queue: %s, %s", verb, taskidOrTech);
       }
 
     },
@@ -5879,7 +5756,9 @@ HANNIBAL = (function(H){
           // only checks for existence no queue when building
           while (i-- && !found){
             producer = this.producers[names[i]];
-            found = !!tree[producer.name].products.build[product];
+            if (tree[producer.name].products.build[product]){
+              found = true;  
+            }        
           }
 
         break;
@@ -5948,22 +5827,22 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
   H.LIB.Order = function(context){
 
     H.extend(this, {
 
-      name: "order",
       context: context,
+
       imports: [
-        // "id",
         "bot",
         "economy",
         "query",
         "culture",
         "technologies",
         "events",
+        "resources",
       ],
 
     });
@@ -5972,30 +5851,18 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Order.prototype = {
+  H.LIB.Order.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Order,
-    log: function(){},
-    logTick: function(){},
     initialize: function(order){
       H.extend(this, order, {
         id:         order.id         || this.context.idgen++,
         processing: 0,
         remaining:  order.remaining  || order.amount,
         product:    null,
-        x:          order.location ? order.location[0] : undefined,
-        z:          order.location ? order.location[1] : undefined,
+        x:          order.location ? order.location[0] : NaN,
+        z:          order.location ? order.location[1] : NaN,
       });
-      return this;
-    },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },
     serialize: function(){
@@ -6121,6 +5988,10 @@ HANNIBAL = (function(H){
 
       var verb = this.verb, hcq = (
 
+        // looking for a virtual asset
+        verb === "find" ? this.hcq :
+        verb === "path" ? this.hcq :
+
         // looking for a technology
         verb === "research" ? this.hcq :
 
@@ -6134,11 +6005,34 @@ HANNIBAL = (function(H){
         verb === "build" && !this.shared ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
 
         // error
-          deb("ERROR : assignExisting run into unhandled case: %s, shared: %s", this.verb, this.shared)
+          this.deb("ERROR : assignExisting run into unhandled case: %s, shared: %s", this.verb, this.shared)
       
       );
 
-      if (verb === "train" || verb === "build"){
+      if (verb === "path"){
+        // assuming order done
+        this.remaining = 0; 
+        this.events.fire("OrderReady", {
+          player: this.context.id,
+          id:     NaN,
+          data:   {
+            order: this.id, 
+            source: this.source, 
+            resources: new H.LIB.Path(this.context, this.hcq).path
+          }
+        });
+
+      } else if (verb === "find"){
+        // assuming order done
+        this.remaining = 0; 
+        this.events.fire("OrderReady", {
+          player: this.context.id,
+          id:     NaN,
+          data:   {order: this.id, source: this.source, resources: this.resources.find(this)}
+        });
+
+
+      } else if (verb === "train" || verb === "build"){
         this.query(hcq)
           .execute()
           .slice(0, this.remaining - this.processing)
@@ -6150,53 +6044,55 @@ HANNIBAL = (function(H){
               data:   {order: this.id, source: this.source}
           });
         });
+
       } else {
-        deb("   ORD: assignExisting: looking for '%s' ????????", this.hcq);
+        this.deb("   ORD: assignExisting: looking for '%s' ????????", this.hcq);
       }
 
     },
 
-  };
+  });
+
   H.LIB.Orderqueue = function(context){
 
     H.extend(this, {
 
-      name:    "orderqueue",
       context:  context,
+
       imports:  [
         "economy",
         "groups",
       ],
 
-      report: {rem: [], exe: [], ign: []},
-      tP: 0, // processing time, msecs
-      queue: null,
+      tP: 0,            // processing time, msecs
 
-      logProcessing: false,
-      logWaiting:    false,
+      queue: null,      // stateful
+
+      report: {rem: [], exe: [], ign: []},
 
     });
 
   };
 
-  H.LIB.Orderqueue.prototype = {
+  H.LIB.Orderqueue.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Orderqueue,
     log: function(){
-      deb();
+      this.deb();
       if (this.queue.length){
         this.queue.forEach( order => {
           order.log();
         });
       } else {
-        deb("   ORQ: empty");
+        this.deb("   ORQ: empty");
       }
     },
     logTick: function(){
 
       var 
         msg  = "", tb = H.tab,
-        header = "  id,     verb, amt, pro, rem, nodes, flags,                 source | template".split(","),
-        tabs   = "   4,       10,   5,   5,   5,     7,     7,                    24".split(",").map(s => ~~s),
+        header = "  id,     verb, amt, pro, rem, nodes, flags,                 source, template".split(","),
+        tabs   = "   4,       10,   5,   5,   5,     7,     7,                    24, 12".split(",").map(s => ~~s),
         head   = header.map(String.trim).slice(0, -1),
         retr = {
           id:       o => "#" + o.id,
@@ -6206,13 +6102,14 @@ HANNIBAL = (function(H){
           pro:      o => o.processing,
           nodes:    o => o.nodes ? o.nodes.length : 0,
           flags:    o => (o.product ? "P" : "_"),
-          source:   o => this.groups.findAssets(ast => ast.id === o.source)[0].name || "no source :(",
+          source:   o => o.source, //this.groups.findAsset(o.source).name || "no source :(",
+          template: o => "tplXXXXXX",
         };
 
-      deb("   ORQ: length: %s, rep: %s", this.queue.length, uneval(this.report));
+      this.deb("   ORQ: length: %s, rep: %s", this.queue.length, uneval(this.report));
       if (this.queue.length){
-        deb("*");
-        deb("     Q: %s", header);
+        this.deb("*");
+        this.deb("     Q: %s", header);
         this.queue
           .sort((a,b) => a > b ? 1 : -1)
           .forEach(o => {
@@ -6220,22 +6117,11 @@ HANNIBAL = (function(H){
             H.zip(head, tabs, (h, t) => {
               msg += tb(retr[h](o), t);
             });
-            deb("     Q: %s | %s", msg, o.product ? o.product.name : "no product");
+            this.deb("     Q: %s | %s", msg, o.product ? o.product.name : "no product");
           });
-        deb("*");
+        this.deb("*");
       }
 
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      return (
-        new H.LIB[H.noun(this.name)](context)
-          .import()
-          .initialize(this.serialize())
-      );
     },
     serialize: function(tick, secs){
       return this.queue.map( order => order.serialize());
@@ -6259,15 +6145,20 @@ HANNIBAL = (function(H){
     },
     delete: function(fn){return H.delete(this.queue, fn);},
     find: function(fn){
-      var i = this.queue.length;
-      while(i--){if (fn(this.queue[i])){return this.queue[i];}}
+      var i, il = this.queue.length;
+      for (i=0; i<il; i++){
+        if (fn(this.queue[i])){
+          return this.queue[i];
+        }
+      }
+      this.deb("   ORQ: have %s, %s", this.queue.length, this.queue.map(o => o.id).join("|"));
+      H.throw("WARN  : no order found in queue with: %s", fn);
       return undefined;
     },
     process: function(){
 
       var 
-        t0 = Date.now(), 
-        amount, msg, t = H.tab, 
+        t0 = Date.now(), amount, 
         hasBuild      = false, // only one construction per tick
         allGood       = false, 
         rep           = this.report,
@@ -6300,20 +6191,6 @@ HANNIBAL = (function(H){
       // get first quote whether all orders fit budget
       allGood = eco.fits(allocs, budget);  
 
-      // rep / debug
-      // msg = "    OQ: #%s %s amt: %s, rem: %s, pro: %s, verb: %s, nodes: %s, from %s ([0]: %s)";
-      // queue
-      //   .forEach(o => {
-      //     var 
-      //       isWaiting = o.remaining === o.processing,
-      //       exec = o.executable ? "X" : "-",
-      //       source = H.isInteger(o.source) ? this.groups.findAsset(o.source).name : o.source,
-      //       nodename = o.nodes.length ? o.nodes[0].name : "hcq: " + o.hcq.slice(0, 40);
-      //     if(!(isWaiting && !logWaiting)){
-      //       deb(msg, t(o.id, 3), exec, t(o.amount, 2), t(o.remaining, 2), t(o.processing, 2), o.verb.slice(0,5), t(o.nodes.length, 3), source, nodename);
-      //     }
-      // });
-
       // choose executables, sort and process
       queue
         .filter(order => !!order.product)
@@ -6327,65 +6204,45 @@ HANNIBAL = (function(H){
           // process all or one
           amount = allGood ? order.remaining - order.processing : 1;
 
+          // one build a time
+          if (order.verb === "build"){
+            if (hasBuild) return; else hasBuild = true;
+          }
+
           // final global budget check
           if (eco.fits(product.costs, budget, amount)){
 
-            switch(order.verb){
+            eco.do(amount, order); 
 
-              case "train":
-                eco.do("train", amount, order); 
-                eco.subtract(product.costs, budget, amount);
-                rep.exe.push(id + ":" + amount);
-              break;
-
-              case "build":
-                if (!hasBuild){
-                  hasBuild = true;
-                  eco.do("build", 1, order); 
-                  eco.subtract(product.costs, budget, 1);
-                  rep.exe.push(id + ":" + amount);
-                } else {
-                  deb("    OQ: #%s build postponed (%s)", t(id, 3), product.name);
-                }
-              break;
-
-              case "research":
-                eco.do("research", amount, order);
-                eco.subtract(product.costs, budget, amount);
-                rep.exe.push(id + ":" + amount);
-              break;
-
-              default:
-                deb("ERROR : orderQueue.process: #%s unknown order.verb: %s", id, order.verb);
-
-            }
+            eco.subtract(product.costs, budget, amount);
+            rep.exe.push(id + ":" + amount);
 
           } else {
             rep.ign.push(id);
 
           }
 
-
       });
 
-      queue
-        .filter( order => order.remaining === 0)
-        .forEach( order => {
+      // remove finished orders
+      H.delete(queue, order => {
+        if (order.remaining === 0){
           rep.rem.push(order.id);
-          H.remove(this.queue, order);
+          return true;
+        } else {return false;}
       });
 
       this.tP = Date.now() - t0;
 
     }   
-  };
+  });
 
   H.LIB.Economy = function(context){
 
     H.extend(this, {
 
-      name: "economy",
       context: context,
+
       imports: [
         "id",
         "config",
@@ -6396,6 +6253,7 @@ HANNIBAL = (function(H){
         "query",
         "groups",
         "metadata",
+        // "resources",
       ],
       childs: [
         "stats",
@@ -6411,12 +6269,15 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Economy.prototype = {
+  H.LIB.Economy.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Economy,
-    log: function(){
-      this.childs.forEach(child => this[child].log());
-    },
-    logTick: function(){
+
+    log: function(){this.childs.forEach(child => this[child].log());
+
+    }, logTick: function(){
+
+      this.childs.forEach(child => this[child].logTick());
       
       // var 
       //   stock = this.stats.stock, 
@@ -6433,22 +6294,14 @@ HANNIBAL = (function(H){
         //   t(stock.health, 4), f(flows.health.toFixed(1))
         // );
 
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function (context){
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    serialize: function(){
+    }, serialize: function(){
       return {
         stats:      this.stats.serialize(),
         producers:  this.producers.serialize(),
         orderqueue: this.orderqueue.serialize(),
       };
-    },
-    deserialize: function(){
+
+    }, deserialize: function(){
       if (this.context.data[this.name]){
         this.childs.forEach( child => {
           if (this.context.data[this.name][child]){
@@ -6459,8 +6312,8 @@ HANNIBAL = (function(H){
           }
         });
       }
-    },
-    initialize: function(){
+
+    }, initialize: function(){
       this.childs.forEach( child => {
         if (!this[child]){
           // deb("   ECO: child.initialize: %s", child);
@@ -6470,55 +6323,60 @@ HANNIBAL = (function(H){
         }
       });
       return this;
-    },
-    finalize: function(){
-      this.childs.forEach( child => {
-        if (this[child].finalize){
-          this[child].finalize();
-        } 
-      });
-    },
-    activate: function(){
-      
-      var order;
 
-      this.events.on("EntityRenamed", msg => {
-        this.producers.remove(msg.id);
-        this.producers.register(msg.id2);
+    }, finalize: function(){
+      this.childs.forEach( child => {
+        ( this[child].finalize && this[child].finalize() );
+      });
+
+    }, activate: function(){
+      
+      var 
+        order,
+        id = this.id,
+        events = this.events,
+        producers = this.producers,
+        orderqueue = this.orderqueue;
+
+      events.on("EntityRenamed", msg => {
+        producers.remove(msg.id);
+        producers.register(msg.id2);
       });
 
       // new technology
-      this.events.on("Advance", msg => {
-        if (this.orderqueue.delete(order => order.hcq === msg.data.technology)){
-          this.producers.unqueue("research", msg.data.technology);
-          deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
+      events.on("Advance", msg => {
+        if (orderqueue.delete(order => order.hcq === msg.data.technology)){
+          producers.unqueue("research", msg.data.technology);
+          this.deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
         }        
       });
 
       // new producer
-      this.events.on("ConstructionFinished", msg => {
-        this.producers.register(this.query("INGAME WITH id = " + msg.id).first());
+      events.on("ConstructionFinished", msg => {
+        producers.register(msg.id);
       });
 
       // new unit
-      this.events.on("TrainingFinished", msg => {
+      events.on("TrainingFinished", msg => {
 
-        deb("   ECO: TrainingFinished id: %s, meta: %s", msg.id, uneval(this.metadata[msg.id]));
+        this.deb("   ECO: TrainingFinished id: %s, meta: %s", msg.id, uneval(this.metadata[msg.id]));
 
         if (!msg.data.task){
-          deb("WARN   : ECO: got unit not ordered");
+          this.deb("INFO  : ECO: got present: unit, not ordered");
+          H.chat("Thanks.");
           return;
         }
 
-        this.producers.register(msg.id);
-        this.producers.unqueue("train", msg.data.task); 
+        producers.register(msg.id);
+        producers.unqueue("train", msg.data.task); 
 
-        order = this.orderqueue.find(order => order.id === msg.data.order);
+        // this.deb("   ECO: findOrder: %s, %s", msg.data.order, typeof msg.data.order);
+        order = orderqueue.find(order => order.id === msg.data.order);
         order.remaining  -= 1;
         order.processing -= 1;
         
-        this.events.fire("OrderReady", {
-          player: this.id,
+        events.fire("OrderReady", {
+          player: id,
           id:     msg.id,
           data:   {order: msg.data.order, source: order.source}
         });
@@ -6526,17 +6384,18 @@ HANNIBAL = (function(H){
       });
 
       // new metadata
-      this.events.on("AIMetadata", msg => {
+      events.on("AIMetadata", msg => {
 
-        order = this.orderqueue.find(msg.data.order);
+        this.deb("   ECO: on AIMetadata, msg.data.order: %s", msg.data.order);
+
+        order = orderqueue.find(order => order.id === msg.data.order);
         order.remaining  -= 1;
         order.processing -= 1;
 
-        deb("   ECO: on AIMetadata order: #%s from %s", order.id, this.groups.findAsset(order.source).name);
+        this.deb("   ECO: on AIMetadata order: #%s from %s", order.id, this.groups.findAsset(order.source).name);
         
-        // H.Objects(order.source).listener("Ready", id);  
-        this.events.fire("OrderReady", {
-          player: this.id,
+        events.fire("OrderReady", {
+          player: id,
           id:     msg.id,
           data:   {order: msg.data.order, source: order.source}
         });
@@ -6544,48 +6403,116 @@ HANNIBAL = (function(H){
       });
 
       // remove entity
-      this.events.on("Destroy", msg => {
-        this.producers.remove(msg.id);
+      events.on("Destroy", msg => {
+        producers.remove(msg.id);
       });
 
-    },
-    tick: function(tick, secs){
+    }, tick: function(tick, secs){
 
-      var stock = this.stats.stock, t0 = Date.now();
+      var 
 
-      // sort availability by stock
+      // start clock
+        t0 = Date.now(),
+
+      // cash in
+        stock = this.stats.stock;
+
+      // check resources
       this.availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
 
+      // create value
       this.orderqueue.process();
 
+      // report upstream
       this.orderqueue.logTick();
       this.producers.logTick();
       this.logTick();
       
+      // shut down
       return Date.now() - t0;
 
-    },
-    multiply: function(cost, amount=1){
-      cost.food  *= amount;
-      cost.wood  *= amount;
-      cost.metal *= amount;
-      cost.stone *= amount;
-    },
-    subtract: function(cost, budget, amount=1){
-      budget.food  -= cost.food  > 0 ? (cost.food  * amount) : 0;
-      budget.wood  -= cost.wood  > 0 ? (cost.wood  * amount) : 0;
-      budget.metal -= cost.metal > 0 ? (cost.metal * amount) : 0;
-      budget.stone -= cost.stone > 0 ? (cost.stone * amount) : 0;
-    },
-    fits: function(cost, budget, amount=1){
+    }, request: function(order){
+      
+      // probably useless layer, but eco may reject orders...
+      //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+      //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
+
+      // this.deb("  EREQ: order: %s", uneval(order));
+
+      var  
+        objorder,
+        // debug
+        source = this.groups.findAsset(order.source),  // this is an asset id
+        loc = (order.location === undefined) ? "undefined" : H.fixed1(order.location);
+
+      if (order.verb === "build" && order.location.length !== 2){
+        H.throw("ERROR : %s order without position, source: %s", order.verb, source);
+      }
+
+      objorder = new H.LIB.Order(this.context).import().initialize(order);
+      this.orderqueue.queue.push(objorder);
+
+      this.deb("  EREQ: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
+        objorder.id, 
+        objorder.verb, 
+        objorder.amount, 
+        objorder.cc || "NO CC" , 
+        loc, 
+        source,  // that's an asset
+        objorder.shared, 
+        objorder.hcq.slice(0, 40)
+      );
+
+    }, do: function(amount, order){
+
+      var 
+        pos, task, 
+        product = order.product,
+        id = product.producer.id; 
+
+      this.deb("   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s",
+        order.id, 
+        order.verb, 
+        id, 
+        amount,
+        product.key, 
+        order.x ? order.x.toFixed(0) : NaN, 
+        order.z ? order.z.toFixed(0) : NaN 
+      );
+
+      // assuming transaction succedes
+      order.processing += amount;
+
+      if (order.verb === "train"){
+        task = this.context.idgen++;
+        this.producers.queue(product.producer, task);
+        this.effector.train([id], product.key, amount, {order: order.id, task: task, cc:order.cc});
+
+      } else if (order.verb === "research") {
+        this.producers.queue(product.producer, product.name);
+        this.effector.research(id, product.key);
+
+      } else if (order.verb === "build") {
+        pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
+        this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
+
+        // this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(pos), uneval([order.x, order.z]), product.key);
+
+      } else if (order.verb === "find") {
+        H.throw("ECO: find order leaked into do()");
+      } else if (order.verb === "path") {
+        H.throw("ECO: path order leaked into do()");
+
+      }
+
+    }, fits: function(cost, budget, amount=1){
       return (
         ((cost.food  || 0) * amount) <= (budget.food  || 0) &&
         ((cost.wood  || 0) * amount) <= (budget.wood  || 0) &&
         ((cost.stone || 0) * amount) <= (budget.stone || 0) &&
         ((cost.metal || 0) * amount) <= (budget.metal || 0)
       );  
-    },
-    diff: function(cost, budget, amount=1){
+    }, diff: function(cost, budget, amount=1){
       return {
         food:   (budget.food   || 0) - (cost.food   || 0 * amount),
         wood:   (budget.wood   || 0) - (cost.wood   || 0 * amount),
@@ -6594,288 +6521,21 @@ HANNIBAL = (function(H){
         pop  :  (budget.pop    || 0) - (cost.pop    || 0 * amount),
         popcap: (budget.popcap || 0) - (cost.popcap || 0 * amount),
       };
-    },
-    request: function(order){
-      
-      // probably useless layer, but eco may reject orders...
-      //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-      //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
-
-      var  
-        objorder,
-        // debug
-        sourcename = this.groups.findAssets(ast => ast.id === order.source)[0].name,  // this is an group instance
-        loc = (order.location === undefined) ? "undefined" : H.fixed1(order.location);
-
-      if (order.verb === "build" && order.x === undefined){
-        H.throw("ERROR : %s order without position, source: %s", verb, sourcename);
-      }
-
-      objorder = new H.LIB.Order(this.context).import().initialize(order);
-      this.orderqueue.queue.push(objorder);
-
-      deb("  EREQ: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
-        objorder.id, 
-        objorder.verb, 
-        objorder.amount, 
-        objorder.cc || "NO CC" , 
-        loc, 
-        sourcename,  // that's an asset
-        objorder.shared, 
-        objorder.hcq.slice(0, 40)
-      );
-
-    },
-    do: function(verb, amount, order){
-
-      var 
-        pos, task, 
-        product  = order.product,
-        id = product.producer.id, 
-        msg = ( verb === "build" ?
-          "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s" : 
-          "   EDO: #%s %s, producer: %s, amount: %s, tpl: %s"
-        );
-
-      order.processing += amount;
-
-      switch(verb){
-
-        case "train" :
-          task = this.context.idgen++;
-          this.producers.queue(product.producer, task);
-          deb(msg, order.id, verb, id, amount, product.key); 
-          this.effector.train([id], product.key, amount, {order: order.id, task: task, cc:order.cc});
-        break;
-
-        case "research" : 
-          this.producers.queue(product.producer, product.name);
-          deb(msg, order.id, verb, id, 1, product.key); 
-          this.effector.research(id, product.key);
-        break;
-
-        case "build" : 
-          // needs no queue
-          pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
-          deb(msg, order.id, verb, id, 1, product.key, order.x.toFixed(0), order.z.toFixed(0)); 
-          this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
-        break;
-
-      }
-
+    }, multiply: function(cost, amount=1){
+      cost.food  *= amount;
+      cost.wood  *= amount;
+      cost.metal *= amount;
+      cost.stone *= amount;
+    }, subtract: function(cost, budget, amount=1){
+      budget.food  -= cost.food  > 0 ? (cost.food  * amount) : 0;
+      budget.wood  -= cost.wood  > 0 ? (cost.wood  * amount) : 0;
+      budget.metal -= cost.metal > 0 ? (cost.metal * amount) : 0;
+      budget.stone -= cost.stone > 0 ? (cost.stone * amount) : 0;
     },
 
-  };
+  });
 
 return H; }(HANNIBAL));
-
-
-
-  // H.Economy = (function(){
-
-  //       flowBarrack  = tree[cls("barracks")].flow;
-  //       flowCentre   = tree[cls("civcentre")].flow;
-  //       flowFortress = tree[cls("fortress")].flow;
-
-  //       deb("   ECO: max flow centre  : %s ", uneval(flowCentre));
-  //       deb("   ECO: max flow barracks: %s ", uneval(flowBarrack));
-  //       deb("   ECO: max flow fortress: %s ", uneval(flowFortress));
-
-  //     },
-
-  //       // sort availability by stock
-  //       self.availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
-
-
-  //       // H.OrderQueue.process();
-  //       // H.OrderQueue.log();
-  //       self.orderqueue.process();
-
-  //       // deb("orderqueue: %s", H.attribs(self.orderqueue));
-
-  //       self.orderqueue.log();
-  //       self.logTick();
-        
-  //       return Date.now() - t0;
-
-  //     },
-  //     activate: function(){
-
-  //       var node, order;
-
-  //       H.Events.on("EntityRenamed", function (msg){
-
-  //         node = H.QRY("INGAME WITH id = " + msg.id).first();
-  //         if (node){
-  //           self.producers.remove(node);
-  //         } else {
-  //           deb("WARN  : eco.activate.EntityRenamed: id %s no ingame", msg.id);
-  //         }
-
-  //         node = H.QRY("INGAME WITH id = " + msg.id2).first();
-  //         if (node){
-  //           self.producers.register(node.name);
-  //         } else {
-  //           deb("WARN  : eco.activate.EntityRenamed: id2 %s no ingame", msg.id);
-  //         }
-  //       });
-
-  //       H.Events.on("Advance", function (msg){
-  //         // works, but...
-  //         if (self.orderqueue.delete(order => order.hcq === msg.data.technology)){
-  //           self.producers.unqueue("research", msg.data.technology);
-  //           deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
-  //         }        
-  //       });
-
-  //       H.Events.on("ConstructionFinished", function (msg){
-  //         self.producers.register(H.QRY("INGAME WITH id = " + msg.id).first().name);
-  //         // H.Producers.loadById(msg.id);
-  //       });
-
-  //       H.Events.on("TrainingFinished", function (msg){
-
-  //         deb("   ECO: TrainingFinished id: %s, meta: %s", msg.id, uneval(H.MetaData[msg.id]));
-
-  //         node = H.QRY("INGAME WITH id = " + msg.id).first();
-  //         if (node){
-  //           self.producers.register(node.name);
-  //         } else {
-  //           deb("WARN  : eco.activate.TrainingFinished: id %s no ingame", msg.id);
-  //         }
-
-  //         // self.producers.register(H.QRY("INGAME WITH id = " + msg.id).first().name);
-  //         // H.Producers.loadById(msg.id);
-  //         self.producers.unqueue("train", msg.data.task); 
-
-  //         order = H.Objects(msg.data.order);
-  //         order.remaining  -= 1;
-  //         order.processing -= 1;
-          
-  //         // H.Objects(order.source).listener("Ready", id);  
-  //          H.Events.fire("OrderReady", {
-  //           player: H.Bot.id,
-  //           id:     msg.id,
-  //           data:   {order: msg.data.order, source: order.source}
-  //         });
-
-  //       });
-
-  //       H.Events.on("AIMetadata", function (msg){
-
-  //         order = H.Objects(msg.data.order);
-  //         order.remaining  -= 1;
-  //         order.processing -= 1;
-
-  //         deb("   ECO: on AIMetadata order: #%s from %s", order.id, H.Objects(order.source).name);
-          
-  //         // H.Objects(order.source).listener("Ready", id);  
-  //         H.Events.fire("OrderReady", {
-  //           player: H.Bot.id,
-  //           id:     msg.id,
-  //           data:   {order: msg.data.order, source: order.source}
-  //         });
-
-  //       });
-
-  //       // H.Events.on("Advance", function (msg){
-  //       //   self.producers.unqueue("research", msg.data.technology);  
-  //       // });
-
-  //       H.Events.on("Destroy", function (msg){
-  //         self.producers.remove(msg.id);
-  //         // deb("   ECO: got Event destroy for id: %s", msg.id);
-  //       });
-
-
-  //     },
-  //     monitorGoals: function(){
-
-  //     },
-  //     getPhaseNecessities: function(context){ // phase, centre, tick
-        
-  //       var 
-  //         cls = H.class2name,
-  //         cc  = context.centre,
-  //         housePopu = H.QRY(cls("house")).first().costs.population * -1,
-          
-  //         technologies = [],
-  //         launches = {
-
-  //           "phase.village": [
-
-  //              //  tck, amount,       group,        params
-  //              [   2, [1, "g.supplier",   {cc: cc, size: 4, resource: "food.fruit"}]],
-  //              [   2, [1, "g.supplier",   {cc: cc, size: 1, resource: "food.meat"}]],
-  //              [   2, [1, "g.supplier",   {cc: cc, size: 5, resource: "wood"}]],
-  //              [   3, [1, "g.builder",    {cc: cc, size: 2, building: cls("house"),      quantity: 2}]],
-  //              [   4, [1, "g.builder",    {cc: cc, size: 2, building: cls("farmstead"),  quantity: 1}]],
-  //              [   4, [1, "g.builder",    {cc: cc, size: 2, building: cls("storehouse"), quantity: 1}]],
-  //              [  10, [1, "g.harvester",  {cc: cc, size: 5}]],
-  //              [  20, [1, "g.supplier",   {cc: cc, size: 5, resource: "stone"}]],
-  //              [  30, [1, "g.supplier",   {cc: cc, size: 5, resource: "metal"}]],
-
-  //           ],
-  //           "phase.town" :   [
-  //              [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "wood"}]],
-  //              [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "stone"}]],
-  //              [  10, [1, "g.supplier",   {cc: cc, size: 15, resource: "metal"}]],
-
-  //           ],
-  //           "phase.city" :   [
-
-  //           ],
-  //         };
-
-  //       return {
-  //         launches: launches,
-  //         technologies: technologies,
-  //         messages: messages,
-  //       };
-
-  //     },
-  //     updateActions: function(phase){
-
-  //       var 
-  //         groups,
-  //         ressTargets = {
-  //           "food":  0,
-  //           "wood":  0,
-  //           "stone": 0,
-  //           "metal": 0,
-  //           "pop":   0,
-  //         };
-
-  //       deb();deb();deb("   ECO: updateActions phase: %s", phase);
-  //       self.planner  = H.Brain.requestPlanner(phase);
-
-  //       // deb("     E: planner.result.data: %s", uneval(planner.result.data));
-
-  //       ressTargets.food  = self.planner.result.data.cost.food  || 0 + self.planner.result.data.ress.food;
-  //       ressTargets.wood  = self.planner.result.data.cost.wood  || 0 + self.planner.result.data.ress.wood;
-  //       ressTargets.metal = self.planner.result.data.cost.metal || 0 + self.planner.result.data.ress.metal;
-  //       ressTargets.stone = self.planner.result.data.cost.stone || 0 + self.planner.result.data.ress.stone;
-
-  //       deb("     E: ress: %s", uneval(ressTargets));
-
-  //       goals = self.getActions(self.planner);
-
-  //       groups = H.Brain.requestGroups(phase);
-  //       groups.forEach(g => deb("     E: group: %s", g));
-
-  //       groups.forEach(group => {
-  //         var [count, name, cc, options] = group;
-  //         H.extend(options, {name: name, cc: cc});
-  //         H.loop(count, () => {
-  //           H.Groups.launch(options);
-  //         });
-  //       });
-
-  //       // H.Groups.log();
-
-  //       deb("   ECO: updateActions -------");deb();
-
-  //     },
 
 
 
@@ -6945,7 +6605,7 @@ return H; }(HANNIBAL));
 
 
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, Engine, deb, uneval */
+/*globals HANNIBAL, Engine, uneval */
 
 /*--------------- E F F E C T O R S -------------------------------------------
 
@@ -6960,15 +6620,12 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-
-  // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
-
   H.LIB.Effector = function(context){
 
     H.extend(this, {
 
-      klass: "effector",
       context: context,
+
       imports: [
         "id",
         "map",
@@ -6982,38 +6639,19 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Effector.prototype = {
+  H.LIB.Effector.prototype = H.mixin(
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Effector,
-    toString: function(){return H.format("[%s %s]", this.klass, this.name);},
     log: function(){
-      deb();deb("   EFF: connector: '%s'", this.connector);        
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-  };
-
-  H.LIB.Effector.simulator = {
-
-    move: function(who, where){
-      if (who.length && where.length === 2){
-        who.forEach(id => {
-          this.simulation.entities[id].target = where;
-          this.simulation.entities[id].path = null;
-        });
-      } 
-    },
-
-    destroy: function(who){
-      if (who.length){
-        who.forEach(id => this.simulation.destroy(id));
-      }
-    },    
-
-  };
+      this.deb();
+      this.deb("   EFF: connector: '%s'", this.connector);        
+    }
+  });
 
   H.LIB.Effector.engine = {
+
+    // Engine.PostCommand(PlayerID,{"type": "set-shading-color", "entities": [ent], "rgb": [0.5,0,0]});
+
 
     // m.BaseAI.prototype.chatTeam = function(message)
     // {
@@ -7044,10 +6682,18 @@ HANNIBAL = (function(H){
     // break;
 
     dumpgrid: function(name, grid, threshold){
-      Engine.DumpImage(H.APP.map + "-" + name + ".png", grid.toArray(), grid.width, grid.height, threshold);    
+      var 
+        id = this.id, 
+        map = this.context.launcher.map,
+        filename = H.format("%s-%s-%s.png", id, map, name);
+      Engine.DumpImage(filename, grid.toArray(), grid.width, grid.height, threshold);    
     },
     dumparray: function(name, array, width, height, threshold){
-      Engine.DumpImage(H.APP.map + "-" + name + ".png", array, width, height, threshold);    
+      var 
+        id = this.id, 
+        map = this.context.launcher.map,
+        filename = H.format("%s-%s-%s.png", id, map, name);
+      Engine.DumpImage(filename, array, width, height, threshold);    
     },
     execute: function(command){
       Engine.PostCommand(this.id, command);
@@ -7061,7 +6707,7 @@ HANNIBAL = (function(H){
     
     format: function(who, what){
 
-      deb("   EFF: format: %s", uneval(arguments));
+      this.deb("   EFF: format: %s", uneval(arguments));
 
       // Scatter, Line Open, Box, passive, standground
 
@@ -7073,7 +6719,7 @@ HANNIBAL = (function(H){
           queued:   false 
         });
 
-      } else { deb("   EFF: ignored format : %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored format : %s", uneval(arguments)); }
 
     },
 
@@ -7089,13 +6735,13 @@ HANNIBAL = (function(H){
           queued:   false 
         });
 
-      } else { deb("   EFF: ignored stance: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored stance: %s", uneval(arguments)); }
 
     },
 
     flee: function(who, whom){
 
-      deb("   EFF: flee: %s", uneval(arguments));
+      this.deb("   EFF: flee: %s", uneval(arguments));
 
       var posWho, posWhom, direction, distance;
 
@@ -7115,13 +6761,15 @@ HANNIBAL = (function(H){
           queued: false
         });
 
-      } else { deb("   EFF: ignored flee: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored flee: %s", uneval(arguments)); }
 
     },
 
     move: function(who, where){
 
-      // deb("   EFF: move: %s", uneval(arguments));
+      // this.deb("   EFF: move: %s", uneval(arguments));
+
+      //TODO: make this queue
 
       if (who.length && where.length === 2){
 
@@ -7133,13 +6781,30 @@ HANNIBAL = (function(H){
         });
 
       } 
-      // else { deb("   EFF: ignored move %s", uneval(arguments));}
+      // else { this.deb("   EFF: ignored move %s", uneval(arguments));}
+
+    },
+
+    spread: function(who, where){
+
+      this.deb("   EFF: spread: %s", uneval(arguments));
+
+      // distributes units on given points, lengths may differ
+
+      if (who.length && where.length){
+
+        who.forEach( (id, index) => {
+          this.move([id], where[index % where.length]);
+        });
+
+      } 
+      // else { this.deb("   EFF: ignored spread %s", uneval(arguments));}
 
     },
 
     destroy: function(who){
 
-      deb("   EFF: destroy: %s", uneval(arguments));
+      this.deb("   EFF: destroy: %s", uneval(arguments));
 
       if (who.length){
 
@@ -7147,13 +6812,13 @@ HANNIBAL = (function(H){
           entities: who
         });
 
-      } else { deb("   EFF: ignored destroy who: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored destroy who: %s", uneval(arguments)); }
 
     },
 
     garrison:     function(who, where){
 
-      deb("   EFF: garrison: %s", uneval(arguments));
+      this.deb("   EFF: garrison: %s", uneval(arguments));
 
       if (who.length && H.isInteger(where)){
 
@@ -7163,13 +6828,13 @@ HANNIBAL = (function(H){
           queued:   false
         });
 
-      } else { deb("   EFF: ignored garrison: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored garrison: %s", uneval(arguments)); }
 
     },
 
     collect: function (who, what){
 
-      deb("   EFF: collect: %s", uneval(arguments));
+      this.deb("   EFF: collect: %s", uneval(arguments));
 
       if (what.length && who.length){
 
@@ -7190,13 +6855,13 @@ HANNIBAL = (function(H){
 
         H.Resources.consume(what);
 
-      } else { deb("   EFF: ignored collect: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored collect: %s", uneval(arguments)); }
 
     },
 
     skim: function (who, what){
 
-      deb("   EFF: skim: %s", uneval(arguments));
+      this.deb("   EFF: skim: %s", uneval(arguments));
 
       if (who.length, what){
 
@@ -7215,7 +6880,7 @@ HANNIBAL = (function(H){
 
         });
 
-      } else {deb("   EFF: ignored skim:", uneval(arguments)); }
+      } else {this.deb("   EFF: ignored skim:", uneval(arguments)); }
 
       // case "gather-near-position":
       //   GetFormationUnitAIs(entities, player).forEach(function(cmpUnitAI) {
@@ -7227,40 +6892,71 @@ HANNIBAL = (function(H){
 
     gather: function(who, what){
 
-      // deb("   EFF: gather: %s", uneval(arguments));
+      this.deb("   EFF: gather: %s", uneval(arguments));
 
-      if (who.length && H.isInteger(what)){
+      if (who.length && what.length){
 
-        Engine.PostCommand(this.id, {type: "gather", 
-          entities: who, 
-          target:   what, 
-          queued:   false
-        });
+        if (what.length === 1){
 
-      } else { deb("   EFF: ignored gather: %s", uneval(arguments)); }
+          // all units gather this
+          Engine.PostCommand(this.id, {type: "gather", 
+            entities: who,      // array
+            target:   what[0],  // int
+            queued:   false
+          });
+
+        } else {
+
+          // let units gather in queue
+          who.forEach(whoid => {
+
+            what = H.rotate(what, 1);
+
+            what.forEach( (whatid, index) => {
+
+              Engine.PostCommand(this.id, {type: "gather", 
+                entities: [whoid],   // array
+                target:   whatid,    // int
+                queued:   index > 0
+              });
+
+            });
+
+          });
+
+        }
+
+      } else { this.deb("   EFF: ignored gather: %s", uneval(arguments)); }
 
     },
 
     repair: function(who, what){
 
+      //TODO: make deal with large whos
+
       // deb("   EFF: repair: %s", uneval(arguments));
 
-      if (who.length && H.isInteger(what)){
+      if (who.length && what.length){
 
-        Engine.PostCommand(this.id, {type: "repair", 
-          entities: who,  // Array
-          target:   what, // Int
-          autocontinue: true, 
-          queued: false
+        what.forEach( (id, index) => {
+
+          Engine.PostCommand(this.id, {type: "repair", 
+            entities: who,  // Array
+            target:   id,   // Int
+            autocontinue: true, 
+            queued: (index > 0)
+          });
+
         });
 
-      } else { deb("   EFF: ignored repair: %s, who, what", uneval(arguments));}
+
+      } else { this.deb("   EFF: ignored repair: %s, who, what", uneval(arguments));}
 
     },
 
     train: function(who, what, amount, metadata){
 
-      deb("   EFF: train: %s, id: %s", uneval(arguments), uneval(this.id));
+      this.deb("   EFF: train: %s, id: %s", uneval(arguments), uneval(this.id));
 
       if (who.length && this.templates[what] && amount){
 
@@ -7271,13 +6967,13 @@ HANNIBAL = (function(H){
           metadata: metadata || {} //{order: order.id}
         }); 
 
-      } else { deb("   EFF: ignored train: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored train: %s", uneval(arguments)); }
 
     },
 
     construct: function(who, what, pos, metadata){
 
-      deb("   EFF: construct: %s", uneval(arguments));
+      this.deb("   EFF: construct: %s", uneval(arguments));
 
       if (who.length && H.isInteger(who[0]) && this.templates[what] && pos.length >= 2){
 
@@ -7293,13 +6989,13 @@ HANNIBAL = (function(H){
           metadata:     metadata || {} // {order: order.id}
         });  
 
-      } else { deb("   EFF: ignored construct: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored construct: %s", uneval(arguments)); }
 
     },
 
     research: function(who, what){
 
-      deb("   EFF: research: %s", uneval(arguments));
+      this.deb("   EFF: research: %s", uneval(arguments));
 
       if (H.isInteger(who) && H.TechTemplates[what]){
 
@@ -7308,18 +7004,35 @@ HANNIBAL = (function(H){
           template: what 
         }); 
 
-      } else { deb("   EFF: ignored research: %s", uneval(arguments)); }
+      } else { this.deb("   EFF: ignored research: %s", uneval(arguments)); }
 
     },
 
 
   };
 
+  H.LIB.Effector.simulator = {
+
+    move: function(who, where){
+      if (who.length && where.length === 2){
+        who.forEach(id => {
+          this.simulation.entities[id].target = where;
+          this.simulation.entities[id].path = null;
+        });
+      } 
+    },
+
+    destroy: function(who){
+      if (who.length){
+        who.forEach(id => this.simulation.destroy(id));
+      }
+    },    
+
+  };
 
 return H; }(HANNIBAL));
-
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval, logFn, logDispatcher */
+/*globals HANNIBAL, uneval */
 
 /*--------------- E V E N T S -------------------------------------------------
 
@@ -7356,7 +7069,6 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name: "events",
       context: context,
       imports: [
         "id",
@@ -7391,6 +7103,8 @@ HANNIBAL = (function(H){
         "OrderReady",
         "BroadCast",
         "EntityCreated",
+        "EntityAttacked",
+        // "ResourceFound",
       ],
 
       // saves the listeners
@@ -7424,18 +7138,12 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Events.prototype = {
+  H.LIB.Events.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Events,
     log: function(){
-      deb();
-      deb("EVENTS: have %s saved events", this.savedEvents.length);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      return new H.LIB[H.noun(this.name)](context);
+      this.deb();
+      this.deb("EVENTS: have %s saved events", this.savedEvents.length);
     },
     serialize: function(){
       // the listeners have to be re-created somewhere else
@@ -7487,7 +7195,7 @@ HANNIBAL = (function(H){
           .reduce((a, b) => a + b, 0);
       
       if (sum){
-        deb.apply(null, [msgTick].concat(lengths));
+        this.deb.apply(this, [msgTick].concat(lengths));
       }
 
     },
@@ -7518,7 +7226,7 @@ HANNIBAL = (function(H){
         listener = args[2];
 
       } else {
-        deb("ERROR: Events.on is strange: %s", uneval(args));
+        this.deb("ERROR: Events.on is strange: %s", uneval(args));
         return [];
 
       }
@@ -7583,7 +7291,7 @@ HANNIBAL = (function(H){
           dispatcher[msg.player][msg.id]   ? dispatcher[msg.player][msg.id] : []
         )).filter(l => typeof l === "function");
 
-      // deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
+      // this.deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
 
       listeners.forEach(l => l(msg));
 
@@ -7603,7 +7311,7 @@ HANNIBAL = (function(H){
         dispatcher[player][type].push(listener);
 
       } else {
-        deb("WARN  : duplicate listener: %s %s, %s", player, type, logFn(listener));
+        this.deb("WARN  : duplicate listener: %s %s, %s", player, type, H.logFn(listener));
 
       }
 
@@ -7650,7 +7358,7 @@ HANNIBAL = (function(H){
         this.createEvents[id] = tpln;
 
       } else {
-        // deb("  EVTS: Create ent: %s, own: %s, tpl: %s, mats: %s", id, owner, tpln, H.attribs(e));
+        this.deb("   EVT: Create ent: %s, own: %s, tpl: %s, mats: %s", id, player, tpln, H.attribs(e));
         this.fire("EntityCreated", {
           player: player,
           id:     id,
@@ -7666,6 +7374,13 @@ HANNIBAL = (function(H){
     EntityRenamed: function(e){
 
       // listener: assets, culture, producers
+
+      // this.deb("   EVT: EntityRenamed %s" , uneval(e));
+
+      this.deb("   EVT: EntityRenamed %s, %s => %s, %s", 
+        e.entity,    this.entities[e.entity]    || "unknown",
+        e.newentity, this.entities[e.newentity] || "unknown"
+      );
 
       var msg = this.fire("EntityRenamed", {
         player: this.entities[e.newentity].owner(),
@@ -7690,7 +7405,7 @@ HANNIBAL = (function(H){
           data:   e.metadata || {},
         });
 
-        // if(e.owner === 1)deb("   EVT: %s", uneval(msg));
+        // if(e.owner === 1)this.deb("   EVT: %s", uneval(msg));
 
       });
 
@@ -7723,11 +7438,11 @@ HANNIBAL = (function(H){
 
       // listener: assets, grids, mili?
 
-      // deb("   EVT: got attacked: %s", uneval(e));
+      // this.deb("   EVT: got attacked: %s", uneval(e));
 
       if (this.entities[e.target]){
 
-        this.fire("Attacked", {
+        this.fire("EntityAttacked", {
           player: this.entities[e.target].owner(),
           id:     e.target,
           id2:    e.attacker,
@@ -7745,13 +7460,13 @@ HANNIBAL = (function(H){
       var msg;
 
       if (this.createEvents[e.entity]){
-        // deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
+        // this.deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
         // looks like a failed structure
         return;
       }
 
       if (!e.entityObj){
-        deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
+        this.deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
         return;
       }
 
@@ -7768,113 +7483,16 @@ HANNIBAL = (function(H){
         id:     e.entity,
       });
 
+      this.deb("  EVT: Destroy fired: %s" , uneval(msg));
+
+
       if (this.dispatcher[msg.player][msg.id]){
         // delete(dispatcher[msg.player][msg.id]);
       }
 
     },
 
-  };
-
-  // // public interface
-  // H.Events = (function(){
-
-    //   var t0;
-
-    //   return {
-    //     boot:    function(){self = this; return self;},
-    //     collect: function(newEvents){packs.push(newEvents);},
-    //     logTick: function(events){
-    //       var lengths = orderedEvents.map(function(type){return events[type] ? events[type].length : 0;}),
-    //           sum  = lengths.reduce(function(a, b){ return a + b; }, 0);
-    //       if (sum){
-    //         deb.apply(null, [msgTick].concat(lengths));
-    //       }
-    //     },
-    //     tick:    function(){
-
-    //       // dispatches new techs and finally fifo processes 
-    //       // collected event packs and then single events in order defined above
-
-    //       t0 = Date.now();
-
-    //       processTechs();
-
-    //       packs.forEach(function(events){
-    //         self.logTick(events);
-    //         orderedEvents.forEach(function(type){
-    //           if (events[type]){
-    //             events[type].forEach(function(event){
-    //               handler[type](event);
-    //             });
-    //           }
-    //         });
-    //       });
-
-    //       packs = [];
-    //       createEvents = {};
-    //       destroyEvents = {};
-
-    //       return Date.now() - t0;
-
-    //     },
-    //     fire: function(name, msg){
-    //       return dispatchMessage(new Message(name, msg));
-    //     },
-    //     readArgs: function (type /* [player, ] listener */) {
-
-    //       var player, listener, callsign, args = H.toArray(arguments);
-
-    //       if (args.length === 1 && typeof args[0] === "function"){
-    //         type     = "*";
-    //         player   = "*";
-    //         listener = args[0];
-
-    //       } else if (args.length === 2 && typeof args[1] === "function"){
-    //         type     = args[0];
-    //         player   = H.Bot.id;
-    //         listener = args[1];
-
-    //       } else if (args.length === 3 && typeof args[2] === "function"){
-    //         type     = args[0];
-    //         player   = args[1];
-    //         listener = args[2];
-
-    //       } else {
-    //         deb("ERROR: Events.on is strange: %s", uneval(args));
-    //         return [];
-
-    //       }
-
-    //       return [type, player, listener, "unknown"];
-
-    //     },
-    //     off: function (/* [type, [player, ]] listener */) {
-
-    //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
-
-    //       H.delete(dispatcher["*"]["*"],     l => l === listener);
-    //       H.delete(dispatcher[player]["*"],  l => l === listener);
-    //       H.delete(dispatcher[player][type], l => l === listener);
-
-    //     },
-    //     on: function (/* [type, [player, ]] listener */) {
-
-    //       var [type, player, listener, callsign] = self.readArgs.apply(null, H.toArray(arguments));
-
-    //       registerListener(player, type, listener);
-
-    //       // allows to add/sub type afterwards
-    //       return {
-    //         add : function(type){registerListener(player, type, listener);},
-    //         sub : function(type){removeListener(player, type, listener);}
-    //       };
-
-    //     },
-
-    //   };
-
-    // }()).boot();
+  });
 
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
@@ -7891,6 +7509,9 @@ return H; }(HANNIBAL));
 
 */
 
+// abs,acos,asin,atan,atan2,ceil,clz32,cos,exp,floor,imul,fround,log,max,min,pow,
+// random,round,sin,sqrt,tan,log10,log2,log1p,expm1,cosh,sinh,tanh,acosh,asinh,atanh,
+// hypot,trunc,sign,cbrt,E,LOG2E,LOG10E,LN2,LN10,PI,SQRT2,SQRT1_2
 
 
 HANNIBAL = (function(H){
@@ -7898,8 +7519,6 @@ HANNIBAL = (function(H){
   var 
     PIH = Math.PI / 2,
     PI2 = Math.PI * 2;
-
-  H.Geometry = {};
 
   H.Geometry.Point = function (x, y){
     this.x = x;
@@ -8122,7 +7741,255 @@ HANNIBAL = (function(H){
 
 return H; }(HANNIBAL));     
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, Uint8Array, Uint32Array, deb, logObject */
+/*globals HANNIBAL, uneval */
+
+/*--------------- G O A L S ---------------------------------------------------
+
+  Define goals, depending on victory conditions, civilisation
+
+
+
+  tested with 0 A.D. Alpha 15 Osiris
+  V: 0.1, agentx, CGN, Feb, 2014
+
+*/
+
+
+/* 
+  vcs:
+    none
+    conquest
+    wonder
+*/
+
+/*
+  Goals with method pair action/needsAction are continues and never done, except with parent goal
+
+*/
+
+
+
+/*
+  Postponed: 
+    Civ Specifc Buildings:
+      wonder, gymnasion, theatron, kennel, super-dock, rotary mill, prytaneion, monument, library, elephant stables, parihuvādā, stables, lighthouse, mercenary camp, gerousia, syssiton, 
+    Units: 
+      Heros
+
+  Vill: 
+    Resources
+      Group: wood
+      Group: field
+      Group: fruit
+      Group: hunter
+      Group: breeder
+    Buildings
+      Houses
+      Corral
+      Dock
+      Farmstead
+      Storehouse
+      Blacksmith
+      Barracks
+      Palisade
+    Strategic:
+      Group: scouts
+    Techs
+      town
+
+  Town: 
+    Resources
+      Group: wood
+      Group: stone
+      Group: metal
+      Group: field
+      Group: fruit
+      Group: hunter
+      Group: breeder
+    Buildings
+      Houses
+      Corral
+      Farmstead
+      Storehouse
+      Blacksmith
+      Barracks 2
+      Temple
+      Market
+      Towers
+      Wall
+    Strategic:
+      Group: scouts
+      Group: patrol
+    Techs
+      City
+      health_regen_units
+
+  City: 
+    Resources
+      Group: wood
+      Group: stone
+      Group: metal
+      Group: field
+      Group: fruit
+      Group: hunter
+      Group: breeder
+    Strategic:
+      Group: scouts
+      Group: patrol
+    Buildings
+      Houses
+      Corral
+      Dock
+      Shipyard
+      Farmstead
+      Storehouse
+      Blacksmith
+      Barracks 2
+      Temple
+      Market
+      Wall
+      Fortress
+    Colony
+      Outpost
+      Centre/colony/army camp
+      Tower
+    Techs
+      City
+
+
+What covers a plan?
+  The buildings and techs to reach next phase.
+
+What covers monitoring
+  The resources needed to maintain resource flow of centre+barracks
+  The plan's resources
+  The amount of resources needed to fulfill plan
+
+
+
+
+
+
+*/
+
+
+
+HANNIBAL = (function(H){
+
+  H.Data.Goals = {
+
+    "condNone": {
+      goals:        ["condConquest"],
+    },
+    "condConquest": {
+      goals:        ["expandVill", "expandTown", "expandCity"],
+    },
+    "condWonder": {
+      goals:        ["expandVill", "expandTown", "wonder", "expandCity"],
+    },
+    
+    "expandVill":  {
+      goals:        ["houses", "farmstead", "blacksmith", "fields", "dock", "barracks", "town"],
+      isValid:      function(){return true;},
+      isDone:       function(){return this.goals.every(g => g.isDone());},
+    },
+    "expandTown":  {
+      goals:        ["houses", "market", "temple", "shipyard", "city"],
+      isValid:      function(){return true;},
+      isDone:       function(){return this.phases.current === "city";},
+    },
+    "expandCity":  {
+      goals:        ["houses", "fortress", "wall"],
+      isValid:      function(){return true;},
+      isDone:       function(){return false;},
+    },
+
+    "houses": {
+      action:       function () {
+        this.groups.launch({cc: this.village.main, buildings: "house", quantity: 2});
+      },
+      needsAction:  function(){
+        var 
+          popHouse = this.query("house CONTAIN").first().costs.population,
+          cntHouses = this.query("house CONTAIN INGAME").count();
+        return this.stats.population > popHouse * cntHouses - 2 * popHouse;
+      },
+    },
+
+    "blacksmith": {
+      action:       function () {
+        this.groups.launch({cc: this.village.main, buildings: "blacksmith", quantity: 1});
+      },
+      isDone:       function(){return this.query("blacksmith CONTAIN INGAME").count() > 0;},
+    },
+
+    "farmstead": {
+      action:       function () {
+        this.groups.launch({cc: this.village.main, buildings: "farmstead", quantity: 1});
+      },
+      isDone:       function(){return this.query("farmstead CONTAIN INGAME").count() > 0;},
+    },
+
+  };
+
+
+  H.LIB.Goal = function (context){
+
+    H.extend(this, {
+
+      context: context,
+
+      imports: [
+        "stats",
+        "query",
+        "village",
+      ],
+
+      done: false,
+      valid: true
+
+    });
+
+  };
+
+
+  H.LIB.Goal.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
+    constructor: H.LIB.Goal,
+    tick: function(tick, secs){
+
+      if (!this.done && this.valid){
+
+        if (this.isValid && !this.isValid()){
+          this.valid = false;
+          return;
+        }
+
+        if (this.isDone()){
+          this.done = true;
+          return;
+        }
+
+        // continous
+        if (this.needsAction && this.needsAction()){
+          this.action();
+          return;
+        
+        } else {
+          // one time
+          this.action();
+          this.done = true;
+        }
+
+      }
+
+    },
+
+  });
+
+return H; }(HANNIBAL));  
+/*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
+/*globals HANNIBAL, logObject */
 
 /*--------------- G R I D S ---------------------------------------------------
 
@@ -8137,13 +8004,12 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-
   H.LIB.Grid = function(context){
 
     H.extend(this, {
 
-      name:    "grid",
       context: context,
+
       imports: [
         "map",         // width, height
         "cellsize",
@@ -8161,17 +8027,14 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Grid.prototype = {
+  H.LIB.Grid.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Grid,
     log: function(name){
       var stats = {},i = this.length,data = this.data;
       while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
-      deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(name || this.title, 12), this.min(), this.max(), H.prettify(stats));
+      this.deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(name || this.title, 12), this.min(), this.max(), H.prettify(stats));
     },    
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
     serialize: function(){
       return {
         title:  this.title,
@@ -8192,6 +8055,7 @@ HANNIBAL = (function(H){
       this.width  = this.map.width  / this.cellsize;
       this.height = this.map.height / this.cellsize;
       this.length = this.width * this.height;
+      this.size   = this.width;
 
       if (!this.data){
         this.title  = config.title || "grid" + this.context.idgen++;
@@ -8337,7 +8201,7 @@ HANNIBAL = (function(H){
       return target;
 
     },
-  };
+  });
 
 
 // HANNIBAL = (function(H){
@@ -9254,7 +9118,7 @@ return H; }(HANNIBAL));
 //   ship: NUMBER (32)
 //   unrestricted: NUMBER (64)
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, logObject, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- G R O U P S -------------------------------------------------
 
@@ -9273,30 +9137,37 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name: "groups",
       context: context,
+
       imports: [
         "map",
         "metadata",
         "events",
         "culture",
         "query",
-        "entities",
+        "entities",  // position
         "resources", // used in supply groups
         "economy",
+        "orderqueue",
+        "effector",
+        "unitstates",
       ],
 
       instances: [],
 
     });
 
+    this.dsl = new H.DSL.Language(context, this, "groups").import().initialize();
+
   };
 
-  H.LIB.Groups.prototype = {
+  H.LIB.Groups.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Groups,
     log: function(){
-      var t = H.tab;
-      deb();deb("GROUPS: %s instances", this.instances.length);
+      var t = H.tab, deb = this.deb.bind(this);
+      deb();
+      deb("  GRPS: %s instances", this.instances.length);
       this.instances
         .sort( (a, b) => a.name > b.name ? 1 : -1)
         .forEach(ins => {
@@ -9308,19 +9179,20 @@ HANNIBAL = (function(H){
             });
           });
         });
-      deb("     G: -----------");
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
-      return this.instances.map(instance => instance.serialize());
+      return this.instances.map(this.serializegroup);
     },
+    serializegroup: function(instance){
+      return {
+        id:        instance.id,
+        cc:        instance.cc,
+        groupname: instance.groupname,
+        name:      instance.name,
+        position:  instance.position,
+        assets:    instance.assets.map(asset => asset.serialize()),
+      };    
+     },
     initialize: function(){
 
       if (Array.isArray(this.context.data.groups)){
@@ -9330,7 +9202,7 @@ HANNIBAL = (function(H){
       
       } else {
         // load mayors and custodians from metadata
-        this.launchOperators();
+        // this.launchOperators();
 
       }
 
@@ -9341,27 +9213,30 @@ HANNIBAL = (function(H){
 
       var host, order, instance;
 
-      this.events.on("AIMetadata", function (msg){
+      this.events.on("AIMetadata", msg => {
 
-        order = this.economy.orders[msg.data.order];
+        // this.deb("  GRPS: on AIMetadata, looking for order id: %s/%s", msg.data.order, typeof msg.data.order);
+        // this.deb("  GRPS: meta: %s", uneval(this.metadata[msg.id]));
 
-        if (order && order.shared){
+        // order = this.orderqueue.find(order => order.id === msg.data.order);
 
-          host = this.launch({name: "g.custodian", cc: order.cc});
-          host.structure = ["private", "INGAME WITH id = " + msg.id];
-          host.structure = this.createAsset({
-            id: this.context.idgen++,
-            instance: host,
-            property: "structure",
-          });
+        // if (order && order.shared){
 
-          this.metadata[msg.id].opname = host.name;
-          this.metadata[msg.id].opid   = host.id;
+        //   host = this.launch({name: "g.custodian", cc: order.cc});
+        //   host.structure = ["private", "INGAME WITH id = " + msg.id];
+        //   host.structure = this.createAsset({
+        //     id: this.context.idgen++,
+        //     instance: host,
+        //     property: "structure",
+        //   });
 
-          instance = this.instances.find(i => i.id === order.instance);
-          host.listener.onConnect(instance.listener);
+        //   this.metadata[msg.id].opname = host.name;
+        //   this.metadata[msg.id].opid   = host.id;
 
-        }
+        //   instance = this.instances.find(i => i.id === order.instance);
+        //   host.listener.onConnect(instance.listener);
+
+        // }
 
       });
 
@@ -9375,13 +9250,85 @@ HANNIBAL = (function(H){
       
       this.instances.forEach(instance => {
         interval = ~~instance.interval; 
-        if (interval > 0 && (tick % interval === 0) && instance.listener.onInterval){ 
-          // instance.assets.forEach(asset => asset.tick(secs, tick)); //??
-          instance.listener.onInterval(secs, tick);
+        if (interval > 0 && (tick % interval === 0) && instance.scripts.interval){ 
+          this.callWorld(instance, "interval", [secs, tick]);
         }
       });
 
       return Date.now() - t0;
+
+    },
+    callWorld: function(instance, scriptname, params){
+
+      // calls a script in this dsl world
+      // assuming nouns and verbs are all set
+
+      this.dsl.runScript(instance.world, instance, instance.scripts[scriptname], params);
+
+    },
+    // objectify: function(instance, name, resources){
+
+    //   // this.deb("  GRPS: objectify %s %s %s", instance, name, resources);
+
+    // },
+    nounify: function(world, instance, noun){
+
+      // in a script world is asked to register a noun
+      // dsl callbacks handler with actor/instance and noun
+
+      this.deb("  GRPS: nounify %s %s, def: %s, size: %s", instance, noun, world[noun], world[noun].size);
+
+      if (instance === world[noun]){
+        // special case group !== asset
+        return instance;
+
+      } else {
+        return this.createAsset({
+          instance:   instance,
+          property:   noun,
+          definition: world[noun],
+          size:       world[noun].size,
+        });
+      }
+
+    },
+    getverbs: function () {
+
+      var path;
+
+      // nouns and attributes are listed in corpus
+
+      return {
+
+        request:   (act, sub, obj, n)      => this.request(act, n || 1, sub.host, act.position),
+        relocate:  (act, sub, obj, path)   => sub.host.position = path[path.length -1],
+        move:      (act, sub, obj, path)   => this.effector.move(sub.list, path),
+        spread:    (act, sub, obj, path)   => this.effector.spread(sub.list, obj.list),
+        gather:    (act, sub, obj)         => this.effector.gather(sub.list, obj.list),
+        stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
+        format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
+        attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
+        dissolve:  (act, sub)              => this.dissolve(sub.host),
+        shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
+        doing:     (act, sub, obj, filter) => sub.list = this.doing(sub.list, filter),
+        repair:    (act, sub, obj)         => {
+
+          // TODO: skip buildings with health > 90%
+          this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
+          this.effector.repair(sub.list, obj.list);
+
+        },
+        shift:     (act, sub, obj, n)         => {
+          sub.list = H.rotate(sub.list, n || 1);
+          sub.host.resources = H.rotate(sub.host.resources, n || 1);
+        },
+        modify:    (act, sub, obj, definition) => {
+          path = new H.LIB.Path(this.context, sub.list).modify(definition).path;
+          sub.host.resources = path;
+          sub.update();
+        },
+
+      };
 
     },
     launchOperators: function () {
@@ -9419,38 +9366,60 @@ HANNIBAL = (function(H){
       });
 
     },    
-    findGroups: function (fn){
-      return this.instances.filter(fn);
-    },
-    findAssets: function (fn){
-      var out = [];
-      this.instances
-        .forEach(instance => {
-          instance.assets.forEach(asset => {
-            if (fn(asset)){out.push(asset);}
-          });
-        });
-      return out;
+    // findGroups: function (fn){
+    //   return this.instances.filter(fn);
+    // },
+    findAsset: function (idOrFn){
+
+      // deb("findAsset: %s", uneval(idOrFn));
+
+      var 
+        i, a, il, al, asset, 
+        fn = H.isInteger(idOrFn) ? ast => ast.id === idOrFn : idOrFn;
+
+      il = this.instances.length;
+      for (i=0; i<il; i++){
+
+        al = this.instances[i].assets.length;
+        for (a=0; a<al; a++){
+
+          asset = this.instances[i].assets[a];
+          // deb("findAsset: try %s, %s", asset.id, asset);
+          if (fn(asset)){
+            // deb("findAsset: found %s, %s", asset.id, asset);
+            return asset;
+          }
+
+
+        }
+      }
+      
+      this.deb("WARN  : no asset found: with %s", idOrFn);
+      return undefined;
+
     },
     createAsset: function(config){
 
-      // deb("  GRPS: createAsset.in: %s", H.attribs(config));
+      // this.deb("  GRPS: createAsset.in: def: %s", config.definition);
 
       var 
         asset = new H.LIB.Asset(this.context).import(), 
-        id = config.id || this.context.idgen++,
         definition = config.definition, // || config.instance[config.property],
-        name = H.format("%s:%s#%s", config.instance.name, config.property, id),
         verb = this.getAssetVerb(definition);
 
-      // deb("  GRPS: createAsset: id: %s, name: %s, def: ", id, name, definition);
-      // deb("  GRPS: createAsset: hcq: %s", this.expandHCQ(definition[1], config.instance));
+      // this.deb("  GRPS: createAsset: id: %s, name: %s, def: ", id, name, definition);
+      // this.deb("  GRPS: createAsset: hcq: %s", this.expandHCQ(definition[1], config.instance));
+
+      asset.id = config.id || this.context.idgen++;
+      asset.name = config.instance.name + ":" + config.property + "#" + asset.id;
+
+      // make known to group
+      config.instance.assets.push(asset);
 
       asset.initialize({
-        id:          id,
-        name:        name,
         instance:    config.instance,
         definition:  definition,
+        size:        config.size,
         users:       config.users     || [],
         resources:   config.resources || [],
         property:    config.property,
@@ -9463,7 +9432,7 @@ HANNIBAL = (function(H){
 
       asset.activate();
 
-      // deb("  GRPS: created Asset: %s, res: %s", asset, uneval(asset.resources));
+      this.deb("  GRPS: createAsset: %s, res: %s", asset, uneval(asset.resources));
       
       return asset;
     },   
@@ -9471,11 +9440,19 @@ HANNIBAL = (function(H){
 
       var found = false, treenode, verb;
 
-      if (typeof definition[1] === "object"){
+      if (definition[0] === "resource"){
+        return "find";
 
+      } else if (definition[0] === "path"){
+        return "path";
+
+      } else if (definition[0] === "claim"){
         return "claim";
 
-      } else if (typeof definition[1] === "string") {
+      } else if (
+        definition[0] === "dynamic"   || 
+        definition[0] === "shared"    || 
+        definition[0] === "exclusive" ){
 
         this.query(definition[1]).forEach( node => {  // mind units.athen.infantry.archer.a
           if(!found && (treenode = this.culture.tree.nodes[node.name]) && treenode.verb){ 
@@ -9511,7 +9488,7 @@ HANNIBAL = (function(H){
         hcq = H.replace(hcq, "<" + token + ">", instance[token].hcq);
 
       } else if (token) {
-        deb("ERROR : AST: %s/%s or its hcq not found to build: %s", instance, token, hcq);
+        this.deb("ERROR : AST: %s/%s or its hcq not found to build: %s", instance, token, hcq);
 
       }
 
@@ -9520,10 +9497,11 @@ HANNIBAL = (function(H){
     },     
     dissolve: function(instance){
 
+      this.dsl.deleteWorld(instance);
       instance.assets.forEach(asset => asset.release());
       instance.assets = null;
       H.remove(this.instances, instance);
-      deb("  GRPS: dissolved %s", instance);
+      this.deb("  GRPS: dissolved %s", instance);
 
     },
     appoint: function(id, config){
@@ -9545,18 +9523,40 @@ HANNIBAL = (function(H){
 
       instance.structure = ["private", nodename];
       instance.register("structure");
-      // instance.structure = this.createAsset({
-      //   instance: instance, 
-      //   property: "structure",
-      //   resources: [id]
-      // });
-      // instance.assets.push(instance.structure);
       
       // deb("  GRPS: appointed %s for %s, cc: %s", instance.name, this.entities[id], config.cc);
 
       return instance;
 
     },
+    doing: function(list, filter){ 
+
+      // filters ids in list on unit ai state
+      // e.g. "idle"
+
+      var 
+        ids = [], 
+        states = [],
+        actions = filter.split(" ").filter(a => !!a);
+
+      actions.forEach(action => {
+        list.forEach(id => {
+          var state = this.unitstates[id];
+          states.push(state);
+          if (action[0] === "!"){
+            if (state !== action.slice(1)){ids.push(id);}
+          } else {
+            if (state === action){ids.push(id);}
+          }
+        });
+      });
+
+      // this.deb("  GRPS: doing from: %s to %s by %s || found: %s", list, ids, filter, states);
+      this.deb("  GRPS: doing found: %s", states);
+
+      return ids;
+
+    },    
     scan: function(instance, positionOrAsset){
       // needs work
       var position, vision;
@@ -9576,38 +9576,38 @@ HANNIBAL = (function(H){
       return instance.detector.scan(position);
 
     },
-    claim: function(instance){},
-    request: function(instance, amount, asset /* , location */ ){
+    claim: function( /* instance */ ){},
+    request: function(instance, amount, asset, position){
       
-      // sanitize args
-      var 
-        args = H.toArray(arguments),
-        location = (
-          args.length === 3 ? [] : 
-          args[3].location ? args[3].location() :
-          Array.isArray(args[3]) ? args[3] :
-            []
-        );
+      // H.logObject(instance, "instance");
+      // H.logObject(asset, "asset");
+      // H.logObject(position, "position");
+
+      if (!(instance && amount && asset.id && position.length === 2)){
+
+        H.throw("groups.request fails: %s, %s, %s, %s", instance, amount, asset, position);
+
+      }
+
+      this.deb("  GRPS: request: instance: %s, amount: %s, asset: %s, assetid: %s", instance, amount, asset, asset.id);
 
       asset.isRequested = true;
 
-      // Eco requests are postponed one tick to avoid unevaluated orders in queue
-        // this.economy.request(new H.LIB.Order(this.context).import().initialize({
-        this.economy.request({
-          amount:     amount,
-          cc:         instance.cc,
-          location:   location,
-          verb:       asset.verb, 
-          hcq:        asset.hcq, 
-          source:     asset.id, 
-          shared:     asset.shared,
-        });
-
-      // deb("   GRP: requesting: (%s)", args);    
+      this.economy.request({
+        amount:     amount,
+        cc:         instance.cc,
+        location:   position,
+        verb:       asset.verb, 
+        hcq:        asset.hcq, 
+        source:     asset.id, 
+        shared:     asset.shared,
+      });
 
     },
 
     launch: function(config){
+
+      this.deb("  GRPS: launch, %s", uneval(config));
 
       // Object Factory
 
@@ -9622,27 +9622,50 @@ HANNIBAL = (function(H){
       // registered props !!!
 
       var 
-        self = this,
-        instance  = {
-          klass:     "group",
-          id:        config.id || this.context.idgen++,
-          cc:        config.cc,
-          groupname: config.groupname,
-          listener:  {},
+        world, 
+        ccpos = this.entities[config.cc].position(),
+        instance = {id: config.id || this.context.idgen++};
 
-          resources: this.resources, // needs lexical signature
-          economy:   this.economy,   //
+      // prepare a dsl world
+      world = this.dsl.createWorld(instance);
+      this.dsl.setverbs(world, this.getverbs());
+      world.group = instance;
+      world.group.size = 1;
+      world.nounify("group");
 
-        };
+      H.extend(instance, {
 
-      // deb("  GRPS: have: %s, to launch %s", this.instances.length, uneval(instance));
+        klass:     "group",
+        context:   this.context,
+        name:      config.groupname + "#" + instance.id,
+        id:        config.id || this.context.idgen++,
+        cc:        config.cc,
+        groupname: config.groupname,
+        scripts:   {},
+
+        world:     world,
+
+        resources: this.resources, // needs lexical signature
+
+        position:  config.position || ccpos || this.deb("ERROR : no pos in group"),
+        assets:    [],
+
+        toString: function(){return H.format("[%s %s]", this.klass, this.name);},
+
+
+      });
+
+
+      // keep a reference
+      this.instances.push(instance);
 
       // copies values from the groups' definition onto instance
       H.each(H.Groups[config.groupname], (prop, value) => {
         
-        if (prop === "listener") {
+        if (prop === "scripts") {
           H.each(value, (name, fn) => {
-            instance.listener[name] = fn.bind(instance);
+            // make 'this' in scripts point to instance
+            instance.scripts[name] = fn.bind(instance);
           });
 
         } else {
@@ -9658,296 +9681,35 @@ HANNIBAL = (function(H){
 
       });
 
-        // config:    config,
-
-      H.extend(instance, {
-        
-        name:      config.groupname + "#" + instance.id,
-        position:  config.position || this.map.getCenter([instance.cc]),
-        assets:    [],
-        detector:  null,
-
-        dissolve:  self.dissolve.bind(self, instance),
-        request:   self.request.bind(self, instance),
-        claim:     self.claim.bind(self, instance),
-        scan:      self.scan.bind(self, instance),
-        toString:  function(){return H.format("[%s %s]", this.klass, instance.name);},
-        register:  function(/* arguments */){
-          // deb("     G: %s register: %s", instance.name, uneval(arguments));
-
-          // transforms primitive definition into live object
-          // except already done by deserialization
-
-          H.toArray(arguments).forEach( property => {
-
-            if (instance[property] instanceof H.LIB.Asset){
-              deb("  GRPS: did not register '%s' for %s", property, instance);
-            
-            } else {
-              instance[property] = self.createAsset({
-                definition: instance[property],
-                instance:   instance,
-                property:   property,
-              });
-              instance.assets.push(instance[property]);
-              // deb("  GRPS: registered '%s' for %s", property, instance);
-            }
-
-          });
-
-        },
-        serialize: function(){
-          return {
-            id:        instance.id,
-            cc:        instance.cc,
-            groupname: instance.groupname,
-            name:      instance.name,
-            position:  instance.position,
-            assets:    instance.assets.map(a => a.serialize()),
-          };
-
-        },
-      });
-      
       // deserialize and register assets
       if (config.assets) {
         config.assets.forEach(cfg => {
           instance[cfg.property] = cfg.definition;
-          instance[cfg.property] = self.createAsset(
+          instance[cfg.property] = this.createAsset(
             H.mixin(cfg, {instance:   instance})
           );
         });
       }
 
-      // keep a reference
-      this.instances.push(instance);
-
       // log before launching
       // deb("   GRP: launch %s args: %s", instance, uneval(config));
 
-      // call and activate
-      instance.listener.onLaunch(config);
+      // call dsl to run with world, actor, function and params
+      this.callWorld(instance, "launch", [config]);
 
       return instance;
 
     }
 
-  };  
-
-  // H.Groups = (function(){
-
-    //   // Singleton
-
-    //   var self, groups = {}, t0;
-
-    //   return {
-    //     boot: function(){self=this; return self;},
-    //     log:  function(){
-    //     },
-    //     tick : function(secs, tick){
-    //     },
-    //     init: function(){
-    //       deb();deb();deb("GROUPS: register...");
-    //       H.each(H.Groups, function(name, definition){
-    //         if (definition.active) {
-    //           switch(name.split(".")[0]){
-    //             case "g": 
-    //               groups[name] = {
-    //                 name: name,
-    //                 definition: definition,
-    //                 instances: []
-    //               };
-    //               deb("      : %s", name);
-    //             break;
-    //           }
-    //         }
-    //       });
-    //     },
-    //     isLaunchable: function(groupname){
-    //       return !!groups[groupname];
-    //     },
-    //     scan: function(instance, position){
-
-    //       if (!instance.detector){
-    //         instance.detector = this.scanner.detector(position);
-    //       }
-
-    //       return instance.detector.scan(position);
-
-    //     },
-    //     claim: function(instance){},
-    //     request: function(instance, amount, asset /* , location */ ){
-          
-    //       // sanitize args
-    //       var 
-    //         args = H.toArray(arguments),
-    //         location = (
-    //           args.length === 3 ? [] : 
-    //           args[3].location ? args[3].location() :
-    //           Array.isArray(args[3]) ? args[3] :
-    //             []
-    //         );
-
-    //       asset.isRequested = true;
-
-    //       // Eco requests are postponed one tick to avoid unevaluated orders in queue
-    //       H.Triggers.add( -1,
-    //         H.Economy.request.bind(H.Economy, new H.Order({
-    //           amount:     amount,
-    //           cc:         cc,
-    //           location:   location,
-    //           verb:       asset.verb, 
-    //           hcq:        asset.hcq, 
-    //           source:     asset.id, 
-    //           shared:     asset.shared
-    //         }))
-    //       );
-
-    //       // deb("   GRP: requesting: (%s)", args);    
-
-    //     },
-    //     moveSharedAsset: function(asset, id, operator){
-
-    //       // overwrites former group asset with the operator's one 
-    //       // creates downlink via onConnect
-    //       // assigns shared asset to target operator, 
-
-    //       // deb("   GRP: moveSharedAsset ast: %s, id: %s, op: %s", asset, id, operator);
-
-    //       var group = asset.instance;
-
-    //       group[asset.property] = operator.structure;
-    //       operator.listener.onConnect(asset.instance.listener);
-    //       group.listener.onAssign(operator.structure.toSelection([id])); // why not op.onAssign ???
-
-    //       // instance.assets.push(instance[prop]);
-
-    //       // deb("   GRP: %s took over %s as shared asset", operator, asset);
-
-    //     },
-    //     getGroupTechnologies: function(launch){
-
-    //       // [   4,    1, "g.scouts",     {cc:cc, size: 5}],
-
-    //       var def = groups[launch[2]].definition;
-
-    //       return def.technologies || [];
-
-    //     },
-    //     getExclusives: function(launch){
-
-    //       // [   4,    1, "g.scouts",     {cc:cc, size: 5}],
-
-    //       deb("   GRP: getExclusives: %s", uneval(launch));
-
-    //       var def = groups[launch[2]].definition;
-
-    //       return def.exclusives ? def.exclusives(launch[3]) : {};
-
-    //     },
-    //     launch: function(options){
-
-    //       // Object Factory; called by bot, economy, whatever
-
-    //       var 
-    //         instance  = {listener: {}},
-    //         name      = options.name,
-    //         group     = groups[name],
-    //         copy      = function (obj){return JSON.parse(JSON.stringify(obj));},
-    //         whitelist = H.Data.Groups.whitelist;
-
-    //       if (!group){return deb("ERROR : can't launch unknown group: %s", name);}
-
-    //       instance.id   = H.Objects(instance);
-    //       instance.name = group.name + "#" + instance.id;
-    //       instance.listener.callsign = instance.name;
-
-    //       // keep a reference
-    //       group.instances.push(instance);
-
-    //       // first copies values, objects, arrays, functions from definition to instance
-    //       H.each(group.definition, function(prop, value){
-
-    //         if (prop === "listener") {
-
-    //           whitelist.forEach(function(name){
-    //             if (value[name] !== undefined) {
-    //               instance.listener[name] = value[name].bind(instance);
-    //             }
-    //           });
-
-    //         } else {
-    //           switch (typeof value) {
-    //             case "undefined":
-    //             case "boolean":
-    //             case "number":
-    //             case "string":    instance[prop] = value; break;
-    //             case "object":    instance[prop] = copy(value); break; // handles null, too
-    //             case "function":  instance[prop] = value.bind(instance); break;
-    //           }
-
-    //         }
-
-    //       });
-
-    //       // second adds/(overwrites) support objects and functions
-    //       H.extend(instance, {
-    //         assets:     [],
-    //         toString:   function(){return H.format("[group %s]", instance.name);},
-    //         economy:    {
-    //           request: H.Groups.request.bind(null, options.cc),
-    //           claim:   H.Groups.claim.bind(null, options.cc)
-    //         },
-    //         register: function(/* arguments */){
-    //           H.toArray(arguments).forEach(function(prop){
-    //             instance[prop] = H.createAsset(instance, prop, []);
-    //             instance.assets.push(instance[prop]);
-    //           });
-    //         },
-    //         tick: function(secs, ticks){
-    //           instance.assets.forEach(function(asset){
-    //             asset.tick(secs, ticks);
-    //           });
-    //           instance.listener.onInterval(secs, ticks);
-    //         },
-    //         position: {
-    //           // set intial position, gets probably overwritten
-    //           location: (function(){
-    //             var pos = H.Map.getCenter([options.cc]);
-    //             return function(){return pos;};
-    //           }())
-    //         },
-    //         postpone: function(ticks, fn /* , args*/){
-    //           var args = H.toArray(arguments).slice(2);
-    //           H.Triggers.add(H.binda(fn, instance, args), ticks *-1);
-    //         },
-    //         dissolve: function(){
-    //           H.Groups.dissolve(instance);
-    //         }
-
-    //       });
-
-    //       deb("   GRP: launch %s args: %s", instance, uneval(options));
-
-    //       // call and activate
-    //       instance.listener.onLaunch(options);
-
-    //       return instance;
-
-    //     }
-
-    //   };  // return
-
-    // }()).boot();
+  });  
 
 return H; }(HANNIBAL));
-
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb */
+/*globals HANNIBAL, uneval */
 
-/*--------------- GROUP: M I N E R --------------------------------------------
+/*--------------- GROUP:  B U I L D E R ---------------------------------------
 
-
+  a group to build any buildings
 
 
 
@@ -9958,134 +9720,162 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-  H.Groups = H.Groups || {};
-
   H.extend(H.Groups, {
 
     "g.builder" : {
 
       /*
-        a group without units solely for the first/biggest CC
-
         Behaviour: 
-          builds houses until pop max reached
-          repairs houses if needed
+          builds structures until quantity or
+          builds houses until 
+          try garrison on attack (female, male)
+          try healing on hurt
+          dissolve on nothing to do
           
       */
 
       active:         true,           // prepared for init/launch ...
-      description:    "builder",     // text field for humans 
+      description:    "builder",      // text field for humans 
       civilisations:  ["*"],          // 
-      interval:       4,              // call onInterval every x ticks
-      parent:         "",             // inherit useful features
-
-      capabilities:   "2 stone/sec",  // (athen) give the economy a hint what this group provides.
-
-      position:       null,           // refers to the coords of the group's position/activities
-
-      attackLevel:    0,              // increases with every attack, halfs on interval
-      needsRepair:   80,              // a health level (per cent)
-      needsDefense:  10,              // an attack level
-
-      exclusives:    function(options){
-        return {units : [options.size, ["exclusive", options.building + " BUILDBY"]]};
-      },
-
-      listener: {
-
-        onLaunch: function(options /*cc, building, size, quantity*/){
-
-          // deb("     G: onlaunch %s cc: %s, civ: %s", this, cc, H.Bot.civ);
-
-          this.options = options;
-
-          this.buildings = ["exclusive", options.building]; // ???????????????
-          this.units = this.exclusives(options).units[1];
-          // this.units = ["exclusive", building + " BUILDBY"];
-          this.size = options.size; //H.Config.civs[H.Bot.civ].builders;
-          this.quantity = options.quantity;
-
-          this.register("units", "buildings");
-          this.economy.request(1, this.units, this.position);   
-
-        },
-        onAssign: function(asset){
-
-          deb("     G: %s %s onAssign ast: %s as '%s' res: %s", this, this.buildings, asset, asset.property, asset.first);
-         
-          if (this.units.match(asset)){
-
-            if (this.units.count === 1){
-              this.economy.request(1, this.buildings, this.position);   
-            }
-
-            if (this.units.count < this.size){
-              this.economy.request(1, this.units, this.position);   
-            }
-
-            if (this.foundation){
-              // deb("---------> : %s", this.foundation.health);
-              asset.repair(this.foundation);
-            }
-
-          } else if (this.buildings.match(asset)){
-
-            this.position = asset;
-
-            if (asset.isFoundation){
-              this.foundation = asset;
-              this.units.repair(asset);
-            
-            } else if (asset.isStructure){
-              if (this.buildings.count < this.quantity){
-                this.economy.request(1, this.buildings, this.position);
-
-              } else {
-                this.dissolve();
-              }
-
-            }
-
-          }
+      interval:       5,              // call tick() every x ticks, prefer primes here
 
 
-        },
-        onDestroy: function(asset){
+      // DSL World scripts
 
-          deb("     G: %s onDestroy: %s", this, asset);
+      scripts: {
 
-          if (this.units.match(asset)){
-            this.economy.request(1, this.units, this.position);
+        launch: function launch (w, config /* building, quantity */) {
 
-          } else if (this.buildings.match(asset)){
-            this.economy.request(1, this.buildings, this.position);
+          w.deb("     G: launch %s %s", w, uneval(config));
 
-          }
+          w.buildings = ["exclusive", config.building + " CONTAIN"];
+          w.units     = ["exclusive", config.building + " CONTAIN BUILDBY"];
 
-        },
-        onAttack: function(asset, enemy, type, damage){
+          w.units.size     = w.units.size     || config.size     ||  5;
+          w.buildings.size = w.buildings.size || config.quantity ||  1;
 
-          // deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
+          w.nounify("units", "buildings");
+          w.units.on.request();   
 
-        },
-        onBroadcast: function(){},
-        onInterval:  function(){
+        
+        // a request was successful
 
-          // deb("     G: %s onInterval, blds: [%s/%s], states: %s", this, this.buildings.count, this.maxBuildings, H.prettify(this.units.states()));
+        }, assign: function assign (w, item) {
 
-          // if (!this.units.count){return;}
+          w.deb();
+          // w.deb("     G: assign.0: %s, %s", w, item);
 
-          // if (this.units.doing("idle").count === this.units.count){
-          //   if (this.buildings.count >= this.maxBuildings){
-          //     this.dissolve();
-          //     deb("      G: %s finished building ", this, this.buildings);
-          //   }
-          // }
+          w.objectify("item", item);
 
+          // keep requesting units until size
+          w.units.on
+            .member(w.item)
+            .lt(w.units.count, w.units.size)
+            .request()
+          ;
+
+          //  the first unit requests structure to build, exits
+          w.units.on
+            .member(w.item)
+            .match(w.units.count, 1)
+            .match(w.buildings.count, 0)
+            .buildings.do.request() 
+            .exit
+          ;
+
+          // got the foundation, update position, all units repair, exits
+          w.buildings.on
+            .member(w.item)
+            .match(w.item.foundation)
+            // .group.do
+            // .relocate(w.item.position)
+            .units.do.repair(w.item)
+            .exit
+          ;
+
+          // got the buildings, check order next, exits
+          w.buildings.on
+            .member(w.item)
+            .match(!w.item.foundation)
+            .lt(w.buildings.count, w.buildings.size)
+            .request()
+            .exit
+          ;
+
+          // got unit, send to repair
+          w.item.on
+            .member(w.item)
+            .repair(w.buildings)  
+          ;
+
+
+        }, destroy: function destroy (w, item) {
+
+          w.deb("     G: destroy: %s, %s", w, item);
+
+          w.objectify("item", item);
+
+          // lost unit, request another
+          w.units
+            .member(w.item)
+            .request()
+          ;
+
+          // lost building, request another
+          w.buildings
+            .member(w.item)
+            .request()
+          ;
+
+
+        // there are enemies and gaya
+
+        }, attack: function attack (w, item, enemy, type, damage) {
+
+          w.deb("     G: attack: %s, %s, %s, %s", w, item, enemy, type, damage);
+
+          w.objectify("item",  item);
+          // w.objectify("enemy", enemy);
+
+          // don't care about buildings, exits
+          w.builings
+            .member(w.item)
+            .exit
+          ;
+
+          // avoid loosing unit
+          w.units
+            .member(w.item)
+            .lt(w.item.health, 50)
+            .item.do.garrison()
+          ;
+
+        }, radio: function radio (w, msg) {
+
+          w.deb("     G: radio: %s, %s secs", w, msg);
+
+
+        }, interval:  function interval (w, secs, tick) {
+
+          w.deb("     G: interval: %s, %s secs", w, secs);
+
+          // w.units.on
+          //   .doing("idle")
+          //   .match(w.units.size)
+          //   .group.do.dissolve()
+          // ;
+
+          // // avoid loosing units
+          // w.units
+          //   .doing("!garrison")
+          //   .doing("!healing")
+          //   .having("health < 30")
+          //   .heal()
+          // ;
 
         }
 
-      } // listener
+      } // end scripts
 
     }
 
@@ -10204,7 +9994,7 @@ HANNIBAL = (function(H){
 return H; }(HANNIBAL));
 
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb */
+/*globals HANNIBAL */
 
 /*--------------- P L U G I N S -----------------------------------------------
 
@@ -10219,7 +10009,152 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-  H.Groups = H.Groups || {};
+  H.extend(H.Groups, {
+
+    "g.dancer" : {
+
+      /* Behaviour: 
+        runs some digital dance moves to amuse the opponent
+      */
+
+      // variables available in listener with *this*. All optional
+
+      active:         true,           // ready to init/launch ...
+      description:    "dancer",       // text field for humans 
+      civilisations:  ["*"],          // lists all supported cics
+      interval:       2,              // call onInterval every x ticks
+
+      scripts: {
+
+
+        launch: function launch (w, config) {
+
+          var path, pos = w.group.position[0] + " " + w.group.position[1];
+
+          w.units       = ["exclusive", "food.grain GATHEREDBY"];
+          w.units.size  = 5;
+
+          path          = w.units.size + "; translate " + pos + "; translatep 0 70; circle 5";
+          w.path        = ["path", path];
+          w.path.size   = w.units.size;
+
+          w.nounify("units", "path");
+
+          w.path.on.request();   
+
+
+        // a request was succesful
+
+        }, assign: function assign (w, item) {
+
+          // w.deb("     G: assign.0: %s, %s", w, item);
+
+          w.objectify("item", item);
+
+          // got path, request all units, exits
+          w.path.on
+            .member(w.item)
+            .units.do.request(w.units.size)
+            .exit
+          ;
+
+          // got a unit, send to path start
+          w.units.on
+            .member(w.item)
+            .item.do.move(w.path.points("0"))
+          ;
+
+          // w.deb("     G: assign.3: %s, %s", w, item);
+
+          //  got final unit, spread them over path
+          w.units.on
+            .member(w.item)
+            .match(w.units.count, w.units.size)
+            .spread(w.path) 
+          ;
+
+
+        // resource lost
+
+        }, destroy: function destroy (w, item) {
+
+          w.objectify("item", item);
+
+          // lost unit, request another
+          w.units
+            .member(w.item)
+            .request()
+          ;
+
+
+        // there are enemies and gaia
+
+        }, attack: function attack (w, item, enemy, type, damage){
+
+          w.deb("     G: attack.0: %s, %s", w, item);
+
+          w.field.on
+            .member(w.item)
+            .units.on.repair(w.item)
+          ;
+
+        // de-garrison
+
+        }, release: function release (w, item) {
+
+          w.deb("     G: release.0: %s, %s", w, item);
+
+
+        // group radio
+
+        }, radio: function radio (w, source, msg){
+
+          w.deb("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
+
+
+        // defined by this.interval
+
+        }, interval: function interval (w, tick, secs){
+
+          w.deb("     G: interval: %s, %s secs", w, secs);
+
+          //  if complete and idle, change path and spread
+          w.units.on
+            .doing("idle")
+            .match(w.units.count, w.units.size)
+            .path.do.modify("rotate 0")
+            .units.do.spread(w.path)
+            .echo("danced")
+          ;
+
+        }
+
+
+      } // end listener
+
+    }
+
+  });
+
+return H; }(HANNIBAL));
+
+// 501,4538314155411 / 511,4538314265622 / 531,4538314486044
+
+// 0,980447893 0,96236738/*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
+/*globals HANNIBAL */
+
+/*--------------- P L U G I N S -----------------------------------------------
+
+
+
+
+
+  V: 0.1, agentx, CGN, Feb, 2014
+
+*/
+
+
+HANNIBAL = (function(H){
 
   H.extend(H.Groups, {
 
@@ -10237,190 +10172,148 @@ HANNIBAL = (function(H){
       active:         true,           // ready to init/launch ...
       description:    "harvester",    // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
-
       interval:       10,             // call onInterval every x ticks
-      parent:         "",             // inherit useful features
 
       technologies: [                 // these techs help
-                      "gather.capacity.wheelbarrow",
-                      "celts.special.gather.crop.rotation",
-                      "gather.farming.plows"
+        "gather.capacity.wheelbarrow",
+        "celts.special.gather.crop.rotation",
+        "gather.farming.plows"
       ],
 
-      // this got initialized by launcher
-      position:       null,           // coords of the group's position/activities
-
-      // ASSETS
-      // either trained or build or researched or claimed
-      // make sure units can construct, repair and work on assets
-      // dynamic: merely an updateable list (e.g. the current centre, shelter)
-      // shared: needed, but shared with other groups (e.g. dropsites, temples)
-      // exclusive: fully managed by this group (e.g. fields, units)
-
-      units:          ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0"], // hardcode females
-      field:          ["exclusive", "food.grain PROVIDEDBY"],
-      dropsite:       ["shared",    "food ACCEPTEDBY"],
-      shelter:        ["dynamic",   "<units> MEMBER DISTINCT HOLDBY INGAME WITH slots >= 1"],
-
-      // groups can claim space for structures or activities
-      space:          [1, {width: 30, depth: 30, near: "<dropsite>"}],
-
-      exclusives:    function(options){
-        return {
-          units: [options.size, ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food"]],
-          field: [1, ["exclusive", "food.grain PROVIDEDBY"]]
-        };
-      },
-
-      // message queue sniffer
-
-      listener: {
+      scripts: {
 
         // game started, something launched this group
-        onLaunch: function(options /*cc, size*/){
+        launch: function launch (w, config) {
 
-          this.options = options;
-          this.size = options.size;
-          this.units = this.exclusives(options).units[1];
-          this.field = this.exclusives(options).field[1];
-          this.register("dropsite", "units", "field", "shelter");     // turn res definitions into res objects
-          this.economy.request(1, this.dropsite, this.position);      // assuming a CC exists
+          w.units    = ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0"];
+          w.field    = ["exclusive", "food.grain PROVIDEDBY"];
+          w.dropsite = ["shared", "food ACCEPTEDBY"]; //TODO: exclude docks
 
-        },
+          w.units.size    = 5;
+          w.field.size    = 1;
+          w.dropsite.size = 1;
+
+          w.nounify("units", "field", "dropsite");
+
+          w.dropsite.on.request();   
+
 
         // a request was succesful
-        onAssign: function(asset){
 
-          // deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
+        }, assign: function assign (w, item) {
 
-          if (this.dropsite.match(asset)){
-            this.position = asset;
-            this.economy.request(1, this.units);
+          // w.deb("     G: assign.0: %s, %s", w, item);
 
-          } else if (this.field.match(asset)){
-            this.position = asset;
-            if (asset.isFoundation){this.units.repair(asset);}
-            if (asset.isStructure){this.units.gather(asset);}
+          w.objectify("item", item);
 
-          } else if (this.units.match(asset)){
+          // got dropsite, request unit, exits
+          w.dropsite.on
+            .member(w.item)
+            .units.do.request()
+            .exit
+          ;
 
-            if (!this.field.isRequested){ 
-              this.economy.request(1, this.field, this.dropsite);
+          // keep requesting units until size
+          w.units.on
+            .member(w.item)
+            .lt(w.units.count, w.units.size)
+            .request()
+          ;
 
-            } else if (this.field.isFoundation){
-              // may silently fail, because field was destroyed
-              asset.repair(this.field);
+          // w.deb("     G: assign.3: %s, %s", w, item);
 
-            } else if (this.field.isStructure){
-              asset.gather(this.field);
+          //  the first unit requests field, exits
+          w.units.on
+            .member(w.item)
+            .match(w.units.count, 1)
+            .match(w.field.count, 0)
+            .field.do.request() 
+            .exit
+          ;
 
-            }
+          //  got unit let repair/gather, exits
+          w.units.on
+            .member(w.item)
+            .match(w.field.count, 1)
+            .item.do.repair(w.field)  // relies on autocontinue
+            .exit
+          ;
 
-            if (this.units.count < this.size){
-              this.economy.request(1, this.units, this.position);   
-            }            
+          // got the field foundation, update position, all units repair, exits
+          w.field.on
+            .member(w.item)
+            .match(w.item.foundation)
+            .units.do.repair(w.field)
+            .exit
+          ;
 
-          } else {
-            deb("     G: %s unidentified asset: %s, shared: %s", this, asset, asset.shared);
+          // got the field, exits
+          w.field.on
+            .member(w.item)
+            .match(!w.item.foundation)
+            .units.do.gather(w.field)
+            .exit
+          ;
 
-          }
-
-        },
 
         // resource lost
-        onDestroy: function(asset){
 
-          deb("     G: %s onDestroy: %s", this, asset);
+        }, destroy: function destroy (w, item) {
 
-          if (this.field.match(asset)){
-            this.position = this.units;
-            this.economy.request(1, this.field, this.position);
+          w.deb("     G: destroy: %s, %s", w, item);
 
-          } else if (this.units.match(asset)){
-            this.economy.request(1, this.units, this.position);
+          w.objectify("item", item);
 
-          } else if (this.dropsite.match(asset)){
-            // dropsite is shared, custodian orders new one
-            this.position = this.units;
+          // lost unit, request another
+          w.units
+            .member(w.item)
+            .request()
+          ;
 
-          }
-
-        },
+          // lost field, request another
+          w.field
+            .member(w.item)
+            .request()
+          ;
 
 
         // there are enemies and gaia
-        onAttack: function(asset, enemy, type, damage){
 
-          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, enemy, damage);
+        }, attack: function attack (w, item, enemy, type, damage){
 
-          if (this.field.match(asset)){
-            if (this.units.doing("!repair").count){
-              this.units.doing("!repair").repair(asset);
-            }
+          w.deb("     G: attack.0: %s, %s", w, item);
 
-          } else if (this.units.match(asset)){
-            if (asset.health < 80 && this.shelter.exists()) { 
-              this.shelter.nearest(1).garrison(asset);
-            }
-          }
-
-        },
+          w.field.on
+            .member(w.item)
+            .units.on.repair(w.item)
+          ;
 
         // de-garrison
-        onRelease: function(asset){
 
-          deb("     G: %s onRelease: %s", this, asset);
+        }, release: function release (w, item) {
 
-          if (this.field.isFoundation){
-            asset.repair(this.field);
-
-          } else if (this.field.isStructure){
-            asset.gather(this.field);
-
-          } else {
-            deb("WARN  : onRelease: no job for %s ", asset);
-
-          }
-
-        },
+          w.deb("     G: release.0: %s, %s", w, item);
 
 
         // group radio
-        onBroadcast: function(source, msg){
 
-          deb("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
-          
-          if (msg.type === "must-repair"){
-            this.units.repair(msg.resource);
+        }, radio: function radio (w, source, msg){
 
-          } else if (msg.type === "help-repair" && this.distance(msg.resource) < 100){
-            this.units.repair(msg.resource);
+          w.deb("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
 
-          }
-
-        },
 
         // defined by this.interval
-        onInterval: function(){
 
-          if (this.units.count){
+        }, interval: function interval (w, tick, secs){
 
-            // deb("     G: %s onInterval,  states: %s", this, H.prettify(this.units.states()));
+          w.deb("     G: interval: %s, %s secs", w, secs);
 
-            if (this.field.isFoundation){
-              if (this.units.doing("!repair").count){
-                this.units.doing("!repair").repair(this.field);
-              }
-
-            } else if (this.field.health < 80){
-              this.units.doing("!repair").repair(this.field);
-
-            } else {
-              this.units.doing("gather").gather(this.field);
-
-            }
-
-          }
+          
+          // w.units.on
+          //   .doing("idle")
+          //   .match(w.units.size)
+            // .units.on.gather(w.field)
+          // ;
 
         }
 
@@ -10449,8 +10342,6 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-  H.Groups = H.Groups || {};
-
   H.extend(H.Groups, {
 
     "g.mayor" : {
@@ -10465,44 +10356,36 @@ HANNIBAL = (function(H){
           
       */
 
+      // meta
       active:         true,           // prepared for init/launch ...
       description:    "mayor",        // text field for humans 
-      civilisations:  ["*"],          // 
-      interval:       4,              // call onInterval every x ticks
-      parent:         "",             // inherit useful features
+      civilisations:  ["*"],          // * = all, athen, cart, etc
+      interval:       4,              // call scripts.tick every x ticks ( tick ~ 1.6 sec)
 
-      technologies: [
-                      "unlock.females.house"
+      // these techs are known to possibly improve this group
+      technologies: [                 
+        "unlock.females.house"
       ],
 
-      position:       null,           // refers to the coords of the group's position/activities
-      structure:      [],             // still unkown asset, inits at game start
+      scripts: {
 
-      builders:       ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.cc = <cc>"],
+        launch: function(w, config){
 
-      attackLevel:    0,              // increases with every attack, halfs on interval
-      needsRepair:   80,              // a health level (per cent)
-      needsDefense:  10,              // an attack level
+          w.log("     G: onLaunch: %s, %s", w, uneval(config));
 
-      listener: {
-        onLaunch: function(options /*cc*/){
-
-          // deb("     G: launch %s %s", this, uneval(options));
-
-          // this.options = options;
-          // this.cc = options.cc;
-          this.register("builders");
+          w.units = ["dynamic", "civilcentre CONTAIN BUILDBY INGAME WITH metadata.cc = <cc>"];
+          w.nounify("units");
 
         },
-        onConnect: function(listener){
+        connect: function(w, listener){
           // deb("     G: %s onConnect, callsign: %s", this, listener.callsign);
-          this.structure.users.push(listener);
+          this.centre.users.push(listener);
         },
-        onDisConnect: function(listener){
+        disconnect: function(w, listener){
           deb("     G: %s onDisConnect, callsign: %s", this, listener.callsign);
-          H.remove(this.structure.users, listener);
+          H.remove(this.centre.users, listener);
         },
-        onAssign: function(asset){
+        assign: function(w, asset){
 
           deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
 
@@ -10515,46 +10398,46 @@ HANNIBAL = (function(H){
           this.cc = asset.resources[0];
 
           if (asset.isFoundation){
-            this.builders.nearest(30).repair(asset);
+            this.units.nearest(30).repair(asset);
           }
 
         },
-        onDestroy: function(asset){
+        destroy: function(w, asset){
 
           deb("     G: %s onDestroy: %s", this, asset);
 
-          this.economy.request(1, this.structure, this.position); // better location, pos is array
+          this.economy.request(1, this.centre, this.position); // better location, pos is array
 
         },
-        onAttack: function(asset, enemy, type, damage){
+        attack: function(w, asset, attacker, damage){
 
           deb("     G: %s onAttack %s", this, uneval(arguments));
 
           this.attackLevel += 1;
 
           if (this.attackLevel > this.needsDefense){
-            this.structure.users.nearest(20).forEach(function(user){
-              user.garrison(this.structure);
+            this.centre.users.nearest(20).forEach(function(user){
+              user.garrison(this.centre);
             });
           }
 
         },
-        onBroadcast: function(){},
-        onInterval: function(){
+        radio: function(w, sender, msg){},
+        tick:  function(w){
 
           // deb("     G: interval %s, attackLevel: %s, health: %s, states: %s", 
-          //     this.name, this.attackLevel, this.structure.health, H.prettify(this.structure.states())
+          //     this.name, this.attackLevel, this.centre.health, H.prettify(this.centre.states())
           // );
 
           this.attackLevel = ~~(this.attackLevel/2);
 
-          if (this.structure.isFoundation){
-            this.builders.nearest(30).repair(this.structure);
+          if (this.centre.isFoundation){
+            this.units.nearest(30).repair(this.centre);
           }        
 
-          // if (this.attackLevel === 0 && this.structure.health < this.needsRepair){
-          //   this.structure.users.nearest(30).forEach(function(user){
-          //     user.repair(this.structure);
+          // if (this.attackLevel === 0 && this.centre.health < this.needsRepair){
+          //   this.centre.users.nearest(30).forEach(function(user){
+          //     user.repair(this.centre);
           //   });
           // }
 
@@ -10583,117 +10466,100 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-  H.Groups = H.Groups || {};
-
   H.extend(H.Groups, {
-
 
     "g.scouts" : {
 
       /* Behaviour: 
-          to explore the map, 
+          to explore the land part of map, 
+          by feeding the scout grid with postions to analyse
           to avoid violent combat
           to report enemies + buildings
           to report resources, wood, metal, stone, animals
-          to fill the scout grid
+          to report job finished
+          to stay healthy
       */
-
-      // variables available in listener with *this*. All optional
 
       active:         true,           // ready to init/launch ...
       description:    "scouts",       // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
-
       interval:        2,             // call onInterval every x ticks
-      parent:         "",             // inherit useful features
 
-      capabilities:   "+area",        // (athen) give the economy a hint what this group provides.
+      listener: {  
 
+        onLaunch: function (w, config) {
 
-      // this got initialized by launcher
-      position:       null,           // coords of the group's position/activities
+          //scanner gives asset/scanner, verb/scan, attribute/target
 
-      counter:        0,
-      losses:         0,
-      // units:         ["exclusive", "cavalry CONTAIN SORT > speed"],
+          w.group.size = config.size || 8;
+          w.units = ["exclusive", "cavalry CONTAIN SORT > speed"];
+          w.register("units");
+          w.import("scanner");
+          w.units.request();
 
-      scanner:       null,
-      target:        null,
+        }, onAssign: function(w, asset) {
 
-      exclusives:    function(options){
-        return {units : [options.size, ["exclusive", "cavalry CONTAIN SORT > speed"]]};
-      },
+          w.log("onAssign", w, asset);
 
-      // message queue sniffer
+          // first unit orders scanner
+          w.scanner.on
+            .member(asset, w.units)
+            .match(0, w.scanner.size)
+            .match(1, w.units.size)
+            .request()
+          ;
 
-      listener: {
+          // got scanner, pick unit to scan for w.target
+          w.units.on
+            .member(asset, w.scanner)
+            .scan("grid", w.target)
+          ;
 
-        onLaunch:    function(options /*cc, maxUnits*/){
+          // have too much units
+          g.units.on
+            .gt(g.unit.count, g.unit.size)
+            .unhealthy()
+            .release()
+          ;
 
-          this.options = options;
-          this.size    = options.size;
-          this.units   = this.exclusives(options).units[1];
-          this.register("units");                                // turn res definitions into res objects
-          this.economy.request(1, this.units, this.position);    // 1 unit is a good start
+        }, onDestroy: function(w, asset) {
 
-        },
-        onAssign:    function(asset){
+          // lost unit, double size, hence release unhealthy
+          w.units.on
+            .member(asset, w.units)
+            .request(w.units.count * 2)
+          ;
 
-          // deb("     G: %s onAssign ast: %s as '%s' res: %s", this, asset, asset.property, asset.resources[0]);
+        }, onAttack: function(w, asset, attacker, type, damage) {
 
-          if (!this.counter){
-            this.scanner = H.Scout.scanner(asset);  // inits search pattern with first unit
-            this.target = this.scanner.next(asset.location());
+          // with group spread, health low, flee
+          asset.on
+            .member(asset, w.units)
+            .lt(50, asset.health)
+            .gt(50, g.units.spread)
+            .scan("attacker", attacker)
+            .scan("grid", w.target)
+            .stance("defensive")
+            .flee(attacker)
+          ;
 
-          } else if (this.units.count > this.size) {
-            asset.release();
+          // with group spread, health low, all flee
+          g.units.on
+            .member(asset, w.units)
+            .lt(80, g.units.health)
+            .stance("defensive")
+            .flee(attacker)
+            .nearest(attacker)
+            .scan("attacker", attacker)
+          ;
 
-          } else {
-            asset.move(this.units.center);                        // all other move to last known location
+        }, onBroadcast: function(source, msg) {
 
-          }
-
-          this.counter += 1;
-
-        },
-        onDestroy:   function(asset){
-
-          deb("     G: %s onDestroy: %s", this, asset);
-
-          if (this.units.match(asset)){
-            this.losses += 1;
-            // succesively increment up to 5
-            var amount = Math.max(this.maxUnits - this.units.count, this.losses +1);
-            deb("AMOUNT: %s, max: %s, units: %s, losses: %s", amount, this.maxUnits, this.units.count, this.losses);
-            this.economy.request(amount, this.units, this.position);  
-          }      
-
-        },
-        onAttack:    function(asset, attacker, type, damage){
-
-          deb("     G: %s onAttack %s by %s, damage: %s", this, asset, H.Entities[attacker] || attacker, damage.toFixed(1));
-
-          H.Scout.scanAttacker(attacker);
-
-          if (asset.health < 80){
-            if (this.units.spread > 50){
-              asset.stance("defensive");
-              asset.flee(attacker);
-            } else {
-              H.Scout.scan(this.units.nearest(this.target.point));
-              this.units.stance("defensive");
-              this.units.flee(attacker);
-            }
-          }
-
-        },
-        onBroadcast: function(source, msg){},
-        onRelease:   function(asset){
+        }, onRelease: function(asset) {
 
           deb("     G: %s onRelease: %s", this, asset);
 
-        },
-        onInterval:  function(secs, ticks){
+        }, onInterval:  function(secs, ticks) {
 
           // deb("     G: %s onInterval,  states: %s, health: %s", 
           //   this, H.prettify(this.units.states()), this.units.health
@@ -10742,6 +10608,7 @@ HANNIBAL = (function(H){
           // deb("     G: scout interval: %s msecs", Date.now() - t0);
 
         }
+
       }
     }
 
@@ -10765,6 +10632,8 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
+  var deb = H.deb;
+
   H.Groups = H.Groups || {};
 
   H.extend(H.Groups, {
@@ -10775,179 +10644,194 @@ HANNIBAL = (function(H){
         a group without units solely for the first/biggest CC
 
         Behaviour: 
-          to exploit resources like ruins, mines with stone
+          to exploit resources like ruins, trees, mines
           to build a dropsite if needed
           
       */
 
-      active:         true,           // prepared for init/launch ...
-      description:    "supplier",     // text field for humans 
-      civilisations:  ["*"],          // 
-      interval:       4,              // call onInterval every x ticks
-      parent:         "",             // inherit useful features
+      active:         true,             // prepared for init/launch ...
+      description:    "supplier",       // text field for humans 
+      civilisations:  ["*"],            // 
+      interval:       5,                // call scripts.interval every x ticks
 
-      defaults:       {
-        size:         2,
-      },
-
-      technologies: [                 // these techs help
-                      "gather.lumbering.ironaxes",
-                      "gather.capacity.wheelbarrow",
-                      "gather.wicker.baskets", // ?? only fruits
-                      "gather.mining.wedgemallet",
-                      "gather.mining.silvermining",    
-                      "gather.mining.shaftmining",
+      technologies: [                   // these techs help
+        "gather.lumbering.ironaxes",
+        "gather.capacity.wheelbarrow",
+        "gather.wicker.baskets",          // ?? only fruits
+        "gather.mining.wedgemallet",
+        "gather.mining.silvermining",    
+        "gather.mining.shaftmining",
       ],
 
-      position:       null,           // refers to the coords of the group's position/activities
+      scripts: {
 
-      units:          null,           // assets defined in onLaunch
-      dropsite:       null,
-      dropsites:      null,
+        launch: function launch (w, config /* supply, size */){
 
-      attackLevel:    0,              // increases with every attack, halfs on interval
-      needsRepair:   80,              // a health level (per cent)
-      needsDefense:  10,              // an attack level
+          var supply = config.supply;
 
-      exclusives:    function(options){
-        return {units : [options.size, (
-          options.supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
-          options.supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
-          options.supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
-          options.supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
-          options.supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
-            deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", options.supply)
-        )]};
-      },
+          w.deb("     G: onlaunch %s, %s", w, uneval(config));
 
-      listener: {
+          w.resources = ["resource", supply];
 
-        onLaunch: function(options /*cc, supply, size*/){
-
-          deb("     G: onlaunch %s", uneval(arguments));
-
-          // this.options   = options;
-          this.size   = options.size || this.defaults.size;
-          this.supply = options.supply;
-          this.target = this.resources.nearest(this.position, this.supply);
-
-          if (!this.target){
-            deb("     G: onLaunch dissolving %s no target for %s", this, this.supply);
-            this.dissolve(); 
-            return;
-          
-          } else {
-            this.position  = this.target.position;
-            deb("     G: onLaunch %s have target for %s: %s", this, this.supply, this.target);
-
-          }
-
-          this.units = this.exclusives(options).units[1];
-
-          this.dropsite = (
-            this.supply === "metal"      ?  ["shared",    "metal ACCEPTEDBY"] :
-            this.supply === "stone"      ?  ["shared",    "stone ACCEPTEDBY"] :
-            this.supply === "wood"       ?  ["shared",    "wood ACCEPTEDBY"]  :
-            this.supply === "food.fruit" ?  ["shared",    "food ACCEPTEDBY"]  :
-            this.supply === "food.meat"  ?  ["shared",    "food ACCEPTEDBY"]  :
-              deb(" ERROR: unknown supply '%s' for supply group", this.supply)
+          w.units = (
+            supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
+            supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
+            supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
+            supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
+            supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
+              deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", supply)
           );
 
-          this.dropsites = (
-            this.supply === "metal"      ?  ["dynamic",    "metal ACCEPTEDBY INGAME"] :
-            this.supply === "stone"      ?  ["dynamic",    "stone ACCEPTEDBY INGAME"] :
-            this.supply === "wood"       ?  ["dynamic",    "wood  ACCEPTEDBY INGAME"] :
-            this.supply === "food.fruit" ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-            this.supply === "food.meat"  ?  ["dynamic",    "food  ACCEPTEDBY INGAME"] :
-              deb(" ERROR: unknown supply '%s' for supply group", this.supply)
+          w.dropsite = (
+            supply === "metal"      ?  ["shared", "metal ACCEPTEDBY"] :
+            supply === "stone"      ?  ["shared", "stone ACCEPTEDBY"] :
+            supply === "wood"       ?  ["shared", "wood ACCEPTEDBY"]  :
+            supply === "food.fruit" ?  ["shared", "food ACCEPTEDBY"]  :
+            supply === "food.meat"  ?  ["shared", "food ACCEPTEDBY"]  :
+              deb(" ERROR: unknown supply '%s' for supply group", supply)
           );
 
-          this.register("units", "dropsite", "dropsites");
-          // this.request(1, this.units, this.position);   
-          this.request(2, this.units, this.position);   
+          w.resources.size = (
+            supply === "metal"      ?  1  :
+            supply === "stone"      ?  1  :
+            supply === "wood"       ?  10 :
+            supply === "food.fruit" ?  5  :
+            supply === "food.meat"  ?  5  :
+              deb(" ERROR: unknown supply '%s' for supply group", config.supply)
+          );
 
-        },
-        onAssign: function(asset){
+          w.units.size = (
+            supply === "metal"      ?  10 :
+            supply === "stone"      ?  10 :
+            supply === "wood"       ?  10 :
+            supply === "food.fruit" ?  5  :
+            supply === "food.meat"  ?  2  :
+              deb(" ERROR: unknown supply '%s' for supply group", config.supply)
+          );
 
-          deb("     G: onAssign %s : got %s, pos: %s", this, asset, H.fixed1(this.position));
-         
-          if (this.units.match(asset)){
+          w.dropsite.size  = 1;
 
-            if (this.units.count === 1){
-              if (this.dropsites.nearest(1).distanceTo(this.position) > 100){
-                this.request(1, this.dropsite, this.position); 
-              }  
-            }
+          w.nounify("units", "resources", "dropsite");
 
-            deb("     G: onAssign %s units: %s/%s", this, this.units.count, this.size);
-            if (this.units.count < this.size){
-              this.request(1, this.units, this.position);   
-            }
+          w.resources.on.request(w.resources.size); // may get less
 
-            if (this.target){
-              asset.gather(this.target);
-            } else {
-              deb("  WARN: %s with res: %s has no target", this, this.supply);
-            }
 
-          } else if (this.dropsite.match(asset)){
+        }, assign: function assign (w, item) {
 
-            if (asset.isFoundation){this.units.repair(asset);}
-            if (asset.isStructure){this.units.gather(this.target);}
+          w.deb("     G: assign.0: %s, %s", w, item);
 
-          } else {
-            deb("     G: onAssign %s no match", this);
+          w.debug = true;
 
-          }
+          w.objectify("item", item);
 
-        },
-        onDestroy: function(asset){
+          // got empty resource, dissolve group
+          w.resources.on
+            .member(w.item)
+            .match(w.resources.count, 0)
+            .group.do.dissolve()  
+            .exit
+          ;
 
-          deb("     G: onDestroy %s : %s", this, asset);
+          // got initial resources, request unit, exits
+          w.resources.on
+            .member(w.item)
+            .match(w.units.count, 0)
+            .units.do.request()
+            .exit
+          ;
 
-          if (this.units.match(asset)){
-            this.request(1, this.units, this.position);
+          // got initial unit, request dropsite
+          w.units.on
+            .member(w.item)
+            .match(w.dropsite.count, 0)
+            .dropsite.do.request()
+          ;
 
-          } else if (this.dropsite.match(asset)){
-            // this.request(1, this.dropsite, this.position);
+          // got initial dropsite foundation, units repair
+          w.dropsite.on
+            .member(w.item)
+            .match(w.item.foundation)
+            .units.do.repair(w.dropsite)
+          ;
 
-          }
+          // got initial dropsite, units gather
+          w.dropsite.on
+            .member(w.item)
+            .match(!w.item.foundation)
+            .units.do.gather(w.resources)
+          ;
 
-        },
-        onAttack: function(asset, enemy, type, damage){
+          // keep requesting units until size
+          w.units.on
+            .member(w.item)
+            .echo("units: " + w.units.count + w.units.size)
+            .lt(w.units.count, w.units.size)
+            .request()
+          ;
 
-          deb("     G: onAttack %s : %s by %s, damage: %s", this, asset, enemy, damage);
+          // got unit, let gather on next resource
+          w.units.on
+            .member(w.item)
+            .resources.do.shift()
+            .item.do.gather(w.resources)
+          ;
 
-        },
-        onBroadcast: function(){},
-        onInterval:  function(){
+          // got another resource, all units gather
+          w.resources.on
+            .member(w.item)
+            .units.do.gather(w.resources)
+          ;
 
-          // deb("     G: %s onInterval, res: %s, states: %s", this, this.supply, H.prettify(this.units.states()));
 
-          if (!this.units.count){return;}
+        }, destroy: function destroy (w, item) {
 
-          if (this.units.doing("idle").count === this.size){
-            this.dissolve();
-            deb("      G: onInterval %s finished supplying %s, all (%s) idle", this, this.size, this.supply);
-          
-          } else if (this.units.doing("idle").count > 0){
+          w.deb("     G: destroy: %s, %s", w, item);
 
-            // this.resources.update(this.supply);
-            this.target = this.resources.nearest(this.position, this.supply);
-            
-            if (this.target){
-              this.units.doing("idle").gather(this.target);
-            } else {
-              deb("  WARN: %s with res: %s has no target", this, this.supply);
-            }              
-            
-            
-          }
+          w.objectify("item", item);
 
+          // lost unit, request another
+          w.units
+            .member(w.item)
+            .request()
+          ;
+
+          // lost dropsite, request another
+          w.dropsite
+            .member(w.item)
+            .request()
+          ;
+
+        }, attack: function attack (w, item, enemy, type, damage) {
+
+          w.deb("     G: destroy: %s, %s %s %s %s", w, item, enemy, type, damage);
+
+
+        }, radio: function radio (w, msg) {
+
+          w.deb("     G: %s radio %s, %s", this, msg);
+
+
+        }, interval:  function interval(w, tick, secs) {
+
+          w.deb("     G: interval: %s, %s secs", w, secs);
+
+          // run out of resources, request more, exits
+          w.resources.on
+            .match(w.resources.count, 0)
+            .request()
+            .exit
+          ;
+
+          // idle units should gather
+          w.units.on
+            .doing("idle")
+            .gather(w.resources)
+          ;
 
         }
 
-      } // listener
+
+      } // end script
 
     }
 
@@ -11064,9 +10948,6 @@ return H; }(HANNIBAL));
 */
 
 HANNIBAL = (function(H){
-
-  H.HTN = H.HTN || {};                       
-  H.HTN.Economy = H.HTN.Economy || {};
 
   var m, o, planner, tree, nodes, prit, sani, fmt,
       cacheProducer   = {},
@@ -11630,9 +11511,6 @@ return H; }(HANNIBAL)); /*jslint bitwise: true, browser: true, todo: true, evil:
 
 HANNIBAL = (function(H){
 
-  H.HTN = H.HTN || {};                       
-  H.HTN.Economy = H.HTN.Economy || {};
-
   // helper
 
   function applyCosts(state, costs, multiplier){
@@ -11819,9 +11697,6 @@ HANNIBAL = (function(H){
         var c=0, a=Array.prototype.slice.call(arguments); a.push("");
         return a[0].split("%s").map(function(t){return t + a.slice(1)[c++];}).join('');
       };
-
-  H.HTN = H.HTN || {};
-  H.HTN.Helper = H.HTN.Helper || {};
 
   H.HTN.Helper.State = function(data){this.data = data || {};};
   H.HTN.Helper.State.prototype = {
@@ -12131,8 +12006,6 @@ HANNIBAL = (function(H){
     // prettyfies a task
     pritt = function(task){return fmt("[%s: %s]", task[0].name, task.slice(1).join(", "));};
 
-  H.HTN = H.HTN || {};                       
-
   H.HTN.Planner = function Planner(config) {
 
     var defaults = {
@@ -12323,12 +12196,929 @@ HANNIBAL = (function(H){
 return H; }(HANNIBAL));
 
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals  HANNIBAL, Uint8Array, deb, uneval */
+/*globals HANNIBAL, uneval */
+
+/*--------------- D S L -------------------------------------------------------
+
+  builds a DSL with a fluent interface used in e.g. groups, 
+  based on method chaining/cascading
+
+
+  V: 0.1, agentx, CGN, Feb, 2014
+
+*/
+
+/*
+  Intro: 
+
+    WARNING  :  The language introduced here, looks like JavaScript and meets its
+                syntax. However, e.g. a variable (object) does not hold a value, 
+                instead it changes the state of the world, same do methods.
+
+    DSL      :  The language module
+    Corpus   :  A set of nouns, verbs and attributes [e.g. groups]
+    World    :  An environment an actor can change via the language 
+                [all groups share same world]. world is usually the first 
+                parameter (w) in a script call function.
+    Actor    :  Sets the meaning of nouns, verbs, attributes, at each time only 
+                one actor is in a world. In the groups world each group instance 
+                maps onto an actor.
+    Sentence :  JS code written in DSL to describe the behaviour of the world
+    Noun     :  Each sentence consist (minimum) of the world, noun and a verb,
+                The world acts also as a noun, so w.log() is a valid sentence.
+                Nouns are not followed by parenthesis in opposite to verbs.
+    Subject   : The currently selected noun.
+    Object    : The currently active noun.
+    Verbs     : Assuming the nouns: units, resources + verbs: gather, move
+                w.units.move(xy), or w.units.gather(w.resources) are correct.
+    Modifiers : Stop sentence execution thus allowing flow control. The remainder
+                of a sentence remains unheard.
+
+                  .exists(a)   // breaks on a === undefined
+                  .match(a, b) // on a !== b
+                  .gt(a, b)    // on a < b
+                  .lt(a, b)    // on a > b
+
+                Above are global modifiers, groups have:
+
+                  .member(a, b)   // breaks if a is not completely member of b
+
+
+    Example   : 
+                  var assign = function(w, item){
+                    
+                    // make item available as object
+                    w.objectify("item", item);
+                    
+                    // keep requesting units until size
+                    w.units.on                          // set units as subject
+                      .member(item)                     // proceed if item is member of units
+                      .lt(w.units.count, w.units.size)  // proceed if count < size
+                      .request()                        // order 1 unit from economy
+                    ;
+
+                  };
+
+*/
+
+
+HANNIBAL = (function(H){  
+
+  H.DSL.Language = function (context, handler, corpus) {
+
+    H.extend(this, {
+
+      imports: [
+        "map"
+      ],
+
+      klass:         "dsl:language",
+      context:       context,
+
+      corpusname:    corpus,
+      corpus:        H.DSL.Corpora[corpus],
+      handler:       handler,  
+
+      verbs:         {},
+      world:         null,
+
+      scriptname:    ""
+
+    });
+
+    this.name = H.format("language:%s", corpus);
+    this.deb("  LANG: loaded corpus: %s", this.corpusname);
+
+  };
+
+  H.DSL.Language.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
+    constructor: H.DSL.Language,
+    createWorld: function(actor){
+
+      var self = this, world = {actor: actor};
+
+      // this.deb("   DSL: createActor");
+      
+      H.extend(world, {
+
+        dsl:      this,      // uplink
+
+        execute:  false,     // script execution is enabled
+        proceed:  false,     // sentence execution is enabled
+
+        nouns:      {},
+        subject:  null,      // currently active subject
+        object:   null,      // currently active object
+
+        reset: () => {
+          // this.deb("   DSL: world reset from sentence: %s", world.sentence);
+          world.sentence = [];
+          world.debug    = false;
+          world.proceed  = true;
+          world.execute  = true;
+          world.subject  = null;
+          world.object   = null;
+          H.each(this.corpus.nouns, noun => {
+            ( world.nouns[noun] && world.nouns[noun].update && world.nouns[noun].update() );
+          });
+
+        },
+
+        objectify:  (name, obj) => {
+
+          // this.deb("   DSL: objectifying: %s for %s", name, world.actor);
+          this.setnoun(world, name, new this.corpus.nouns[name](obj, name));
+
+        },
+        nounify:  () => {
+
+          H.toArray(arguments).forEach( noun => {
+
+            // this.deb("   DSL: nounifying: %s for %s", noun, world.actor);
+            
+            var host = this.handler.nounify(world, actor, noun);
+            this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
+
+          });
+        },
+
+        // debug
+        sentence: [],
+        toString: () => H.format("[world %s]", this.corpusname),
+        deb:      function(){
+          self.deb.apply(self, arguments);
+          return world;
+        },
+        log:      function(){
+          var msg = H.format.apply(null, arguments);
+          if (world.execute && world.proceed){
+            world.deb("------: ");
+            world.deb("      : " + msg);
+            world.deb("      :    actor: %s, script: %s", world.actor, self.scriptname);
+            world.deb("      :  subject: %s, object: %s", world.subject, world.object);
+            world.deb("      : sentence: %s", world.sentence);
+            H.each(self.corpus.nouns, noun => {
+              if (world[noun]){
+                world.deb("      : %s -> %s", noun, world[noun]);
+              }
+            });
+            world.deb("------: ");
+          }
+          return world;
+        },
+        // echo:   function(act, sub, obj, a){
+        echo:   function(){
+          if (world.execute && world.proceed){
+            world.deb("   WLD: echo: %s", H.format.apply(null, arguments));
+          }
+          return world;
+        },
+
+      });
+  
+      // on, off, do
+      H.each(H.DSL.Corpora.globals.meta, (name, fn) => {
+        Object.defineProperty(world, name, {
+          get: fn, enumerable: true
+        });
+      });
+
+      // reset, end, member, lt, gt, match
+      H.each(
+        H.DSL.Corpora.globals.modifier, 
+        this.corpus.modifier, 
+        (name, fn) => this.setverb(world, name, fn)
+      );
+
+      // count, size, position, health
+      H.each(
+        this.corpus.attributes, 
+        (name, fn) => this.setattribute(world, name, fn)
+      );      
+
+      // points
+      H.each(
+        this.corpus.methods, 
+        (name, fn) => this.setgetter(world, name, fn)
+      );      
+
+      return world;
+
+    },
+    runScript: function(world, actor, script, params){
+      var t1, t0 = Date.now();
+      this.world = world;
+      this.scriptname = script.name;
+      world.reset();
+      world.actor = actor;
+      params.unshift(world);
+      script.apply(actor, params);
+      t1 = Date.now();
+      if(t1 - t0 > 2){
+        this.deb("WARN  : DSL: runScript took %s msec %s %s", t1 - t0, script.name, actor);
+      }
+    },
+    setnoun:  function(world, noun, obj){
+      // this.deb("   DSL: setnoun: %s", noun);
+      world.nouns[noun] = obj;
+      Object.defineProperty(world, noun, {
+          configurable: true, enumerable: true, 
+          get: function () {
+            if (this.execute){
+              this.sentence.push(["o:", noun]);
+              this.object = obj;
+              // this.deb("   DSL: setobject: %s", noun);
+            } else {
+              // this.deb("   DSL: ignored setobject: %s", noun);
+            }
+            return this;
+          }
+      });
+    },
+    setverbs: function(world, verbs){
+      H.each(verbs, (verb, fn) => this.setverb(world, verb, fn));
+    },
+    setverb:  function(world, verb, fn){
+      // this.deb("   DSL: setverb: %s", verb);
+      world[verb] = () => {
+        var args = H.toArray(arguments); //, world = this.world;
+        if (world.execute && world.proceed){
+          if (world.debug){this.deb("   WLD: %s %s %s", world.subject.name, verb, world.object.name);}
+          world.sentence.push(["v:", verb]);
+          args.unshift(world.actor, world.subject, world.object);
+          fn.apply(world, args);
+          // this.deb("   DSL: applied verb '%s' args: %s", verb, args);
+        } else {
+          // this.deb("   DSL: ignored: verb '%s' pro: %s, exe: %s", verb, world.proceed, world.execute);
+        }
+        return world;
+      };
+    },
+    setattribute:  function(world, attribute, fn){
+      // this.deb("   DSL: setattribute: %s", attribute);
+      Object.defineProperty(world, attribute, {
+          configurable: true, enumerable: true, 
+          get: function () {
+            this.sentence.push(["a:", attribute]);
+            if (this.execute && this.proceed){
+              // this.deb("   DSL: read attribute '%s'", attribute);
+              return fn.apply(this, [this.subject, this.object]);
+            } else {
+              // this.deb("   DSL: ignored attribute '%s' pro: %s, exe: %s", attribute, this.proceed, this.execute);
+              return null;
+            }
+          }
+      });
+    },
+    setgetter:  function(world, method, fn){
+      this.deb("   DSL: setgetter: %s", method);
+      // this.deb("   DSL: setverb: %s", method);
+      world[method] = () => {
+        var args = H.toArray(arguments); //, world = this.world;
+        if (world.execute && world.proceed){
+          if (world.debug){this.deb("   WLD: %s %s %s", world.subject.name, method, world.object.name);}
+          world.sentence.push(["m:", method]);
+          args.unshift(world.subject, world.object);
+          return fn.apply(world, args);
+          // this.deb("   DSL: applied method '%s' args: %s", method, args);
+        } else {
+          // this.deb("   DSL: ignored: method '%s' pro: %s, exe: %s", method, world.proceed, world.execute);
+        }
+        return null;
+      };
+    },
+  
+  });
+
+
+  // Must be before corpus
+
+  H.DSL.Nouns.Group = function(host, name){
+    this.name = name;
+    this.host = host;
+    this.update();
+  };
+  H.DSL.Nouns.Group.prototype = {
+    constructor: H.DSL.Nouns.Group,
+    toString: function(){return H.format("[noun:group %s]", this.name);},
+    update: function(){
+      this.position = this.host.position;
+    }
+  };
+
+  H.DSL.Nouns.Resources = function(host, name){
+    this.name = name;
+    this.host = host;
+    this.update();
+  };
+  H.DSL.Nouns.Resources.prototype = {
+    constructor: H.DSL.Nouns.Resources,
+    toString: function(){return H.format("[noun:group %s]", this.name);},
+    update: function(){
+      this.list = this.host.resources.slice();
+      this.size = this.host.size;
+      this.position = this.host.position;
+      this.isresource = this.host.isresource || false;
+    }
+  };
+
+
+  // a generic, represents an asset with a list of entities
+  
+  H.DSL.Nouns.Entities = function(host, name){
+    this.name = name;
+    this.host = host;
+    this.update();
+  };
+  H.DSL.Nouns.Entities.prototype = {
+    constructor: H.DSL.Nouns.Entities,
+    toString: function(){return H.format("[noun:entities %s[%s]]", this.name, this.list.join("|"));},
+    update: function(){
+      this.list = this.host.resources.slice();
+      this.size = this.host.size;
+      this.position = this.host.position;
+      this.foundation = this.host.foundation || false;
+      this.isresource = this.host.isresource || false;
+    }
+  };
+
+  H.DSL.Nouns.Village = function(host, name){
+    this.name = name;
+    this.host = host;
+    this.verbs = new H.DSL.Nouns.Entities().verbs;
+    this.list = [];
+  };
+  H.DSL.Nouns.Village.prototype = H.mixin (
+    H.DSL.Nouns.Entities.prototype, {
+    constructor: H.DSL.Nouns.Village,
+    toString: function(){return H.format("[noun:village  %s[%s]]", this.name, this.list.join("|"));},
+  });
+
+  H.DSL.Nouns.Scanner = function(device, name){
+    this.name = name;
+    this.device = device;
+    this.verbs = [
+      "scan",
+    ];
+  };
+  H.DSL.Nouns.Scanner.prototype = {
+    constructor: H.DSL.Nouns.Scanner,
+    toString: function(){return H.format("[noun:scanner  %s[%s]]", this.name, this.list.join("|"));},
+  };
+
+  H.DSL.Helper = {
+    health: function(){},
+    vision: function(){},
+  };
+
+  H.DSL.Corpora = {
+    globals: {
+      meta: {
+        on: function(){
+          if (this.execute){
+            this.proceed = true;  
+            this.sentence = ["s:", this.object.name];
+            this.subject = this.object;
+            // this.deb("   DSL: on setsubject: %s", this.subject);
+            // this.deb("--.on.out");
+          }
+          return this;
+        },
+        do: function(){
+          if (this.execute && this.proceed){
+            this.sentence.push(["s:", this.object.name]);
+            this.subject = this.object;
+            // this.deb("   DSL: do setsubject: %s", this.subject);
+          }
+          return this;          
+        },
+        off: function(){
+          if (this.execute && this.proceed){
+            this.subject = null;
+            this.object = null;
+            this.proceed = false; 
+          }
+          return this;          
+        },
+        exit:    function(){
+          if (this.proceed){
+            this.subject = null;
+            this.object  = null;
+            this.execute = false; 
+            this.proceed = false; 
+            // this.deb("   DSL: EXIT ================");
+          }
+          return this;
+        },
+      },
+      modifier: {
+        match:  function(act, sub, obj, a, b){
+          if (this.execute && this.proceed){
+            if (a === undefined && b === undefined){
+              this.proceed = false;
+            } else if (a !== undefined && b === undefined){
+              this.proceed = !!a;
+              // pass on single param valid
+            } else if (a !== b){
+              this.proceed = false;
+            }
+          }
+          return this;
+        },
+        gt:     function(act, sub, obj, a, b){
+          if (this.execute && this.proceed){
+            if (a !== undefined && b !== undefined && ( a <= b)){
+              this.proceed = false;
+            }
+          }
+          // this.log("   DSL: lt.out:  got %s, %s proceed: %s", a, b, this.proceed);
+          return this;
+        },
+        lt:     function(act, sub, obj, a, b){
+          if (this.execute && this.proceed){
+            if (a !== undefined && b !== undefined && ( a >= b)){
+              this.proceed = false;
+            }
+          }
+          // this.log("   DSL: lt.out:  got %s, %s proceed: %s", a, b, this.proceed);
+          return this;
+        }
+      },
+    },
+    groups: {
+      name: "groups",
+      // verbs are defined in groups.js
+      nouns : {
+        "group":       H.DSL.Nouns.Group,
+        "path":        H.DSL.Nouns.Entities,
+        "village":     H.DSL.Nouns.Village, 
+        "scanner":     H.DSL.Nouns.Scanner,   
+        "resources":   H.DSL.Nouns.Resources, 
+
+        "attacker":    H.DSL.Nouns.Entities,   
+        "buildings":   H.DSL.Nouns.Entities, 
+        "centre":      H.DSL.Nouns.Entities, 
+        "dropsite":    H.DSL.Nouns.Entities,   
+        "field":       H.DSL.Nouns.Entities,   
+        "item":        H.DSL.Nouns.Entities,   
+        "units":       H.DSL.Nouns.Entities,   
+      },
+      methods: {
+        points: function(s, o, selector){
+          return [o.list[selector]];
+        },
+      },
+      attributes: {
+        // health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
+        // vision:       function(s, o){return H.DSL.Helper.vision(o.list);}, 
+        count:        function(s, o){return o.list.length;}, 
+        size:         function(s, o){return o.size;}, 
+        foundation:   function(s, o){return o.foundation;}, 
+        distance:     function(s, o){
+          return this.dsl.map.distance (
+            this.map.dsl.getCenter(s.list), 
+            this.map.dsl.getCenter(o.list)
+          );
+        }, 
+        direction:    function(s, o){
+          var 
+            spos = this.dsl.map.getCenter(s.list),
+            opos = this.dsl.map.getCenter(o.list);
+          return [ opos[0] - spos[0], opos[1] - spos[1] ];
+        },
+        position:     function(s, o){
+          if (o instanceof H.DSL.Nouns.Group){
+            return o.position;
+          } else {
+            return this.dsl.map.getCenter(o.list);
+          }
+        },
+      },
+      modifier: {
+        member: function(act, s, o){
+
+          // this.deb("   DSL: member.in: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
+
+          if (s instanceof H.DSL.Nouns.Resources){
+            // relies on groups have only single resource asset
+            this.proceed = o.isresource;
+            // this.deb("   DSL: match s = resource and o = res %s", o.isresource);
+
+          } else {
+            this.proceed = this.proceed ? (
+              s && o && s.list && o.list && 
+              s.list.length && o.list.length &&
+              o.list.every(r => s.list.indexOf(r) !== -1)
+            ) : false;
+
+          }
+
+          // this.deb("   DSL: member.out: s: %s, o: %s, pro: %s, exe: %s", s, o, this.proceed, this.execute);
+
+          return this;
+        },
+      }
+    }
+  };
+
+return H; }(HANNIBAL));
+/*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
+/*globals HANNIBAL, HANNIBAL_DEBUG, API3, uneval */
+
+/*--------------- L A U N C H E R   -------------------------------------------
+
+  Launches an AI/Bot in a fresh or saved context.
+  Home: https://github.com/noiv/Hannibal/blob/master/README.md
+
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
+
+*/
+
+
+HANNIBAL = (function(H) {
+
+  // API bot constructor
+  H.Launcher = function(settings) {
+
+    var id = settings.player;
+
+    API3.BaseAI.call(this, settings);
+
+    H.extend(this, {
+
+      id:             id,
+      name:           "H" + id,
+      klass:          "launcher",
+      debug:          HANNIBAL_DEBUG ? HANNIBAL_DEBUG.bots[id] : {},
+      map:            HANNIBAL_DEBUG ? HANNIBAL_DEBUG.map : "unknown",
+      deb:            H.deb.bind(null, id),
+      chat:           H.chat.bind(null, id),
+
+      settings:       settings,                            // from ai config dialog
+      isInitialized:  false,                               // did that happen well?
+      isTicking:      false,                               // toggles after first OnUpdate
+      isFinished:     false,                               // there is still no winner
+      noInitReported: false,                               // report init failure only once
+      timing:         {all: 0},                            // used to identify perf. sinks in OnUpdate
+      
+    });
+
+    // create empty context
+    this.context = new H.LIB.Context("C1", this);
+
+    this.deb("      : Launcher.out: ID: %s, debug: %s", this.id, uneval(this.debug));
+
+  };
+
+  H.Launcher.prototype = new H.API.BaseAI();
+  H.Launcher.prototype.Deserialize = function(data /*, sharedScript */ ){
+    this.context.deserialize(data);
+  };
+  H.Launcher.prototype.Serialize = function(){
+    return this.context.serialize();
+  };
+  H.Launcher.prototype.CustomInit = function(gameState, sharedScript) {
+
+    var 
+      t0  = Date.now(),
+      deb = this.deb.bind(this), 
+      ss  = sharedScript, 
+      gs  = gameState,
+      civ = ss.playersData[this.id].civ;
+
+    // H.deb("      :");
+    // H.deb("      :");
+    H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s in", this.id, civ);
+
+
+    // move window
+    if (this.debug.xdo){
+      this.deb("#! xdotool init");
+    }
+
+    // launch the stats extension
+    if (this.debug.numerus){
+      H.Numerus.init(this.id, ss, gs);          
+    }             
+
+    // debug
+    this.logStart(ss, gs, this.settings);
+    this.logPlayers(ss.playersData);
+
+    // connect the context
+    this.context.connectEngine(this, gameState, sharedScript, this.settings);
+    this.context.initialize(H.Config);
+
+    // This bot faces the other players
+    this.bot = this.context.createBot();
+    
+    /* run scripted actions named in H.Config.sequence */
+    // deb();
+    // H.Tester.activate(this.map, this.id, this.context);
+    /* end scripter */
+
+
+    /*
+
+    Below is for development
+
+    */
+
+    var lines1, lines2, lines3, diff;
+    // this.context.log();
+
+    // lines1 = exportJSON(this.context.serialize(), "ctx1.serialized");
+
+    // deb();
+    // deb("################################################################################");
+    // deb();
+
+    // clone second context to compare serialization
+    // this.secondContext = this.context.clone();
+    // this.secondBot     = this.secondContext.createBot();
+    // lines2 = exportJSON(this.secondContext.serialize(), "ctx2.serialized");
+    
+    // deb();
+    // deb("################################################################################");
+    // deb();
+
+    // third context via de/serialize
+    // this.thirdContext = new H.LIB.Context("ctx3");
+    // this.thirdContext.deserialize(this.context.serialize());
+    // this.thirdContext.connectEngine(this, gameState, sharedScript, this.settings);
+    // this.thirdContext.initialize(H.Config);
+
+    // diff = diffJSON(this.context.serialize(), this.thirdContext.serialize());
+    // logJSON(diff, "ctx1 vs. ctx3");
+
+    // this.thirdContext.log();
+    // this.thirdBot     = this.thirdContext.createBot();
+    // lines3 = exportJSON(this.thirdContext.serialize(), "ctx3.serialized");
+
+    // deb();
+    // deb("SRLIAZ: ctx 1: %s lines", lines1);
+    // deb("SRLIAZ: ctx 2: %s lines", lines2);
+    // deb("SRLIAZ: ctx 3: %s lines", lines3);
+    // deb();
+    // deb("################################################################################");
+
+    /* testing triple store */
+    this.context.culture.debug = 5;
+    // this.context
+    //   .query(this.context.class2name("civilcentre") + " RESEARCH")
+    //   .params({format: "metadata", deb: 5, debmax: 10, comment: "next phases"});
+    //   .execute();
+    this.context.culture.debug = 0;
+    /* end testing triple store */
+
+
+    // H.Config.deb = 0; // suppress further log line
+
+    this.initialized = true;
+
+    this.deb("      :");
+    this.deb("      :");
+    H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s out %s msecs, ", this.id, civ, Date.now() - t0);
+
+    return;
+
+  };
+  H.Launcher.prototype.OnUpdate = function(sharedScript) {
+
+    var 
+      deb = this.deb.bind(this),
+      ss = sharedScript,
+      t0 = Date.now(),
+      secs = (ss.timeElapsed/1000).toFixed(1),
+      msgTiming = "";
+
+    if (this.isFinished){return;} // API ????
+
+    if (!this.initialized){
+      if (!this.noInitReported){
+        this.logNotInitialized();
+      }
+      this.noInitReported = true;
+      return;      
+    }
+
+    if (!this.isTicking){
+      this.logFirstTick(t0, ss.playersData[this.id].civ);
+      this.isTicking = true;
+    }
+
+    // keep API events from each turn, even if not processing
+    this.context.events.collect(this.events);
+
+
+    // ------------- A C T I O N   S T A R T ----------------------------------
+
+    // Run the update every n turns, offset depending on player ID to balance the load
+    if ((this.turn + this.player) % 8 === 5) {
+
+      // update context
+      this.context.updateEngine(sharedScript);
+
+      // log top row debug info
+      deb("------: %s@%s, elapsed: %s secs, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
+        this.id,
+        this.context.tick, secs, 
+        this.bot.player.civ, this.context.culture.phases.current,
+        H.count(this.bot.player.researchedTechs), 
+        this.bot.player.resourceCounts.food,
+        this.bot.player.resourceCounts.wood,
+        this.bot.player.resourceCounts.metal,
+        this.bot.player.resourceCounts.stone
+      );
+
+      this.timing.all = 0;
+      this.timing.tst = 0;
+
+      if (this.context.tick === 0 && this.debug.tst){
+        H.Tester.activate(this.map, this.context); 
+        H.Tester.log(); 
+      }
+
+      // execute test scripts 
+      if (this.debug.tst){
+        this.timing.tst = H.Tester.tick(secs, this.context.tick, this.context);
+      }
+
+      // THIS IS THE MAIN ACT
+      this.bot.tick(secs, this.context.tick, this.timing);
+
+      // deb: collect stats
+      if (this.debug.numerus){
+        H.Numerus.tick(secs, this.context.tick, sharedScript);
+      }
+
+      // prepare bottom row debug info
+      H.each(this.timing, (name, msecs) => {
+        if (name !== "all"){
+          msgTiming += H.format(", %s: %s", name, msecs);
+        }
+        this.timing.all += msecs;
+      });
+
+      // log row
+      deb("------: %s@%s timing: %s, all: %s %s", 
+        this.id,
+        this.context.tick, 
+        msgTiming, 
+        this.timing.all, 
+        this.timing.all >= 100 ? "!!!!!!!!" : ""
+      );
+
+      // increase tick number
+      this.context.tick++;
+
+
+      // ------------- A C T I O N   E N D --------------------------------------
+
+      deb("      :");
+      
+    }
+
+    // increase turn number
+    this.context.turn++;
+    this.turn++;
+
+  };
+  H.Launcher.prototype.logNotInitialized = function() {
+    var deb = this.deb.bind(this);
+    deb("------: ### --- ### --- ### --- PID: %s, HANNIBAL: ", this.id, new Date());
+    deb();
+    deb("ERROR : HANNIBAL IS NOT INITIALIZED !!!");
+    this.chat("HANNIBAL IS NOT INITIALIZED, check install.txt");
+    deb();
+    deb("------: ### --- ### --- ### --- PID: %s, HANNIBAL: ", this.id, new Date());
+  };
+  H.Launcher.prototype.logFirstTick = function(t0, civ) {
+    var deb = this.deb.bind(this);
+    deb("------: HANNIBAL.firstTick: %s/%s, %s, after: %s secs", this.id, civ, this.map, ((t0 - H.MODULESTART)/1000).toFixed(1));
+    deb();
+  };
+  H.Launcher.prototype.logStart = function(ss, gs, settings){
+
+    var deb = this.deb.bind(this), id = this.id;
+
+    deb("------: LAUNCHER.CustomInit: PID: %s, Players: %s, difficulty: %s", id, H.count(ss.playersData), settings.difficulty);
+    deb("      :");
+    deb("     A:     map from DEBUG: %s / %s", this.map, ss.gameType);
+    deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
+    deb("     A:          _entities: %s [  ]", H.count(ss._entities));
+    deb("     A:         _templates: %s [  ]", H.count(ss._templates));
+    deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
+    deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
+    deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
+    deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
+    deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
+    deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
+
+  };
+  H.Launcher.prototype.logPlayers = function(players){
+
+    var 
+      deb = this.deb, tab = H.tab, msg = "", head, props, format, tabs,
+      fmtAEN = item => item.map(b => b ? "1" : "0").join("");
+
+    deb();
+
+    head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut, colour".split(", ");
+    props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
+    tabs   = [  10,    6,   8,    10,        5,      6,       6,         6, 20];
+    format = {
+      isAlly:    fmtAEN,
+      isEnemy:   fmtAEN,
+      isNeutral: fmtAEN
+    };
+
+    H.zip(head, tabs, function(h, t){msg += tab(h, t);});
+    deb("PLAYER: " + msg);
+
+    H.each(players, function(id, player){
+      msg = "";
+      H.zip(props, tabs, function(p, t){
+        msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
+      });    
+      deb("     %s: %s", id, msg);
+    });
+
+  };
+  H.Launcher.prototype.diffJSON = function (a, b) {
+
+    // https://github.com/paldepind/dffptch
+    
+    var 
+      O = Object, keys = O.keys,
+      aKey, bKey, aVal, bVal, rDelta, shortAKey, 
+      aKeys = keys(a).sort(),
+      bKeys = keys(b).sort(),
+      delta = {}, adds = {}, mods = {}, dels = [], recurses = {},
+      aI = 0, bI = 0;
+
+    // Continue looping as long as we haven't reached the end of both keys lists
+
+    while(aKeys[aI] !== undefined || bKeys[bI]  !== undefined || false) {
+      
+      aKey = aKeys[aI]; 
+      bKey = bKeys[bI];
+      aVal = a[aKey];
+      bVal = b[bKey];
+      shortAKey = String.fromCharCode(aI+48);
+
+      if (aKey == bKey) {
+
+        // We are looking at two equal keys this is a
+        // change – possibly to an object or array
+        
+        if (O(aVal) === aVal && O(bVal) === bVal) {
+        
+          // Find changs in the object recursively
+          rDelta = H.diffJSON(aVal, bVal);
+        
+          // Add recursive delta if it contains modifications
+          if (keys(rDelta)) {recurses[shortAKey] = rDelta;}
+        
+        } else if (aVal !== bVal) {
+          mods[shortAKey] = bVal;
+        
+        }
+        
+        aI++; bI++;
+
+      } else if (aKey > bKey || !aKey) {
+        // aKey is ahead, this means keys have been added to b
+        adds[bKey] = bVal;
+        bI++;
+
+      } else {
+        // bKey is larger, keys have been deleted
+        dels.push(shortAKey);
+        aI++;
+
+      }
+    }
+
+    // We only add the change types to delta if they contains changes
+    if (dels[0]) delta.d = dels;
+    if (keys(adds)[0]) delta.a = adds;
+    if (keys(mods)[0]) delta.m = mods;
+    // if (keys(recurses)[0]) delta.r = recurses;
+    
+    return delta;
+
+  };
+
+return H; }(HANNIBAL));
+/*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
+/*globals  HANNIBAL, Uint8Array, uneval, logObject */
 
 /*--------------- M A P S -----------------------------------------------------
 
-  Deals with map aspects in coordinates, grids + 
-  cosmetic rewite offindGoodPosition, createObstructionsmap from Aegis
+  Deals with map aspects in coordinates, contains all grids and fields
 
 
   tested with 0 A.D. Alpha 17 Quercus
@@ -12336,6 +13126,36 @@ return H; }(HANNIBAL));
 
 */
 
+/* 
+  naming conventions:
+    positions: array of floats [x, z] in map dmension (m)
+    coords:    array of ints [x, z] in grid dimension (m/grid.cellsize)
+    grids:     one dimensional int arrays having width === height
+    fields:    one dimensional float arrays having width === height
+    size:      width or height of grids
+    cell:      area covered in map by grid index
+    index:     pointer into grid, index = x + y * size
+    length:    width * height
+    id:        a single entity id, int
+    ids:       array of entity ids e.g. [45, 46, ...]
+    distance:  float, scalar in map positions
+
+*/ 
+
+/* 
+  grids: 
+    terrain:         water, land, shore, etc, static
+    regionswater:    connected water cells, static
+    regionsland:     connected land cells, static
+    obstructions:    where buildings can be placed, dynamic
+    obstacles:       where units can move, dynamic
+    claims:          reserved space in villages, dynamic
+    attacks:         where attacks happened, w/ radius, dynamic
+    scanner:         used by scouts to mark explored area
+
+*/
+
+// http://www.nayuki.io/res/smallest-enclosing-circle/smallestenclosingcircle.js
 // http://stackoverflow.com/questions/4826453/get-two-lower-bytes-from-int-variable
 
 // sharedScript.passabilityClasses
@@ -12360,9 +13180,16 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-  var 
+  const 
+
     TERRITORY_PLAYER_MASK = 0x3F, // 63
-    prit = H.prettify,
+
+    sin = Math.sin,
+    cos = Math.cos,
+    sqrt = Math.sqrt,
+    PI2  = Math.PI * 2,
+    PIH  = Math.PI / 2,
+
     pritShort = function (a){
       return (
         !Array.isArray(a) ? a :
@@ -12377,8 +13204,8 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:    "map",
       context: context,
+
       imports: [
         "id",
         "width",
@@ -12387,6 +13214,8 @@ HANNIBAL = (function(H){
         "effector",
         "events",
         "entities",           
+        "templates",           
+        "villages",           
         "players",            // isEnemy
       ],
 
@@ -12398,7 +13227,7 @@ HANNIBAL = (function(H){
         "obstacles",          // where units can move, dynamic
         "claims",             // reserved space in villages, dynamic
         "attacks",            // where attacks happened, w/ radius, dynamic
-        "scanner",            // used by scouts
+        "scanner",            // used by scouts to mark explored area
       ],
 
       length:        0,
@@ -12410,11 +13239,12 @@ HANNIBAL = (function(H){
   };
 
 
-  H.LIB.Map.prototype = {
+  H.LIB.Map.prototype = H.mixin(
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Map,
     log: function(){
-      deb();
-      deb("   MAP: width: %s, height: %s, cellsize: %s, grid: %s, length: %s", 
+      this.deb();
+      this.deb("   MAP: width: %s, height: %s, cellsize: %s, grid: %s, length: %s", 
         this.width, 
         this.height, 
         this.cellsize, 
@@ -12425,14 +13255,6 @@ HANNIBAL = (function(H){
 
       this.effector.dumparray("passability", this.passability.data, this.gridsize, this.gridsize, 255);    
       this.effector.dumparray("territory",   this.territory.data,   this.gridsize, this.gridsize, 255);    
-
-    },
-    clone: function(context){
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
     },
     serialize: function(){
       var data = {};
@@ -12451,12 +13273,10 @@ HANNIBAL = (function(H){
           }
         });
       }
-
       this.territory   = this.context.territory;
       this.passability = this.context.passability;
       this.length      = this.passability.data.length;
       this.gridsize    = this.passability.width; // only squares here
-
     },
     initialize: function(){
 
@@ -12480,6 +13300,22 @@ HANNIBAL = (function(H){
       return this;
 
     },
+    finalize: function(){
+
+      var coords, field, test;
+
+      coords = this.mapPosToGridCoords(this.entities[this.villages.main].position());
+
+      this.deb("   MAP: finalize: terrain coords: %s, size: %s, length: %s", coords, this.terrain.size, this.terrain.length);
+      this.deb("   MAP: finalize: land    coords: %s, size: %s, length: %s", coords, this.regionsland.size, this.regionsland.length);
+
+      [field, test] = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
+      // this.flowfield = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
+
+      this.effector.dumparray("flowfield", field, this.gridsize, this.gridsize, 255);
+      this.effector.dumparray("test", test, this.gridsize, this.gridsize, 255);
+
+    },
     activate: function(){
 
       this.events.on("Attack", msg => {
@@ -12496,120 +13332,202 @@ HANNIBAL = (function(H){
 
       return Date.now() - t0;
 
-    },    
-    mapPosToGridPos: function(p){
-      return [~~(p[0] / this.cellsize), ~~(p[1] / this.cellsize)];
-    },
-    mapPosToIndex: function(p){
-      var [x, y] = this.mapPosToGridPos(p);
-      return x + y * this.gridsize;
-    },
-    distanceTo: function(ids, pos){
-      // deb("   MAP: distanceTo: args: %s", uneval(arguments));
-      var center = this.getCenter(ids);
-      return this.distance(center, pos);
-    },
-    distance: function(a, b){
+
+    /*#########################################################################
+    
+      simple map infos, calculations and converters
+
+    */
+
+    }, center: function(){
+
+      return [this.width/2, this.height/2];
+
+    }, mapPosToGridCoords: function(pos, grid){
+
+      var cellsize = grid ? grid.cellsize : this.cellsize;
+      return [~~(pos[0] / cellsize), ~~(pos[1] / cellsize)];
+
+    }, mapPosToGridIndex: function(pos, grid){
+
+      var 
+        size = grid && grid.size ? grid.size : this.gridsize,
+        [x, y] = this.mapPosToGridCoords(pos);
+      
+      return x + y * size;
+
+    }, distance: function(a, b){
+
+      // distance between 2 positions
+
       if (!a.length || !b.length || a.length !== 2 || b.length !== 2){
         H.throw("ERROR : map.distance wrong args: ", uneval(arguments));
       }
+
       var dx = a[0] - b[0], dz = a[1] - b[1];
       return Math.sqrt(dx * dx + dz * dz);
-    },
-    isOwnTerritory: function(p){
-      var 
-        index  = this.mapPosToIndex(p),
-        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
 
-      // deb("isOwnTerritory: %s", index);
+    }, distanceTo: function(ids, pos){
 
-      return player === this.context.id;
-    },
-    isEnemyTerritory: function(pos){
-      var 
-        index  = this.mapPosToGridIndex(pos),
-        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
-      return this.players.isEnemy[player];
-    },
-    nearest: function(point, ids){
+      // distance of n entities to position
 
-      deb("   MAP: nearest: %s", uneval(arguments));
+      var center = this.getCenterPos(ids);
+      return this.distance(center, pos);
 
-      var distance = 1e10, dis, result = 0, pos = 0.0;
+    }, nearestId: function(point, ids){
 
-      ids.forEach(id => {
-        pos = this.entities[id].position();
-        dis = this.distance(point, pos);
-        if ( dis < distance){
-          distance = dis; result = id;
-        } 
-      });
-      return result;
+      // return closest id 
 
-    },
-    getSpread: function(ids){
+        var dis = 0.0, mindis = 1e10, result = NaN, pos = 0.0;
+
+        ids.forEach(id => {
+          pos = this.entities[id].position();
+          dis = this.distance(point, pos);
+          if ( dis < mindis ){
+            mindis = dis; 
+            result = id;
+          } 
+        });
+
+        return result;
+
+    }, getSpread: function(ids){
+
+      // longest side of enclosing axis parallel rectangle 
+
       var 
         poss = ids.map(id => this.entities[id].position()),
         xs = poss.map(pos => pos[0]),
         zs = poss.map(pos => pos[1]),
-        minx = Math.max.apply(Math, xs),
-        minz = Math.max.apply(Math, zs),
+        minx = Math.min.apply(Math, xs),
+        minz = Math.min.apply(Math, zs),
         maxx = Math.max.apply(Math, xs),
-        maxz = Math.max.apply(Math, zs),
-        disx = maxx - minx,
-        disz = maxz - minz;
-      return Math.max(disx, disz);
-    },
-    centerOf: function(poss){
-      // deb("   MAP: centerOf.in %s", pritShort(poss));
+        maxz = Math.max.apply(Math, zs);
+
+      return Math.max(maxx - minx, maxz - minz);
+
+
+    }, centerOf: function(poss){
+
+      // center position of positions
+
       var out = [0, 0], len = poss.length;
-      poss.forEach(function(pos){
-        if (pos.length){
-          out[0] += pos[0];
-          out[1] += pos[1];
-        } else { 
-          len -= 1;
-        }
+
+      poss.forEach( pos => {
+        out[0] += pos[0];
+        out[1] += pos[1];
       });
+
       return [out[0] / len, out[1] / len];
-    },
-    getCenter: function(ids){
 
-      // deb("   MAP: getCenter: %s", H.prettify(ids));
+    }, getCenter: function(ids){
 
-      if (!ids || ids.length === 0){
-        H.throw(H.format("Map.getCenter with unusable param: '%s'", uneval(ids)));
-      }
+      // center position of entities
 
-      return this.centerOf( 
-        ids
-          .filter(id => !!this.entities[id])
+      return this.centerOf ( 
+        ids.filter(id => !!this.entities[id])
           .map(id => this.entities[id].position())
       );
 
-    },
-    updateGrid: function(name){
+
+    /*#########################################################################
+
+      simple infos about positions or index
+
+    */
+
+    }, isOwnTerritory: function(pos){
+
+      this.deb("   MAP: isOwnTerritory %s", uneval(arguments));
+
+      var 
+        index  = this.mapPosToGridIndex(pos, this.territory),
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
+
+      return player === this.context.id;
+
+    }, isInOwnTerritory: function(id){
+
+      var 
+        pos    = this.entities[id]._entity.position,
+        index  = this.mapPosToGridIndex(pos, this.territory),
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK,
+        result = player === this.context.id;
+
+      // this.deb("   MAP: isInOwnTerritory %s => %s, player: %s", uneval(arguments), result, player);
+
+      return result;
+
+    }, isEnemyTerritory: function(pos){
+
+      var 
+        index  = this.mapPosToGridIndex(pos, this.territory),
+        player = this.territory.data[index] & TERRITORY_PLAYER_MASK;
+
+      return this.players.isEnemy[player];
+
+
+    /*#########################################################################
+
+      advanced computations on grids
+
+    */
+
+
+    }, fillCircle: function(grid, pos, radius, value){
+
+      // fills a circle into grid with value
+      
+      var 
+        z = 0|0, x = 0|0, idx = 0|0, 
+        r = radius/grid.cellsize, rr = r * r,
+        len = grid.length|0,
+        size = grid.size|0,
+        [cx, cz] = pos;
+
+      // hints
+      cx=cx|0; cz=cz|0; r=r|0; value=value|0; rr=rr|0;
+
+      for(z =-r; z<=r; z++){
+        for(x=-r; x<=r; x++){
+
+          if(x * x + z * z <= rr){
+
+            idx = (cx + x) + size * (cz + z);
+            
+            if (idx >= 0 && idx < len){
+              grid[idx] = value;
+            }
+
+          }
+
+        }
+      }
+
+
+    }, updateGrid: function(name){
+
+      // intializes terrain, regionsland, regionswater
 
       var 
         t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
         terr, regl, regw, mask, counter = 0;
 
+      if (name === "terrain"){
 
       // translates into internal terrain (land, water, forbidden, steep, error)
-
-      if (name === "terrain"){
 
         src = this.passability.data;
         tgt = this.terrain.data;
 
         while(i--){s = src[i]; tgt[i] = (
-                                                                  (s & 64)   ?   0 :   //  border      //   0
-                         (s &  8) && !(s & 16)                && !(s & 64)   ?   4 :   //  land        //  32
-            !(s & 4) && !(s &  8)                             && !(s & 64)   ?   8 :   //  shallow     //  64
-             (s & 4) && !(s &  8) && !(s & 16)                && !(s & 64)   ?  16 :   //  mixed       //  92
-                                      (s & 16)  && !(s & 32)  && !(s & 64)   ?  32 :   //  deep water  // 128
-             (s & 4) &&               (s & 16)  &&  (s & 32)  && !(s & 64)   ?  64 :   //  steep land  // 192
-               255                                                                     //  error       // 255
+                                                                  (s & 64)   ?   0 :   //     0, border
+                         (s &  8) && !(s & 16)                && !(s & 64)   ?   4 :   //    32, land
+            !(s & 4) && !(s &  8)                             && !(s & 64)   ?   8 :   //    64, shallow
+             (s & 4) && !(s &  8) && !(s & 16)                && !(s & 64)   ?  16 :   //    92, mixed
+                                      (s & 16)  && !(s & 32)  && !(s & 64)   ?  32 :   //   128, deep water
+             (s & 4) &&               (s & 16)  &&  (s & 32)  && !(s & 64)   ?  64 :   //   192, steep land
+               255                                                                     //   255, error
           );
         }
         t1 = Date.now();
@@ -12617,9 +13535,9 @@ HANNIBAL = (function(H){
         // deb("   MAP: updated: terrain, ms: %s", t1 - t0);
 
 
-      // detects unconnected land regions
-
       } else if (name === "regionsland") {
+
+        // detects unconnected land regions
 
         mask = 16 + 8 + 4;
         terr = this.terrain.data;
@@ -12657,17 +13575,21 @@ HANNIBAL = (function(H){
 
       } else {
         // deb("   MAP: initGrid: unknown grid: %s", name);
+        
       }
 
-    },
-    fillRegion: function(src, tgt, mask, index, region){
+    }, fillRegion: function(src, tgt, mask, index, region){
+
+      // flood fills tgt starting at index with region based on src and mask
+      // used by land water regions grids
+      // avoids push/pop, bc slow
 
       var 
         width = this.gridsize,
         i, idx, nextX, nextY,
         y = ~~(index / width) | 0,
         x = index % width | 0,
-        stack = [x, y], pointer = 2, // push/pop is too slow
+        stack = [x, y], pointer = 2, 
         dx = [ 0, -1, +1,  0], 
         dy = [-1,  0,  0, +1]; 
 
@@ -12695,8 +13617,25 @@ HANNIBAL = (function(H){
 
       }
 
-    },   
-    createTerritoryMap: function() {
+
+    }, scan: function(pos, radius){
+
+      // scans the map for treasure and mines
+      // reports findings to context.resources
+      // marks covered cells in scanner grid based on radius and position
+      // returns up to 4 new positions to scan, aligned to villages.theta
+
+      this.resources.markFound(pos, radius);
+
+
+
+    /*#########################################################################
+
+      TODO: rewrite
+
+    */
+
+    }, createTerritoryMap: function() {
       var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
       map.getOwner      = function(p) {return this.point(p) & TERRITORY_PLAYER_MASK;};
       map.getOwnerIndex = function(p) {return this.map[p]   & TERRITORY_PLAYER_MASK;};
@@ -12706,7 +13645,8 @@ HANNIBAL = (function(H){
     createObstructionMap: function(accessIndex, template){
 
       var 
-        gs = H.Bot.gameState, PID = H.Bot.id, 
+        // gs = H.Bot.gameState, PID = H.Bot.id, 
+        gs = this.context.gamestate, PID = this.id, 
         tilePlayer, 
         x, y, z, pos, i, okay = false,
         ix1, ix2, ix3, ix4,
@@ -12839,23 +13779,29 @@ HANNIBAL = (function(H){
     findGoodPosition: function(tpl, position, angle) {
 
       var x, z, j, len, value, bestIdx, bestVal, bestTile, secondBest, 
-          gs       = H.Bot.gameState,
-          cellSize = gs.cellSize,
+          // gs       = H.Bot.gameState,
+          gs       = this.context.gamestate,
+          // cellSize = gs.cellSize,
+          cellSize = this.cellsize,
           template = gs.getTemplate(tpl),
-          obstructionMap   = H.Map.createObstructionMap(0, template),
-          friendlyTiles    = new H.API.Map(gs.sharedScript),
+          // template = this.templates[tpl],
+          // obstructionMap   = H.Map.createObstructionMap(0, template),
+          obstructionMap   = this.createObstructionMap(0, template),
+          // friendlyTiles    = new H.API.Map(gs.sharedScript),
+          friendlyTiles    = new H.API.Map(this.context.sharedscript),
           alreadyHasHouses = false,
-          radius = 0;
+          radius = 0,
+          result;
       
       angle  = angle === undefined ? H.Config.angle : angle;
 
-      // deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
+      // this.deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
       
-      //obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
+      // obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
 
       if (template.buildCategory() !== "Dock"){obstructionMap.expandInfluences();}
 
-      //obstructionMap.dumpIm(template.buildCategory() + "_obstructions.png");
+      // obstructionMap.dumpIm(template.buildCategory() + "_obstructions.png");
 
       // Compute each tile's closeness to friendly structures:
 
@@ -12907,7 +13853,7 @@ HANNIBAL = (function(H){
             friendlyTiles.addInfluence(x, z, 20, -20);
 
           } else {
-            deb("WARNING: no influence for: %s", tpl);
+            this.deb("WARNING: no influence for: %s", tpl);
           }
 
         });
@@ -12928,7 +13874,7 @@ HANNIBAL = (function(H){
       }
       
 
-      //friendlyTiles.dumpIm(template.buildCategory() + "_" +gameState.getTimeElapsed() + ".png", 200);
+      // friendlyTiles.dumpIm(template.buildCategory() + "_" + gs.getTimeElapsed() + ".png", 200);
       
       // Find target building's approximate obstruction radius, and expand by a bit to make sure we're not too close, this
       // allows room for units to walk between buildings.
@@ -12941,6 +13887,8 @@ HANNIBAL = (function(H){
         template.resourceDropsiteTypes() === undefined ? ~~(template.obstructionRadius() / cellSize) + 2 :
         Math.ceil(template.obstructionRadius() / cellSize)
       );
+
+      // this.deb("   MAP: findGoodPosition radius %s", radius);
       
       // further contract cause walls
       // Note: I'm currently destroying them so that doesn't matter.
@@ -12962,10 +13910,17 @@ HANNIBAL = (function(H){
       }
 
       if (bestVal === -1) {
-        deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
+        this.deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
         return false;
       }
 
+      // this.deb("   MAP: findGoodPosition: tile: %s, idx: %s, val: %s, fwidth: %s, cs: %s", 
+      //   bestTile, 
+      //   bestIdx, 
+      //   bestVal, 
+      //   friendlyTiles.width,
+      //   cellSize
+      // );
       
       //friendlyTiles.setInfluence((bestIdx % friendlyTiles.width), Math.floor(bestIdx / friendlyTiles.width), 1, 200);
       //friendlyTiles.dumpIm(template.buildCategory() + "_" +gameState.getTimeElapsed() + ".png", 200);
@@ -12983,7 +13938,9 @@ HANNIBAL = (function(H){
 
       // deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
 
-      return {
+
+
+      result = {
         "x" : x,
         "z" : z,
         "angle" : angle,
@@ -12991,9 +13948,13 @@ HANNIBAL = (function(H){
         "zz" : secondBest[1]
       };
 
+      // this.deb("   MAP: findGoodPosition: res: %s", uneval(result));
+
+      return result;
+
     }
   
-  };
+  });
 
 
 return H; }(HANNIBAL));
@@ -13143,7 +14104,7 @@ return H; }(HANNIBAL));
 //       player = H.Grids.territory.data[index] & TERRITORY_PLAYER_MASK;
 //   return H.GameState.playerData.isEnemy[player];
 // };/*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- M I L I T A R Y ---------------------------------------------
 
@@ -13163,8 +14124,8 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:    "military",
       context: context,
+
       imports: [
         "events",
       ],
@@ -13173,17 +14134,10 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Military.prototype = {
+  H.LIB.Military.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Military,
-    log: function(){},
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
+    log: function(){this.deb();this.deb("   MIL: all good");},
     deserialize: function(){
       if (this.context.data[this.name]){
         H.extend(this, this.context.data[this.name]);
@@ -13192,12 +14146,9 @@ HANNIBAL = (function(H){
     serialize: function(){
       return {};
     },
-    initialize: function(){
-      return this;
-    },
     activate: function(){
 
-      this.events.on("Attacked", "*", function (msg){
+      this.events.on("EntityAttacked", "*", function (msg){
 
       });
 
@@ -13255,11 +14206,239 @@ HANNIBAL = (function(H){
 
     },
 
-  };
+  });
 
 return H; }(HANNIBAL));  
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval, logObject */
+/*globals HANNIBAL, uneval, logObject */
+
+/*--------------- P A T H -----------------------------------------------------
+
+  A list of coordinates [ [x, z], [x, z], ... ]
+
+  tested with 0 A.D. Alpha 17 Quercus
+  V: 0.1, agentx, CGN, Nov, 2014
+
+*/
+
+HANNIBAL = (function(H){
+
+  const 
+    PI2 = Math.PI * 2,
+    PIH = Math.PI / 2,
+    RADDEG = Math.PI / 180,
+    DEGRAD = 1 / RADDEG,
+    sin = Math.sin,
+    cos = Math.cos;
+
+    // x: Math.cos(angle) * (pointX-originX) - Math.sin(angle) * (pointY-originY) + originX,
+    // y: Math.sin(angle) * (pointX-originX) + Math.cos(angle) * (pointY-originY) + originY
+
+  function loop (n, fn){for (var i=0; i<n; i++){fn(i);}}
+  function rotatedPoint(pnt, org, sin, cos){
+    return [
+      cos * (pnt[0] - org[0]) - sin * (pnt[1] - org[1]) + pnt[0],
+      sin * (pnt[0] - org[0]) + cos * (pnt[1] - org[1]) + pnt[1]
+    ];
+  }
+
+  H.LIB.Path = function(context, definition){
+
+    // quick serializer init
+    this.klass = "path";
+    this.context = context;
+    this.imports = ["map", "villages"];
+    this.import();
+
+    this.deb("  PATH: new def: %s", definition);
+
+    this.theta = this.villages.theta;
+    this.path = [];
+
+    if (typeof definition === "string"){
+      this.modify(definition);
+    } else if (Array.isArray(definition)){
+      this.path = definition;
+    } else {
+      H.throw("PATH: can't handle this: %s", definition);
+    }
+
+
+  };
+
+  H.LIB.Path.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
+    constructor: H.LIB.Path,
+    log: function(msg){
+      var p = this.path.map(c => c.map(Math.round));
+      this.deb("  PATH: %s, %s, %s", msg, this.path.length, p);
+    },
+    append: function(path){
+      this.path.concat(path);
+    },
+
+    // helper
+
+    sanitize: function(definition){
+      return (
+        definition
+          .split("{").join("")
+          .split("}").join("")
+          .split(",").join("")
+          .split("[").join("")
+          .split("]").join("")
+          .split(";")
+          .filter(s => !!s)
+          .map(String.trim)
+      );
+    }, 
+
+    getCenter : function(){
+      var p = this.path;
+      // this.deb("  PATH: getCenter: have %s", uneval(this.path));
+      return p.reduce( (a, b) => [ a[0] + b[0], a[1] + b[1] ], [0, 0] ).map( n => n / p.length);
+    },
+
+    // methods availabale by path script
+
+    modify: function(definition){
+
+      // parse path script e.g. "8; center 7 8; circle 9; translate 13 14"
+
+      var 
+        list, car, cdr, num,
+        cmds = this.sanitize(definition);
+
+      this.log("modify.in");
+
+      cmds.forEach(cmd => {
+
+        list = cmd.split(" ");
+        car  = list[0];
+        num  = ~~list[0];
+        cdr  = list.slice(1);
+
+        // this.deb("  PATH: car: %s, cdr: %s", uneval(car), uneval(cdr));
+        
+        // check for integer > 0
+        if (H.isInteger(num) && num > 0){
+          loop(num, n => {
+            this.path[n] = [0, 0];
+          });
+
+        // check for method
+        } else if (this[car]){
+          this[car].apply(this, cdr.map(parseFloat));
+
+        // bail out
+        } else {
+          H.throw("Can't handle '%s' from this path script: %s", car, definition);
+
+        }
+
+      });
+
+      this.log("modify.out");
+
+      return this;
+
+    },
+    circle: function(radius){
+
+      var 
+        p = this.path,
+        n = p.length,
+        s = PI2 / n,
+        org  = this.getCenter();
+
+      loop(p.length, n => {
+        p[n] = [ 
+          org[0] + cos(n * s) * radius,
+          org[1] + sin(n * s) * radius
+        ];
+      });
+
+    },
+    translate: function(x, z){
+
+      // displaces all point by x, z 
+
+      var p = this.path;
+
+      this.log("translate.in");
+
+      loop(p.length, n => {
+        p[n] = [ p[n][0] + x, p[n][1] + z ];
+      });
+
+      this.log("translate.out");
+
+    },
+    translatep: function(angle, radius){
+
+      var
+        p    = this.path,
+        rads = angle * RADDEG + this.theta,
+        sinr = sin(rads),
+        cosr = cos(rads);
+
+      // displaces all point in polar system
+
+      this.log("translatep.in");
+
+      loop(p.length, n => {
+        p[n] = [ 
+          p[n][0] + radius * cosr, 
+          p[n][1] + radius * sinr 
+        ];
+      });
+
+      this.log("translatep.out");
+
+    },
+    rotate: function(angle){
+
+      // rotates path counter clockwise around its center by angle (degrees)
+
+      var 
+        p    = this.path,
+        org  = this.getCenter(),
+        rads = angle * RADDEG,
+        sinr = sin(rads),
+        cosr = cos(rads);
+
+      loop(p.length, n => {
+        p[n] = [
+          cosr * (p[n][0] - org[0]) - sinr * (p[n][1] - org[1]) + p[n][0],
+          sinr * (p[n][0] - org[0]) + cosr * (p[n][1] - org[1]) + p[n][1]
+        ];
+      });
+
+    },
+    linspace: function(pt1, pt2){
+
+      // puts coords evenly distributed on a straight line between pt1, pt2, 
+      // including both
+
+      var 
+        p = this.path,
+        sx = (pt2[0] - pt1[0]) / p.length,
+        sz = (pt2[1] - pt1[1]) / p.length;
+
+      loop(p.length, n => {
+        p[n] = [
+          pt1[0] + n * sx, 
+          pt1[1] + n * sz
+        ];
+      });
+
+    },
+
+  });
+
+return H; }(HANNIBAL));
+/*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
+/*globals HANNIBAL, uneval, logObject */
 
 /*--------------- R E S O U R C E S  ------------------------------------------
 
@@ -13291,7 +14470,7 @@ HANNIBAL = (function(H){
   */
 
 
-  function Resource(data){
+  function Resource(pid, data){
 
     //TODO remove API access, owner, template.Identity, resourceSupplyMax
 
@@ -13305,13 +14484,15 @@ HANNIBAL = (function(H){
       logObject(this);
     }
 
+    this.deb = H.deb.bind(null, pid);
+
   }
 
   Resource.prototype = {
     constructor: Resource,
     log: function(){
       var t = this;
-      deb("   RES: %s, %s, type: %s/%s, pos: %s, owner: %s, found: %s",
+      this.deb("   RES: %s, %s, type: %s/%s, pos: %s, owner: %s, found: %s",
         t.id, t.supply, t.generic, t.specific, t.position.map(c => ~~c), t.owner, t.found
       );
     },
@@ -13341,13 +14522,14 @@ HANNIBAL = (function(H){
           resources: [this.id],   // make asset gatherable
           isPrey:    this.config.data.prey.indexOf(specficname) !== -1,
           maxSupply: ent.resourceSupplyMax(),
-          found:     this.found ? true : this.map.isOwnTerritory(ent.position()) ? true : false,
+          // found:     this.found ? true : this.map.isOwnTerritory(ent.position()) ? true : false,
+          found:     this.found ? true : this.map.isInOwnTerritory(this.id) ? true : false,
           supply:    ent.resourceSupplyAmount(),
         });
 
       } else {
         this.consumed = true;
-        deb("   RES: res with id: '%s' was consumed, no entity", this.id);
+        this.deb("   RES: res with id: '%s' was consumed, no entity", this.id);
 
       }
 
@@ -13363,11 +14545,12 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:  "resources",
       context:  context,
+
       imports:  [
         "map",
         "config",
+        "groups",
         "entities",
       ],
 
@@ -13404,7 +14587,8 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Resources.prototype = {
+  H.LIB.Resources.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Resources,
     log: function(){
       var 
@@ -13414,27 +14598,18 @@ HANNIBAL = (function(H){
         tabs   = [   6,     6,    8,    8,    6,    8];  
 
       // header
-      H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-      deb();
-      deb("RESRCS:                " + msg);
+      H.zip(head, tabs, (h, t) => msg += tab(h, t));
+      this.deb();
+      this.deb("  RESS:                " + msg);
 
       // lines
-      this.eachStats(function(generic, specific, stats){
+      this.eachStats( (generic, specific, stats) => {
         msg = "";
-        H.zip(props, tabs, function(p, t){
-          msg += tab(stats[p], t);
-        });    
+        H.zip(props, tabs, (p, t) => msg += tab(stats[p], t));    
         type = H.tab(generic + "." + specific, 13);
-        deb("     R: %s: %s", type, msg);
+        this.deb("     R: %s: %s", type, msg);
       });
 
-    },
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function(context){
-      return new H.LIB[H.noun(this.name)](context);
     },
     serialize: function(){
       var data = {};
@@ -13450,7 +14625,7 @@ HANNIBAL = (function(H){
       if (this.context.data[this.name]){
         this.resources = this.context.data[this.name];
         this.eachAll((generic, specific, stats, id, res) => {
-          this.resources[generic][specific][id] = new Resource(H.mixin(res, {
+          this.resources[generic][specific][id] = new Resource(this.context.id, H.mixin(res, {
             map:      this.map,
             config:   this.config,
             context:  this.context,
@@ -13477,7 +14652,7 @@ HANNIBAL = (function(H){
             //TODO: whales
             if (this.resources[type.generic][type.specific]){
               counter += 1;
-              res = this.resources[type.generic][type.specific][ent.id()] = new Resource({
+              res = this.resources[type.generic][type.specific][ent.id()] = new Resource(this.context.id, {
                 id:       ~~id, 
                 map:      this.map,
                 config:   this.config,
@@ -13488,7 +14663,7 @@ HANNIBAL = (function(H){
               }).initialize();
 
             } else {
-              deb("ERROR : unknown resource type %s %s %s", type.generic, type.specific, ent._templateName);
+              this.deb("ERROR : unknown resource type %s %s %s", type.generic, type.specific, ent._templateName);
             }
 
           }
@@ -13516,6 +14691,28 @@ HANNIBAL = (function(H){
 
     },
     activate: function(){},
+    find: function(order){
+
+      // return array of resource ids, sorted
+      // ,amount,cc,location,verb,hcq,source,shared,id,processing,remaining,product,x,z,nodes
+
+      var 
+        asset  = this.groups.findAsset(asset => asset.id === order.source),
+        result = this.nearest(order.location, order.hcq)
+          .slice(0, order.amount)
+          .map(res => res.id);
+
+      this.deb("  RESS: find: %s, res: %s, loc: %s, from: %s || result: %s", 
+        order.amount, 
+        order.hcq, 
+        order.location, 
+        asset,
+        result
+      );
+
+      return result;
+
+    },
     availability: function( /* arguments */ ){
 
         var 
@@ -13563,7 +14760,7 @@ HANNIBAL = (function(H){
         });
 
       } else {
-        deb("ERROR : res.each: type: '%s' unknown", type);
+        this.deb("ERROR : res.each: type: '%s' unknown", type);
 
       }
 
@@ -13599,24 +14796,22 @@ HANNIBAL = (function(H){
         }
       });
     },
-    markFound: function(pos, range){ //TODO
+    markFound: function(pos, radius){ //TODO: slow
       this.eachAll( (generic, specific, stats, id, res) => {
-        if (this.map.distance(pos, res.position) < range){
+        if (this.map.distance(pos, res.position) < radius){
           res.found = true;
         }            
       });
     },
-    nearest: function(loc, type){
+    nearest: function(pos, type){
 
-      var 
-        t0, t1, resource, distance, kmeans, trees, cid,
-        resFound = null, 
-        dis = 1e7, 
-        pos = Array.isArray(loc) ? loc : loc.location();
+      var t0 = Date.now(), t1, resources = [], kmeans, trees, cid;
 
       // deb("   RES: looking for nearest '%s' at %s", generic, pos);
 
       switch (type){
+
+        // first without clustering
         case "stone":
         case "stone.ruin":
         case "stone.rock":
@@ -13628,36 +14823,30 @@ HANNIBAL = (function(H){
         case "treasure.metal":
         case "treasure.stone":
         case "food.fruit":
-        case "food.grain": // untested
+        case "food.grain": // done by harvester
         case "food.whale": // untested
         case "food.fish":  // untested
           this.eachType(type, (generic, specific, id, res) => {
             if (this.entities[id]){
               if (res.found && !res.consumed){
-                distance = this.map.distance(pos, res.position);
-                if (distance < dis){resFound = res; dis = distance;}
+                resources.push(res);
               }
-            } else {
-              res.consumed = true;
-            }
+            } else { res.consumed = true; }
           });
-          resource = resFound;
         break;
 
-        case "food.meat": // has prey check
+        // same with prey check
+        case "food.meat": 
           this.each(this.resources.food, (id, res) => {
             if (this.entities[id]){
               if (res.found && !res.consumed && res.isPrey){
-                distance = this.map.distance(pos, res.position);
-                if (distance < dis){resFound = res; dis = distance;}
+                resources.push(res);
               }
-            } else {
-              res.consumed = true;
-            }
+            } else { res.consumed = true; }
           });
-          resource = resFound;
         break;
 
+        // trees come in clusters
         case "wood":
         case "wood.ruins":
         case "wood.tree":
@@ -13669,64 +14858,73 @@ HANNIBAL = (function(H){
               if (res.found && !res.consumed){
                 trees.push({x: res.position[0], z: res.position[1], id: id, res: res});
               }
-            } else {
-              res.consumed = true;
-            }
+            } else { res.consumed = true; }
           });
           
-          if (!trees.length){
-            deb("   RES: kmeans: 0 trees");
-          
-          } else {
+          if (trees.length){
 
-            t0 = Date.now();
             kmeans = new H.AI.KMeans();
             kmeans.k = 3; // map size !!!!
             kmeans.maxIterations = 50;
             kmeans.setPoints(trees);
             kmeans.initCentroids();
             kmeans.cluster();
+
+            // get nearest cluster
+            cid = kmeans.centroids
+              .filter(c => c.items > 0)
+              .sort((a, b) => {
+                var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
+                    db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
+                return da - db;
+            })[0];
+
+            // 
+            resources = kmeans.centroids[cid].map(item => item.res);
+            
             t1 = Date.now();
 
-            // nearest cluster TODO: filter out centroids without trees
-            cid = kmeans.centroids.sort(function(a, b){
-              var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
-                  db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
-              return da - db;
-            })[0];
-            
-            // nearest tree from that cluster TODO: nearest to tree from org loc of this cluster
-            trees.sort(function(a, b){
-              var da = (a.x - cid.x) * (a.x - cid.x) + (a.z - cid.z) * (a.z - cid.z),
-                  db = (b.x - cid.x) * (b.x - cid.x) + (b.z - cid.z) * (b.z - cid.z);
-              return da - db;
-            });
-            
-            deb("   RES: kmeans: %s trees, %s cluster, chose cluster with %s trees, %s msecs", 
+            // deb(H.attribs(trees[0].res));
+
+            this.deb("   RES: kmeans: %s trees, %s cluster, chose cluster with %s trees, %s msecs", 
               trees.length, 
               kmeans.centroids.length, 
               kmeans.centroids[0].items,
               t1-t0
             );
 
-          }
+          } else {
+            this.deb("   RES: kmeans: 0 trees");
+            resources = trees;
 
-          resource = trees.length ? trees[0].res : null;
+          }
 
         break;
 
         default: 
-          deb("ERROR : unknown resource type: %s in nearest", type);
+          this.deb("ERROR : RESS unknown resource type: %s in nearest", type);
 
       }
 
-      deb("   RES: nearest '%s': %s at %s", type, resource, H.fixed1(pos));
-      // deb("   RES: attribs: %s", H.attribs(resource));
-      return resource;
+      // sort by distance to pos, nearest first
+      resources.sort(function(a, b){
+        var 
+          dax = a.position[0] - pos[0],
+          day = a.position[1] - pos[1],
+          dbx = b.position[0] - pos[0],
+          dby = b.position[1] - pos[1],
+          da = dax * dax + day * day,
+          db = dbx * dbx + dby * dby;
+        return da < db ? 1 : -1;
+      });
+
+      this.deb("  RESS: nearest '%s': %s for %s", type, resources.length, H.fixed1(pos));
+
+      return resources;
 
     },      
   
-  };
+  });
 
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
@@ -13767,17 +14965,14 @@ return H; }(HANNIBAL));
 
 HANNIBAL = (function(H){
 
-
   // all instanciated scanner share the same map grid of visited region
-
-  var grid = null;
 
   H.LIB.Scanner = function(context){
 
     H.extend(this, {
 
-      name:  "scanner",
       context:  context,
+
       imports:  [
         "width",
         "height",
@@ -13792,28 +14987,22 @@ HANNIBAL = (function(H){
         attacks: null,
       },
 
+      grid: null,
+
     });
 
   };
 
-  H.LIB.Scanner.prototype = {
+  H.LIB.Scanner.prototype = H.mixin ( 
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Scanner,
     log: function(){},
-    import: function(){
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-    },
-    clone: function(context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
-    serialize: function(){
-      return {};
-    },
     initialize: function(){
       this.grids.scanner = this.map.scanner;
       this.grids.attacks = this.map.attacks;
+      return this;
     },
-    dump: function (name){grid.dump(name || "scouting", 255);},
+    dump: function (name, grid){grid.dump(name || "scouting", 255);},
     createDetector: function (position, vision){
 
       // Object Factory
@@ -13840,7 +15029,7 @@ HANNIBAL = (function(H){
         },
         isInvalid   = pos => {
           var [x, y] = [~~(pos[0]/cellsize), ~~(pos[1]/cellsize)];
-          return x < 0 || y < 0 || x >= grid.width || y >= grid.height;
+          return x < 0 || y < 0 || x >= this.grid.width || y >= this.grid.height;
         },
         isHostile = index => {
           return dataAttk[index] > 0;
@@ -13866,7 +15055,6 @@ HANNIBAL = (function(H){
         };
 
 
-      deb(" SCOUT: Scanner: pos: %s, rng: %s, ent: %s", posStart, rng, ent._templateName);
 
 
       queueNow.push(posStart);
@@ -13880,6 +15068,8 @@ HANNIBAL = (function(H){
             test = H.Resources.nearest(pos, "treasure"),
             treasures = test ? [test] : [];
 
+
+          // TODO ask resources explicetly for treausre
           this.resources.markFound(pos, rng);
 
           // // make resources in range visible, check for treasure
@@ -13985,12 +15175,9 @@ HANNIBAL = (function(H){
       };
 
     }
-  };
+  });
 
-
-
-
-
+return H; }(HANNIBAL));
 
 
   // H.Scout = (function(){
@@ -14279,8 +15466,6 @@ HANNIBAL = (function(H){
 
 
   // }()).boot();
-
-return H; }(HANNIBAL));
 
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, H, deb, uneval */
@@ -14728,7 +15913,7 @@ HANNIBAL = (function(H){
 
 return H; }(HANNIBAL));     
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, logObject */
+/*globals HANNIBAL */
 
 /*--------------- S T O R E  --------------------------------------------------
 
@@ -14747,18 +15932,22 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      name:    "store",
       context: context,
+
       imports: [
         "culture"
       ],
 
-      verbs:  null,
-      nodes:  null,
-      edges:  null,
+      verbs:    null,
+      nodes:    null,
+      edges:    null,
+
+      capverbs:    null,
+      keywords:   "DISTINCT, WITH, SORT, LIMIT, RAND".split(", "),
 
       cntNodes:    0,
       cntQueries:  0,
+
       cache:      {},
       cacheHit:    0,
       cacheMiss:   0,
@@ -14768,11 +15957,12 @@ HANNIBAL = (function(H){
 
   };
 
-  H.LIB.Store.prototype = {
+  H.LIB.Store.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Store,
     log: function(){
-      deb();
-      deb(" STORE: %s verbs, %s nodes, %s edges", this.verbs.length, H.count(this.nodes), this.edges.length);
+      this.deb();
+      this.deb(" STORE: %s verbs, %s nodes, %s edges", this.verbs.length, H.count(this.nodes), this.edges.length);
     },
     import: function(){
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -14795,9 +15985,10 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
       if (!this.verbs){
-        this.verbs = this.culture.verbs;
-        this.nodes = {};
-        this.edges = [];
+        this.verbs    = this.culture.verbs;
+        this.capverbs = this.culture.verbs.map(String.toUpperCase);
+        this.nodes    = {};
+        this.edges    = [];
       }
       return this;
     },
@@ -14809,7 +16000,7 @@ HANNIBAL = (function(H){
         this.nodes[node.name] = node;
         this.cntNodes += 1;
       } else {
-        deb("ERROR : node already exists in store: %s, %s ", this.name, node.name);
+        this.deb("WARN  : store.addNode: already exists in store: %s, %s ", this.name, node.name);
       }
     },
     delNode: function(name){  // TODO: speed up
@@ -14820,131 +16011,127 @@ HANNIBAL = (function(H){
         this.cntNodes -= 1;
 
       } else {
-        deb("WARN  : store.delNode: can't delete '%s' unknown", name);
+        this.deb("WARN  : store.delNode: can't delete '%s' unknown", name);
       }
 
     },
     addEdge: function(source, verb, target){
-      if (!source)                      {deb("ERROR : addEdge: source not valid: %s", source);} 
-      else if (!target)                 {deb("ERROR : addEdge: target not valid: %s", target);} 
-      else if (!this.nodes[source.name]){deb("ERROR : addEdge: no source node for %s", source.name);}
-      else if (!this.nodes[target.name]){deb("ERROR : addEdge: no target node for %s", target.name);}
-      else if (this.verbs.indexOf(verb) === -1){deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
+      if (!source)                      {this.deb("ERROR : addEdge: source not valid: %s", source);} 
+      else if (!target)                 {this.deb("ERROR : addEdge: target not valid: %s", target);} 
+      else if (!this.nodes[source.name]){this.deb("ERROR : addEdge: no source node for %s", source.name);}
+      else if (!this.nodes[target.name]){this.deb("ERROR : addEdge: no target node for %s", target.name);}
+      else if (this.verbs.indexOf(verb) === -1){this.deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
       else {
         this.edges.push([source, verb, target]);
       }
     },
 
-  };
+  });
 
-  H.LIB.Query = function(store, query, debug){
+  H.LIB.Query = function(store, query){
 
-    this.debug = debug || 0;
+    H.extend(this, {
 
-    if(this.debug > 0){
-      deb();
-      deb("PARSER: i '%s'", query);
-    }
+      context: store.context,
 
-    this.fromCache = false;
-    this.store = store;
-    this.verbs = store.verbs.map(String.toUpperCase);
-    this.keys  = "DISTINCT, WITH, SORT, LIMIT, RAND".split(", ");
+      // timing
+      t0:         Date.now(),
+      t1:         0,
+
+      results:    null,
+      ops:        NaN,
+
+      fromCache:  false,
+      store:      store,
+      verbs:      store.capverbs,
+      keys:       store.keywords,
+      params:     {deb: 0, max: 10, cmt: "no comment", fmt: ""},
+
+    });
+
     this.query = this.sanitize(query);
     this.tree  = this.parse(this.query);
 
-    if(this.debug > 0){
-      deb("     P: o: %s", JSON.stringify(this.tree));
-      deb();
-    }
+    this.store.cntQueries += 1;
 
   };
 
-  H.LIB.Query.prototype = {
+  H.LIB.Query.prototype = H.mixin (
+    H.LIB.Serializer.prototype, {
     constructor: H.LIB.Query,
+    logNodes: function (){
+      var deb = this.params.deb;
+      if (deb > 0 && this.fromCache){this.deb("     Q: %s recs from cache: %s", this.results.length, this.query);}
+      if (deb > 0){this.deb("     Q: executed: msecs: %s, records: %s, ops: %s", this.t1, this.results.length, this.ops);}
+      if (deb > 1){this.logResult(this.results, this.params.fmt, this.params.max);}
+    },
+    sanitize: function(phrase){
+      phrase = H.replace(phrase, "\n", " ");
+      phrase = H.replace(phrase, "\t", " ");
+      phrase = H.replace(phrase, " ,", ",");
+      return phrase.split(" ").filter(function(s){return !!s;}).join(" ");
+    },
+
+    parameter: function(params){
+      // takes fmt, deb, max, cmt,      
+      H.extend(this.params, params);
+      return this;
+    },
+    count: function(){
+      this.results = this.results || this.execute();
+      return this.results.length;
+    },
+    first: function(){
+      this.results = this.results || this.execute();
+      return this.results.length ? this.results[0] : null;
+    },
+    filter: function(fn, that){
+      this.results = this.results || this.execute();
+      return this.results.filter(fn, that);
+    },
+    forEach: function(fn, that){
+      this.results = this.results || this.execute();
+      this.results.forEach(fn, that);
+      return this.results;
+    },
+    map: function(fn, that){
+      this.results = this.results || this.execute();
+      return this.results.map(fn, that);
+    },
+
     checkCache: function(){
 
-      var result, 
-          useCache = (
-            this.query.indexOf("INGAME") === -1 &&
-            this.query.indexOf("TECHINGAME") === -1 &&
-            !!this.store.cache[this.query]
+      var 
+        results = null, 
+        check = (
+          this.query.indexOf("INGAME") === -1 &&
+          this.query.indexOf("TECHINGAME") === -1 &&
+          !!this.store.cache[this.query]
       );
 
-      if (useCache){
-        result = this.store.cache[this.query].result;
+      if (check){
+        results = this.store.cache[this.query].results;
         this.fromCache = true;
         this.store.cache[this.query].hits += 1;
         this.store.cacheHit += 1;
+
       } else {
-        result = undefined;
         this.store.cacheMiss += 1;
+
       }
 
-      return result;
+      return results;
 
     },
-    parse: function(query){
 
-      var self    = this, 
-          verbs   = this.verbs,
-          keys    = this.keys,
-          clauses = this.partition([query], verbs),
-          subClauses, out = [], error;
-
-      function isVerb(t){return verbs.indexOf(t) !== -1;}
-      function isString(t){return typeof t === "string";}
-
-      clauses.forEach(function(clause){
-
-        if (isString(clause) || clause.length === 1){
-          out.push(clause);
-
-        } else if (isVerb(clause[0])) {
-
-          subClauses = self.partition([clause[1]], keys);
-
-          if (isString(subClauses[0])) {
-            out.push([clause[0]].concat(subClauses.shift()));
-          } else {
-            out.push([clause[0]]);
-          }
-          subClauses.forEach(function(clause){
-            out.push(clause);
-          });
-
-        } else {
-          error = H.format("unknwon clause keyword: %s, ''", clause[0], clause);
-          deb("     P: %s", error);
-
-        }
-
-      });
-
-      return error ? undefined : out;
-
+    isVerb: function (t){return this.verbs.indexOf(t) !== -1;},
+    isKey: function (t){return this.keys.indexOf(t) !== -1;},
+    isString : function (t){return typeof t === "string";},
+    sample: function (a,n){
+      var l=a.length; 
+      return H.range(n||1).map(function(){return a[~~(H.Hannibal.entropy.random()*l)];});
     },
-    count: function(format, debug, debmax, comment){
-      return this.execute(format, debug, debmax, comment).length;
-    },
-    first: function(format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      // return nodes.length ? nodes[0] : undefined;
-      return nodes.length ? nodes[0] : null;
-    },
-    forEach: function(fn, format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      nodes.forEach(fn);
-      return nodes;
-    },
-    filter: function(fn, format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      return nodes.filter(fn);
-    },
-    map: function(fn, format, debug, debmax, comment){
-      var nodes = this.execute(format, debug, debmax, comment);
-      return nodes.map(fn);
-    },
+
     get: function(node, dotlist){
       var p = dotlist.split("."), l = p.length;
       return  (
@@ -14955,98 +16142,115 @@ HANNIBAL = (function(H){
           undefined
       );
     },
-    execute: function(format, debug, debmax, comment){
+    prepResults: function(results){
+      Object.defineProperty(results, "stats", {
+        enumerable:   false,
+        configurable: false,
+        writable:     true,
+        value: {
+          ops:     this.ops,
+          msecs:   this.t1,
+          length:  results.length,
+          cached:  this.fromCache,
+          hits:    this.store.cache[this.query].hits,
+          nodes:   this.store.cntNodes,
+          edges:   this.store.edges.length,
+          verbs:   this.store.verbs.length
+        }
+      });
+      return results;
+    },
 
-      var t1, t0 = Date.now(), 
-          self    = this,
-          tree    = this.tree,
-          verbs   = this.verbs,
-          keys    = this.keys,
-          edges   = this.store.edges, //  = [source, verb, target]
-          nodes   = this.store.nodes, //  = {name:{}}
-          cache   = this.store.cache,
-          results = [],               // returns always an array
-          ops     = 0,
-          cacheDrop = "";
+    parse: function(query){
 
-      function isKey(t)   {return keys.indexOf(t) !== -1;}
-      function isVerb(t)  {return verbs.indexOf(t) !== -1;}
-      function isString(t){return typeof t === "string";}
-      function sample(a,n){var l=a.length; return H.range(n||1).map(function(){return a[~~(H.Hannibal.entropy.random()*l)];});}
-      function parse(v)   { // float or string
-        var f = parseFloat(v); 
-        return (
-          Array.isArray(v) ? v :                  // don't touch arrays
-          isNaN(f)         ? v.slice(1, -1) : f   // return strings without quotes
-        );
-      } 
-      function prepResults(ress){
-        Object.defineProperty(ress, "stats", {
-          enumerable: false,
-          configurable: false,
-          writable: true,
-          value: {
-            ops: ops,
-            msecs: t1,
-            length: results.length,
-            cached: self.fromCache,
-            hits: cache[self.query].hits,
-            nodes: self.store.cntNodes,
-            edges: edges.length,
-            verbs: verbs.length
+      var 
+        subClauses, out = [], error,
+        verbs   = this.verbs,
+        keys    = this.keys,
+        clauses = this.partition([query], verbs),
+        push = item => out.push(item);
+
+      clauses.forEach( clause => {
+
+        if (this.isString(clause) || clause.length === 1){
+
+          push(clause);
+
+        } else if (this.isVerb(clause[0])) {
+
+          subClauses = this.partition([clause[1]], keys);
+
+          if (this.isString(subClauses[0])) {
+            push([clause[0]].concat(subClauses.shift()));
+          } else {
+            push([clause[0]]);
           }
-        });
-        return results;
-      }
-      function logNodes(){
-        // debug
-        if (self.debug > 0 && self.fromCache){deb("     Q: %s recs from cache: %s", results.length, self.query);}
-        if (self.debug > 0){deb("     Q: executed: msecs: %s, records: %s, ops: %s", t1, results.length, ops);}
-        if (self.debug > 1){self.logResult(results, format, debmax);}
-      }
 
-      this.debug  = debug || 0;
+          subClauses.forEach(push);
 
-      this.store.cntQueries += 1;
+        } else {
+          this.deb("ERROR :  store.parse: unknown keyword '%s' in clause: %s", clause, clause[0]);
+
+        }
+
+      });
+
+      return error ? undefined : out;
+
+    },
+    execute: function(){
+
+      var
+        ops     = this.ops = 0,
+        cacheDrop = "",
+        self    = this,
+        tree    = this.tree,
+
+        edges   = this.store.edges,     //  = [source, verb, target]
+        nodes   = this.store.nodes,     //  = {name:{}}
+        cache   = this.store.cache,
+        
+        // returns always an array
+        results = [],               
+
+        // return strings without quotes
+        parse =    v => {
+          var f = parseFloat(v);
+          return Array.isArray(v) ? v : isNaN(f) ? v.slice(1, -1) : f;
+        };
 
       // Cached ?
-      results = this.checkCache();
-      if (results){
-        t1 = Date.now() - t0;
-        logNodes();
-        return prepResults(results);
+      if (( results = this.checkCache() )){
+        this.t1 = Date.now() - this.t0;
+        this.logNodes();
+        return this.prepResults(results, ops, this.t1);
 
       } else {
         // we start with all nodes as result
-        // results = Object.keys(nodes).map(function (key){return nodes[key];});
         results = Object.keys(nodes).map(key => nodes[key]);
         ops     = results.length;
 
       }
 
 
-      if (this.debug > 1){
-        deb(" ");
-        deb("     Q: q: '%s'", self.query);
-        deb("      : c: '%s'", comment || "no comment");
+      if (this.params.deb > 1){
+        this.deb("      :");
+        this.deb("     Q: q: '%s'", self.query);
+        this.deb("      : c: '%s'", this.params.com || "no comment");
       }
 
-      tree.forEach(function(clause){
+      tree.forEach( clause => {
 
-        var first  = clause[0],
-            verb   = first.toLowerCase(),
-            rest   = !!clause[1] ? clause[1]  : undefined, 
-            params = !!rest ? rest.split(" ") : undefined, 
-            attr, oper, filters;
-
-        if (!H.APP.isTicking && self.debug > 0){
-          deb("      : i: ops: %s, nodes: %s, c: %s", H.tab(ops, 4), H.tab(results.length, 4), JSON.stringify(clause));
-        }
-
+        var 
+          first  = clause[0],
+          verb   = first.toLowerCase(),
+          rest   = !!clause[1] ? clause[1]  : undefined, 
+          params = !!rest ? rest.split(" ") : undefined, 
+          attr, oper, filters;
 
         // expecting node NAMES, the optional first clause
 
-        if (isString(clause)){
+        if (this.isString(clause)){
 
           // convert the names into nodes, remove unknown
           results = clause.split(", ")
@@ -15056,7 +16260,7 @@ HANNIBAL = (function(H){
 
         // a VERB
 
-        } else if (isVerb(first)) {
+        } else if (this.isVerb(first)) {
           
           // find all edges from source node, with given verb, collect target node
 
@@ -15066,12 +16270,12 @@ HANNIBAL = (function(H){
 
         // a KEYWORD
 
-        } else if (isKey(first)) {
+        } else if (this.isKey(first)) {
 
           switch (first){
 
             case "LIMIT"    : ops += ~~rest; results = results.slice(0, ~~rest); break;
-            case "RAND"     : ops += ~~rest; results = sample(results, ~~rest);  break;
+            case "RAND"     : ops += ~~rest; results = this.sample(results, ~~rest);  break;
             case "DISTINCT" : ops += results.length; results = [...Set(results)]; break;
 
             case "SORT" :
@@ -15084,7 +16288,7 @@ HANNIBAL = (function(H){
             case "WITH" :
 
               filters = clause[1].split(", ");
-              filters.forEach(function(filter){
+              filters.forEach( filter => {
 
                 var attr, oper, queryValue;
 
@@ -15094,9 +16298,9 @@ HANNIBAL = (function(H){
                 oper = filter[1] ? filter[1] : "e"; 
                 queryValue = (filter[2] !== undefined) ? parse(filter[2]) : undefined;
 
-                results = results.filter(function(node){
+                results = results.filter( node => {
                   
-                  var nodeValue = self.get(node, attr); ops++;
+                  var nodeValue = this.get(node, attr); ops++;
 
                   return (
                     oper === "e"  ? nodeValue !== undefined  : // exists ?
@@ -15106,7 +16310,7 @@ HANNIBAL = (function(H){
                     oper === "!=" ? nodeValue !== queryValue :
                     oper === "<=" ? nodeValue <=  queryValue :
                     oper === ">=" ? nodeValue >=  queryValue :
-                      deb("ERROR : unknown operator in WITH: %s", oper)
+                      this.deb("ERROR : unknown operator in WITH: %s", oper)
                   );
 
                 });
@@ -15117,29 +16321,30 @@ HANNIBAL = (function(H){
           }
 
         } else {
-          deb("ERROR : clause starts with invalid KEYWORD: %s", first);
+          this.deb("ERROR : clause starts with invalid KEYWORD: %s", first);
 
         }
 
       });
 
       // from here there is a result set of nodes
+      this.results = results;
 
-      t1 = Date.now() - t0;
+      this.t1 = Date.now() - this.t0;
 
       // put in cache
       if (cache.length > this.store.cacheSlots){
         cacheDrop = Object.keys(cache).sort(function(a, b){
           return cache[a].hits - cache[b].hits;
         })[0];
-        if (this.debug > 0){deb("     Q: cache drop: hits: %s, qry: %s", cache[cacheDrop].hits, cache[cacheDrop]);}
+        if (this.debug > 0){this.deb("     Q: cache drop: hits: %s, qry: %s", cache[cacheDrop].hits, cache[cacheDrop]);}
         delete cache[cacheDrop];
       }
-      cache[this.query] = {hits: 0, result: results};
+      cache[this.query] = {hits: 0, results: results};
 
-      logNodes();
+      this.logNodes();
 
-      return prepResults(results);
+      return this.prepResults(results, ops, this.t1);
 
     },
     sortResults: function (oper, attr, results, ops){
@@ -15150,23 +16355,23 @@ HANNIBAL = (function(H){
         return (
           oper === "<" ? bnValue < anValue :
           oper === ">" ? bnValue > anValue :
-            deb("ERROR : unknown operator in SORT: %s", oper)
+            this.deb("ERROR : unknown operator in SORT: %s", oper)
         );
       });
 
       return [ops, out];
 
     },
-    reduceByVerb: function (verb, edges, result, ops){
+    reduceByVerb: function (verb, edges, results, ops){
 
       // this has to be VERY fast
 
-      var e = 0|0, out = [], r = result.length|0, eLen = edges.length|0;
+      var e = 0|0, out = [], r = results.length|0, eLen = edges.length|0;
 
       while(r--){
         e = eLen;
         while(e--){
-          if (edges[e][0] === result[r] && edges[e][1] === verb){
+          if (edges[e][0] === results[r] && edges[e][1] === verb){
             ops++; 
             out.push(edges[e][2]);
           }
@@ -15178,13 +16383,7 @@ HANNIBAL = (function(H){
     },
     logResult: function (result, format, debmax){
 
-      var i, meta, node, c, p, t = H.tab;
-
-      function saniJson(node){
-        node = H.deepcopy(node);
-        node.template = "...";
-        return H.prettify(node);
-      }
+      var i, meta, node, c, p, t = H.tab, deb = this.deb.bind(this);
 
       debmax = debmax || 20;
       format = format || "";
@@ -15273,19 +16472,13 @@ HANNIBAL = (function(H){
       return out;
 
     },
-    sanitize: function(phrase){
-      phrase = H.replace(phrase, "\n", " ");
-      phrase = H.replace(phrase, "\t", " ");
-      phrase = H.replace(phrase, " ,", ",");
-      return phrase.split(" ").filter(function(s){return !!s;}).join(" ");
-    }
 
-  };  
+  });  
 
 
 return H; }(HANNIBAL)); 
-var TESTERDATA = {"map": "brain03"};/*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, TESTERDATA, Engine, deb, logObject */
+/*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
+/*globals HANNIBAL, Engine */
 
 /*--------------- T E S T E R -------------------------------------------------
 
@@ -15299,75 +16492,110 @@ var TESTERDATA = {"map": "brain03"};/*jslint bitwise: true, browser: true, evil:
 
 */
 
-
-HANNIBAL = (function(H){
-
-  var T = H.T || {},
-      self, 
-      tick = 0, 
-      sequence = "", sequences, // sequence subset
-      chat = function(msg){Engine.PostCommand(H.APP.bot.id, {"type": "chat", "message": msg});};
-
-  H.extend(T, {
-    quit: function(){
-      return () => Engine.PostCommand(H.APP.bot.id, {"type": "quit"});
-    },
-    chat: function(msg){
-      return () => Engine.PostCommand(H.APP.bot.id, {"type": "chat", "message": msg});
-    },
-    destroy: function(ids){ 
-      ids = Array.isArray(ids) ? ids : arguments.length > 1 ? H.toArray(arguments) : [ids];
-      return () => Engine.PostCommand(H.APP.bot.id, {type: "delete-entities", "entities": ids});
-    },
-    research: function(tpl, id){
-      return () => Engine.PostCommand(H.APP.bot.id, {type: "research", entity: id, template: tpl}); 
-    },
-    launch: function(group /*, ... */){
-      return H.toArray(arguments).slice(1).map((id) => () => H.Groups.launch(group, id));
-    },
-    supplier: function(supply, cc, size=2){
-      return () => H.APP.bot.groups.launch({cc: cc, groupname: "g.supplier", supply: supply, size: size});
-    },
-    speed: function(rate){
-      return [
-        () => print("## xdotool key F9\n"), 
-        () => print("#! xdotool type --delay 30 Engine.SetSimRate(" + rate + ")\n"), 
-        () => print("## xdotool key Return\n"),
-        () => print("## xdotool key F9\n"),
-      ];
-
-    }
-
-  });
-
 /*
         "5": [() => H.Grids.dump(), "dumping maps"],
         http://www.semicomplete.com/projects/xdotool/xdotool.xhtml#mouse_commands
 */
 
 
+HANNIBAL = (function(H){
+
+  // see gui.engine.methods.txt for remote control
+
+  var 
+    T = H.T || {},
+    CTX = null, PID = NaN, CC  = NaN, 
+    self, tick = 0, map, sequence = "", 
+    chat  = (msg) => Engine.PostCommand(PID, {"type": "chat", "message": msg}),
+    ccloc = () => {
+      var [x, y] = CTX.entities[CTX.villages.main].position();
+      return x + ", " + y;
+    };
+
+
+  H.extend(T, {
+    quit: function(){
+      return () => Engine.PostCommand(PID, {"type": "quit"});
+    },
+    chat: function( /* arguments */ ){
+      var msg = H.format.apply(null, H.toArray(arguments));
+      return () => Engine.PostCommand(PID, {"type": "chat", "message": msg});
+    },
+    destroy: function(ids){ 
+      ids = Array.isArray(ids) ? ids : arguments.length > 1 ? H.toArray(arguments) : [ids];
+      return () => Engine.PostCommand(PID, {type: "delete-entities", "entities": ids});
+    },
+    research: function(tpl, id){
+      return () => Engine.PostCommand(PID, {type: "research", entity: id, template: tpl}); 
+    },
+    launch: function(group){
+      return () => {
+        return CTX.groups.launch({groupname: group, cc: CC});
+      };
+    },
+    supplier: function(supply){
+      return () => {
+        var config = {groupname: "g.supplier", cc: CC, supply: supply};
+        CTX.groups.launch(config);
+      };
+    },
+    builder: function(building, size, quantity){
+      return () => {
+        CTX.groups.launch({
+          groupname: "g.builder", 
+          cc: CC, 
+          building: building, 
+          quantity: quantity, 
+          size: size
+        });
+      };
+    },
+    speed: function(rate){
+      return [
+        () => print(PID + "::## xdotool key F9\n"), 
+        () => print(PID + "::#! xdotool type --delay 30 Engine.SetSimRate(" + rate + ")\n"), 
+        () => print(PID + "::## xdotool key Return\n"),
+        () => print(PID + "::## xdotool key F9\n"),
+      ];
+
+    },
+    camera: function(){
+      return [
+        () => print(PID + "::## xdotool key F9\n"), 
+        () => print(PID + "::#! xdotool type --delay 30 Engine.CameraMoveTo(" + ccloc() + ")\n"), 
+        () => print(PID + "::## xdotool key Return\n"),
+        () => print(PID + "::## xdotool key F9\n"),
+      ];
+
+    }
+
+  });
+
   // if any of these evaluate to a string, it gets chatted
-  sequences = {
+  var sequences = {
+    "random/brainland": {
+        "0": [() => "< - START: " + map + " - >"],
+        // "1": [T.camera(),                             "set camera on CC"],
+        // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
+        "1": [T.launch("g.dancer"), "launching 1 dancer group"], 
+        // "1": [T.supplier(      "food.fruit"), "launching 1 food.fruit supplier group"], 
+        // "1": [T.builder(      "house", 5, 2), "building 2 houses"], 
+        // "2": [T.launch("g.harvester"), "launching 1 harvester group"], 
+        // "4": [T.supplier(            "wood", 10), "launching 1 wood supplier"], 
+        // "5": [T.supplier(           "metal", 10), "launching 1 metal supplier"], 
+        // "6": [T.supplier(           "stone", 10), "launching 1 stone supplier"], 
+        // "5": [T.speed(5),                             "more speed"],
+      // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
+    },
     "brain02": {
-        "0": [() => "< - START: " + sequence + " - >"],
+        "0": [() => "< - START: " + map + " - >"],
         // "2": [T.chat("huhu"), "chatted"], 
         "1": [T.supplier(      "food.fruit", 44), "launching 1 food.fruit supplier"], 
         "2": [T.supplier(            "wood", 44, 10), "launching 1 wood supplier"], 
         "3": [T.supplier(           "metal", 44, 10), "launching 1 metal supplier"], 
         "4": [T.supplier(           "stone", 44, 10), "launching 1 stone supplier"], 
         "5": [T.speed(5),                             "more speed"],
-      // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
-    },
-    "Forest Battle": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        "2": [T.chat("huhu"), "chatted"], 
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "aitest08m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        "2": [T.chat("huhu"), "chatted"], 
-        "3": [T.launch("g.scouts", 44), "launching 1 scout"], 
-      "241": [() => "< - FINIS: " + sequence + " - >"],
+      // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
     },
     "Arcadia 02": {
         // "0": [() => "setting view",
@@ -15380,14 +16608,6 @@ HANNIBAL = (function(H){
         //      ],        
         "0": [T.supplier(      "food.fruit", 4752), "launching 1 food.fruit supplier"], 
         "1": [T.supplier(       "food.meat", 4752), "launching 1 food.meat supplier"], 
-        "2": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        "3": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
-        "4": [T.launch("g.builder",          4752), "launching 1 scout"], 
-        "5": [T.launch("g.scouts",           4752), "launching 1 scout"], 
-        "6": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        "7": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        "8": [T.launch("g.harvester",        4752), "launching 1 harvester"], 
-        "9": [T.supplier(           "metal", 4752), "launching 1 metal supplier"], 
        "10": [T.supplier(           "stone", 4752), "launching 1 stone supplier"], 
        "11": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
        "12": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
@@ -15400,51 +16620,7 @@ HANNIBAL = (function(H){
        // "71": [() => H.Groups.log(), "logging groups"],
       "1000": [T.quit()],
     },
-    "aitest06m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        "2": [T.launch("g.scouts", 44), "launching 1 scout"], 
-        // "3": [() => H.Grids.dump(), "dumping grids"],
-        // "4": [() => H.Grids.log(),  "logging grids"],
-        "6": [() => H.Groups.log(), "logging groups"],
-        "7": [() => H.logIngames(), "logging ingames"],
-       "70": [() => H.logIngames(), "logging ingames"],
-       "71": [() => H.Groups.log(), "logging groups"],
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "aitest05m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        "2": [T.launch("g.scouts", 44), "launching 1 scout"], 
-        "3": [() => H.Grids.dump(), "dumping grids"],
-        "4": [() => H.Grids.log(),  "logging grids"],
-       "20": [() => H.logIngames(), "logging ingames"],
-       "21": [() => H.Groups.log(), "logging groups"],
-       "70": [() => H.logIngames(), "logging ingames"],
-       "71": [() => H.Groups.log(), "logging groups"],
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "aitest04m": {
-        "1": [() => "< - START: " + sequence + " - >"],
-        "3": [T.launch("g.grainpicker", 44, 44, 44), "launching 3 grainpickers"], 
-       "12": [T.destroy(44), "destroying centre"],
-       "14": [() => "calling for repair help"],
-       "15": [() => H.logIngames(), "logging ingames"],
-       "16": [() => H.Groups.log(), "logging groups"],
-       "70": [() => H.logIngames(), "logging ingames"],
-       "71": [() => H.Groups.log(), "logging groups"],
-      "241": [() => "< - FINIS: " + sequence + " - >"],
-    },
-    "Xaitest03": {
-       "1": [() => "< - START: " + sequence + " - >"],
-       "2": [T.launch("g.grainpicker", 44, 44), "launching 2 grainpickers"], 
-      "10": [() => "please wait a moment"],
-      "22": [T.destroy(216), "destroying field"],
-      "30": [T.destroy(223, 224, 225), "destroying female units"],
-      "44": [() => "ACTION"],
-      "50": [T.launch("g.grainpicker", 44, 44, 44, 44, 44), "launching 5 grainpickers"], 
-     "210": [() => "< - FINIS: " + sequence + " - >"],
-    }
   };
-
 
   // fires functions at give tick num, 
   H.Tester = (function(){
@@ -15452,33 +16628,20 @@ HANNIBAL = (function(H){
     var t0, triggers;
     
     return {
-      boot:     function(){
-        self = this; 
-        if (TESTERDATA !== undefined){
-          H.each(TESTERDATA, function(attr, value){
-            deb("tester: %s : %s", attr, value);
-            if (attr.slice(0,2) === "On"){
-              self[attr] = new Function(value);
-            } else {
-              self[attr] = value;
-            }
-          });
-        }
-        return self;
-      },
-      activate: function(seq){
-        sequence = seq || H.Config.sequence;
-        deb("TESTER: activated sequence: %s", sequence);
-      },
+      boot:     function(){return (self = this);},
       log:      function(){
         var 
-          cnt = H.count(sequences[sequence]),
-          lst = H.attribs(sequences[sequence]).join(",");
-        deb("      :");
-        deb("      :");
-        deb("      : TESTER running sequence: %s with %s ticks [%s]", sequence, cnt, lst);
-        deb("      :");
-        deb("      :");
+          cnt = H.count(sequence),
+          lst = H.attribs(sequence).join(",");
+        H.deb(PID, "      :");
+        H.deb(PID, "INFO  : TESTER PID: %s sequence: %s with %s ticks [%s]", PID, map, cnt, lst);
+        H.deb(PID, "      :");
+      },
+      activate: function(seqmap, context){
+        CTX = context; PID = context.id; 
+        map = sequences[seqmap] ? seqmap : H.Config.sequence;
+        sequence = sequences[seqmap] ? sequences[seqmap] : sequences[H.Config.sequence];
+        H.deb("INFO  : TESTER.activated sequence: %s, PID: %s", map, PID);
       },
       evaluate: function(item){
         return (
@@ -15488,19 +16651,13 @@ HANNIBAL = (function(H){
             undefined
         );
       },
-      tick:     function(secs){
-        t0 = Date.now();
-        if (sequences[sequence]){
-          if (tick === 0){self.log();}  
-          if (sequences[sequence][+tick]){
-            triggers = sequences[sequence][+tick];
-            // deb("     T: firing: %s, tick: %s, msg: %s", sequence, tick, triggers.filter(t=>typeof t === "string")[0] || "");
-            triggers.forEach(function(item){
-              self.evaluate(item);
-            });
+      tick: function(secs, tick, context){
+        CTX = context; PID = context.id; CC = context.villages.main; t0 = Date.now();
+        if (sequence){
+          if (( triggers = sequence[~~tick] )){
+            triggers.forEach(self.evaluate);
           }
         }
-        tick += 1;
         return Date.now() - t0;
       }
     };
@@ -15509,7 +16666,7 @@ HANNIBAL = (function(H){
 
 return H; }(HANNIBAL));
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL */
 
 /*--------------- T O O L S ---------------------------------------------------
 
@@ -15523,6 +16680,8 @@ return H; }(HANNIBAL));
 
 
 HANNIBAL = (function(H) {
+
+  var deb = H.deb;
 
   H.Tools = H.Tools || {};
 
@@ -15718,9 +16877,9 @@ HANNIBAL = (function(H) {
 
     // a statistics extension, interacts with launcher.py
 
-    var ss, gs, key = 0, resolution = 10;
+    var id, ss, gs, key = 0, resolution = 10;
 
-    function out (data) {print(data + "\n");}
+    function out (data) {print(id + "::" + data + "\n");}
     function append (data){out("#! append 1 :" + data);}
 
     function tickData(id){
@@ -15772,11 +16931,13 @@ HANNIBAL = (function(H) {
     } 
 
     return {
-      init: function(sharedscript, gamestate){
+      init: function(pid, sharedscript, gamestate){
+        id = pid;
         ss = sharedscript;
         gs = gamestate;
         resolution = H.Config.numerus.resolution;
-        deb();deb("NUMRUS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
+        deb();
+        deb("NUMRUS: Logging every %s ticks to: %s", resolution, H.Config.numerus.file);
         out("#! open 1 " + H.Config.numerus.file);
         out("#! append 1 :# Numerus Log from: " + new Date());
         H.each(ss.playersData, function(id){
@@ -16020,365 +17181,7 @@ HANNIBAL = (function(H) {
 return H;}(HANNIBAL));
 
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, logObject, uneval */
-
-/*--------------- T E C H N O L O G Y   T R E E  ------------------------------
-
-  Models the dependencies of entities and technologies
-  is source for culture/store + acts as a fast cache for producers, planner, eco
-
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, Nov, 2014
-
-*/
-
-/*
-
-  TODO: 
-
-    disabled templates: http://trac.wildfiregames.com/changeset/15862
-
-*/
-
-
-HANNIBAL = (function(H){
-
-
-  // H.TechTree = function (idplayer) {
-
-  //   deb();deb();
-
-  //   this.id = idplayer;
-  //   this.civ = H.Players[idplayer].civ;
-  //   this.nodes = {};
-
-  //   this.sources = [].concat(
-  //     H.attribs(H.Players[idplayer].researchedTechs), 
-  //     H.attribs(H.SharedScript._techModifications[idplayer]),
-  //     H.attribs(H.Entities)
-  //       .filter(id => H.Entities[id].owner() === idplayer)
-  //       .map(id => H.Entities[id]._templateName)
-  //   );    
-  //   this.sources = H.unique(this.sources).map(src => [0, src]);
-
-  //   deb("  TREE: expanding %s sources for id: %s with civ: %s", H.count(this.sources), this.id, this.civ);
-    
-  //   this.build();
-  //   this.names = H.attribs(this.nodes);
-  //   this.keys  = H.attribs(this.nodes).map(t => this.nodes[t].key);
-
-  //   deb("     T: found %s nodes", this.names.length);
-
-  // };
-
-  // H.TechTree.prototype = {
-  //   constructor: H.TechTree,
-  //   phases: phases,
-  //   export: function () {
-
-  //     var 
-  //       t, procs, prods,
-  //       tt = this.nodes, tpls = H.attribs(this.nodes),
-  //       filePattern = "/home/noiv/Desktop/0ad/tree-%s-json.export";
-
-  //     function logg(){
-  //       print ( arguments.length === 0 ? 
-  //         "#! append 0 ://\n" : 
-  //         "#! append 0 :" + H.format.apply(H, arguments) + "\n"
-  //       );
-  //     }   
-
-  //     deb("  TREE: Export start ...");
-  //     print(H.format("#! open 0 %s\n", H.format(filePattern, this.civ)));
-  //     logg("// EXPORTED tree '%s' at %s", this.civ, new Date());
-
-  //     tpls.sort((a, b) => tt[a].order - tt[b].order);
-
-  //     tpls.forEach(function(tpln){
-
-  //       t = tt[tpln];
-
-  //       logg("     T:   %s %s %s %s", t.order, t.type, t.phase, t.name);
-  //       logg("     T:        d: %s,  o: %s", H.tab(t.depth, 4), H.tab(t.operations, 4));
-  //       logg("     T:        %s", t.key);
-  //       logg("     T:        reqs: %s", t.requires || "none");
-  //       logg("     T:        flow: %s", t.flow ? JSON.stringify(t.flow) : "none");
-
-  //       logg("     T:        verb: %s", t.verb || "none");
-  //       prods = H.attribs(t.producers);
-  //       if (prods.length){
-  //         prods.forEach(p => logg("     T:          %s", p));
-  //       } else {
-  //         logg("     T:        NO PRODUCER");
-  //       }
-
-  //       logg("     T:        products: %s", t.products.count);
-  //       if (t.products.count){
-  //         ["train", "build", "research"].forEach(verb => {
-  //           procs = H.attribs(t.products[verb]);
-  //           if (procs.length){
-  //             logg("     T:          %s", verb);
-  //             procs.forEach(p => logg("     T:            %s", p));
-  //           }
-  //         });
-  //       }
-
-  //     });
-
-  //     print("#! close 0\n");
-  //     deb("  TREE: Export Done ...");
-
-  //   },
-  //   finalize: function(){
-
-  //     // called after culture was loaded
-
-  //     var 
-  //       tech, name, producers, nodes = this.nodes, t0 = Date.now(),
-  //       operMapper = {
-  //         "BUILDBY":       "build_structures",
-  //         "TRAINEDBY":     "train_units",
-  //         "RESEARCHEDBY":  "research_tech"
-  //       },
-  //       verbMapper = {
-  //         "BUILD":    "BUILDBY",
-  //         "TRAIN":    "TRAINEDBY",
-  //         "RESEARCH": "RESEARCHEDBY"
-  //       };
-
-  //     H.QRY("ENABLE DISTINCT").forEach(node => {
-  //       tech = H.QRY(node.name + " REQUIRE").first().name;
-  //       nodes[node.name].requires = tech;
-  //     });
-
-  //     // uplink info, producer
-
-  //     "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
-  //       H.QRY(verb + " DISTINCT").forEach(ent => {
-  //         H.QRY(ent.name + " " + verbMapper[verb]).forEach(p => {
-  //           nodes[ent.name].producers[p.name] = p;
-  //         });
-  //         nodes[ent.name].verb = verb.toLowerCase();
-  //         nodes[ent.name].operator = H.HTN.Economy.operators[operMapper[verbMapper[verb]]];
-  //       });
-  //     });  
-
-  //     H.QRY("PAIR DISTINCT").forEach(tech => {  
-  //       H.QRY(tech.name + " PAIREDBY RESEARCHEDBY").forEach(p => {
-  //         nodes[tech.name].producers[p.name] = p;
-  //       });
-  //       nodes[tech.name].verb = "research";
-  //       nodes[tech.name].operator = H.HTN.Economy.operators.research_tech;
-  //     });          
-
-  //     H.QRY("SUPERSEDE DISTINCT").forEach(tech => {  
-  //       H.QRY(tech.name + " SUPERSEDEDBY RESEARCHEDBY").forEach(p => {
-  //         nodes[tech.name].producers[p.name] = p;
-  //       });
-  //       nodes[tech.name].verb = "research";
-  //       nodes[tech.name].operator = H.HTN.Economy.operators.research_tech;
-  //     });          
-
-  //     // downlink info, products
-
-  //     H.each(nodes, function(name, node){
-  //       "TRAIN BUILD RESEARCH".split(" ").forEach(verb => {
-  //         H.QRY(name + " " + verb).forEach(p => {
-  //           nodes[name].products.count += 1;
-  //           nodes[name].products[verb.toLowerCase()][p.name] = p;
-  //         });
-  //       });
-  //     });
-
-  //     H.QRY("RESEARCHEDBY DISTINCT").forEach(researcher => {  
-  //       H.QRY(researcher.name + " RESEARCH PAIR").forEach(p => {
-  //         nodes[researcher.name].products.research[p.name] = p;
-  //         nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
-  //       });
-  //     });          
-
-  //     H.QRY("RESEARCHEDBY DISTINCT").forEach(researcher => {  
-  //       H.QRY(researcher.name + " RESEARCH SUPERSED").forEach(p => {
-  //         nodes[researcher.name].products.research[p.name] = p;
-  //         nodes[researcher.name].products.count += H.count(nodes[researcher.name].products.research);
-  //       });
-  //     });          
-
-
-  //     // setting research as verb for all phase alternatives
-
-  //     // H.range(1, 4).forEach(n => {
-  //     H.loop(3, n => {
-  //       phases[n].alternates.forEach(a => {
-  //         name = H.saniTemplateName(a);
-  //         if (nodes[name] && !nodes[name].verb){
-  //           nodes[name].verb = "research";
-  //         }
-  //       });
-  //     });
-
-  //     // setting producers for all phase alternatives
-
-  //     H.loop(3, n => {
-  //       producers = null;
-  //       phases[n].alternates.forEach(a => {
-  //         name = H.saniTemplateName(a);
-  //         if (nodes[name] && H.count(nodes[name].producers)){
-  //           producers = nodes[name].producers;
-  //         }
-  //       });
-  //       // deb("  TREE: phase: %s, producers: %s", phases[n].abbr, uneval(producers));
-  //       phases[n].alternates.forEach(a => {
-  //         name = H.saniTemplateName(a);
-  //         if (nodes[name] && !H.count(nodes[name].producers)){
-  //           nodes[name].producers = H.deepcopy(producers);
-  //           // deb("tree: set %s", name);
-  //         }
-  //       });
-  //     });
-
-  //     // setting max resource flow for all trainer
-
-  //     H.each(nodes, function(name, node){
-  //       node.flow = ( H.count(node.products.train) ?
-  //         H.getFlowFromTrainer(name) :
-  //         null
-  //       );
-  //     });
-
-  //     deb();deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
-
-  //   },
-  //   getType: function(tpln){
-
-  //     return (
-  //       H.TechTemplates[tpln]         ? "tech" :
-  //       tpln.contains("units/")       ? "unit" :
-  //       tpln.contains("structures/")  ? "stuc" :
-  //       tpln.contains("other/")       ? "othr" :
-  //       tpln.contains("gaia/")        ? "gaia" :
-  //       tpln.contains("pair_/")       ? "pair" :
-  //         "XXXX"
-  //     );
-
-  //   },
-  //   getPhase: function(tpln, space){
-
-  //     var test, phase = "phase_village", tpl = H.Templates[tpln] || H.TechTemplates[tpln];
-
-  //     space = space || ""; // deb
-
-  //     if ((test = H.test(tpl, "Identity.RequiredTechnology"))){
-  //       phase = test;
-  //     } else if ((test = H.test(tpl, "requirements.any"))){
-  //       phase = test[0].tech;
-  //     } else if ((test = H.test(tpl, "requirements.tech"))){
-  //       phase = test;
-  //     } else if (phases.find(tpln)){
-  //       phase = phases.prev(tpln).generic;
-  //     } else if (tpl.top) {
-  //       return this.getPhase(tpl.top, space + "  ");
-  //     }
-
-  //     // deb("     P:%s %s -> %s", space, tpln, phase);
-
-  //     if (!phases.find(phase)){
-  //       return this.getPhase(phase, space + "  ");
-  //     } else {
-  //       return phase;
-  //     }
-
-
-  //   },
-  //   build: function (){
-
-  //     // picks from sources, analyzes, and appends branches to sources
-  //     // thus traversing the tree
-
-  //     var 
-  //       tpln, key, tpl, name, src, test, depth = 0,
-  //       push = function(item){this.sources.push([depth, item]);}.bind(this);
-
-  //     while (this.sources.length){
-
-  //       src  = this.sources.shift();
-  //       tpln = src[1];
-  //       key  = tpln.replace(/\{civ\}/g, this.civ);
-  //       tpl  = H.Templates[key] || H.TechTemplates[key];
-  //       name = H.saniTemplateName(key);
-
-  //       if (!this.nodes[name]){
-
-  //         this.nodes[name] = {
-  //           name:          name,     // sanitized API template name
-  //           key:            key,     // API template name
-  //           type:            "",     // tech, unit, stuc
-  //           template:       tpl,     // API template
-  //           depth:       src[0],     // local depth
-  //           operations:       0,     // planning depth, set in HTN.Economy
-  //           order:            0,     // execution order, set in HTN.Economy
-  //           phase:           "",     // vill, town, city
-  //           requires:        "",     // sanitized tech template name
-  //           producers:       {},     // {name: node, }
-  //           verb:            "",     // train, build, research // uplink
-  //           products: {              // downlink
-  //             count:          0,     // amount of products
-  //             train:         {},     // {name: node, }
-  //             build:         {}, 
-  //             research:      {}
-  //           }, 
-  //           operator:      null,    // planner.operator
-  //         };
-
-  //         // unit promotion
-  //         if(key.slice(-2) === "_b"){
-  //           push(key.slice(0, -2) + "_e");
-  //           push(key.slice(0, -2) + "_a");
-  //         }
-
-  //         // can research tech
-  //         if ((test = H.test(tpl, "ProductionQueue.Technologies._string"))){
-  //           test.split(" ").forEach(push);
-  //         }
-
-  //         // can train ents
-  //         if ((test = H.test(tpl, "ProductionQueue.Entities._string"))){
-  //           test.split(" ").forEach(push);
-  //         }
-
-  //         // can build structs
-  //         if ((test = H.test(tpl, "Builder.Entities._string"))){
-  //           test.split(" ").forEach(push);
-  //         }
-
-  //         // needs tech
-  //         if ((test = H.test(tpl, "Identity.RequiredTechnology"))){
-  //           push(test);
-  //         }
-
-  //         // is tech
-  //         if (tpl.supersedes){push(tpl.supersedes);}
-  //         if (tpl.bottom){push(tpl.bottom);}
-  //         if (tpl.top){push(tpl.top);}
-
-  //         depth += 1;
-
-  //       }
-
-  //     }
-
-  //     H.each(this.nodes, function(name, node){
-  //       node.type  = this.getType(node.key);
-  //       node.phase = phases.find(this.getPhase(node.key)).abbr;
-  //     }.bind(this));
-
-  //   }
-
-  // };
-
-return H; }(HANNIBAL));
-/*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, uneval */
 
 /*--------------- V I L L A G E S ---------------------------------------------
 
@@ -16397,8 +17200,8 @@ HANNIBAL = (function (H){
 
     H.extend(this, {
 
-      name:  "villages",
       context:  context,
+
       imports:  [
         "id",
         "map",
@@ -16407,12 +17210,14 @@ HANNIBAL = (function (H){
         "groups",
         "config",
         "objects",
-        "entities", // hasClass
+        "entities",     // hasClass
         "metadata",
       ],
 
-      main:      0,
-      centres:   null, 
+      main:      NaN,        // id of first centre
+      centres:   null,       // list of centres
+      theta:     NaN,        // rads of main to center of map
+      angle:     NaN,        // angle
 
       counter: {
         units:  0,
@@ -16425,12 +17230,13 @@ HANNIBAL = (function (H){
 
   };
 
-  H.LIB.Villages.prototype = {
+  H.LIB.Villages.prototype = H.mixin( 
+    H.LIB.Serializer.prototype, {
     contructor: H.LIB.Villages,
     log: function () {
-      deb();
-      deb("VILLGE:    main: %s, counts: %s", this.main, JSON.stringify(this.counter));
-      deb("     V: centres: %s", JSON.stringify(this.centres));
+      this.deb();
+      this.deb("  VILL:    main: %s, angle: %s, counts: %s", this.main, this.angle.toFixed(1), JSON.stringify(this.counter));
+      this.deb("     V: centres: %s", JSON.stringify(this.centres));
     },
     import: function () {
       this.imports.forEach(imp => this[imp] = this.context[imp]);
@@ -16466,18 +17272,18 @@ HANNIBAL = (function (H){
     },
     activate: function () {
 
-      this.events.on("ConstructionFinished", function (msg){
+      this.events.on("ConstructionFinished", msg => {
 
-        var order = this.objects(this.metadata[msg.id].order);
+        // var order = this.objects(this.metadata[msg.id].order);
 
-        if (order.cc){
-          this.metadata[msg.id].cc = order.cc;
-          // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
-        }
+        // if (order.cc){
+        //   this.metadata[msg.id].cc = order.cc;
+        //   // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
+        // }
 
       });
 
-      this.events.on("BroadCast", function (msg){
+      this.events.on("BroadCast", msg => {
 
         if (msg.data.group === "g.builder"){
 
@@ -16526,7 +17332,7 @@ HANNIBAL = (function (H){
     organizeVillages: function () {
 
       var 
-        ccNodes, ccId, getMain = () => {
+        ccNodes, ccId, posMain, posCenter, getMain = () => {
           var max = -1, cic;
           H.each(this.centres, (id, list) => {
             if (list.length > max){cic = id; max = list.length;}
@@ -16535,12 +17341,12 @@ HANNIBAL = (function (H){
         };
 
       // find all CC
-      ccNodes = this.query("civcentre CONTAIN INGAME").forEach( node => {
-        this.centres[node.id] = [];
-      });
+      ccNodes = this
+        .query("civcentre CONTAIN INGAME")
+        .forEach( node => this.centres[node.id] = []);
 
       if (!ccNodes.length){
-        deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
+        this.deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
       }
 
       // deb();
@@ -16576,7 +17382,11 @@ HANNIBAL = (function (H){
 
       });
 
-      this.main = getMain();
+      this.main  = getMain();
+      posMain    = this.entities[this.main].position();
+      posCenter  = this.map.center();
+      this.theta = Math.atan2(posCenter[1] - posMain[1], posCenter[0] - posMain[0]);
+      this.angle = this.theta * 180 / Math.PI;
 
       H.each(this.centres, (id, amount) => {
         // deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === this.main ? "X" : ""));
@@ -16607,12 +17417,15 @@ HANNIBAL = (function (H){
 
             if (~~id === this.main){
               this.counter.mayors += 1;
+              this.counter.shared += 1;
               this.metadata[id].opname = "g.mayor";
+              this.metadata[id].opmode = "shared";
               // deb("     V: set opname to 'g.mayor' for %s", ent);
 
             } else if (this.isShared(ent)){
               this.counter.shared += 1;
               this.metadata[id].opname = "g.custodian";
+              this.metadata[id].opmode = "shared";
               // deb("     V: set opname to 'g.custodian' for %s", ent);
 
             } else {
@@ -16635,6 +17448,6 @@ HANNIBAL = (function (H){
 
     },
 
-  };
+  });
 
 return H; }(HANNIBAL));  

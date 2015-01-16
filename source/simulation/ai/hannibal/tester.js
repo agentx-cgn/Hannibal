@@ -26,7 +26,7 @@ HANNIBAL = (function(H){
   var 
     T = H.T || {},
     CTX = null, PID = NaN, CC  = NaN, 
-    self, tick = 0, sequence = "", 
+    self, tick = 0, map, sequence = "", 
     chat  = (msg) => Engine.PostCommand(PID, {"type": "chat", "message": msg}),
     ccloc = () => {
       var [x, y] = CTX.entities[CTX.villages.main].position();
@@ -95,28 +95,28 @@ HANNIBAL = (function(H){
   // if any of these evaluate to a string, it gets chatted
   var sequences = {
     "random/brainland": {
-        "0": [() => "< - START: " + sequence + " - >"],
+        "0": [() => "< - START: " + map + " - >"],
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
         "1": [T.launch("g.dancer"), "launching 1 dancer group"], 
         // "1": [T.supplier(      "food.fruit"), "launching 1 food.fruit supplier group"], 
-        // "1": [T.builder(      "house CONTAIN", 5, 2), "building 2 houses"], 
+        // "1": [T.builder(      "house", 5, 2), "building 2 houses"], 
         // "2": [T.launch("g.harvester"), "launching 1 harvester group"], 
         // "4": [T.supplier(            "wood", 10), "launching 1 wood supplier"], 
         // "5": [T.supplier(           "metal", 10), "launching 1 metal supplier"], 
         // "6": [T.supplier(           "stone", 10), "launching 1 stone supplier"], 
         // "5": [T.speed(5),                             "more speed"],
-      // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
+      // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
     },
     "brain02": {
-        "0": [() => "< - START: " + sequence + " - >"],
+        "0": [() => "< - START: " + map + " - >"],
         // "2": [T.chat("huhu"), "chatted"], 
         "1": [T.supplier(      "food.fruit", 44), "launching 1 food.fruit supplier"], 
         "2": [T.supplier(            "wood", 44, 10), "launching 1 wood supplier"], 
         "3": [T.supplier(           "metal", 44, 10), "launching 1 metal supplier"], 
         "4": [T.supplier(           "stone", 44, 10), "launching 1 stone supplier"], 
         "5": [T.speed(5),                             "more speed"],
-      // "241": [T.quit(), () => "< - FINIS: " + sequence + " - >"],
+      // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
     },
     "Arcadia 02": {
         // "0": [() => "setting view",
@@ -152,16 +152,17 @@ HANNIBAL = (function(H){
       boot:     function(){return (self = this);},
       log:      function(){
         var 
-          cnt = H.count(sequences[sequence]),
-          lst = H.attribs(sequences[sequence]).join(",");
+          cnt = H.count(sequence),
+          lst = H.attribs(sequence).join(",");
         H.deb(PID, "      :");
-        H.deb(PID, "INFO  : TESTER PID: %s sequence: %s with %s ticks [%s]", PID, sequence, cnt, lst);
+        H.deb(PID, "INFO  : TESTER PID: %s sequence: %s with %s ticks [%s]", PID, map, cnt, lst);
         H.deb(PID, "      :");
       },
-      activate: function(seq, context){
-        CTX = context; PID = context.id;
-        sequence = seq || H.Config.sequence;
-        // deb("INFO  : PID: %s, TESTER.activated sequence: %s", PID, sequence);
+      activate: function(seqmap, context){
+        CTX = context; PID = context.id; 
+        map = sequences[seqmap] ? seqmap : H.Config.sequence;
+        sequence = sequences[seqmap] ? sequences[seqmap] : sequences[H.Config.sequence];
+        H.deb("INFO  : TESTER.activated sequence: %s, PID: %s", map, PID);
       },
       evaluate: function(item){
         return (
@@ -173,8 +174,8 @@ HANNIBAL = (function(H){
       },
       tick: function(secs, tick, context){
         CTX = context; PID = context.id; CC = context.villages.main; t0 = Date.now();
-        if (sequences[sequence]){
-          if (( triggers = sequences[sequence][~~tick] )){
+        if (sequence){
+          if (( triggers = sequence[~~tick] )){
             triggers.forEach(self.evaluate);
           }
         }
