@@ -67,6 +67,11 @@ HANNIBAL = (function(H) {
     // H.deb("      :");
     H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s in", this.id, civ);
 
+    // suppress this bot
+    if (this.debug.sup){
+      H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s supressed", this.id, civ);
+      return;
+    }
 
     // move window
     if (this.debug.xdo){
@@ -170,6 +175,7 @@ HANNIBAL = (function(H) {
       msgTiming = "";
 
     if (this.isFinished){return;} // API ????
+    if (this.debug.sup){return;}
 
     if (!this.initialized){
       if (!this.noInitReported){

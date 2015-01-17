@@ -1,10 +1,11 @@
 var HANNIBAL_DEBUG = {
-  "map": "random/alpine_lakes", 
+  "map": "random/brainland", 
   "bots": {
     "1": {
       "log": 4, 
       "xdo": 1, 
       "num": 1, 
+      "sup": 0, 
       "tst": 1, 
       "col": "", 
       "fil": 1
@@ -13,7 +14,8 @@ var HANNIBAL_DEBUG = {
       "log": 4, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 1, 
+      "sup": 1, 
+      "tst": 0, 
       "col": "", 
       "fil": 0
     }, 
@@ -21,6 +23,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
+      "sup": 1, 
       "tst": 0, 
       "col": "", 
       "fil": 0
@@ -29,7 +32,8 @@ var HANNIBAL_DEBUG = {
       "log": 3, 
       "xdo": 0, 
       "num": 0, 
-      "tst": 0, 
+      "sup": 0, 
+      "tst": 1, 
       "col": "", 
       "fil": 0
     }, 
@@ -37,6 +41,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
+      "sup": 1, 
       "tst": 0, 
       "col": "", 
       "fil": 0
@@ -45,6 +50,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
+      "sup": 1, 
       "tst": 0, 
       "col": "", 
       "fil": 0
@@ -53,6 +59,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
+      "sup": 1, 
       "tst": 0, 
       "col": "", 
       "fil": 0
@@ -61,6 +68,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
+      "sup": 1, 
       "tst": 0, 
       "col": "", 
       "fil": 0
@@ -69,6 +77,7 @@ var HANNIBAL_DEBUG = {
       "log": 2, 
       "xdo": 0, 
       "num": 0, 
+      "sup": 1, 
       "tst": 0, 
       "col": "", 
       "fil": 0

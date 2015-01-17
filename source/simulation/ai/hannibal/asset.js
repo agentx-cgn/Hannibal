@@ -99,19 +99,6 @@ HANNIBAL = (function(H){
         definition: H.deepcopy(this.definition),
       };
     },
-    // toSelection: function(resources){
-    //   return (
-    //     new H.LIB.Asset(this.context)
-    //       .import()
-    //       .initialize({
-    //         id:        this.id, // same id !!!
-    //         klass:     "asset.selection",
-    //         instance:  this.instance, 
-    //         property:  this.property, 
-    //         resources: resources,
-    //       })
-    //   );
-    // },
     activate: function(){
       this.eventlist.forEach(e => this.events.on(e, this.handler));
     },
@@ -129,7 +116,7 @@ HANNIBAL = (function(H){
     listener: function(msg){
 
       var 
-        dslobject, tpln, ids, 
+        dslItem, dslAttacker, tpln, ids, 
         id = msg.id, 
         dsl = this.groups.dsl;
 
@@ -163,7 +150,7 @@ HANNIBAL = (function(H){
 
           this.deb("   AST: OrderReady: %s ids: [%s], tpl: %s", this.verb, ids, tpln);
 
-          dslobject = {
+          dslItem = {
             name:        "item",
             resources:   ids, 
             ispath:      tpln.contains("path"),
@@ -172,7 +159,7 @@ HANNIBAL = (function(H){
             toString :   () => H.format("[dslobject item[%s]]", id)
           };
 
-          this.groups.callWorld(this.instance, "assign", [dslobject]);
+          this.groups.callWorld(this.instance, "assign", [dslItem]);
 
         } // else { deb("   AST: no match: %s -> %s | %s", msg.data.source, this.id, this.name);}
 
@@ -185,9 +172,13 @@ HANNIBAL = (function(H){
 
           // no need to tell group about succesful foundations
           if (!msg.data.foundation){
-            dsl.select(this.instance);
-            dsl.noun("asset", "entity", [id]);
-            this.groups.signal("onDestroy", [dsl.world.asset]);
+
+            dslItem = {
+              name:        "item",
+              resources:   [id], 
+              toString :   () => H.format("[dslobject item[%s]]", id)
+            };
+            this.groups.callWorld(this.instance, "destroy", [dslItem]);
 
           }
 
@@ -197,10 +188,19 @@ HANNIBAL = (function(H){
 
         } else if (msg.name === "EntityAttacked") {
 
-          dsl.select(this.instance);
-          dsl.noun("asset", "entity", [id]);
-          dsl.noun("attacker", "entity", [msg.id2]);
-          this.groups.signal("onAttack", [dsl.world.asset, dsl.world.attacker, msg.data.type, msg.data.damage]);
+          dslItem = {
+            name:        "item",
+            resources:   [id], 
+            toString :   () => H.format("[dslobject item[%s]]", id)
+          };
+
+          dslAttacker = {
+            name:        "attacker",
+            resources:   [msg.id2], 
+            toString :   () => H.format("[dslobject attacker[%s]]", msg.id2)
+          };
+
+          this.groups.callWorld(this.instance, "attack", [dslItem, dslAttacker, msg.damage, msg.type]);
 
 
         } else if (msg.name === "EntityRenamed") {
@@ -212,14 +212,14 @@ HANNIBAL = (function(H){
         } else if (msg.name === "ConstructionFinished") {
 
 
-          dslobject = {
+          dslItem = {
             name:        "item",
             resources:   [id], 
             foundation:  false,
             toString :   () => H.format("[dslobject item[%s]]", id)
           };
 
-          this.groups.callWorld(this.instance, "assign", [dslobject]);
+          this.groups.callWorld(this.instance, "assign", [dslItem]);
 
         }
 

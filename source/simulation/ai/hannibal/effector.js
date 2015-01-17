@@ -181,7 +181,7 @@ HANNIBAL = (function(H){
 
     spread: function(who, where){
 
-      this.deb("   EFF: spread: %s", uneval(arguments));
+      // this.deb("   EFF: spread: %s", uneval(arguments));
 
       // distributes units on given points, lengths may differ
 

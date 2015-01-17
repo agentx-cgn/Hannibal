@@ -194,11 +194,8 @@ HANNIBAL = (function(H){
       this.deb("   MAP: finalize: terrain coords: %s, size: %s, length: %s", coords, this.terrain.size, this.terrain.length);
       this.deb("   MAP: finalize: land    coords: %s, size: %s, length: %s", coords, this.regionsland.size, this.regionsland.length);
 
-      [field, test] = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
-      // this.flowfield = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
-
+      field = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
       this.effector.dumparray("flowfield", field, this.gridsize, this.gridsize, 255);
-      this.effector.dumparray("test", test, this.gridsize, this.gridsize, 255);
 
     },
     activate: function(){

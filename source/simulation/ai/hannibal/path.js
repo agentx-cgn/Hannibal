@@ -20,16 +20,7 @@ HANNIBAL = (function(H){
     sin = Math.sin,
     cos = Math.cos;
 
-    // x: Math.cos(angle) * (pointX-originX) - Math.sin(angle) * (pointY-originY) + originX,
-    // y: Math.sin(angle) * (pointX-originX) + Math.cos(angle) * (pointY-originY) + originY
-
   function loop (n, fn){for (var i=0; i<n; i++){fn(i);}}
-  function rotatedPoint(pnt, org, sin, cos){
-    return [
-      cos * (pnt[0] - org[0]) - sin * (pnt[1] - org[1]) + pnt[0],
-      sin * (pnt[0] - org[0]) + cos * (pnt[1] - org[1]) + pnt[1]
-    ];
-  }
 
   H.LIB.Path = function(context, definition){
 
@@ -39,17 +30,20 @@ HANNIBAL = (function(H){
     this.imports = ["map", "villages"];
     this.import();
 
-    this.deb("  PATH: new def: %s", definition);
+    // this.deb("  PATH: new def: %s", definition);
 
     this.theta = this.villages.theta;
     this.path = [];
 
     if (typeof definition === "string"){
       this.modify(definition);
+
     } else if (Array.isArray(definition)){
       this.path = definition;
+
     } else {
       H.throw("PATH: can't handle this: %s", definition);
+
     }
 
 
@@ -71,11 +65,11 @@ HANNIBAL = (function(H){
     sanitize: function(definition){
       return (
         definition
-          .split("{").join("")
-          .split("}").join("")
-          .split(",").join("")
-          .split("[").join("")
-          .split("]").join("")
+          // .split("{").join("")
+          // .split("}").join("")
+          // .split(",").join("")
+          // .split("[").join("")
+          // .split("]").join("")
           .split(";")
           .filter(s => !!s)
           .map(String.trim)
@@ -98,7 +92,7 @@ HANNIBAL = (function(H){
         list, car, cdr, num,
         cmds = this.sanitize(definition);
 
-      this.log("modify.in");
+      // this.log("modify.in");
 
       cmds.forEach(cmd => {
 
@@ -127,7 +121,7 @@ HANNIBAL = (function(H){
 
       });
 
-      this.log("modify.out");
+      // this.log("modify.out");
 
       return this;
 
@@ -154,13 +148,13 @@ HANNIBAL = (function(H){
 
       var p = this.path;
 
-      this.log("translate.in");
+      // this.log("translate.in");
 
       loop(p.length, n => {
         p[n] = [ p[n][0] + x, p[n][1] + z ];
       });
 
-      this.log("translate.out");
+      // this.log("translate.out");
 
     },
     translatep: function(angle, radius){
@@ -173,7 +167,7 @@ HANNIBAL = (function(H){
 
       // displaces all point in polar system
 
-      this.log("translatep.in");
+      // this.log("translatep.in");
 
       loop(p.length, n => {
         p[n] = [ 
@@ -182,24 +176,25 @@ HANNIBAL = (function(H){
         ];
       });
 
-      this.log("translatep.out");
+      // this.log("translatep.out");
 
     },
     rotate: function(angle){
 
       // rotates path counter clockwise around its center by angle (degrees)
+      // http://www.gamefromscratch.com/post/2012/11/24/GameDev-math-recipes-Rotating-one-point-around-another-point.aspx
 
       var 
-        p    = this.path,
-        org  = this.getCenter(),
+        p = this.path,
+        [cx, cy]  = this.getCenter(),
         rads = angle * RADDEG,
         sinr = sin(rads),
         cosr = cos(rads);
 
       loop(p.length, n => {
         p[n] = [
-          cosr * (p[n][0] - org[0]) - sinr * (p[n][1] - org[1]) + p[n][0],
-          sinr * (p[n][0] - org[0]) + cosr * (p[n][1] - org[1]) + p[n][1]
+          cosr * (p[n][0] - cx) - sinr * (p[n][1] - cy) + cx, 
+          sinr * (p[n][0] - cx) + cosr * (p[n][1] - cy) + cy, 
         ];
       });
 
