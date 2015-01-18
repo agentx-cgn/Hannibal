@@ -41,51 +41,126 @@ bcolors = {
   "Header" :  "\033[95m",
   "LBlue" :   "\033[94m", ## light blue
   "DBlue" :   "\033[34m", ## dark blue
-  "OKGreen" : "\033[92m",
-  "Warning" : "\033[93m",
+  "OKGreen" : "\033[32m", ## dark Green
+  "Green" :   "\033[92m", ## light green
+  "Warn" :    "\033[33m", ## orange
   "Fail" :    "\033[91m",
   "End" :     "\033[0m",
+  # orange='\033[33m'
 }
 
 def printc(color, text) :
   print (bcolors[color] + text + bcolors["End"])
 
+def stdc(color, text) :
+  sys.stdout.write (bcolors[color] + text + bcolors["End"])
+
+
+folders = {
+  "pro"   : "/home/noiv/Desktop/0ad",                    ## project
+  "rel"   : "/usr/games/0ad",                            ## release
+  "trunk" : "/Daten/Projects/Osiris/ps/trunk",           ## svn
+  "share" : "/home/noiv/.local/share",                   ## user mod
+}
+
 
 ## the game binary
 locations = {
-  "rel" : "/usr/games/0ad",                                                      ## release
-  "svn" : "/Daten/Projects/Osiris/ps/trunk/binaries/system/pyrogenesis",         ## svn
-  "hbl" : "/home/noiv/.local/share/0ad/mods/hannibal/simulation/ai/hannibal/",   ## bot folder
-  "tda" : "/home/noiv/.local/share/0ad/mods/hannibal/simulation/ai/hannibal/tester-data.js",   ## bot folder
-  "log" : "/home/noiv/Desktop/0ad/last.log",                                     ## log file
-  "ana" : "/home/noiv/Desktop/0ad/analysis/"                                     ## analysis csv file
+  "rel" : folders["rel"],                                                             ## release
+  "svn" : folders["trunk"] + "/binaries/system/pyrogenesis",                          ## svn
+  "hbl" : folders["share"] + "/0ad/mods/hannibal/simulation/ai/hannibal/",            ## bot folder
+  "deb" : folders["share"] + "/0ad/mods/hannibal/simulation/ai/hannibal/_debug.js",   ## bot folder
+  "log" : folders["pro"]   + "/last.log",                                             ## log file
+  "ana" : folders["pro"]   + "/analysis/",                                            ## analysis csv file
 }
 
-## JS startup options
-tester = {
-  "map": "Arcadia 02"
+## Hannibal log/debug options + data, readable by JS and Python
+DEBUG = {
+
+  ## default map
+  "map":   "scenarios/Arcadia 02",    
+
+  ## counter
+  "counter": [],
+
+  ## num: 0=no numerus
+  ## xdo: move window, sim speed
+  ## fil can use files
+  ## log: 0=silent, 1+=errors, 2+=warnings, 3+=info, 4=all
+  ## col: log colors
+  ## sup: suppress, bot does not intialize (saves startup time)
+  ## tst: activate tester
+
+  "bots": {
+    "0" :  {"num": 0, "xdo": 0, "fil": 0, "log": 4, "sup": 1, "tst": 0, "col": "" },
+    "1" :  {"num": 1, "xdo": 1, "fil": 1, "log": 4, "sup": 0, "tst": 1, "col": "" },
+    "2" :  {"num": 0, "xdo": 0, "fil": 0, "log": 3, "sup": 0, "tst": 1, "col": "" },
+    "3" :  {"num": 0, "xdo": 0, "fil": 0, "log": 2, "sup": 1, "tst": 0, "col": "" },
+    "4" :  {"num": 0, "xdo": 0, "fil": 0, "log": 2, "sup": 1, "tst": 0, "col": "" },
+    "5" :  {"num": 0, "xdo": 0, "fil": 0, "log": 2, "sup": 1, "tst": 0, "col": "" },
+    "6" :  {"num": 0, "xdo": 0, "fil": 0, "log": 2, "sup": 1, "tst": 0, "col": "" },
+    "7" :  {"num": 0, "xdo": 0, "fil": 0, "log": 2, "sup": 1, "tst": 0, "col": "" },
+    "8" :  {"num": 0, "xdo": 0, "fil": 0, "log": 2, "sup": 1, "tst": 0, "col": "" },
+  }
+
 }
 
-# cmd0AD = [pyrogenesis, "-quickstart", "-mod=charts", "-autostart=aitest07", "-autostart-ai=1:hannibal"]
-# cmd0AD = [pyrogenesis, "-quickstart", "-mod=charts", "-autostart=ai-village-00", "-autostart-ai=1:hannibal"]
-# cmd0AD = [pyrogenesis, "-quickstart", "-autostart=ai-village-00", "-autostart-ai=1:hannibal"]
-# cmd0AD = [pyrogenesis, "-quickstart", "-autostart=" + tester['map'], "-autostart-ai=1:hannibal"]
-
+## keep track of open file handles
 files = {}
 
-def buildCmd(typ="rel", map="Arcadia 02") :
+## civs to choose from at start
+civs  = [
+  "athen", 
+  "brit",
+  "cart",
+  "celt",
+  "gaul",
+  "hele",
+
+  "iber",
+  "mace",
+  "maur",
+  "pers",
+  "ptol",
+  "rome",
+  "sele",
+  "spart",
+]
+
+def buildCmd(typ="rel", map="Arcadia 02", bots=2) :
+
+  ## see /ps/trunk/binaries/system/readme.txt
 
   cmd = [
     locations[typ], 
-    "-quickstart", 
-    "-autostart=scenarios/" + map, 
-    "-mod=public", 
+
+    "-quickstart",                 ## load faster (disables audio and some system info logging)
+    "-autostart=" + map,           ## enables autostart and sets MAPNAME; TYPEDIR is skirmishes, scenarios, or random
+    "-mod=public",                 ## start the game using NAME mod
     "-mod=charts", 
     "-mod=hannibal", 
-    "-autostart-ai=1:hannibal"
+
+    "-autostart-seed=0",           ##  sets random map SEED value (default 0, use -1 for random)
+    "-autostart-size=192",         ##  sets random map size in TILES (default 192)
+
+    # "-autostart-players=2",        ##  sets NUMBER of players on random map (default 2)
+    # "-autostart-ai=1:hannibal",
+    # "-autostart-civ=1:athen",      ##  sets PLAYER's civilisation to CIV (skirmish and random maps only)
+    # "-autostart-ai=2:hannibal",    ##  sets the AI for PLAYER (e.g. 2:petra)
+    # "-autostart-civ=2:cart",       ##  sets PLAYER's civilisation to CIV (skirmish and random maps only)
+
   ]
 
+  ## svn does not autoload /user
   if typ == "svn" : cmd.append("-mod=user")
+
+  ## set # of players
+  cmd.append("-autostart-players=" + str(bots))
+
+  ## add bots with civ
+  for bot in range(1, bots +1) :
+    cmd.append("-autostart-ai="  + str(bot) + ":hannibal")
+    cmd.append("-autostart-civ=" + str(bot) + ":" + civs[bot -1])
   
   return cmd
   
@@ -102,14 +177,14 @@ def xdotool(command) :
 def cleanup() :
   for k, v in files.iteritems() : v.close()
 
-def writeTesterData():
-  fTest = open(locations["tda"], 'w')
+def writeDEBUG():
+  fTest = open(locations["deb"], 'w')
   fTest.truncate()
-  fTest.write("var TESTERDATA = " + json.dumps(tester) + ";")
+  fTest.write("var HANNIBAL_DEBUG = " + json.dumps(DEBUG, indent=2) + ";")
   fTest.close()
 
-def killTestData():
-  fTest = open(locations["tda"], 'w')
+def killDEBUG():
+  fTest = open(locations["deb"], 'w')
   fTest.truncate()
   fTest.close()
 
@@ -117,12 +192,12 @@ def processMaps():
 
   proc0AD = None
 
-  tester["OnUpdate"] = "print('#! terminate');"
+  DEBUG["OnUpdate"] = "print('#! terminate');"
 
   for mp in data["testMaps"] :
 
-    tester["map"] = mp
-    writeTestData()
+    DEBUG["map"] = mp
+    writeDEBUG()
     cmd0AD  = [pyrogenesis, "-quickstart", "-autostart=" + mp, "-mod=public", "-mod:hannibal", "-autostart-ai=1:hannibal"]
     proc0AD = subprocess.Popen(cmd0AD, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     print "  > " + " ".join(cmd0AD)
@@ -150,7 +225,7 @@ def processMaps():
 
   print "done."
 
-def launch(typ="rel", map="Arcadia 02"):
+def launch(typ="rel", map="Arcadia 02", bots=2):
 
   winX = 1520; winY = 20
 
@@ -164,10 +239,10 @@ def launch(typ="rel", map="Arcadia 02"):
 
   files["log"] = open(locations["log"], 'w')
   files["log"].truncate()
-  tester['map'] = map
-  writeTesterData()
+  DEBUG['map'] = map
+  writeDEBUG()
 
-  cmd0AD = buildCmd(typ, map)
+  cmd0AD = buildCmd(typ, map, bots)
   print ("  cmd: %s" %  " ".join(cmd0AD));
 
   proc0AD = subprocess.Popen(cmd0AD, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -176,65 +251,106 @@ def launch(typ="rel", map="Arcadia 02"):
 
     for line in iter(proc0AD.stdout.readline, b'') :
 
+      ## line has everything
+      ## sline is stripped
+      ## bline is active bot line after colon
+
       sline = line.strip() ## removes nl and wp
+      bline = ""
+      id    = 0
+      bot   = DEBUG["bots"]["0"]
+
+      ## detect bot id
+      if len(sline) >= 2 and sline[1:3] == "::" :
+        id    = sline[0]
+        bot   = DEBUG["bots"][id]
+        bline = "" if bot["log"] == 0 else sline[3:]
+
       files["log"].write(line)
 
+      ## terminate everything
       if sline.startswith("#! terminate") :
-        print(sline)
-        terminate()
-        return
+        if bot["xdo"] : 
+          print(sline)
+          terminate()
+          return
 
-      elif sline.startswith("#! xdotool init") :
-        idWindow = findWindow("0 A.D")
-        print("**");
-        printc("DBlue", "   xdo: window id: %s" % idWindow)
-        xdotool("windowmove %s %s %s" % (idWindow, winX, winY))
-
-      elif sline.startswith("#! xdotool ") :
-        params = " ".join(sline.split(" ")[2:])
-        printc("DBlue", "   X11: " + params)
-        xdotool(params)
-
-      elif sline.startswith("## xdotool ") : ## same, no echo
-        params = " ".join(sline.split(" ")[2:])
-        xdotool(params)
-
-      elif sline.startswith("#! clear") :
+      ## clear console
+      elif bline.startswith("#! clear") :
         print(sline)
         sys.stderr.write("\x1b[2J\x1b[H") ## why not ??
 
-      elif sline.startswith("#! open ") :
-        filenum  = sline.split(" ")[2]
-        filename = sline.split(" ")[3]
+      ## xdo init
+      elif bot["xdo"] and bline.startswith("#! xdotool init") :
+        idWindow = findWindow("0 A.D")
+        printc("DBlue", "   xdo: window id: %s" % idWindow)
+        xdotool("windowmove %s %s %s" % (idWindow, winX, winY))
+
+      ## xdo command with echo
+      elif bot["xdo"] and bline.startswith("#! xdotool ") :
+        params = " ".join(bline.split(" ")[2:])
+        printc("DBlue", "   X11: " + params)
+        xdotool(params)
+
+      ## xdo command without echo
+      elif bot["xdo"] and bline.startswith("## xdotool ") : ## same, no echo
+        params = " ".join(bline.split(" ")[2:])
+        xdotool(params)
+
+      ## xdo command suppress
+      elif not bot["xdo"] and bline.startswith("## xdotool ") :
+        pass
+
+      ## file open
+      elif bot["fil"] and bline.startswith("#! open ") :
+        filenum  = bline.split(" ")[2]
+        filename = bline.split(" ")[3]
         files[filenum] = open(filename, 'w')
         files[filenum].truncate()
-        # print(": open %s %s " % (filenum, filename))
 
-      elif sline.startswith("#! append ") :
-        filenum  = sline.split(" ")[2]
-        dataLine = ":".join(sline.split(":")[1:])
-        # print(": append %s %s " % (filenum, dataLine))
+      ## file append
+      elif bot["fil"] and bline.startswith("#! append ") :
+        filenum  = bline.split(" ")[2]
+        dataLine = ":".join(bline.split(":")[1:])
         files[filenum].write(dataLine + "\n")
 
-      elif sline.startswith("#! write ") :
-        print(sline)
-        filenum  = sline.split(" ")[2]
-        filename = sline.split(" ")[3]
+      ## file write
+      elif bot["fil"] and bline.startswith("#! write ") :
+        print(bline)
+        filenum  = bline.split(" ")[2]
+        filename = bline.split(" ")[3]
         files[filenum] = open(filename, 'w')
         files[filenum].truncate()
         curFileNum = filenum
         
-      elif sline.startswith("#! close ") :
-        filenum  = sline.split(" ")[2]
+      ## file close
+      elif bot["fil"] and bline.startswith("#! close ") :
+        filenum  = bline.split(" ")[2]
         files[filenum].close()    
         print("#! closed %s at %s" % (filenum, os.stat(filename).st_size))
 
-      # elif doWrite :
-      #   # sys.stdout.write(".") little feedback if needed
-      #   files[curFileNum].write(line)
+      ## bot output
+      elif bot["log"] > 0 and bline :
+        if   bline.startswith("ERROR :") : stdc("Fail",    id + "::" + bline + "\n")
+        elif bline.startswith("WARN  :") : stdc("Warn",    id + "::" + bline + "\n")
+        elif bline.startswith("INFO  :") : stdc("OKGreen", id + "::" + bline + "\n")
+        else : sys.stdout.write("" + bline + "\n")
 
-      else :
-        sys.stdout.write(line)
+      ## suppressed bots - no output
+      elif bot["log"] == 0:
+        pass
+        
+      ## hannibal or map or 0AD output
+      elif line :
+        if   line.startswith("ERROR :")            : stdc("Fail",    line + "\n")
+        elif line.startswith("WARN  :")            : stdc("Warn",    line + "\n")
+        elif line.startswith("INFO  :")            : stdc("OKGreen", line + "\n")
+        elif line.startswith("TIMER| ")            : pass ## suppress 0AD debugs
+        elif line.startswith("sys_cursor_create:") : pass 
+        elif line.startswith("AL lib:")            : pass 
+        elif line.startswith("Sound:")             : pass 
+        else : 
+          sys.stdout.write("" + line)
 
   except KeyboardInterrupt, e :
     terminate()
@@ -248,12 +364,12 @@ if __name__ == '__main__':
       processMaps(args)
 
     else:
-      typ = args[0] if len(args) > 0 else "rel"
-      map = args[1] if len(args) > 1 else "Arcadia 02"
-      launch(typ, map)
+      
+      typ  = args[0] if len(args) > 0 else "rel"
+      map  = args[1] if len(args) > 1 else "Arcadia 02"
+      bots = args[2] if len(args) > 2 else "2"
+
+      launch(typ, map, int(bots))
     
     cleanup()
     print ("\nBye\n")
-
-
-

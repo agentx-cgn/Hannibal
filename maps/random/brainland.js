@@ -182,7 +182,7 @@ function step1  (/* options */) {
   playerIDs = sortPlayers(playerIDs);
 }
 
-function step2  (/* options */) {
+function step2Old  (/* options */) {
 
   playerX = new Array(numPlayers);
   playerZ = new Array(numPlayers);
@@ -194,6 +194,21 @@ function step2  (/* options */) {
     playerAngle[i] = startAngle + i*TWO_PI/numPlayers;
     playerX[i] = 0.5 + 0.35*cos(playerAngle[i]);
     playerZ[i] = 0.5 + 0.35*sin(playerAngle[i]);
+  }
+}
+
+function step2  (/* options */) {
+
+  playerX = new Array(numPlayers);
+  playerZ = new Array(numPlayers);
+  playerAngle = new Array(numPlayers);
+
+  var startAngle = randFloat(0, TWO_PI);
+  for (var i = 0; i < numPlayers; i++)
+  {
+    playerAngle[i] = startAngle + i*TWO_PI/numPlayers;
+    playerX[i] = 0.5 + 0.14*cos(playerAngle[i]);
+    playerZ[i] = 0.5 + 0.14*sin(playerAngle[i]);
   }
 }
 
@@ -218,6 +233,7 @@ function step3  (/* options */) {
     // get the x and z in tiles
     var fx = fractionToTiles(playerX[i]);
     var fz = fractionToTiles(playerZ[i]);
+    var angle = playerAngle[i] + Math.PI;
     var ix = round(fx);
     var iz = round(fz);
 
@@ -231,6 +247,9 @@ function step3  (/* options */) {
     
     // create starting units
     // placeCivDefaultEntities(fx, fz, id, BUILDING_ANGlE);
+
+    // set resources
+    g_MapSettings.PlayerData[id-1].resources = {wood: 1000, food: 1000};
 
     (function placeCivDefaultEntities(fx, fz, playerid, angle, kwargs) {
       
@@ -270,7 +289,7 @@ function step3  (/* options */) {
           placeGenericFortress(fx, fz, 20/*radius*/, playerid);}
       }
 
-    }(fx, fz, id, BUILDING_ANGlE));
+    }(fx, fz, id, angle));
     
     // create the city patch
     var cityRadius = radius/3;
@@ -489,11 +508,11 @@ var sequence = [
   [10, step3,  "Creating village...",            {}],
   // [20, step4,  "Creating bumps/hills/mountains/forests...", {}],
   // [50, step5,  "Creating dirt/grass patches...", {}],
-  // [55, step6,  "Creating stone/metal mines...",  {}],
+  [55, step6,  "Creating stone/metal mines...",  {}],
   // [65, step7,  "Creating decoration...",         {}],
   // [70, step8,  "Creating animals...",            {}],
   // [75, step9,  "Creating fruits...",             {}],
-  // [85, step10, "Creating straggler trees...",    {}],
+  [85, step10, "Creating straggler trees...",    {}],
 ];
 
 function tab (s,l){l=l||4;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);}
@@ -505,6 +524,9 @@ sequence.forEach(function (task){
   task[1](task[3]);
   print("  " + tab(Date.now() - t0) + " -> " + task[2] + "\n");
 });
+
 print("------: finished: brainland (" + sequence.length + " steps in " + ((Date.now() - tt)/1000).toFixed(1) + " secs) ### ---\n");
+
+// print(JSON.stringify(g_MapSettings, null, "  "));
 
 ExportMap();

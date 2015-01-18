@@ -6,6 +6,10 @@
 		"BaseTerrain" : ["medit_sea_depths"],
 		"BaseHeight" : 3,
 		"CircularMap" : true,
-		"XXXXXX" : "Optionally define other things here, like we would for a scenario"
+		"XXXXXX" : "Optionally define other things here, like we would for a scenario",
+    "TriggerScripts": [
+      "scripts/TriggerHelper.js",
+      "random/brainland_triggers.js"
+    ]
 	}
 }
