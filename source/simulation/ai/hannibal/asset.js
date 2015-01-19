@@ -115,10 +115,7 @@ HANNIBAL = (function(H){
     // events
     listener: function(msg){
 
-      var 
-        dslItem, dslAttacker, tpln, ids, 
-        id = msg.id, 
-        dsl = this.groups.dsl;
+      var dslItem, dslAttacker, tpln, ids, id = msg.id;
 
       if (msg.name === "OrderReady"){
 
@@ -138,6 +135,8 @@ HANNIBAL = (function(H){
 
           } else {
 
+            // verbs = train, build
+
             ids = [id];
             tpln = this.entities[id]._templateName;
             this.resources.push(id);
@@ -148,13 +147,13 @@ HANNIBAL = (function(H){
 
           }
 
-          this.deb("   AST: OrderReady: %s ids: [%s], tpl: %s", this.verb, ids, tpln);
+          // this.deb("   AST: OrderReady: %s ids: [%s], tpl: %s", this.verb, ids, tpln);
 
           dslItem = {
             name:        "item",
             resources:   ids, 
-            ispath:      tpln.contains("path"),
-            isresource:  tpln.contains("resources"),
+            // ispath:      tpln.contains("path"),
+            // isresource:  tpln.contains("resources"),
             foundation:  tpln.contains("foundation"),
             toString :   () => H.format("[dslobject item[%s]]", id)
           };
@@ -205,8 +204,9 @@ HANNIBAL = (function(H){
 
         } else if (msg.name === "EntityRenamed") {
 
-          H.remove(this.resources, id);
-          this.resources.push(msg.id2);
+          H.substitute(this.resources, msg.id, msg.id2);
+          // H.remove(this.resources, id);
+          // this.resources.push(msg.id2);
 
 
         } else if (msg.name === "ConstructionFinished") {

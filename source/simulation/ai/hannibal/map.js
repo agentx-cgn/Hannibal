@@ -187,14 +187,19 @@ HANNIBAL = (function(H){
     },
     finalize: function(){
 
-      var coords, field, test;
+      var 
+        field, 
+        [x, z] = this.mapPosToGridCoords(this.entities[this.villages.main].position()),
+        data   = this.regionsland.data,
+        reg    = data[x + z * this.regionsland.size];
 
-      coords = this.mapPosToGridCoords(this.entities[this.villages.main].position());
+      this.deb("   MAP: finalize: terrain x/z: %s/%s, size: %s, length: %s", x, z, this.terrain.size, this.terrain.length);
+      this.deb("   MAP: finalize: land    x/z: %s/%s, size: %s, length: %s", x, z, this.regionsland.size, this.regionsland.length);
 
-      this.deb("   MAP: finalize: terrain coords: %s, size: %s, length: %s", coords, this.terrain.size, this.terrain.length);
-      this.deb("   MAP: finalize: land    coords: %s, size: %s, length: %s", coords, this.regionsland.size, this.regionsland.length);
+      field = H.AI.FlowField.create(this.terrain, x, z, function(index){
+        return data[index] === reg ? 1 : 0;
+      });
 
-      field = H.AI.FlowField.create(this.terrain, this.regionsland, coords);
       this.effector.dumparray("flowfield", field, this.gridsize, this.gridsize, 255);
 
     },

@@ -685,20 +685,15 @@ HANNIBAL = (function(H){
 
   H.AI.FlowField = {
 
-    create: function(terrain, regions, coords){
+    create: function(terrain, x, z, fnGraphInit){
 
       // creates flow field to the point in coords
       // for region around point using terrain
 
       var 
-        [x, z] = coords,
-        size   = terrain.size,
-        field  = new Uint8Array(terrain.length),
-        reg    = regions.data[x + z * size],
-        graph  = new H.AI.GraphFromFunction(terrain, function(idx){
-          // only given region, otherwise walls
-          return regions.data[idx] === reg ? 1 : 0;
-        });
+        size  = terrain.size,
+        field = new Uint8Array(terrain.length),
+        graph = new H.AI.GraphFromFunction(terrain, fnGraphInit);
 
       H.AI.FlowField.calcDistances(graph, x, z);
       H.AI.FlowField.calcField(graph.grid, field, size);

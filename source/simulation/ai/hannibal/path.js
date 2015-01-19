@@ -17,8 +17,10 @@ HANNIBAL = (function(H){
     PIH = Math.PI / 2,
     RADDEG = Math.PI / 180,
     DEGRAD = 1 / RADDEG,
+    SQRT2  = Math.sqrt(2),
     sin = Math.sin,
-    cos = Math.cos;
+    cos = Math.cos,
+    sqrt = Math.sqrt;
 
   function loop (n, fn){for (var i=0; i<n; i++){fn(i);}}
 
@@ -142,7 +144,7 @@ HANNIBAL = (function(H){
       });
 
     },
-    translate: function(x, z){
+    translate: function(x=0, z=0){
 
       // displaces all point by x, z 
 
@@ -197,6 +199,32 @@ HANNIBAL = (function(H){
           sinr * (p[n][0] - cx) + cosr * (p[n][1] - cy) + cy, 
         ];
       });
+
+    },
+    square: function(distance=4){
+
+      // formats points into a square,
+      // respects point distance
+
+      var
+        x, y, p = this.path,
+        [cx, cy]  = this.getCenter(),
+        w = ~~(p.length / sqrt(p.length)),
+        h = ~~(p.length / w),
+        rest = p.length % w;
+
+      this.path = [];
+
+      for(x = 0; x < w; x++){
+        for(y = 0; y < h; y++){
+          this.path.push([cx - (~~(w / 2) + x) * distance, cy - (~~(h / 2) + y) * distance]); 
+      }}
+
+      for(x = 0; x < rest; x++){
+        this.path.push([cx - (~~(w / 2) + x) * distance, cy - (~~(h / 2) + y) * distance]);      
+      }
+
+      // this.log("square.out");
 
     },
     linspace: function(pt1, pt2){

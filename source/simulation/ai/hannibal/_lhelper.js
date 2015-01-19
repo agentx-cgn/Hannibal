@@ -141,6 +141,7 @@ H.extend(H, {
     // check: http://stackoverflow.com/a/18885102/515069
     var i=0,o=0;while(a[i]!==undefined){if(fn(a[i])){a.splice(i,1);o++;}else{i++;}}return o;
   },
+  substitute: function (a, b, c){a.splice(a.indexOf(b), 1, c);},
   contains:   function (a, e){return a.indexOf(e)!==-1;},
   toFixed:    function (a, n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
   rotate:     function (a, n){n = n % a.length; return a.concat(a.splice(0,n));},
