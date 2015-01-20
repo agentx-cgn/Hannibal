@@ -157,7 +157,7 @@ HANNIBAL = (function(H){
       // in a script world is asked to register a noun
       // dsl callbacks handler with actor/instance and noun
 
-      this.deb("  GRPS: nounify %s %s, def: %s, size: %s", instance, noun, world[noun], world[noun].size);
+      // this.deb("  GRPS: nounify %s %s, def: %s, size: %s", instance, noun, world[noun], world[noun].size);
 
       if (instance === world[noun]){
         // special case group !== asset
@@ -252,7 +252,7 @@ HANNIBAL = (function(H){
     // },
     findAsset: function (idOrFn){
 
-      // deb("findAsset: %s", uneval(idOrFn));
+      // this.deb("findAsset: %s", uneval(idOrFn));
 
       var 
         i, a, il, al, asset, 
@@ -265,9 +265,9 @@ HANNIBAL = (function(H){
         for (a=0; a<al; a++){
 
           asset = this.instances[i].assets[a];
-          // deb("findAsset: try %s, %s", asset.id, asset);
+          // this.deb("findAsset: try %s, %s", asset.id, asset);
           if (fn(asset)){
-            // deb("findAsset: found %s, %s", asset.id, asset);
+            // this.deb("findAsset: found %s, %s", asset.id, asset);
             return asset;
           }
 
@@ -313,7 +313,7 @@ HANNIBAL = (function(H){
 
       asset.activate();
 
-      this.deb("  GRPS: createAsset: %s, res: %s", asset, uneval(asset.resources));
+      // this.deb("  GRPS: createAsset: %s, res: %s", asset, uneval(asset.resources));
       
       return asset;
     },   
@@ -342,7 +342,7 @@ HANNIBAL = (function(H){
           }
         });
 
-        // deb("   AST: getAssetVerb: chose %s for %s", verb, definition[1]);
+        // this.deb("  GRPS: getAssetVerb: chose %s for %s", verb, definition[1]);
 
         return verb;
 
@@ -405,7 +405,7 @@ HANNIBAL = (function(H){
       instance.structure = ["private", nodename];
       instance.register("structure");
       
-      // deb("  GRPS: appointed %s for %s, cc: %s", instance.name, this.entities[id], config.cc);
+      // this.deb("  GRPS: appointed %s for %s, cc: %s", instance.name, this.entities[id], config.cc);
 
       return instance;
 
@@ -460,13 +460,9 @@ HANNIBAL = (function(H){
     claim: function( /* instance */ ){},
     request: function(instance, amount, asset, position){
       
-      // H.logObject(instance, "instance");
-      // H.logObject(asset, "asset");
-      // H.logObject(position, "position");
-
       if (!(instance && amount && asset.id && position.length === 2)){
 
-        H.throw("groups.request fails: %s, %s, %s, %s", instance, amount, asset, position);
+        H.throw("groups.request incomplete: %s, %s, %s, %s", instance, amount, asset, position);
 
       }
 
@@ -573,7 +569,7 @@ HANNIBAL = (function(H){
       }
 
       // log before launching
-      // deb("   GRP: launch %s args: %s", instance, uneval(config));
+      // this.deb("   GRP: launch %s args: %s", instance, uneval(config));
 
       // call dsl to run with world, actor, function and params
       this.callWorld(instance, "launch", [config]);

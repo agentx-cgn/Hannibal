@@ -511,7 +511,7 @@ HANNIBAL = (function(H){
             case "json":
               deb("     n: %s | %s", t(node.id || "T", 3), node.name);
               H.each(node, function(prop, value){
-                deb("      : p:  %s: %s", prop, H.prettify(value));
+                deb("      : p:  %s: %s", prop, uneval(value));
               });
 
             break;

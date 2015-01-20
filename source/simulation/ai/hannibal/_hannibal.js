@@ -89,6 +89,7 @@ var HANNIBAL = (function() {
     finalize: function(){return this;},
     activate: function(){return this;},
     import: function(){
+      this.context.importer.add(this); //~~??
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },

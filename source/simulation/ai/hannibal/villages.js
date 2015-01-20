@@ -269,3 +269,31 @@ HANNIBAL = (function (H){
   });
 
 return H; }(HANNIBAL));  
+
+// "structures/athen_wallset_stone": {
+//   "@parent": "template_structure_defense_wallset",
+//   "Identity": {
+//     "Civ": "athen",
+//     "Classes": {
+//       "@datatype": "tokens",
+//       "_string": "Town StoneWall"
+//     },
+//     "GenericName": "City Wall",
+//     "History": "All Hellenic cities were surrounded by stone walls for protection against enemy raids. Some of these fortifications, like the Athenian Long Walls, for example, were massive structures.",
+//     "Icon": "structures/wall.png",
+//     "RequiredTechnology": "phase_town",
+//     "SpecificName": "TeÃ®khos",
+//     "Tooltip": "Wall off your town for a stout defense."
+//   },
+//   "WallSet": {
+//     "MaxTowerOverlap": "0.90",
+//     "MinTowerOverlap": "0.05",
+//     "Templates": {
+//       "Gate": "structures/athen_wall_gate",
+//       "Tower": "structures/athen_wall_tower",
+//       "WallLong": "structures/athen_wall_long",
+//       "WallMedium": "structures/athen_wall_medium",
+//       "WallShort": "structures/athen_wall_short"
+//     }
+//   }
+// },

@@ -20,6 +20,10 @@ HANNIBAL = (function(H){
 
       context: context,
 
+      klass:    "grid",
+      parent:   context,
+      // name:     context.name + ":grid:" + this.title, comes in initialize
+
       imports: [
         "map",         // width, height
         "cellsize",
@@ -68,7 +72,7 @@ HANNIBAL = (function(H){
       this.size   = this.width;
 
       if (!this.data){
-        this.title  = config.title || "grid" + this.context.idgen++;
+        this.name   = this.context.name + ":grid:" + config.title || "grid" + this.context.idgen++;
         this.bits   = config.bits  || "c8";
         this.data   = new Uint8ClampedArray(this.width * this.height);
       }

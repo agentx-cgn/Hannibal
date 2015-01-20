@@ -20,6 +20,10 @@ HANNIBAL = (function(H){
 
       context: context,
 
+      klass:    "bot",
+      parent:   context,
+      name:     H.format("%s:%s#%s", context.name, "bot", context.id),
+
       imports: [
         "id",
         "player",
@@ -38,8 +42,6 @@ HANNIBAL = (function(H){
       ],
 
     });
-
-    this.name = H.format("%s:%s#%s", this.context.name, "bot", this.context.id);
 
   };
 

@@ -146,15 +146,21 @@ HANNIBAL = (function(H) {
 
     /* testing triple store */
     this.context.culture.debug = 5;
-    // this.context
-    //   .query(this.context.class2name("civilcentre") + " RESEARCH")
-    //   .params({format: "metadata", deb: 5, debmax: 10, comment: "next phases"});
-    //   .execute();
+
+    this.context
+      // .query("stonewall CONTAIN")
+      .query("structures.athen.wall.tower")
+      // .query("structures.athen.wallset.stone MEMBER")
+      // .parameter({format: "metadata", deb: 5, debmax: 10, comment: "next phases"})
+      .parameter({fmt: "json", deb: 5, max: 10, cmt: "launcher.CustomInit"})
+      .execute()
+    ;
+    
     this.context.culture.debug = 0;
     /* end testing triple store */
 
 
-    // H.Config.deb = 0; // suppress further log line
+    // H.Config.deb = 0; // suppress further log lines
 
     this.initialized = true;
 

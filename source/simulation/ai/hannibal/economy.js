@@ -23,6 +23,11 @@ HANNIBAL = (function(H){
     H.extend(this, {
 
       context:  context,
+
+      klass:    "stats",
+      parent:   context,
+      name:     context.name + ":stats",
+
       imports:  [
         "player"
       ],
@@ -125,6 +130,10 @@ HANNIBAL = (function(H){
     H.extend(this, {
 
       context: context,
+
+      klass:    "producers",
+      parent:   context,
+      name:     context.name + ":producers",
 
       imports: [
         "query",
@@ -408,6 +417,10 @@ HANNIBAL = (function(H){
 
       context: context,
 
+      klass:    "order",
+      parent:   context,
+      // name:     comes in init
+
       imports: [
         "bot",
         "economy",
@@ -436,6 +449,7 @@ HANNIBAL = (function(H){
         x:          order.location ? order.location[0] : NaN,
         z:          order.location ? order.location[1] : NaN,
       });
+      this.name = H.format("%s:order#%s", this.context.name, this.id);
       return this;
     },
     serialize: function(){
@@ -513,15 +527,27 @@ HANNIBAL = (function(H){
             phase  = this.culture.tree.nodes[node.name].phase,
             phases = this.culture.phases;
           
-          if (phases.find(phase).idx > phases.find(phases.current).idx){
+          if (!phases.achieved(phase)){
             node.qualifies = false; 
             node.info = "needs phase " + phase; 
+            this.deb("   ORD: #%s needs phase %s | %s > %s", 
+              this.id, 
+              phase, 
+              phases.find(phase).idx,
+              phases.find(phases.current).idx
+            );
+            return;
+          }
+
+          // req might be phase
+          if (phases.achieved(req)){
             return;
           }
 
           if (req && !this.technologies.available([req])){
             node.qualifies = false; 
             node.info = "needs req " + req; 
+            this.deb("   ORD: #%s needs req %s", this.id, req);
             return;
           }
 
@@ -552,6 +578,7 @@ HANNIBAL = (function(H){
 
         } else {
           // too bad
+          this.deb("###########'WTF");
         }
 
       }
@@ -631,6 +658,10 @@ HANNIBAL = (function(H){
     H.extend(this, {
 
       context:  context,
+
+      klass:    "orderqueue",
+      parent:   context,
+      name:     context.name + ":producers",
 
       imports:  [
         "economy",
@@ -850,7 +881,7 @@ HANNIBAL = (function(H){
 
     }, logTick: function(){
 
-      this.childs.forEach(child => this[child].logTick());
+      // this.childs.forEach(child => this[child].logTick());
       
       // var 
       //   stock = this.stats.stock, 

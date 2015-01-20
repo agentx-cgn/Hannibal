@@ -13,15 +13,15 @@
 HANNIBAL = (function(H){
 
   const 
-    PI  = Math.PI,
-    TAU = Math.PI * 2,
-    PI2 = Math.PI / 2,
+    PI     = Math.PI,
+    TAU    = Math.PI * 2,
+    PI2    = Math.PI / 2,
     RADDEG = Math.PI / 180,
     DEGRAD = 1 / RADDEG,
     SQRT2  = Math.sqrt(2),
-    sin  = Math.sin,
-    cos  = Math.cos,
-    sqrt = Math.sqrt;
+    sin    = Math.sin,
+    cos    = Math.cos,
+    sqrt   = Math.sqrt;
 
   // helper
   function loop (n, fn){for (var i=0; i<n; i++){fn(i);}}
@@ -112,6 +112,7 @@ HANNIBAL = (function(H){
           loop(num, n => {
             this.path[n] = [0, 0];
           });
+          this.center = [0, 0];
 
         // check for method
         } else if (this[car]){

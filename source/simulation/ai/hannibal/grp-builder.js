@@ -99,6 +99,7 @@ HANNIBAL = (function(H){
           // got unit, send to repair
           w.item.on
             .member(w.item)
+            .gt(w.buildings.count, 0)
             .repair(w.buildings)  
           ;
 

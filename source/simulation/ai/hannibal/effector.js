@@ -20,6 +20,10 @@ HANNIBAL = (function(H){
 
       context: context,
 
+      klass:    "effector",
+      parent:   context,
+      name:     context.name + ":effector",
+
       imports: [
         "id",
         "map",

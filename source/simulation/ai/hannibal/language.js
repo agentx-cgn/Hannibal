@@ -71,12 +71,15 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
+      context:  context,
+
+      klass:    "dsl:language",
+      parent:   context,
+      name:     context.name + ":language:" + corpus,
+
       imports: [
         "map"
       ],
-
-      klass:         "dsl:language",
-      context:       context,
 
       corpusname:    corpus,
       corpus:        H.DSL.Corpora[corpus],
@@ -89,7 +92,6 @@ HANNIBAL = (function(H){
 
     });
 
-    this.name = H.format("language:%s", corpus);
     this.deb("  LANG: loaded corpus: %s", this.corpusname);
 
   };
@@ -275,7 +277,7 @@ HANNIBAL = (function(H){
       });
     },
     setgetter:  function(world, method, fn){
-      this.deb("   DSL: setgetter: %s", method);
+      // this.deb("   DSL: setgetter: %s", method);
       // this.deb("   DSL: setverb: %s", method);
       world[method] = () => {
         var args = H.toArray(arguments); //, world = this.world;

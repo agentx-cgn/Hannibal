@@ -120,10 +120,8 @@ HANNIBAL = (function(H){
           //  if complete and idle, change path and spread
           w.units.on
             .doing("idle")
-            .echo("FIRST STEP")
             .match(w.units.count, w.units.size)
-            .echo("NEXT STEP")
-            .path.do.modify("rotate 90; translate 10 0")
+            .path.do.modify("rotate 90")
             .units.do.spread(w.path)
           ;
 

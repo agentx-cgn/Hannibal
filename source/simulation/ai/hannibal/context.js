@@ -52,15 +52,15 @@ HANNIBAL = (function(H){
     ];
 
     // this props need an update each tick, because sharedscript changed
-    this.updates = [
-      "timeElapsed",
-      "territory",
-      "passability",
-      "passabilityClasses",
-      "techtemplates",
-      "player",
-      "players",
-    ];
+    // this.updates = [
+    //   "timeElapsed",
+    //   "territory",
+    //   "passability",
+    //   "passabilityClasses",
+    //   "techtemplates",
+    //   "player",
+    //   "players",
+    // ];
 
     // action sequence to launch serializers
     this.sequence = [
@@ -87,6 +87,9 @@ HANNIBAL = (function(H){
       // "brain", 
       // "bot", 
     ];
+
+    // importer register here to update later on ticks
+    this.importer = new Set();
 
     // set initial properties
     H.extend(this, this.defaults, {data: {}});
@@ -263,12 +266,15 @@ HANNIBAL = (function(H){
     connectEngine: function(launcher, gameState, sharedScript, settings){
 
       var 
+        t0, item,
         ss = sharedScript,
         gs = gameState, 
         entities = gs.entities._entities,
         sanitize = H.saniTemplateName;
 
       this.updateEngine = sharedScript => {
+
+        t0 = Date.now();
 
         // this.updates is here relevant
 
@@ -285,6 +291,15 @@ HANNIBAL = (function(H){
         this.player             = ss.playersData[this.id];
         this.players            = ss.playersData;
         // this.metadata           = ss._entityMetadata[this.id];
+
+        // escalate down
+        for (item of this.importer){
+          if (!item.name || !item.klass){
+            this.deb("   CTX: update import, unknown: %s", H.attribs(item));
+          }
+          item.import();
+        }
+
       };
 
       H.extend(this, {
@@ -311,7 +326,7 @@ HANNIBAL = (function(H){
 
         // API read only, dynamic
         entities:            entities,
-        modifications:       ss._techModifications,
+        modifications:       ss._techModifications[settings.player],
         player:              ss.playersData[settings.player],
         players:             ss.playersData,
 
@@ -347,7 +362,10 @@ HANNIBAL = (function(H){
         // API ro/dynamic
         // try to get all tech funcs here
         technologies:       new Proxy({}, {get: (proxy, name) => { return (
-          name === "available" ? techname => Object.keys(this.modifications).map(sanitize).some(t => t === techname) :
+          name === "available" ? techname => {
+            
+            Object.keys(this.modifications).map(sanitize).some(t => t === techname)
+          } :
           name === "templates" ? techname => ss._techTemplates[sanitize(techname)] :
               undefined
         );}}),

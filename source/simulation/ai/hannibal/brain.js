@@ -83,9 +83,6 @@ HANNIBAL = (function(H){
 
   };
 
-  function class2name (klass) {return H.QRY(klass + " CONTAIN").first().name;}
-
-
   H.LIB.Goals = function(context){
 
     H.extend(this, {
@@ -127,6 +124,8 @@ HANNIBAL = (function(H){
         "economy",
         "query",
         "villages",
+        "player",
+        "modifications",
       ],
 
     });
@@ -140,7 +139,14 @@ HANNIBAL = (function(H){
     activate: function(){
 
       this.events.on("Advance", msg => {
-        this.deb(" BRAIN: onAdvance: %s", msg.data.technology);
+        // this.deb(" BRAIN: onAdvance: %s", msg.data.technology);
+
+        // this.deb(" BRAIN: _techModifications: [%s]", H.attribs(this.modifications).join(", "));
+        // this.deb(" BRAIN:     researchQueued: [%s]", H.attribs(this.player.researchQueued).join(", "));
+        // this.deb(" BRAIN:    researchStarted: [%s]", H.attribs(this.player.researchStarted).join(", "));
+        // this.deb(" BRAIN:    researchedTechs: [%s]", H.attribs(this.player.researchedTechs).join(", "));
+
+
       });
 
       this.events.on("EntityAttacked", "*", msg => {

@@ -20,6 +20,10 @@ HANNIBAL = (function(H){
 
       context: context,
 
+      klass:    "phases",
+      parent:   context,
+      name:     context.name + ":phases",
+
       imports:  [
         "phase",
         "query",
@@ -30,9 +34,18 @@ HANNIBAL = (function(H){
         "class2name",
       ],
 
-      "1" : {idx: 1, abbr: "vill", next: "", generic: "phase_village", alternates: ["vill", "phase_village"]},
-      "2" : {idx: 2, abbr: "town", next: "", generic: "phase_town",    alternates: ["town", "phase_town"]},
-      "3" : {idx: 3, abbr: "city", next: "", generic: "phase_city",    alternates: ["city", "phase_city"]},
+      "1" : {
+        idx: 1, abbr: "vill", next: "", generic: "phase_village", 
+        alternates: ["vill", "phase.village", "phase_village"]},
+
+      "2" : {
+        idx: 2, abbr: "town", next: "", generic: "phase_town",    
+        alternates: ["town", "phase.town", "phase_town"]},
+
+      "3" : {
+        idx: 3, abbr: "city", next: "", generic: "phase_city",    
+        alternates: ["city", "phase.city", "phase_city"]},
+        
       current: "",
 
     });
@@ -95,9 +108,12 @@ HANNIBAL = (function(H){
       this.events.on("Advance", msg => {
         var phase;
         if ((phase = this.find(msg.data.key))){
-          this.context.phase = phase.idx;
-          this.current = phase.abbr;
-          this.deb("PHASES: onAdvance: set new phase %s", this.current);
+          if (phase.idx > this.find(this.current).idx){
+            this.context.phase = phase.idx;
+            this.current = phase.abbr;
+            this.deb("PHASES: onAdvance: new phase: '%s'", this.current);
+            this.log();
+          }
         }
       });      
     },
@@ -110,6 +126,15 @@ HANNIBAL = (function(H){
       } 
       return undefined; //H.throw("phases.find: '%s' unknown", phase);
     },
+    achieved: function(phase){
+      var test;
+      if ((test = this.find(phase)) && test.idx <= this.find(this.current).idx){
+        return true;
+      } else {
+        this.deb("PHASES: achieved test: %s, curr: %s", test, this.find(this.current).idx);
+        return false;
+      }
+    }
 
   });
 
@@ -117,7 +142,11 @@ HANNIBAL = (function(H){
 
     H.extend(this, {
 
-      context: context,
+      context:  context,
+
+      klass:    "tree",
+      parent:   context,
+      name:     context.name + ":tree",
 
       imports:  [
         "id",
@@ -209,7 +238,8 @@ HANNIBAL = (function(H){
 
         this.sources = [].concat(
           H.attribs(this.player.researchedTechs), 
-          H.attribs(this.modifications[this.id]),
+          // H.attribs(this.modifications[this.id]),
+          H.attribs(this.modifications),
           H.attribs(this.entities)
             .filter(id => this.entities[id].owner() === this.id)
             .map(id => this.entities[id]._templateName)
@@ -642,6 +672,8 @@ HANNIBAL = (function(H){
     },
     activate: function (){
 
+      this.phases.activate();
+
       this.events.on("EntityCreated", msg => {
         this.loadById(msg.id);
       });
@@ -916,7 +948,7 @@ HANNIBAL = (function(H){
           id        : ~~id || undefined,
           civ       : H.test(template, "Identity.Civ"), // this.getCivilisation(template),
           info      : this.getInfo(template),
-          icon      : (!!template.Identity && template.Identity.Icon) ? template.Identity.Icon : undefined,       // tech
+          // icon      : (!!template.Identity && template.Identity.Icon) ? template.Identity.Icon : undefined,       // tech
           size      : this.getSize(template),
           costs     : this.getCosts(template),
           speed     : this.getSpeed(template),
@@ -965,28 +997,41 @@ HANNIBAL = (function(H){
 
       Object.defineProperties(node, {
         "position": {enumerable: true, get: function(){
-          var pos = entities[id].position();
-          return pos;
+          return (
+            entities[id] ? 
+            entities[id].position() : 
+            undefined
+          );
         }},
         "metadata": {enumerable: true, get: function(){
-          var meta = metadata[id];
-          return (meta === Object(meta)) ? meta : {};
+          return (
+            metadata[id] ?
+            metadata[id] :
+            undefined
+          );
         }},
         "slots": {enumerable: true, get: function(){
-          if (!node.capacity){
-            this.deb("WARN  : node.slots on invalid id: %s, tpl: %s", id, entities[id].templateName() || "???");
-            return undefined;
-          }
-          var freeSlots = node.capacity - entities[id].garrisoned.length;
-          return freeSlots;
+          return (
+            node.capacity ? 
+            node.capacity - entities[id].garrisoned.length :
+            undefined
+          );
         }},          
         "state": {enumerable: true, get: function(){
-          var state = entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase();
-          return state;
+          return (
+            entities[id] &&
+            entities[id].unitAIState() ? 
+            entities[id].unitAIState().split(".").slice(-1)[0].toLowerCase() :
+            undefined
+          );
+
         }},
         "health": {enumerable: true, get: function(){
-          var ent = entities[id];
-          return Math.round(ent.hitpoints() / ent.maxHitpoints()); // propbably slow
+          return (
+            entities[id] ? 
+            Math.round(entities[id].hitpoints() / entities[id].maxHitpoints()) :
+            undefined
+          );
         }}
       });
     },
