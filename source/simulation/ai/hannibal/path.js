@@ -13,15 +13,17 @@
 HANNIBAL = (function(H){
 
   const 
-    PI2 = Math.PI * 2,
-    PIH = Math.PI / 2,
+    PI  = Math.PI,
+    TAU = Math.PI * 2,
+    PI2 = Math.PI / 2,
     RADDEG = Math.PI / 180,
     DEGRAD = 1 / RADDEG,
     SQRT2  = Math.sqrt(2),
-    sin = Math.sin,
-    cos = Math.cos,
+    sin  = Math.sin,
+    cos  = Math.cos,
     sqrt = Math.sqrt;
 
+  // helper
   function loop (n, fn){for (var i=0; i<n; i++){fn(i);}}
 
   H.LIB.Path = function(context, definition){
@@ -34,14 +36,18 @@ HANNIBAL = (function(H){
 
     // this.deb("  PATH: new def: %s", definition);
 
-    this.theta = this.villages.theta;
-    this.path = [];
+    this.path = [];                         // stores the coords
+
+    this.theta       = this.villages.theta; // rads from cc to map center
+    this.orientation = this.theta;          // rads
+    this.center = 0;
 
     if (typeof definition === "string"){
       this.modify(definition);
 
     } else if (Array.isArray(definition)){
       this.path = definition;
+      this.center = this.getCenter();
 
     } else {
       H.throw("PATH: can't handle this: %s", definition);
@@ -55,38 +61,36 @@ HANNIBAL = (function(H){
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Path,
     log: function(msg){
+
       var p = this.path.map(c => c.map(Math.round));
       this.deb("  PATH: %s, %s, %s", msg, this.path.length, p);
-    },
-    append: function(path){
+
+    }, append: function(path){
+
       this.path.concat(path);
-    },
 
-    // helper
+    }, sanitize: function(definition){
 
-    sanitize: function(definition){
       return (
         definition
-          // .split("{").join("")
-          // .split("}").join("")
-          // .split(",").join("")
-          // .split("[").join("")
-          // .split("]").join("")
           .split(";")
           .filter(s => !!s)
           .map(String.trim)
       );
-    }, 
+    
+    }, getCenter : function(){
 
-    getCenter : function(){
       var p = this.path;
-      // this.deb("  PATH: getCenter: have %s", uneval(this.path));
-      return p.reduce( (a, b) => [ a[0] + b[0], a[1] + b[1] ], [0, 0] ).map( n => n / p.length);
-    },
+
+      return (
+        p.reduce( (a, b) => [ a[0] + b[0], a[1] + b[1] ], [0, 0] )
+        .map( n => n / p.length)
+      );
+
 
     // methods availabale by path script
 
-    modify: function(definition){
+    }, modify: function(definition){
 
       // parse path script e.g. "8; center 7 8; circle 9; translate 13 14"
 
@@ -103,8 +107,6 @@ HANNIBAL = (function(H){
         num  = ~~list[0];
         cdr  = list.slice(1);
 
-        // this.deb("  PATH: car: %s, cdr: %s", uneval(car), uneval(cdr));
-        
         // check for integer > 0
         if (H.isInteger(num) && num > 0){
           loop(num, n => {
@@ -127,14 +129,13 @@ HANNIBAL = (function(H){
 
       return this;
 
-    },
-    circle: function(radius){
+
+    }, circle: function(radius){
 
       var 
         p = this.path,
-        n = p.length,
-        s = PI2 / n,
-        org  = this.getCenter();
+        s = PI2 / p.length,
+        org  = this.center;
 
       loop(p.length, n => {
         p[n] = [ 
@@ -143,31 +144,37 @@ HANNIBAL = (function(H){
         ];
       });
 
-    },
-    translate: function(x=0, z=0){
+
+    }, translate: function(x=0, z=0){
 
       // displaces all point by x, z 
 
-      var p = this.path;
+      var p = this.path, org = this.center;
 
       // this.log("translate.in");
 
       loop(p.length, n => {
-        p[n] = [ p[n][0] + x, p[n][1] + z ];
+        p[n] = [
+          p[n][0] + x, 
+          p[n][1] + z 
+        ];
       });
+
+      this.center = [org[0] + x, org[1] + z];
 
       // this.log("translate.out");
 
-    },
-    translatep: function(angle, radius){
+
+    }, translatep: function(angle, radius){
+
+      // displaces all point in polar system
 
       var
         p    = this.path,
-        rads = angle * RADDEG + this.theta,
+        rads = (angle * RADDEG + this.theta) % TAU,
         sinr = sin(rads),
-        cosr = cos(rads);
-
-      // displaces all point in polar system
+        cosr = cos(rads),
+        [cx, cz] = this.center;
 
       // this.log("translatep.in");
 
@@ -178,71 +185,85 @@ HANNIBAL = (function(H){
         ];
       });
 
+      this.center = [cx + radius * cosr, cz + radius * sinr];
+
       // this.log("translatep.out");
 
-    },
-    rotate: function(angle){
+
+    }, rotate: function(angle){
 
       // rotates path counter clockwise around its center by angle (degrees)
       // http://www.gamefromscratch.com/post/2012/11/24/GameDev-math-recipes-Rotating-one-point-around-another-point.aspx
 
       var 
         p = this.path,
-        [cx, cy]  = this.getCenter(),
+        [cx, cz] = this.center,
         rads = angle * RADDEG,
         sinr = sin(rads),
         cosr = cos(rads);
 
       loop(p.length, n => {
         p[n] = [
-          cosr * (p[n][0] - cx) - sinr * (p[n][1] - cy) + cx, 
-          sinr * (p[n][0] - cx) + cosr * (p[n][1] - cy) + cy, 
+          cosr * (p[n][0] - cx) - sinr * (p[n][1] - cz) + cx, 
+          sinr * (p[n][0] - cx) + cosr * (p[n][1] - cz) + cz
         ];
       });
 
-    },
-    square: function(distance=4){
+      this.orientation = (this.orientation + rads) % TAU;
 
-      // formats points into a square,
-      // respects point distance
+
+    }, square: function(distance=6){
+
+      // formats points into a square + rest using distance
 
       var
-        x, y, p = this.path,
-        [cx, cy]  = this.getCenter(),
+        x, y, p  = this.path,
+        [cx, cz] = this.center,
         w = ~~(p.length / sqrt(p.length)),
         h = ~~(p.length / w),
         rest = p.length % w;
 
+      // trash current path
       this.path = [];
 
+      // make the square
       for(x = 0; x < w; x++){
         for(y = 0; y < h; y++){
-          this.path.push([cx - (~~(w / 2) + x) * distance, cy - (~~(h / 2) + y) * distance]); 
+          this.path.push([
+            cx - (~~(w / 2) + x) * distance, 
+            cz - (~~(h / 2) + y) * distance
+          ]); 
       }}
 
+      // pos the remaining
       for(x = 0; x < rest; x++){
-        this.path.push([cx - (~~(w / 2) + x) * distance, cy - (~~(h / 2) + y) * distance]);      
+        this.path.push([
+          cx - (~~(w / 2) + x) * distance, 
+          cz - (~~(h / 2) + y) * distance
+        ]);      
       }
 
       // this.log("square.out");
 
-    },
-    linspace: function(pt1, pt2){
+
+    }, linspace: function(pt1, pt2){
 
       // puts coords evenly distributed on a straight line between pt1, pt2, 
       // including both
 
       var 
-        p = this.path,
-        sx = (pt2[0] - pt1[0]) / p.length,
-        sz = (pt2[1] - pt1[1]) / p.length;
+        p  = this.path,
+        dx = (pt2[0] - pt1[0]) / p.length,
+        dz = (pt2[1] - pt1[1]) / p.length;
 
       loop(p.length, n => {
         p[n] = [
-          pt1[0] + n * sx, 
-          pt1[1] + n * sz
+          pt1[0] + n * dx, 
+          pt1[1] + n * dz
         ];
       });
+
+      this.center = this.getCenter();
 
     },
 

@@ -16,20 +16,23 @@
 
 var tt = Date.now();
 
+RMS.LoadLibrary("rmgen");
+RMS.LoadLibrary("rmghelper");
+
 // /Daten/Projects/Osiris/ps/trunk/binaries/data/mods/public/civs[civ].json.StartEntities
 
 var START = {
   "athen" : [
       [1, "structures/athen_civil_centre"], 
       [4, "units/athen_support_female_citizen"], 
-      [2, "units/athen_infantry_spearman_b"], 
+      [10, "units/athen_infantry_spearman_b"], 
       [2, "units/athen_infantry_slinger_b"], 
       [1, "units/athen_cavalry_javelinist_b"], 
     ],
     "brit" : [
       [1, "structures/brit_civil_centre"], 
       [4, "units/brit_support_female_citizen"], 
-      [2, "units/brit_infantry_spearman_b"], 
+      [10, "units/brit_infantry_spearman_b"], 
       [2, "units/brit_infantry_slinger_b"], 
       [1, "units/brit_cavalry_javelinist_b"], 
       [1, "units/brit_war_dog_e"], 
@@ -77,52 +80,50 @@ function getCCEntities (civ, bot){
 // ]
 
 
-RMS.LoadLibrary("rmgen");
-
 //random terrain textures
 var random_terrain = randomizeBiome();
 
 const 
-  tMainTerrain = rBiomeT1(),
+  tMainTerrain  = rBiomeT1(),
   tForestFloor1 = rBiomeT2(),
   tForestFloor2 = rBiomeT3(),
-  tCliff = rBiomeT4(),
+  tCliff        = rBiomeT4(),
   tTier1Terrain = rBiomeT5(),
   tTier2Terrain = rBiomeT6(),
   tTier3Terrain = rBiomeT7(),
-  tHill = rBiomeT8(),
+  tHill         = rBiomeT8(),
   // tDirt = rBiomeT9(),
-  tRoad = rBiomeT10(),
-  tRoadWild = rBiomeT11(),
+  tRoad         = rBiomeT10(),
+  tRoadWild     = rBiomeT11(),
   tTier4Terrain = rBiomeT12(),
   // tShoreBlend = rBiomeT13(),
   // tShore = rBiomeT14(),
   // tWater = rBiomeT15(),
 
   // gaia entities
-  oTree1 = rBiomeE1(),
-  oTree2 = rBiomeE2(),
-  oTree3 = rBiomeE3(),
-  oTree4 = rBiomeE4(),
-  oTree5 = rBiomeE5(),
-  oFruitBush = rBiomeE6(),
-  oChicken = rBiomeE7(),
+  oTree1        = rBiomeE1(),
+  oTree2        = rBiomeE2(),
+  oTree3        = rBiomeE3(),
+  oTree4        = rBiomeE4(),
+  oTree5        = rBiomeE5(),
+  oFruitBush    = rBiomeE6(),
+  oChicken      = rBiomeE7(),
   oMainHuntableAnimal = rBiomeE8(),
   // oFish = rBiomeE9(),
   oSecondaryHuntableAnimal = rBiomeE10(),
-  oStoneLarge = rBiomeE11(),
-  oStoneSmall = rBiomeE12(),
-  oMetalLarge = rBiomeE13(),
+  oStoneLarge   = rBiomeE11(),
+  oStoneSmall   = rBiomeE12(),
+  oMetalLarge   = rBiomeE13(),
 
   // decorative props
-  aGrass = rBiomeA1(),
-  aGrassShort = rBiomeA2(),
+  aGrass        = rBiomeA1(),
+  aGrassShort   = rBiomeA2(),
   // aReeds = rBiomeA3(),
   // aLillies = rBiomeA4(),
-  aRockLarge = rBiomeA5(),
-  aRockMedium = rBiomeA6(),
-  aBushMedium = rBiomeA7(),
-  aBushSmall = rBiomeA8(),
+  aRockLarge    = rBiomeA5(),
+  aRockMedium   = rBiomeA6(),
+  aBushMedium   = rBiomeA7(),
+  aBushSmall    = rBiomeA8(),
 
   pForest1 = [tForestFloor2 + TERRAIN_SEPARATOR + oTree1, tForestFloor2 + TERRAIN_SEPARATOR + oTree2, tForestFloor2],
   pForest2 = [tForestFloor1 + TERRAIN_SEPARATOR + oTree4, tForestFloor1 + TERRAIN_SEPARATOR + oTree5, tForestFloor1],
@@ -150,13 +151,13 @@ var
 
 // create tile classes
 var 
-  clPlayer = createTileClass(),
-  clHill = createTileClass(),
-  clForest = createTileClass(),
+  clPlayer  = createTileClass(),
+  clHill    = createTileClass(),
+  clForest  = createTileClass(),
   // clWater = createTileClass(),
-  clRock = createTileClass(),
-  clMetal = createTileClass(),
-  clFood = createTileClass(),
+  clRock    = createTileClass(),
+  clMetal   = createTileClass(),
+  clFood    = createTileClass(),
   clBaseResource = createTileClass();
   // clSettlement = createTileClass();
 
@@ -264,11 +265,13 @@ function step3  (/* options */) {
       // Place default civ starting entities
       // var civEntities = getStartingEntities(playerid-1);
       var civEntities = getCCEntities(civ, playerid-1);
-      var uDist = 6;
+      var uDist = 16;
       var uSpace = 2;
 
+      // CC
       placeObject(fx, fz, civEntities[0].Template, playerid, angle);
       
+      // all other
       for (var j = 1; j < civEntities.length; ++j){
 
         var uAngle = angle - PI * (2-j) / 2;
@@ -278,6 +281,9 @@ function step3  (/* options */) {
           var ux = fx + uDist * cos(uAngle) + numberofentities * uSpace * cos(uAngle + PI/2) - (0.75 * uSpace * floor(count / 2) * cos(uAngle + PI/2));
           var uz = fz + uDist * sin(uAngle) + numberofentities * uSpace * sin(uAngle + PI/2) - (0.75 * uSpace * floor(count / 2) * sin(uAngle + PI/2));
           placeObject(ux, uz, civEntities[j].Template, playerid, uAngle); 
+
+          // H.deb("%s, %s, %s, %s, %s", ux, uz, civEntities[j].Template, playerid, uAngle)
+
         }
       }
       
@@ -527,6 +533,5 @@ sequence.forEach(function (task){
 
 print("------: finished: brainland (" + sequence.length + " steps in " + ((Date.now() - tt)/1000).toFixed(1) + " secs) ### ---\n");
 
-// print(JSON.stringify(g_MapSettings, null, "  "));
 
 ExportMap();
