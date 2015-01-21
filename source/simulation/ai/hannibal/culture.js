@@ -518,6 +518,11 @@ HANNIBAL = (function(H){
             push(test);
           }
 
+          // wallset sub templates
+          if ((test = H.test(tpl, "WallSet.Templates"))){
+            H.each(test, (name, tpl) => push(tpl));
+          }
+
           // is tech
           if (tpl.supersedes){push(tpl.supersedes);}
           if (tpl.bottom){push(tpl.bottom);}
@@ -573,6 +578,9 @@ HANNIBAL = (function(H){
       technologies:  [],
       resources:     [],
       resourcetypes: [],
+
+      wallset:       [],
+      wallsettpl:    "",
 
       cntIngames:    0,
       cntNodes:      0,
@@ -660,14 +668,11 @@ HANNIBAL = (function(H){
         this.searchTemplates();          // extrcact classes, resources, etc from templates
         this.loadNodes();                // turn templates to nodes
         this.loadEdges();                // add edges
+        this.loadWallset();              // add wallset builder
         this.loadEntities();             // from game to triple store
         this.loadTechnologies();         // from game to triple store
 
       }
-
-      H.each(this.store.nodes, (name, node) => {
-        this.addNodeDynaProps(node);
-      });
 
     },
     activate: function (){
@@ -704,10 +709,42 @@ HANNIBAL = (function(H){
 
     },
 
+    loadWallset: function(){
+
+      // set wallset edges to wallset pieces too
+      // StoneWall 
+
+      var 
+        nodeTarget, nodeSource,
+        wallpiecename,  
+        verbs = "BUILD BUILDBY",
+        wallsetname = H.saniTemplateName(this.wallsettpl);
+
+      this.query(wallsetname + " BUILDBY")
+        .parameter({fmt: "meta", deb: 5, max: 10, cmt: "culture.loadWallset"})
+        .forEach( builder => {
+
+          this.wallset.forEach( piece => {
+
+            wallpiecename = H.saniTemplateName(piece);
+
+            // this.deb("src: %s => tgt: %s", builder.name, wallpiecename);
+
+            nodeSource = this.store.nodes[builder.name];
+            nodeTarget = this.store.nodes[wallpiecename];
+
+            this.store.addEdge(nodeSource, "build",    nodeTarget);
+            this.store.addEdge(nodeTarget, "buildby", nodeSource);
+
+          });
+
+        });
+
+    },
     loadNodes: function(){
 
       var 
-        self  = this, node, name, template, 
+        node, name, template, 
         sani  = H.saniTemplateName,
         counter = 0, counterTechs = 0, counterUnits = 0, counterStucs = 0,
         conf  = {
@@ -716,11 +753,11 @@ HANNIBAL = (function(H){
           "resourcetypes":  {deb: false, generic: "ResourceType",  tooltip: "something to drop elsewhere"}
         };
 
-      H.each(conf, function(type, conf){
+      H.each(conf, (type, conf) => {
 
         // load nodes collected in readTemplates
 
-        self[type].forEach(function(tpln){
+        this[type].forEach( tpln => {
 
           name = sani(tpln);
           template = {Identity: {GenericName: conf.generic, Tooltip: conf.tooltip}};
@@ -729,7 +766,7 @@ HANNIBAL = (function(H){
             template.Tooltip = H.Data.ClassInfo[name];
           }
 
-          node = self.addNode(name, tpln, template);
+          node = this.addNode(name, tpln, template);
           counter += 1;     
 
           if (conf.deb){this.deb("     C: Node added: %s for %s", name, type);}
@@ -741,11 +778,11 @@ HANNIBAL = (function(H){
       });
 
       // load nodes collected in selectTemplates
-      H.each(this.tree.nodes, function (name, template){
+      H.each(this.tree.nodes, (name, template) => {
         counterTechs += template.type === "tech" ? 1 : 0;
         counterStucs += template.type === "stuc" ? 1 : 0;
         counterUnits += template.type === "unit" ? 1 : 0;
-        node = self.addNode(template.name, template.key, template.template);
+        node = this.addNode(template.name, template.key, template.template);
       });
 
       // deb("     C: created %s nodes for units", H.tab(counterUnits, 4));
@@ -808,9 +845,18 @@ HANNIBAL = (function(H){
           });
         }
 
+        // wallset
+        if (tpl.WallSet && tpl.WallSet.Templates){
+          self.wallsettpl = name;
+          H.each(tpl.WallSet.Templates, (name, tpl) => {
+            self.wallset.push(tpl);
+          });
+        }
+
       });
 
       this.classes = H.unique(this.classes.sort());
+      this.wallset = H.unique(this.wallset.sort());
       this.resources = H.unique(this.resources.sort());
       this.resourcetypes = H.unique(this.resourcetypes.sort());
 
@@ -911,7 +957,7 @@ HANNIBAL = (function(H){
 
       this.store.addEdge(nodeSource, "ingame",      nodeTarget);
       this.store.addEdge(nodeTarget, "describedby", nodeSource);
-      this.addNodeDynaProps(nodeTarget);
+      // this.addIngameProps(nodeTarget);
 
       // deb("  CULT: loadById %s <= %s", nameTarget, nameSource);
 
@@ -954,12 +1000,12 @@ HANNIBAL = (function(H){
           speed     : this.getSpeed(template),
           armour    : this.getArmour(template),
           rates     : this.getRates(template),
-          health    : this.getHealth(template), //TODO: ingames
           vision    : this.getVision(template),
           attack    : this.getAttack(template),
           affects   : this.getAffects(template),
           capacity  : this.getCapacity(template),
           requires  : this.getRequirements(template),     // tech
+          stability : this.getStability(template), 
           autoresearch : (!!template.autoResearch ? template.autoResearch : undefined),       // tech
           modifications: H.test(template, "modifications"), //this.getModifications(template),
         };
@@ -970,6 +1016,11 @@ HANNIBAL = (function(H){
           node[prop] = value;
         }
       });
+
+      // dynamics, position, health, etc.
+      if(id){
+        this.addIngameProps(node);
+      }
 
       this.store.addNode(node);
       this.cntNodes += 1;
@@ -989,11 +1040,11 @@ HANNIBAL = (function(H){
       ];
       return H.dropcopy(node, props);
     },
-    addNodeDynaProps: function(node){
+    addIngameProps: function(node){
 
       var id = node.id, metadata  = this.metadata, entities = this.entities; // CLOSURE !!
 
-      // deb("  CULT: addNodeDynaProps: %s, %s", node.id, node.name);
+      // deb("  CULT: addIngameProps: %s, %s", node.id, node.name);
 
       Object.defineProperties(node, {
         "position": {enumerable: true, get: function(){
@@ -1012,6 +1063,7 @@ HANNIBAL = (function(H){
         }},
         "slots": {enumerable: true, get: function(){
           return (
+            entities[id] &&
             node.capacity ? 
             node.capacity - entities[id].garrisoned.length :
             undefined
@@ -1042,9 +1094,9 @@ HANNIBAL = (function(H){
       deb("      : type %s", node.type);
       deb("      : desc %s", node.description);
       deb("      : clas %s", node.classes.join(", "));
-      if (node.costs)   {deb("      :   cost:   %s", H.prettify(node.costs));}
-      if (node.armour)  {deb("      :   armour: %s", H.prettify(node.armour));}
-      if (node.health)  {deb("      :   health: %s", node.health);}
+      if (node.costs)   {deb("      :   cost:   %s",   H.prettify(node.costs));}
+      if (node.armour)  {deb("      :   armour: %s",   H.prettify(node.armour));}
+      if (node.health)  {deb("      :   health: %s",   node.health);}
       if (node.capacity){deb("      :   capacity: %s", node.capacity);}
       if (node.requires){deb("      :   requires: %s", node.requires);}
     },
@@ -1159,13 +1211,9 @@ HANNIBAL = (function(H){
       //   }    
       //   return requirement;
       // },
-    getHealth: function(t){
+    getStability: function(t){
       var test;
       return (test = H.test(t, "Health.Max")) ? ~~test : undefined;
-      //   (!!tpl.Health && ~~tpl.Health.Max) ? 
-      //     ~~tpl.Health.Max : 
-      //       undefined
-      // );
     },
     getRates: function(tpl){
       // <ResourceGatherer>
@@ -1312,6 +1360,10 @@ HANNIBAL = (function(H){
           });
         }
       });
+
+      // special case wallset
+
+
 
       // deb("     C: created %s edges on pair: %s|%s - %s", H.tab(counter*2, 4), verb, inverse, msg);
 

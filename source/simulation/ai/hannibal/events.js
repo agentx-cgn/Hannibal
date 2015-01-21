@@ -333,9 +333,32 @@ HANNIBAL = (function(H){
       }
 
     }, 
+    Garrison: function(e){
+
+      var 
+        idEntitiy = e.entity, 
+        idHolder  = e.holder, 
+        tplnEnt   = this.entities[idEntitiy] ? this.entities[idEntitiy]._templateName : "unknown",
+        tplnHol   = this.entities[idHolder]  ? this.entities[idHolder]._templateName   : "unknown"
+        player    = this.entities[idHolder]  ? this.entities[idHolder].owner() : NaN;
+
+      this.deb("   EVT: P:%s Garrison ent: #%s %s => holder: #%s %s", player, idEntitiy, tplnEnt, idHolder, tplnHol);
+
+    },
+    UnGarrison: function(e){
+
+      var 
+        idEntitiy = e.entity, 
+        idHolder  = e.holder, 
+        tplnEnt   = this.entities[idEntitiy] ? this.entities[idEntitiy]._templateName : "unknown",
+        tplnHol   = this.entities[idHolder]  ? this.entities[idHolder]._templateName   : "unknown",
+        player    = this.entities[idHolder]  ? this.entities[idHolder].owner() : NaN;
+
+      this.deb("   EVT: P:%s UnGarrison ent: #%s %s => holder: #%s %s", player, idEntitiy, tplnEnt, idHolder, tplnHol);
+
+    },
+
     OwnershipChanged: function(e){},
-    Garrison: function(e){},
-    UnGarrison: function(e){},
     RangeUpdate: function(e){},
     PlayerDefeated: function(e){},
     EntityRenamed: function(e){

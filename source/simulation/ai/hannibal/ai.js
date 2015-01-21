@@ -22,6 +22,8 @@ HANNIBAL = (function(H){
 
   var deb = H.deb;
 
+  // Discussion: http://varianceexplained.org/r/kmeans-free-lunch/
+
   H.AI.KMeans = (function () {
 
     /** Constructor */

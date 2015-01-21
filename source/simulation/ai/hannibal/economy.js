@@ -423,12 +423,13 @@ HANNIBAL = (function(H){
 
       imports: [
         "bot",
-        "economy",
         "query",
-        "culture",
-        "technologies",
         "events",
+        "groups",
+        "culture",
+        "economy",
         "resources",
+        "technologies",
       ],
 
     });
@@ -440,6 +441,23 @@ HANNIBAL = (function(H){
   H.LIB.Order.prototype = H.mixin (
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Order,
+    log: function(){
+      var
+        source = this.groups.findAsset(this.source),  // this is an asset id
+        loc = (this.location === undefined) ? "undefined" : H.fixed1(this.location);
+
+      this.deb("   ORD: log #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
+        this.id, 
+        this.verb, 
+        this.amount, 
+        this.cc || "NO CC" , 
+        loc, 
+        source,  // that's an asset
+        this.shared, 
+        this.hcq
+      );
+
+    },
     initialize: function(order){
       H.extend(this, order, {
         id:         order.id         || this.context.idgen++,
@@ -605,7 +623,7 @@ HANNIBAL = (function(H){
         verb === "build" && !this.shared ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
 
         // error
-          this.deb("ERROR : assignExisting run into unhandled case: %s, shared: %s", this.verb, this.shared)
+          this.log() && H.throw("assignExisting run into unhandled case: verb: %s, shared: %s", this.verb, this.shared)
       
       );
 

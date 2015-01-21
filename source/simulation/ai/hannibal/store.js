@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL */
+/*globals HANNIBAL, uneval */
 
 /*--------------- S T O R E  --------------------------------------------------
 
@@ -102,12 +102,15 @@ HANNIBAL = (function(H){
 
     },
     addEdge: function(source, verb, target){
-      if (!source)                      {this.deb("ERROR : addEdge: source not valid: %s", source);} 
+      if      (!source)                 {this.deb("ERROR : addEdge: source not valid: %s", source);} 
       else if (!target)                 {this.deb("ERROR : addEdge: target not valid: %s", target);} 
+      else if (!source.name)            {this.deb("ERROR : addEdge: not a node source: %s", source);}
+      else if (!target.name)            {this.deb("ERROR : addEdge: not a node target: %s", target);}
       else if (!this.nodes[source.name]){this.deb("ERROR : addEdge: no source node for %s", source.name);}
       else if (!this.nodes[target.name]){this.deb("ERROR : addEdge: no target node for %s", target.name);}
-      else if (this.verbs.indexOf(verb) === -1){this.deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
+      else if (!H.contains(this.verbs, verb)){this.deb("ERROR : not a verb %s, have: %s", verb, H.prettify(this.verbs));}
       else {
+        // success
         this.edges.push([source, verb, target]);
       }
     },
@@ -228,15 +231,15 @@ HANNIBAL = (function(H){
           undefined
       );
     },
-    prepResults: function(results){
-      Object.defineProperty(results, "stats", {
+    prepResults: function(){
+      Object.defineProperty(this.results, "stats", {
         enumerable:   false,
         configurable: false,
         writable:     true,
         value: {
           ops:     this.ops,
           msecs:   this.t1,
-          length:  results.length,
+          length:  this.results.length,
           cached:  this.fromCache,
           hits:    this.store.cache[this.query].hits,
           nodes:   this.store.cntNodes,
@@ -244,7 +247,7 @@ HANNIBAL = (function(H){
           verbs:   this.store.verbs.length
         }
       });
-      return results;
+      return this.results;
     },
 
     parse: function(query){
@@ -308,8 +311,11 @@ HANNIBAL = (function(H){
       // Cached ?
       if (( results = this.checkCache() )){
         this.t1 = Date.now() - this.t0;
-        this.logNodes();
-        return this.prepResults(results, ops, this.t1);
+        this.results = results;
+        if (this.params.deb > 0){
+          this.logNodes();
+        }
+        return this.prepResults();
 
       } else {
         // we start with all nodes as result
@@ -428,9 +434,11 @@ HANNIBAL = (function(H){
       }
       cache[this.query] = {hits: 0, results: results};
 
-      this.logNodes();
+      if (this.params.deb > 0){
+        this.logNodes();
+      }
 
-      return this.prepResults(results, ops, this.t1);
+      return this.prepResults();
 
     },
     sortResults: function (oper, attr, results, ops){

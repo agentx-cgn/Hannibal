@@ -95,24 +95,27 @@ HANNIBAL = (function(H){
         phase = this.culture.phases.current,
         availability = this.economy.availability;
 
-      if (phase === "vill"){
+      function villSorter (nodes){
+        nodes
+          .sort((a, b) => a.costs[availability[0]] < b.costs[availability[0]] ? 1 : -1 )
+          .sort((a, b) => a.costs[availability[1]] < b.costs[availability[1]] ? 1 : -1 )
+          .sort((a, b) => a.costs[availability[2]] < b.costs[availability[2]] ? 1 : -1 )
+          .sort((a, b) => a.costs[availability[3]] < b.costs[availability[3]] ? 1 : -1 );
+      }        
 
-        return function(nodes){
-          nodes
-            .sort((a, b) => a.costs[availability[0]] < b.costs[availability[0]] ? 1 : -1 )
-            .sort((a, b) => a.costs[availability[1]] < b.costs[availability[1]] ? 1 : -1 )
-            .sort((a, b) => a.costs[availability[2]] < b.costs[availability[2]] ? 1 : -1 )
-            .sort((a, b) => a.costs[availability[3]] < b.costs[availability[3]] ? 1 : -1 );
-        };
+      if (phase === "vill"){
+        return villSorter;
 
       } else if (phase === "town") {
-        return function(){deb("WARN  : bot.unitsortorder for town not implemented");};
+        return villSorter;
+        // return function(){this.deb("WARN  : bot.unitsortorder for town not implemented");};
 
       } else if (phase === "city") {
-        return function(){deb("WARN  : bot.unitsortorder for city not implemented");};
+        return villSorter;
+        // return function(){this.deb("WARN  : bot.unitsortorder for city not implemented");};
 
       } else {
-        return function(){deb("ERROR : bot.unitsortorder for '%s' not implemented", phase);};
+        return function(){this.deb("ERROR : bot.unitsortorder for '%s' not implemented", phase);};
 
       }
 
