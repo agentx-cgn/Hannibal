@@ -4,7 +4,7 @@
   cos, sin, round, randInt, abs, floor,
   g_MapSettings, 
   randomizeBiome, InitMap, getNumPlayers, createTileClass, placeTerrain, sortPlayers, getMapSize, randFloat, createArea, 
-  scaleByMapSize, fractionToTiles, addToClass, placeCivDefaultEntities, createObjectGroup, createStragglerTrees, 
+  scaleByMapSize, fractionToTiles, addToClass, createObjectGroup, createStragglerTrees, 
   placeGenericFortress, placeObject, placePolygonalWall, 
   ClumpPlacer, LayeredPainter, SimpleGroup, SimpleObject, createFood, 
   avoidClasses, createBumps, createHills, createMines, createDecoration, createForests, createMountains, createLayeredPatches, createPatches, 
@@ -14,10 +14,13 @@
   ExportMap
 */
 
+// rmghelper
+/*globals H */
+
 var tt = Date.now();
 
 RMS.LoadLibrary("rmgen");
-RMS.LoadLibrary("rmghelper");
+RMS.LoadLibrary("rmghelper"); // import H.deb/fmt
 
 // /Daten/Projects/Osiris/ps/trunk/binaries/data/mods/public/civs[civ].json.StartEntities
 
@@ -32,7 +35,7 @@ var START = {
     "brit" : [
       [1, "structures/brit_civil_centre"], 
       [4, "units/brit_support_female_citizen"], 
-      [10, "units/brit_infantry_spearman_b"], 
+      [2, "units/brit_infantry_spearman_b"], 
       [2, "units/brit_infantry_slinger_b"], 
       [1, "units/brit_cavalry_javelinist_b"], 
       [1, "units/brit_war_dog_e"], 
@@ -65,9 +68,72 @@ var START = {
       [2, "units/hele_infantry_javelinist_b"], 
       [1, "units/hele_cavalry_swordsman_b"], 
     ],
-};
+    "iber" : [
+      [1, "structures/iber_civil_centre"], 
+      [4, "units/iber_support_female_citizen"], 
+      [2, "units/iber_infantry_swordsman_b"], 
+      [2, "units/iber_infantry_javelinist_b"], 
+      [1, "units/iber_cavalry_spearman_b"], 
+    ],
+    "mace" : [
+      [1, "structures/mace_civil_centre"], 
+      [4, "units/mace_support_female_citizen"], 
+      [2, "units/mace_infantry_spearman_b"], 
+      [2, "units/mace_infantry_javelinist_b"], 
+      [1, "units/mace_cavalry_spearman_b"], 
+    ],
+    "maur" : [
+      [1, "structures/maur_civil_centre"], 
+      [4, "units/maur_support_female_citizen"], 
+      [2, "units/maur_infantry_spearman_b"], 
+      [2, "units/maur_infantry_archer_b"], 
+      [1, "units/maur_cavalry_javelinist_b"], 
+      [1, "units/maur_support_elephant"], 
+    ],
+    "pers" : [
+      [1, "structures/pers_civil_centre"], 
+      [4, "units/pers_support_female_citizen"], 
+      [2, "units/pers_infantry_spearman_b"], 
+      [2, "units/pers_infantry_archer_b"], 
+      [1, "units/pers_cavalry_javelinist_b"], 
+    ],
+    "ptol" : [
+      [1, "structures/ptol_civil_centre"], 
+      [4, "units/ptol_support_female_citizen"], 
+      [2, "units/ptol_infantry_spearman_b"], 
+      [2, "units/ptol_infantry_archer_b"], 
+      [1, "units/ptol_cavalry_javelinist_b"], 
+    ],
+    "rome" : [
+      [1, "structures/rome_civil_centre"], 
+      [4, "units/rome_support_female_citizen"], 
+      [2, "units/rome_infantry_swordsman_b"], 
+      [2, "units/rome_infantry_javelinist_b"], 
+      [1, "units/rome_cavalry_spearman_b"], 
+    ],
+    "sele" : [
+      [1, "structures/sele_civil_centre"], 
+      [4, "units/sele_support_female_citizen"], 
+      [4, "units/sele_infantry_spearman_2_b"], 
+      [1, "units/sele_cavalry_javelinist"], 
+    ],  
+    "spart" : [
+      [1, "structures/spart_civil_centre"], 
+      [4, "units/spart_support_female_citizen"], 
+      [2, "units/spart_infantry_spearman_b"], 
+      [2, "units/spart_infantry_javelinist_b"], 
+      [1, "units/spart_cavalry_javelinist_b"], 
+    ],
+    "theb" : [
+      [1, "structures/theb_civil_centre"], 
+      [4, "units/theb_support_female_citizen"], 
+      [2, "units/theb_infantry_spearman_b"], 
+      [2, "units/theb_infantry_javelinist_b"], 
+      [1, "units/theb_cavalry_javelinist_b"], 
+    ],
+  };
 
-function getCCEntities (civ, bot){
+function getCCEntities (civ /*, bot */){
   return START[civ].map(function(c){return {Template: c[1], Count: c[0]};} );
 }
 
@@ -126,8 +192,8 @@ const
   aBushSmall    = rBiomeA8(),
 
   pForest1 = [tForestFloor2 + TERRAIN_SEPARATOR + oTree1, tForestFloor2 + TERRAIN_SEPARATOR + oTree2, tForestFloor2],
-  pForest2 = [tForestFloor1 + TERRAIN_SEPARATOR + oTree4, tForestFloor1 + TERRAIN_SEPARATOR + oTree5, tForestFloor1],
-  BUILDING_ANGlE = -PI/4;
+  pForest2 = [tForestFloor1 + TERRAIN_SEPARATOR + oTree4, tForestFloor1 + TERRAIN_SEPARATOR + oTree5, tForestFloor1];
+  //BUILDING_ANGlE = -PI/4;
 
 // initialize map
 
@@ -146,8 +212,8 @@ var
   playerIDs,
   playerX,
   playerZ,
-  playerAngle,
-  clDirt = createTileClass();
+  playerAngle;
+  // clDirt = createTileClass();
 
 // create tile classes
 var 
@@ -204,12 +270,24 @@ function step2  (/* options */) {
   playerZ = new Array(numPlayers);
   playerAngle = new Array(numPlayers);
 
+  var factor = {
+    "0": 1.00,
+    "1": 1.00,
+    "2": 1.00,
+    "3": 1.25,
+    "4": 1.50,
+    "5": 1.75,
+    "6": 2.00,
+    "7": 2.25,
+    "8": 2.50,
+  }[numPlayers];
+
   var startAngle = randFloat(0, TWO_PI);
   for (var i = 0; i < numPlayers; i++)
   {
     playerAngle[i] = startAngle + i*TWO_PI/numPlayers;
-    playerX[i] = 0.5 + 0.14*cos(playerAngle[i]);
-    playerZ[i] = 0.5 + 0.14*sin(playerAngle[i]);
+    playerX[i] = 0.5 + 0.14*cos(playerAngle[i]) * factor;
+    playerZ[i] = 0.5 + 0.14*sin(playerAngle[i]) * factor;
   }
 }
 
@@ -385,24 +463,31 @@ function step3  (/* options */) {
 }
 
 
-function step4  (/* options */) {
+function step4a  (/* options */) {
 
   // create bumps
   createBumps();
 
+}
+
+function step4b  (/* options */) {
+
   // create hills
-  if (randInt(1,2) == 1)
+  if (randInt(1, 2) == 1)
     createHills([tCliff, tCliff, tHill], avoidClasses(clPlayer, 20, clHill, 15), clHill, scaleByMapSize(3, 15));
   else
     createMountains(tCliff, avoidClasses(clPlayer, 20, clHill, 15), clHill, scaleByMapSize(3, 15));
+}
+
+function step4c  (multiplier=1.0) {
 
   // create forests
   createForests(
-   [tMainTerrain, tForestFloor1, tForestFloor2, pForest1, pForest2],
-   avoidClasses(clPlayer, 20, clForest, 18, clHill, 0), 
-   clForest,
-   1.0,
-   random_terrain
+    [tMainTerrain, tForestFloor1, tForestFloor2, pForest1, pForest2],
+    avoidClasses(clPlayer, 20, clForest, 18, clHill, 0), 
+    clForest,
+    multiplier,
+    random_terrain
   );
 }
 
@@ -410,16 +495,16 @@ function step5  (/* options */) {
 
   // create dirt patches
   createLayeredPatches(
-   [scaleByMapSize(3, 6), scaleByMapSize(5, 10), scaleByMapSize(8, 21)],
-   [[tMainTerrain,tTier1Terrain],[tTier1Terrain,tTier2Terrain], [tTier2Terrain,tTier3Terrain]],
-   [1,1]
+    [scaleByMapSize(3, 6), scaleByMapSize(5, 10), scaleByMapSize(8, 21)],
+    [[tMainTerrain,tTier1Terrain],[tTier1Terrain,tTier2Terrain], [tTier2Terrain,tTier3Terrain]],
+    [1,1]
   );
 
   // create grass patches
   log("Creating grass patches...");
   createPatches(
-   [scaleByMapSize(2, 4), scaleByMapSize(3, 7), scaleByMapSize(5, 15)],
-   tTier4Terrain
+    [scaleByMapSize(2, 4), scaleByMapSize(3, 7), scaleByMapSize(5, 15)],
+    tTier4Terrain
   );
 }
 
@@ -508,30 +593,32 @@ function step10  (/* options */) {
 // Export map data
 
 var sequence = [
-  [ 2, step0,  "Place terrain...",               {}],
-  [ 3, step1,  "Randomize player order...",      {}],
-  [ 5, step2,  "Place players...",               {}],
-  [10, step3,  "Creating village...",            {}],
-  // [20, step4,  "Creating bumps/hills/mountains/forests...", {}],
-  // [50, step5,  "Creating dirt/grass patches...", {}],
-  [55, step6,  "Creating stone/metal mines...",  {}],
-  // [65, step7,  "Creating decoration...",         {}],
-  // [70, step8,  "Creating animals...",            {}],
-  // [75, step9,  "Creating fruits...",             {}],
-  [85, step10, "Creating straggler trees...",    {}],
+  [ 2, step0,  "Place terrain",               {}],
+  [ 3, step1,  "Randomize player order",      {}],
+  [ 5, step2,  "Place players",               {}],
+  [10, step3,  "Creating village",            {}],
+  // [20, step4a,  "Creating bumps", {}],
+  // [30, step4b,  "Creating hills/mountains", {}],
+  [40, step4c,  "Creating forests", 0.5],
+  // [50, step5,  "Creating dirt/grass patches", {}],
+  [55, step6,  "Creating stone/metal mines",  {}],
+  // [65, step7,  "Creating decoration",         {}],
+  // [70, step8,  "Creating animals",            {}],
+  // [75, step9,  "Creating fruits",             {}],
+  [85, step10, "Creating straggler trees",    {}],
 ];
 
 function tab (s,l){l=l||4;s=new Array(l+1).join(" ")+s;return s.substr(s.length-l);}
 
-print("------:  generating: brainland (" + sequence.length + ") ### ---\n");
+H.deb("generating: brainland / %s, %s players, size: %s ### ---", H.biomes[random_terrain], numPlayers, mapSize);
 sequence.forEach(function (task){
   var t0 = Date.now();
   RMS.SetProgress(task[0]); log(task[2]);
-  task[1](task[3]);
-  print("  " + tab(Date.now() - t0) + " -> " + task[2] + "\n");
+  task[1].apply(null, task.slice(3));
+  H.deb("  %s -> %s | %s ...", tab(Date.now() - t0), task[2], JSON.stringify(task.slice(3)));
 });
 
-print("------: finished: brainland (" + sequence.length + " steps in " + ((Date.now() - tt)/1000).toFixed(1) + " secs) ### ---\n");
+H.deb("finished: brainland (" + sequence.length + " steps in " + ((Date.now() - tt)/1000).toFixed(1) + " secs) ### ---\n");
 
 
 ExportMap();

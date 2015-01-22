@@ -15,7 +15,7 @@
 HANNIBAL = (function(H){
 
   // log line same order as orderedEvents
-  var msgTick = "  EVTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s, DY: %s";
+  var msgTick = "EVENTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s, DY: %s";
 
   function Message (name, msg) {
 
@@ -473,7 +473,7 @@ HANNIBAL = (function(H){
         id:     e.entity,
       });
 
-      this.deb("  EVT: Destroy fired: %s" , uneval(msg));
+      this.deb("   EVT: Destroy fired: %s" , uneval(msg));
 
 
       if (this.dispatcher[msg.player][msg.id]){

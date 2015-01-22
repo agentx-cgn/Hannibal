@@ -136,10 +136,11 @@ HANNIBAL = (function(H){
         this.gridsize, 
         this.length
       );
-      this.childs.forEach(child => this[child].log());
+      this.childs.forEach(child => this[child].log(child));
 
       this.effector.dumparray("passability", this.passability.data, this.gridsize, this.gridsize, 255);    
       this.effector.dumparray("territory",   this.territory.data,   this.gridsize, this.gridsize, 255);    
+
     },
     serialize: function(){
       var data = {};

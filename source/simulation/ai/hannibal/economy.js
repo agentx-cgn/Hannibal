@@ -558,7 +558,7 @@ HANNIBAL = (function(H){
           }
 
           // req might be phase
-          if (phases.achieved(req)){
+          if (req && phases.achieved(req)){
             return;
           }
 

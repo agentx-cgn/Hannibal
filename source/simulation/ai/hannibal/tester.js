@@ -62,13 +62,19 @@ HANNIBAL = (function(H){
     },
     builder: function(building, size, quantity){
       return () => {
-        CTX.groups.launch({
-          groupname: "g.builder", 
-          cc: CC, 
-          building: building.contains(".") ? building : CTX.class2name(building) + " CONTAIN", 
-          quantity: quantity, 
-          size: size
-        });
+        var name = building.contains(".") ? building : CTX.class2name(building);
+        if (name){
+          CTX.groups.launch({
+            groupname: "g.builder", 
+            cc: CC, 
+            building: name, 
+            quantity: quantity, 
+            size: size
+          });
+          return null;
+        } else {
+          return "Can't build: " + building;
+        }
       };
     },
     speed: function(rate){
@@ -98,14 +104,17 @@ HANNIBAL = (function(H){
         "0": [() => "< - START: " + map + " - >"],
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        // "1": [T.launch("g.infantry"), "launching 1 infantry group"], 
-        // "1": [T.supplier(      "food.fruit"), "launching 1 food.fruit supplier group"], 
-        // "1": [T.builder(      "house", 5, 2), "building 2 houses"], 
-        "2": [T.builder(    "structures.athen.wall.tower", 20, 10), "building 2 houses"], 
-        // "2": [T.launch("g.harvester"), "launching 1 harvester group"], 
-        // "4": [T.supplier(            "wood", 10), "launching 1 wood supplier"], 
-        // "5": [T.supplier(           "metal", 10), "launching 1 metal supplier"], 
-        // "6": [T.supplier(           "stone", 10), "launching 1 stone supplier"], 
+        // "1": [T.launch  (                     "g.infantry"),         "launching 1 infantry group"], 
+        "2": [T.supplier(                     "food.fruit"),         "launching 1 food.fruit supplier group"], 
+        "3": [T.builder (                          "house",  5,  2), "building  2 houses"], 
+        "4": [T.builder (                      "walltower",  2,  2), "building  2 walltower"], 
+        "5": [T.builder (                       "barracks",  1,  2), "building  1 barracks"], 
+        "6": [T.builder (                      "farmstead",  1,  2), "building  1 farmstead"], 
+        "7": [T.builder (                     "storehouse",  1,  2), "building  1 storehouse"], 
+        "8": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+        "9": [T.supplier(                           "wood", 10),     "launching 1 wood supplier"], 
+       "10": [T.supplier(                          "metal", 10),     "launching 1 metal supplier"], 
+       "11": [T.supplier(                          "stone", 10),     "launching 1 stone supplier"], 
         // "5": [T.speed(5),                             "more speed"],
       // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
     },

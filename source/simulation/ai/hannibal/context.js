@@ -77,7 +77,7 @@ HANNIBAL = (function(H){
     this.logger = [
       // "events", 
       "culture",     // store, tree, phases
-      // "map",         // grids
+      "map",         // grids
       "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
@@ -203,7 +203,12 @@ HANNIBAL = (function(H){
           return new H.LIB.Query(this.culture.store, hcq, debug);
         },
         class2name:          klass => {
-          return new H.LIB.Query(this.culture.store, klass + " CONTAIN").first().name;
+          var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").execute();
+          if(!res.length){
+            this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
+          }
+          return res.length ? res[0].name : null;
+          // return new H.LIB.Query(this.culture.store, klass + " CONTAIN").first().name;
         },
 
         operators:           H.HTN.Economy.operators,

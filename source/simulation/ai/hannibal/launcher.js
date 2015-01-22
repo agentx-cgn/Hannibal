@@ -147,23 +147,23 @@ HANNIBAL = (function(H) {
     /* testing triple store */
     this.context.culture.debug = 5;
 
-    this.context
-      .query("stonewall CONTAIN")
-      // .query("structures.athen.wall.tower")
-      // .query("structures.athen.wallset.stone MEMBER")
-      // .parameter({format: "metadata", deb: 5, debmax: 10, comment: "next phases"})
-      .parameter({fmt: "meta", deb: 5, max: 10, cmt: "launcher.CustomInit"})
-      .execute()
-    ;
+    // this.context
+    //   .query("stonewall CONTAIN")
+    //   // .query("structures.athen.wall.tower")
+    //   // .query("structures.athen.wallset.stone MEMBER")
+    //   // .parameter({format: "metadata", deb: 5, debmax: 10, comment: "next phases"})
+    //   .parameter({fmt: "meta", deb: 5, max: 10, cmt: "launcher.CustomInit"})
+    //   .execute()
+    // ;
     
-    this.context
-      .query("structures.athen.wallset.stone BUILDBY")
-      // .query("structures.athen.wall.tower")
-      // .query("structures.athen.wallset.stone MEMBER")
-      // .parameter({format: "metadata", deb: 5, debmax: 10, comment: "next phases"})
-      .parameter({fmt: "meta", deb: 5, max: 10, cmt: "launcher.CustomInit"})
-      .execute()
-    ;
+    // this.context
+    //   .query("structures.athen.wallset.stone BUILDBY")
+    //   // .query("structures.athen.wall.tower")
+    //   // .query("structures.athen.wallset.stone MEMBER")
+    //   // .parameter({format: "metadata", deb: 5, debmax: 10, comment: "next phases"})
+    //   .parameter({fmt: "meta", deb: 5, max: 10, cmt: "launcher.CustomInit"})
+    //   .execute()
+    // ;
     
     this.context.culture.debug = 0;
     /* end testing triple store */
@@ -214,6 +214,8 @@ HANNIBAL = (function(H) {
     // Run the update every n turns, offset depending on player ID to balance the load
     if ((this.turn + this.player) % 8 === 5) {
 
+      Engine.ProfileStart("Hannibal Tick.in");
+
       // update context
       this.context.updateEngine(sharedScript);
 
@@ -243,7 +245,11 @@ HANNIBAL = (function(H) {
       }
 
       // THIS IS THE MAIN ACT
+      Engine.ProfileStop();
+
       this.bot.tick(secs, this.context.tick, this.timing);
+
+      Engine.ProfileStart("Hannibal Tick.out");
 
       // deb: collect stats
       if (this.debug.numerus){
@@ -258,18 +264,29 @@ HANNIBAL = (function(H) {
         this.timing.all += msecs;
       });
 
-      // log row
-      deb("------: %s@%s timing: %s, all: %s %s", 
-        this.id,
-        this.context.tick, 
-        msgTiming, 
-        this.timing.all, 
-        this.timing.all >= 100 ? "!!!!!!!!" : ""
-      );
+
+      // log/warn row
+      if (this.timing.all >= 100){
+        deb("WARN  : %s@%s timing: %s, all: %s", 
+          this.id,
+          this.context.tick, 
+          msgTiming, 
+          this.timing.all
+        );
+
+      } else {
+        deb("------: %s@%s timing: %s, all: %s", 
+          this.id,
+          this.context.tick, 
+          msgTiming, 
+          this.timing.all
+        );
+      }
 
       // increase tick number
       this.context.tick++;
 
+      Engine.ProfileStop();
 
       // ------------- A C T I O N   E N D --------------------------------------
 

@@ -51,7 +51,7 @@ HANNIBAL = (function(H){
 
           var supply = config.supply;
 
-          w.deb("     G: onlaunch %s, %s", w, uneval(config));
+          w.deb("     G: onlaunch %s, %s", this, uneval(config));
 
           w.resources = ["resource", supply];
 
@@ -100,7 +100,7 @@ HANNIBAL = (function(H){
 
         }, assign: function assign (w, item) {
 
-          w.deb("     G: assign.0: %s, %s", w, item);
+          w.deb("     G: assign.0: %s, %s", this, item);
 
           w.debug = true;
 
@@ -167,7 +167,7 @@ HANNIBAL = (function(H){
 
         }, destroy: function destroy (w, item) {
 
-          w.deb("     G: destroy: %s, %s", w, item);
+          w.deb("     G: destroy: %s, %s", this, item);
 
           w.objectify("item", item);
 
@@ -185,7 +185,7 @@ HANNIBAL = (function(H){
 
         }, attack: function attack (w, item, enemy, type, damage) {
 
-          w.deb("     G: destroy: %s, %s %s %s %s", w, item, enemy, type, damage);
+          w.deb("     G: destroy: %s, %s %s %s %s", this, item, enemy, type, damage);
 
 
         }, radio: function radio (w, msg) {
@@ -195,7 +195,7 @@ HANNIBAL = (function(H){
 
         }, interval:  function interval(w, tick, secs) {
 
-          w.deb("     G: interval: %s, %s secs", w, secs);
+          w.deb("     G: interval: %s, %s secs", this, secs);
 
           // run out of resources, request more, exits
           w.resources.on

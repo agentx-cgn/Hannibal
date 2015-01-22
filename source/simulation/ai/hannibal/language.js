@@ -116,8 +116,9 @@ HANNIBAL = (function(H){
         subject:  null,      // currently active subject
         object:   null,      // currently active object
 
-        reset: () => {
+        reset: (actor) => {
           // this.deb("   DSL: world reset from sentence: %s", world.sentence);
+          world.actor    = actor;
           world.sentence = [];
           world.debug    = false;
           world.proceed  = true;
@@ -215,12 +216,11 @@ HANNIBAL = (function(H){
       var t1, t0 = Date.now();
       this.world = world;
       this.scriptname = script.name;
-      world.reset();
-      world.actor = actor;
+      world.reset(actor);
       params.unshift(world);
       script.apply(actor, params);
       t1 = Date.now();
-      if(t1 - t0 > 2){
+      if(t1 - t0 > 10){
         this.deb("WARN  : DSL: runScript took %s msec %s %s", t1 - t0, script.name, actor);
       }
     },

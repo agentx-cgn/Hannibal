@@ -42,6 +42,15 @@ HANNIBAL = (function (H){
         mayors: 0,
         shared: 0,
         other:  0,
+      },
+
+      layout: {
+        farming:  {},
+        housing:  {},
+        barracks: {},
+        temple:   {},
+        market:   {},
+        walls:    {},
       }
       
    });

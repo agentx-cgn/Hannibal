@@ -40,7 +40,7 @@ HANNIBAL = (function(H){
 
         launch: function launch (w, config /* building, quantity */) {
 
-          w.deb("     G: launch %s %s", w, uneval(config));
+          w.deb("     G: launch %s %s", this, uneval(config));
 
           w.buildings = ["exclusive", config.building];
           w.units     = ["exclusive", config.building + " BUILDBY"];
@@ -133,7 +133,7 @@ HANNIBAL = (function(H){
           // w.objectify("enemy", enemy);
 
           // don't care about buildings, exits
-          w.builings
+          w.buildings
             .member(w.item)
             .exit
           ;
@@ -142,7 +142,7 @@ HANNIBAL = (function(H){
           w.units
             .member(w.item)
             .lt(w.item.health, 50)
-            .item.do.garrison()
+            // .item.do.garrison()
           ;
 
         }, radio: function radio (w, msg) {
@@ -150,9 +150,9 @@ HANNIBAL = (function(H){
           w.deb("     G: radio: %s, %s secs", w, msg);
 
 
-        }, interval:  function interval (w, secs, tick) {
+        }, interval:  function interval (w, tick, secs) {
 
-          w.deb("     G: interval: %s, %s secs", w, secs);
+          w.deb("     G: interval: %s, %s secs", this, secs);
 
           // w.units.on
           //   .doing("idle")

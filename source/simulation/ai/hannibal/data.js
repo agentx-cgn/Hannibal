@@ -71,18 +71,37 @@ HANNIBAL = (function(H){
   ];
 
   // see mods/public/civs
+  H.Data.Factions = {
+    celts: {
+      plus: "",
+      cons: "",
+    },
+    hellenes: {
+      plus: "theatron/area",
+      cons: "",
+    },
+  };
+
   H.Data.Civilisations = {
     athen:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Athenians‎",
+      faction: "celt",
+      plus: "",
+      cons: "",
     },
     brit:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Britons",
+      faction: "celt",
+      plus: "war dogs, kennels",
+      cons: "",
     },
     cart:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ:_Carthaginians‎",
+      plus: "triple walls, shipyard, embassies",
+      cons: "",
     },
     celt:  {
       active: true,
@@ -91,6 +110,9 @@ HANNIBAL = (function(H){
     gaul:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Gauls‎",
+      faction: "celt",
+      plus: "",
+      cons: "",
     },
     hele:  {
       active: true,
@@ -99,6 +121,8 @@ HANNIBAL = (function(H){
     iber:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Iberians‎",
+      plus: "pre wall, flames, towers!",
+      cons: "",
     },
     mace:  {
       active: true,
@@ -107,14 +131,20 @@ HANNIBAL = (function(H){
     maur:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Mauryans",
+      plus: "330 pop, elephants",
+      cons: "",
     },
     pers:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Persians‎",
+      plus: "330 pop",
+      cons: "",
     },
     ptol:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Ptolemies‎",
+      plus: "camps",
+      cons: "",
     },
     rome:  {
       active: true,
@@ -123,10 +153,15 @@ HANNIBAL = (function(H){
     sele:  {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Seleucids",
+      plus: "camps",
+      cons: "",
     },
     spart: {
       active: true,
       wiki: "trac.wildfiregames.com/wiki/Civ%3A_Spartans‎",
+      faction: "hellenes, females for towers",
+      plus: "upgrades",
+      cons: "",
     },
     theb:  {
       active: false,

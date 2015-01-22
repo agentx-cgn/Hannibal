@@ -366,7 +366,10 @@ HANNIBAL = (function(H){
     },
     nearest: function(pos, type){
 
-      var t0 = Date.now(), t1, resources = [], kmeans, trees, cid;
+      var 
+        t1, t0 = Date.now(), 
+        kmeans, trees, cid, centroid, centroids,
+        resources = [];
 
       // deb("   RES: looking for nearest '%s' at %s", generic, pos);
 
@@ -417,7 +420,7 @@ HANNIBAL = (function(H){
           this.eachType(type, (generic, specific, id, res) => {
             if (this.entities[id]){
               if (res.found && !res.consumed){
-                trees.push({x: res.position[0], z: res.position[1], id: id, res: res});
+                trees.push({x: res.position[0], z: res.position[1], id: id, res: res, centroid: -1});
               }
             } else { res.consumed = true; }
           });
@@ -431,23 +434,55 @@ HANNIBAL = (function(H){
             kmeans.initCentroids();
             kmeans.cluster();
 
-            // get nearest cluster
-            cid = kmeans.centroids
+            // hint
+            // this.centroids = [];
+            // for (i = 0; i < this.k; ++i) {
+            //   this.centroids[i] = {
+            //     centroid : i,
+            //     x : ~~(Math.random()*this.maxWidth),
+            //     z : ~~(Math.random()*this.maxHeight),
+            //     items : 0
+            //   };
+            // }        
+
+            // sort the centroids
+            centroids = kmeans.centroids
               .filter(c => c.items > 0)
               .sort((a, b) => {
                 var da = (a.x - pos[0]) * (a.x - pos[0]) + (a.z - pos[1]) * (a.z - pos[1]),
                     db = (b.x - pos[0]) * (b.x - pos[0]) + (b.z - pos[1]) * (b.z - pos[1]);
                 return da - db;
-            })[0];
+            });
 
-            // 
-            resources = kmeans.centroids[cid].map(item => item.res);
+
+            // H.logObject(kmeans.centroids, "kmeans.centroids");
+            // H.logObject(kmeans.centroids[0], "kmeans.centroids[0]");
+
+            // pick first
+            if (centroids.length){
+              centroid = centroids[0];
+              cid = centroid.centroid;
+
+              this.deb("  RESS: have nearest centroid %s at: %s/%s", cid, centroid.x, centroid.z);
+
+              // turn trees into resources
+              resources = trees
+                .filter(tree => tree.centroid === cid)
+                .map(tree => tree.res);
+
+              this.deb("  RESS: have %s/%s resources", resources.length, trees.length);
+
+
+            } else {
+              this.deb("  RESS: kmeans no centroids left: %s", kmeans.centroids);
+            }
+
             
             t1 = Date.now();
 
             // deb(H.attribs(trees[0].res));
 
-            this.deb("   RES: kmeans: %s trees, %s cluster, chose cluster with %s trees, %s msecs", 
+            this.deb("  RESS: kmeans: %s trees, %s cluster, chose cluster with %s trees, %s msecs", 
               trees.length, 
               kmeans.centroids.length, 
               kmeans.centroids[0].items,
@@ -455,15 +490,15 @@ HANNIBAL = (function(H){
             );
 
           } else {
-            this.deb("   RES: kmeans: 0 trees");
-            resources = trees;
+            this.deb("  RESS: kmeans: 0 trees in area");
+            resources = [];
 
           }
 
         break;
 
         default: 
-          this.deb("ERROR : RESS unknown resource type: %s in nearest", type);
+          H.throw("ERROR : RESS unknown resource type: %s in nearest", type);
 
       }
 
@@ -479,7 +514,7 @@ HANNIBAL = (function(H){
         return da < db ? 1 : -1;
       });
 
-      this.deb("  RESS: nearest '%s': %s for %s", type, resources.length, H.fixed1(pos));
+      this.deb("  RESS: nearest '%s': from %s  total at %s", type, resources.length, H.fixed1(pos));
 
       return resources;
 

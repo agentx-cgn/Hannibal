@@ -11,6 +11,13 @@
 
 */
 
+/*
+  TODO: 
+    Not all template with parent "template_structure_civic_house" 
+    should be in class: "house", e.g. "gaul_tavern", 
+    check: on TRAIN female
+
+*/
 
 HANNIBAL = (function(H){
 
@@ -131,7 +138,7 @@ HANNIBAL = (function(H){
       if ((test = this.find(phase)) && test.idx <= this.find(this.current).idx){
         return true;
       } else {
-        this.deb("PHASES: achieved test: %s, curr: %s", test, this.find(this.current).idx);
+        this.deb("PHASES: not achieved: %s, curr: %s", phase, this.find(this.current).idx);
         return false;
       }
     }
@@ -573,8 +580,16 @@ HANNIBAL = (function(H){
 
       verbs: H.Data.verbs,
 
+      // own classes for wallset pieces
+      wallclasses: {
+        "wall.short":  "wallshort",
+        "wall.medium": "wallmedium",
+        "wall.long":   "walllong",
+        "wall.tower":  "walltower",
+      },
+
       // stores nodes found in templates
-      classes:       [],
+      classes:       ["wallshort", "wallmedium", "walllong", "walltower"],
       technologies:  [],
       resources:     [],
       resourcetypes: [],
@@ -711,34 +726,51 @@ HANNIBAL = (function(H){
 
     loadWallset: function(){
 
-      // set wallset edges to wallset pieces too
-      // StoneWall 
-
       var 
-        nodeTarget, nodeSource,
-        wallpiecename,  
-        verbs = "BUILD BUILDBY",
+        nodeTarget, nodeSource, wallpiece, wallpieces = new Set(),
         wallsetname = H.saniTemplateName(this.wallsettpl);
 
+      // add wall pieces
       this.query(wallsetname + " BUILDBY")
         .parameter({fmt: "meta", deb: 5, max: 10, cmt: "culture.loadWallset"})
         .forEach( builder => {
 
           this.wallset.forEach( piece => {
 
-            wallpiecename = H.saniTemplateName(piece);
-
-            // this.deb("src: %s => tgt: %s", builder.name, wallpiecename);
+            wallpiece = H.saniTemplateName(piece);
+            wallpieces.add(wallpiece);
 
             nodeSource = this.store.nodes[builder.name];
-            nodeTarget = this.store.nodes[wallpiecename];
+            nodeTarget = this.store.nodes[wallpiece];
 
-            this.store.addEdge(nodeSource, "build",    nodeTarget);
+            this.store.addEdge(nodeSource, "build",   nodeTarget);
             this.store.addEdge(nodeTarget, "buildby", nodeSource);
 
           });
 
         });
+
+      // put them in classes
+      [...wallpieces].forEach(civwallpiece => {
+
+        H.each(this.wallclasses, (piece, wallclass) => {
+
+          if (civwallpiece.contains(piece)){
+
+            nodeSource = this.store.nodes[wallclass];
+            nodeTarget = this.store.nodes[civwallpiece];
+
+            this.store.addEdge(nodeSource, "contain", nodeTarget);
+            this.store.addEdge(nodeTarget, "member",  nodeSource);
+
+            this.deb("INFO  : WALLPIECES: %s, %s CONTAIN %s", this.civ, wallclass, civwallpiece);
+
+          }
+
+        });
+
+      });
+
 
     },
     loadNodes: function(){
@@ -1445,9 +1477,10 @@ HANNIBAL = (function(H){
       this.createEdges("build", "buildby", "entities build entities",
         // units.athen.infantry.spearman.a -> structures.athen.defense.tower
         function test(node){
-          return  !!node.template.Builder && 
-                  !!node.template.Builder.Entities &&
-                  node.template.Builder.Entities._string !== undefined;
+          return H.test(node, "template.Builder.Entities._string");
+          // return  !!node.template.Builder && 
+          //         !!node.template.Builder.Entities &&
+          //         node.template.Builder.Entities._string !== undefined;
         }, 
         function target(node){
           var ents = H.replace(node.template.Builder.Entities._string.toLowerCase(), "\n", " ");
@@ -1471,9 +1504,10 @@ HANNIBAL = (function(H){
 
       this.createEdges("train", "trainedby", "entities train entities",
         function test(node){
-          return  !!node.template.ProductionQueue && 
-                  !!node.template.ProductionQueue.Entities &&
-                  node.template.ProductionQueue.Entities._string !== undefined;
+          return H.test(node, "template.ProductionQueue.Entities._string");
+          // return  !!node.template.ProductionQueue && 
+          //         !!node.template.ProductionQueue.Entities &&
+          //         node.template.ProductionQueue.Entities._string !== undefined;
         }, 
         function target(node){
           var ents = H.replace(node.template.ProductionQueue.Entities._string.toLowerCase(), "\n", " ");
@@ -1529,13 +1563,16 @@ HANNIBAL = (function(H){
 
       this.createEdges("research", "researchedby", "entities research technologies",
         function test(node){
-          return  !!node.template.ProductionQueue && 
-                  !!node.template.ProductionQueue.Technologies &&
-                  node.template.ProductionQueue.Technologies._string;
+          return H.test(node, "template.ProductionQueue.Technologies._string");
+          // return  (
+          //   node.template.ProductionQueue && 
+          //   node.template.ProductionQueue.Technologies &&
+          //   node.template.ProductionQueue.Technologies._string
+          // );
         }, 
         function target(node){
           return (
-            H.replace(node.template.ProductionQueue.Technologies ._string.toLowerCase(), "\n", " ")
+            H.replace(node.template.ProductionQueue.Technologies._string.toLowerCase(), "\n", " ")
               .split(" ").filter(function(s){return !!s;})
               .map(function(t){return H.replace(t, "_", ".");})
               .map(function(t){return H.replace(t, "/", ".");})

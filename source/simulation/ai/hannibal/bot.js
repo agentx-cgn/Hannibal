@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, deb, uneval */
+/*globals HANNIBAL, deb, uneval, Engine */
 
 /*--------------- H A N N I B A L ---------------------------------------------
 
@@ -62,7 +62,7 @@ HANNIBAL = (function(H){
       return this;
     },
     activate: function(){},
-    tick: function(tick, secs, timing){
+    tick: function(secs, tick, timing){
 
       // logObject(this.map, "this.map");
 
@@ -78,13 +78,22 @@ HANNIBAL = (function(H){
 
       } else {
 
-        timing.evt = this.events.tick(        secs, tick);
-        timing.brn = this.brain.tick(         secs, tick);
-        timing.map = this.map.tick(           secs, tick);
-        timing.gps = this.groups.tick(        secs, tick);
-        timing.mil = this.military.tick(      secs, tick);
-        timing.sts = this.economy.stats.tick( secs, tick);
-        timing.eco = this.economy.tick(       secs, tick);
+        [
+
+          ["evt", "Events",          this.events       ],
+          ["brn", "Brain",           this.brain        ], 
+          ["map", "Map",             this.map          ], 
+          ["gps", "Groups",          this.groups       ], 
+          ["mil", "Military",        this.military     ], 
+          ["sts", "Economy.Stats",   this.economy.stats], 
+          ["eco", "Economy",         this.economy      ]
+
+        ].forEach(task => {
+          Engine.ProfileStart("Hannibal " + task[1]);
+          timing[task[0]] = task[2].tick.apply(task[2], [secs, tick]);
+          Engine.ProfileStop();
+
+        });
 
       }
 

@@ -4,47 +4,50 @@
 
 ### Intro ###
 
-Hannibal is a new approach to reduce the complexity of programming a bot for 0 A.D., a free, open-source, cross-platform real-time strategy game under development by Wildfire Games. Development started in February 2014 by agentx. This git will be updated once a week until the project technically matured enough to support full git based development.
+Hannibal is a new approach to reduce the complexity of programming a bot for 0 A.D., a free, open-source, cross-platform real-time strategy game under development by Wildfire Games. Hannibal tackles the complexity of an RTS with hundreds of units by organizing them into a society of autonomous groups, each with its specific task. 
 
 ### Features ###
 
-* a **state machine** to handle game phases, like  
-  village, town, city, attack, defense, reconstruction, etc. 
-
-* a **triple store** to interfere features of cultures, like  
+* A **triple store** to interfere features of cultures, like  
   who can gather fields, can a healer melee? 
 
-* a **simple query language** to retrieve information from the triple store  
+* A **query language** to retrieve information as a set of nodes from the triple store  
   "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0, costs.wood = 0 SORT < costs.food" 
 
-* a **plugin system** describing the behavior of groups of units  
+* A **group system** describing the behavior of groups of units  
   (grain-picker, hunter, warrior, guerrilla, miner, etc) 
 
-* a **domain specific language** used for the plugins  
-  to allow non programmer to define a group's behavior 
+* A **domain specific language** called group script, based on JavaScript 
+  method and property chaining to define a fluenent interface and decribe 
+  the behaviour of groups in a near natural language 
 
-* an **economy model** with an order queue, a cost analyzer and  
-  a simple statistic module providing metrics based on resource flows. 
+* An **economy model** with an order queue, a cost analyzer and  
+  a statistic module providing metrics based on resource flows with trends and forecast. 
 
-* a **HTN PLanner** to calculate economic development and  
-    attack strategies
+* A **HTN PLanner** to calculate economic development, advancing to next phase 
+  and planning attack strategies
+
+* **Map Analysis &amp; Pathfinder** for intelligent and adequate game play
   
 ### Try Out ###
 
 **Prerequisites**
 
-* Locate \binaries\data\mods\public\ folder within 0 A.D. installation
-* Create \simulation\ai\hannibal within \public
-* Extract [all files](https://github.com/noiv/Hannibal/archive/master.zip) into \hannibal keeping directory structure intact
+* Check [game paths]() for your system 
+* Locate folder \binaries\data\mods\ within 0 A.D. installation
+* Copy the zip + readme from latest [release]() into mods/
 
 **Play**
 
-* Start 0 A.D., select single player new game, select Hannibal as bot
+* Start 0 A.D., 
+* Open mod selection and activate Hannibal
+* Select single player/new game, and choose Hannibal as bot
+* Choose a difficulty from the settings dialog
 
-**Test**
+**Test &amp; Developemt**
 
-* Copy the maps to your [map folder](http://trac.wildfiregames.com/wiki/GameDataPaths)
-* start 0 A.D. with params: -quickstart -autostart=aitest03 -autostart-ai=1:hannibal
+* Start 0 A.D. with params: -quickstart -autostart=aitest03 -autostart-ai=1:hannibal
+* Customize launcher.py and launch 0 A.D. from commadline (Linux only)
 
 **HTML Data Explorer**
 
@@ -61,29 +64,29 @@ Hannibal extensively logs against standard output until switched off in config.j
 
 ### Roadmap ###
 
-**A17**
+**A18**
 
 * Saved games, given engine support ([cancelled](http://trac.wildfiregames.com/ticket/2495#comment:15), for the time beeing)
 * Shared, dynamic and exclusive buildings
-* plan based economy taking resource availability into account
+* Plan based economy, taking resource availability into account
 * Advanced map analysis
 * Fortified cities (towers, walls?) 
 * Take advantage of all available technologies 
 * Basic attack plans and execution
 
-**A18**
+**A19**
 
 * Walls, palisades
 * Advanced attack plans
 * Policies via SWOT analysis
 
-**A19**
+**A20**
 
 * Seafaring, naval operation
 
 ### Technology ###
 
-* SpiderMonkey 29
+* SpiderMonkey 29/31
 * Javascript 1.85 + partially ES6
 * FF30+
 
