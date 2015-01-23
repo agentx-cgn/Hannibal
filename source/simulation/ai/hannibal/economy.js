@@ -179,19 +179,44 @@ HANNIBAL = (function(H){
       }
     },
     logTick: function(){
-      var count, name, id, allocs, queue, t = H.tab;
-      if ((count = H.count(this.producers))){
-        // this.deb("   PDC: have %s producers", count);
-        if (false){
+
+      var 
+        t = H.tab, 
+        name, id, apiqueue,
+        producers = H.attribs(this.producers),
+        countAll  = producers.length, 
+        countAct  = producers.filter(a => this.producers[a].queue.length).length;
+
+      if (countAll){
+        this.deb("   PDC: %s/%s producers", countAct, countAll);
+        if (true){
           this.deb("*");
-          H.attribs(this.producers)
-            // .filter(a => this.producers[a].queue.length)
+          producers
+            .filter(a => this.producers[a].queue.length)
             .sort((a, b) => this.producers[a].queue.length > this.producers[b].queue.length ? -1 : 1)
             .forEach( nameid => {
               [name, id] = nameid.split("#");
-              allocs = this.producers[nameid].allocs;
-              queue  = this.producers[nameid].queue;
-              this.deb("     P: %s %s %s ", t("#" + id, 4), t(allocs,3), uneval(queue), nameid);
+              this.deb("     P: %s alc: %s, q: %s, n: %s ", 
+                t("#" + id, 4), 
+                t(this.producers[nameid].allocs, 3), 
+                uneval(this.producers[nameid].queue), 
+                nameid
+              );
+
+              // item: id, unitTemplate, technologyTemplate, count, neededSlots, progress, timeRemaining, metadata
+              apiqueue = this.entities[id]._entity.trainingQueue;
+              if(apiqueue && apiqueue.length){
+                // this.deb("     P: api: len: %s", apiqueue.length);
+                apiqueue.forEach( item => {
+                  this.deb("     P:   %s, rem: %s, pro: %s, cnt: %s, tpl: %s", 
+                    t(item.id, 3), 
+                    t((item.timeRemaining/1000).toFixed(1), 8), 
+                    t(~~(item.progress * 100), 4), 
+                    t(item.count, 2), 
+                    item.unitTemplate
+                  );
+                });
+              }
           });
           this.deb("*");
         }
@@ -295,6 +320,7 @@ HANNIBAL = (function(H){
       });
 
       if (!found) {
+        // false alram for order.amount > 1;
         this.deb("   PDC: unqueue: not found in any queue: %s, %s", verb, taskidOrTech);
       }
 
@@ -460,6 +486,7 @@ HANNIBAL = (function(H){
     },
     initialize: function(order){
       H.extend(this, order, {
+        age:        0,
         id:         order.id         || this.context.idgen++,
         processing: 0,
         remaining:  order.remaining  || order.amount,
@@ -496,6 +523,7 @@ HANNIBAL = (function(H){
         sorter, producer,
         producers = this.economy.producers;
 
+      this.age += 1;
       this.product = null;   // to be determined
 
       if(this.remaining - this.processing < 1){
@@ -713,12 +741,13 @@ HANNIBAL = (function(H){
 
       var 
         msg  = "", tb = H.tab,
-        header = "  id,     verb, amt, pro, rem, nodes, flags,                 source, template".split(","),
-        tabs   = "   4,       10,   5,   5,   5,     7,     7,                    24, 12".split(",").map(s => ~~s),
+        header = "  id,     verb, age, amt, pro, rem, nodes, flags,                 source, template".split(","),
+        tabs   = "   4,       10,   5,   5,   5,   5,     7,     7,                    24, 12".split(",").map(s => ~~s),
         head   = header.map(String.trim).slice(0, -1),
         retr = {
           id:       o => "#" + o.id,
           verb:     o => o.verb,
+          age:      o => o.age,
           amt:      o => o.amount,
           rem:      o => o.remaining,
           pro:      o => o.processing,

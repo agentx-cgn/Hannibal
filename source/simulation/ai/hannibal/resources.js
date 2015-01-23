@@ -263,7 +263,7 @@ HANNIBAL = (function(H){
           .slice(0, order.amount)
           .map(res => res.id);
 
-      this.deb("  RESS: find: %s, res: %s, loc: %s, from: %s || result: %s", 
+      this.deb("  RESS: find: %s of %s, near loc: %s, from: %s || result: [%s]", 
         order.amount, 
         order.hcq, 
         order.location, 
@@ -401,7 +401,7 @@ HANNIBAL = (function(H){
 
         // same with prey check
         case "food.meat": 
-          this.each(this.resources.food, (id, res) => {
+          this.eachType(type, (generic, specific, id, res) => {
             if (this.entities[id]){
               if (res.found && !res.consumed && res.isPrey){
                 resources.push(res);

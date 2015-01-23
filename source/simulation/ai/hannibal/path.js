@@ -30,6 +30,7 @@ HANNIBAL = (function(H){
 
     // quick serializer init
     this.klass = "path";
+    this.name  = "path:" + context.idgen++;
     this.context = context;
     this.imports = ["map", "villages"];
     this.import();

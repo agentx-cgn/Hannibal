@@ -35,7 +35,7 @@ HANNIBAL = (function (H){
       main:      NaN,        // id of first centre
       centres:   null,       // list of centres
       theta:     NaN,        // rads of main to center of map
-      angle:     NaN,        // angle
+      angle:     NaN,        // angle (degrees)
 
       counter: {
         units:  0,
@@ -62,7 +62,7 @@ HANNIBAL = (function (H){
     contructor: H.LIB.Villages,
     log: function () {
       this.deb();
-      this.deb("  VILL:    main: %s, angle: %s, counts: %s", this.main, this.angle.toFixed(1), JSON.stringify(this.counter));
+      this.deb("  VILL:    main: %s, angle: %s, theta: %s, counts: %s", this.main, this.angle.toFixed(1), this.theta, JSON.stringify(this.counter));
       this.deb("     V: centres: %s", JSON.stringify(this.centres));
     },
     import: function () {

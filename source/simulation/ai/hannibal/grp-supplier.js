@@ -101,10 +101,9 @@ HANNIBAL = (function(H){
         }, assign: function assign (w, item) {
 
           w.deb("     G: assign.0: %s, %s", this, item);
-
-          w.debug = true;
-
+          w.debug = false;
           w.objectify("item", item);
+
 
           // got empty resource, dissolve group
           w.resources.on
@@ -146,7 +145,7 @@ HANNIBAL = (function(H){
           // keep requesting units until size
           w.units.on
             .member(w.item)
-            .echo("units: " + w.units.count + w.units.size)
+            .echo("units: %s/%s", w.units.count, w.units.size)
             .lt(w.units.count, w.units.size)
             .request()
           ;

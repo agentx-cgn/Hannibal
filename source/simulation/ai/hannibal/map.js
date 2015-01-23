@@ -681,7 +681,7 @@ HANNIBAL = (function(H){
           radius = 0,
           result;
       
-      angle  = angle === undefined ? H.Config.angle : angle;
+      angle = angle === undefined ? this.villages.angle * Math.PI / 180 : angle;
 
       // this.deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
       

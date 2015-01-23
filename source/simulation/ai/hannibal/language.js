@@ -116,6 +116,13 @@ HANNIBAL = (function(H){
         subject:  null,      // currently active subject
         object:   null,      // currently active object
 
+        // open a can of worms
+        // TODO: make this debug/dev only
+        "__noSuchMethod__": (name, args) => {
+          this.deb("ERROR  : world %s does not implement method '%s' with: [%s]", this.name, name, args);
+          return world[name];
+        },
+
         reset: (actor) => {
           // this.deb("   DSL: world reset from sentence: %s", world.sentence);
           world.actor    = actor;

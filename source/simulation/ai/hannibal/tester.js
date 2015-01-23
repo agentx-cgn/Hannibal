@@ -27,7 +27,11 @@ HANNIBAL = (function(H){
     T = H.T || {},
     CTX = null, PID = NaN, CC  = NaN, 
     self, tick = 0, map, sequence = "", 
-    chat  = (msg) => Engine.PostCommand(PID, {"type": "chat", "message": msg}),
+    chat  = function(msg) {
+      if (HANNIBAL_DEBUG && HANNIBAL_DEBUG.bots[PID] && HANNIBAL_DEBUG.bots[PID].cht === 1){
+        Engine.PostCommand(PID, {"type": "chat", "message": msg})
+      }
+    },
     ccloc = () => {
       var [x, y] = CTX.entities[CTX.villages.main].position();
       return x + ", " + y;
@@ -46,12 +50,30 @@ HANNIBAL = (function(H){
       ids = Array.isArray(ids) ? ids : arguments.length > 1 ? H.toArray(arguments) : [ids];
       return () => Engine.PostCommand(PID, {type: "delete-entities", "entities": ids});
     },
+    speed: function(rate){
+      return [
+        () => print(PID + "::## xdotool key F9\n"), 
+        () => print(PID + "::#! xdotool type --delay 30 Engine.SetSimRate(" + rate + ")\n"), 
+        () => print(PID + "::## xdotool key Return\n"),
+        () => print(PID + "::## xdotool key F9\n"),
+      ];
+
+    },
+    camera: function(){
+      return [
+        () => print(PID + "::## xdotool key F9\n"), 
+        () => print(PID + "::#! xdotool type --delay 30 Engine.CameraMoveTo(" + ccloc() + ")\n"), 
+        () => print(PID + "::## xdotool key Return\n"),
+        () => print(PID + "::## xdotool key F9\n"),
+      ];
+    },
     research: function(tpl, id){
       return () => Engine.PostCommand(PID, {type: "research", entity: id, template: tpl}); 
     },
-    launch: function(group){
+    launch: function(group, size){
       return () => {
-        return CTX.groups.launch({groupname: group, cc: CC});
+        var config = {groupname: group, cc: CC, size: size};
+        return CTX.groups.launch(config);
       };
     },
     supplier: function(supply){
@@ -77,24 +99,6 @@ HANNIBAL = (function(H){
         }
       };
     },
-    speed: function(rate){
-      return [
-        () => print(PID + "::## xdotool key F9\n"), 
-        () => print(PID + "::#! xdotool type --delay 30 Engine.SetSimRate(" + rate + ")\n"), 
-        () => print(PID + "::## xdotool key Return\n"),
-        () => print(PID + "::## xdotool key F9\n"),
-      ];
-
-    },
-    camera: function(){
-      return [
-        () => print(PID + "::## xdotool key F9\n"), 
-        () => print(PID + "::#! xdotool type --delay 30 Engine.CameraMoveTo(" + ccloc() + ")\n"), 
-        () => print(PID + "::## xdotool key Return\n"),
-        () => print(PID + "::## xdotool key F9\n"),
-      ];
-
-    }
 
   });
 
@@ -104,53 +108,42 @@ HANNIBAL = (function(H){
         "0": [() => "< - START: " + map + " - >"],
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        // "1": [T.launch  (                     "g.infantry"),         "launching 1 infantry group"], 
-        "2": [T.supplier(                     "food.fruit"),         "launching 1 food.fruit supplier group"], 
-        "3": [T.builder (                          "house",  5,  2), "building  2 houses"], 
-        "4": [T.builder (                      "walltower",  2,  2), "building  2 walltower"], 
-        "5": [T.builder (                       "barracks",  1,  2), "building  1 barracks"], 
-        "6": [T.builder (                      "farmstead",  1,  2), "building  1 farmstead"], 
-        "7": [T.builder (                     "storehouse",  1,  2), "building  1 storehouse"], 
+        "1": [T.builder (                          "house",  5,  3), "building  5 houses"], 
+        "2": [T.supplier(                     "food.fruit",  5),     "launching 1 food.fruit supplier group"], 
+        "3": [T.supplier(                     "food.meat",   2),     "launching 1 food.meat supplier group"], 
+        "4": [T.supplier(                           "wood", 10),     "launching 1 wood supplier"], 
+        "5": [T.supplier(                          "metal", 10),     "launching 1 metal supplier"], 
+        "6": [T.supplier(                          "stone", 10),     "launching 1 stone supplier"], 
+        "7": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
         "8": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-        "9": [T.supplier(                           "wood", 10),     "launching 1 wood supplier"], 
-       "10": [T.supplier(                          "metal", 10),     "launching 1 metal supplier"], 
-       "11": [T.supplier(                          "stone", 10),     "launching 1 stone supplier"], 
-        // "5": [T.speed(5),                             "more speed"],
+       "11": [T.launch  (                     "g.infantry",  9),     "launching 1 infantry group"], 
+       //  "9": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+       // "10": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+       // "12": [T.builder (                      "walltower",  2,  2), "building  2 walltower"], 
+       // "13": [T.builder (                       "barracks",  1,  2), "building  1 barracks"], 
+       // "14": [T.builder (                      "farmstead",  1,  2), "building  1 farmstead"], 
+       // "15": [T.builder (                     "storehouse",  1,  2), "building  1 storehouse"], 
+       // "20": [T.speed(5),                                            "more speed"],
       // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
     },
-    "brain02": {
-        "0": [() => "< - START: " + map + " - >"],
-        // "2": [T.chat("huhu"), "chatted"], 
-        "1": [T.supplier(      "food.fruit", 44), "launching 1 food.fruit supplier"], 
-        "2": [T.supplier(            "wood", 44, 10), "launching 1 wood supplier"], 
-        "3": [T.supplier(           "metal", 44, 10), "launching 1 metal supplier"], 
-        "4": [T.supplier(           "stone", 44, 10), "launching 1 stone supplier"], 
-        "5": [T.speed(5),                             "more speed"],
-      // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
-    },
-    "Arcadia 02": {
-        // "0": [() => "setting view",
-        //       () => print("#! xdotool click --delay 30 --repeat 4 5\n"), 
-        //       () => print("#! xdotool key KP_Subtract\n"),
-        //       () => print("#! xdotool key F9\n"), 
-        //       () => print("#! xdotool type --delay 30 Engine.CameraMoveTo(558, 430)\n"), 
-        //       () => print("#! xdotool key Return\n"),
-        //       () => print("#! xdotool key F9\n"),
-        //      ],        
-        "0": [T.supplier(      "food.fruit", 4752), "launching 1 food.fruit supplier"], 
-        "1": [T.supplier(       "food.meat", 4752), "launching 1 food.meat supplier"], 
-       "10": [T.supplier(           "stone", 4752), "launching 1 stone supplier"], 
-       "11": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
-       "12": [T.supplier(            "wood", 4752), "launching 1 wood supplier"], 
-       // "13": [T.speed(5),                            "more speed"],
-      "103": [() => H.Groups.log(), "logging groups"],
-        // "6": [() => H.Grids.log(),  "logging grids"],
-        // "7": [() => H.Grids.dump(), "dumping grids"],
-        // "8": [() => H.Groups.log(), "logging groups"],
-       // "70": [() => H.logIngames(), "logging ingames"],
-       // "71": [() => H.Groups.log(), "logging groups"],
-      "1000": [T.quit()],
-    },
+    // "Arcadia 02": {
+    //     "0": [() => "setting view",
+    //           () => print("#! xdotool click --delay 30 --repeat 4 5\n"), 
+    //           () => print("#! xdotool key KP_Subtract\n"),
+    //           () => print("#! xdotool key F9\n"), 
+    //           () => print("#! xdotool type --delay 30 Engine.CameraMoveTo(558, 430)\n"), 
+    //           () => print("#! xdotool key Return\n"),
+    //           () => print("#! xdotool key F9\n"),
+    //          ],        
+    //    "13": [T.speed(5),                            "more speed"],
+    //   "103": [() => H.Groups.log(), "logging groups"],
+    //     "6": [() => H.Grids.log(),  "logging grids"],
+    //     "7": [() => H.Grids.dump(), "dumping grids"],
+    //     "8": [() => H.Groups.log(), "logging groups"],
+    //    "70": [() => H.logIngames(), "logging ingames"],
+    //    "71": [() => H.Groups.log(), "logging groups"],
+    //  "1000": [T.quit()],
+    // },
   };
 
   // fires functions at give tick num, 
@@ -176,7 +169,7 @@ HANNIBAL = (function(H){
       },
       evaluate: function(item){
         return (
-          typeof item === "string"   ? chat(H.format("# %s %s", tick, item)) :
+          typeof item === "string"   ? chat(H.format("%s", item)) :
           typeof item === "function" ? self.evaluate(item()) :
           Array.isArray(item) ? void (item.map(fn => fn())) :
             undefined

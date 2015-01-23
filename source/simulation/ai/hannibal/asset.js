@@ -105,11 +105,15 @@ HANNIBAL = (function(H){
     release:    function(){
       this.eventlist.forEach(e => this.events.off(e, this.handler));
       this.resources.forEach(id => {
-        this.metadata[id].opname = "none";
-        this.metadata[id].opid = undefined;
+        if (H.isInteger(id)){
+          this.metadata[id].opname = "none";
+          this.metadata[id].opid = undefined;
+        } else {
+          // no need to release virtual assets
+        }
       });
       // users ????
-      // deb("   ASS: releasing %s", uneval(this.resources));          
+      this.deb("   AST: released %s => [%s]", this, uneval(this.resources));          
     },
 
     // events
@@ -121,12 +125,15 @@ HANNIBAL = (function(H){
 
         if (msg.data.source === this.id){
 
+          // check for virtual asset: path, a list of coords
           if (this.verb === "path"){
 
             ids = msg.data.resources;
             tpln = "path";
             this.resources = msg.data.resources.slice();
 
+
+          // check for virtual asset: find, a list of resource ids
           } else if (this.verb === "find"){
 
             ids = msg.data.resources;
@@ -152,8 +159,8 @@ HANNIBAL = (function(H){
           dslItem = {
             name:        "item",
             resources:   ids, 
-            // ispath:      tpln.contains("path"),
-            // isresource:  tpln.contains("resources"),
+            ispath:      tpln.contains("path"),      // mark for world.member
+            isresource:  tpln.contains("resources"), // mark for world.member
             foundation:  tpln.contains("foundation"),
             toString :   () => H.format("[dslobject item[%s]]", id)
           };

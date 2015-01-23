@@ -138,7 +138,7 @@ HANNIBAL = (function(H){
       if ((test = this.find(phase)) && test.idx <= this.find(this.current).idx){
         return true;
       } else {
-        this.deb("PHASES: not achieved: %s, curr: %s", phase, this.find(this.current).idx);
+        // this.deb("PHASES: not achieved: %s, curr: %s", phase, this.find(this.current).idx);
         return false;
       }
     }
@@ -763,7 +763,7 @@ HANNIBAL = (function(H){
             this.store.addEdge(nodeSource, "contain", nodeTarget);
             this.store.addEdge(nodeTarget, "member",  nodeSource);
 
-            this.deb("INFO  : WALLPIECES: %s, %s CONTAIN %s", this.civ, wallclass, civwallpiece);
+            // this.deb("INFO  : WALLPIECES: %s, %s CONTAIN %s", this.civ, wallclass, civwallpiece);
 
           }
 
