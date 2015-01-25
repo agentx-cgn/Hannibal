@@ -105,25 +105,26 @@ HANNIBAL = (function(H){
   // if any of these evaluate to a string, it gets chatted
   var sequences = {
     "random/brainland": {
-        "0": [() => "< - START: " + map + " - >"],
+        // "0": [() => "< - START: " + map + " - >"],
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        "1": [T.builder (                          "house",  5,  3), "building  5 houses"], 
-        "2": [T.supplier(                     "food.fruit",  5),     "launching 1 food.fruit supplier group"], 
-        "3": [T.supplier(                     "food.meat",   2),     "launching 1 food.meat supplier group"], 
-        "4": [T.supplier(                           "wood", 10),     "launching 1 wood supplier"], 
-        "5": [T.supplier(                          "metal", 10),     "launching 1 metal supplier"], 
-        "6": [T.supplier(                          "stone", 10),     "launching 1 stone supplier"], 
-        "7": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-        "8": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-       "11": [T.launch  (                     "g.infantry",  9),     "launching 1 infantry group"], 
+        "1": [T.builder (                          "house",  5,  10), "building 10 houses"], 
+       //  "2": [T.supplier(                     "food.fruit",  5),     "launching 1 food.fruit supplier group"], 
+       //  "3": [T.supplier(                     "food.meat",   2),     "launching 1 food.meat supplier group"], 
+       //  "4": [T.supplier(                           "wood", 10),     "launching 1 wood supplier (10)"], 
+       //  "5": [T.supplier(                           "wood", 10),     "launching 1 wood supplier (10)"], 
+       //  "6": [T.supplier(                          "metal",  5),     "launching 1 metal supplier (5)"], 
+       //  "7": [T.supplier(                          "stone",  5),     "launching 1 stone supplier (5)"], 
+       //  "8": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
        //  "9": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
        // "10": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-       // "12": [T.builder (                      "walltower",  2,  2), "building  2 walltower"], 
+       // "11": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+       // // "12": [T.builder (                      "walltower",  2,  2), "building  2 walltower"], // needs phase town
        // "13": [T.builder (                       "barracks",  1,  2), "building  1 barracks"], 
        // "14": [T.builder (                      "farmstead",  1,  2), "building  1 farmstead"], 
        // "15": [T.builder (                     "storehouse",  1,  2), "building  1 storehouse"], 
-       // "20": [T.speed(5),                                            "more speed"],
+       // "20": [T.launch  (                     "g.infantry",  9),     "launching 1 infantry group"], 
+       // "21": [T.speed(3),                                            "more speed"], // 3 is good for 8 player, 5 for 2;
       // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
     },
     // "Arcadia 02": {

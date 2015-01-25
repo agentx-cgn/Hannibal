@@ -167,45 +167,49 @@ HANNIBAL = (function (H){
           return ~~cic;
         };
 
-      // find all CC
+      // first find all CC
       ccNodes = this
         .query("civcentre CONTAIN INGAME")
         .forEach( node => this.centres[node.id] = []);
 
       if (!ccNodes.length){
         this.deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
+      } else {
+        this.deb("  VILL: organizeVillage CCs found: %s", uneval(this.centres));
       }
 
-      // deb();
-      // deb("  VILL: organize villages for %s civic centres [%s]", ccNodes.length, ccNodes.map(c => c.id).join(", "));
-      
-      this.query("INGAME").forEach( node => {
+      // update metadata with closest CC id
+      this.query("INGAME")
+        .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "organizeVillages: ingames"})
+        .forEach( node => {
 
-        var dis, distance = 1e7;
+          var dis, distance = 1e7;
 
-        // is not cc
-        if (!this.centres[node.id]){
+          // is not cc
+          if (!this.centres[node.id]){
 
-          // find nearest CC
-          ccNodes.forEach( cc => {
-            dis = this.map.distance(cc.position, node.position);
-            if (dis < distance){
-              ccId = cc.id;
-              this.metadata[node.id].cc = cc.id;
-              distance = dis;
+            // find nearest CC
+            ccNodes.forEach( cc => {
+
+              // this.deb("  VILL: distances: %s, %s", cc.position, node.position);
+              dis = this.map.distance(cc.position, node.position);
+              if (dis < distance){
+                ccId = cc.id;
+                this.metadata[node.id].cc = cc.id;
+                distance = dis;
+              }
+            });
+
+            // keep building to find largest village
+            if (this.entities[node.id].hasClass("Structure")){
+              this.centres[ccId].push(node.id);
             }
-          });
 
-          // keep building to find largest village
-          if (this.entities[node.id].hasClass("Structure")){
-            this.centres[ccId].push(node.id);
+          } else {
+            // CCs have themself as cc
+            this.metadata[node.id].cc = node.id;
+
           }
-
-        } else {
-          // CCs have themself as cc
-          this.metadata[node.id].cc = node.id;
-
-        }
 
       });
 

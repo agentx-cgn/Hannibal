@@ -47,6 +47,8 @@ HANNIBAL = (function(H){
 
     this.deb = H.deb.bind(null, pid);
 
+    // this.deb("   RES: id: '%s'", uneval(this.id));
+
   }
 
   Resource.prototype = {
@@ -90,7 +92,7 @@ HANNIBAL = (function(H){
 
       } else {
         this.consumed = true;
-        this.deb("   RES: res with id: '%s' was consumed, no entity", this.id);
+        // this.deb("   RES: res with id: '%s' was consumed, no entity", this.id);
 
       }
 
@@ -208,12 +210,14 @@ HANNIBAL = (function(H){
         this.resources = this.template;
 
         H.each(this.entities, (id, ent) => {
+
+          // this.deb("re.init: id: '%s' ", uneval(id));
           
           if ((type = ent.resourceSupplyType())){ // returns { "generic": type, "specific": subtype };
             //TODO: whales
             if (this.resources[type.generic][type.specific]){
               counter += 1;
-              res = this.resources[type.generic][type.specific][ent.id()] = new Resource(this.context.id, {
+              res = this.resources[type.generic][type.specific][id] = new Resource(this.context.id, {
                 id:       ~~id, 
                 map:      this.map,
                 config:   this.config,

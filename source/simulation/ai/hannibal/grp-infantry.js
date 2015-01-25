@@ -118,17 +118,27 @@ HANNIBAL = (function(H){
           w.deb("     G: interval: %s, %s secs", this, secs);
 
           //  if complete and idle, change path and spread
+          
           w.units.on
+            .match(tick % 2, 0)
             .doing("idle")
             .match(w.units.count, w.units.size)
-            .path.do.modify("rotate 90")
+            .path.do.modify("square; rotate 120")
+            .units.do.spread(w.path)
+          ;
+
+          w.units.on
+            .match(tick % 2, 1)
+            .doing("idle")
+            .match(w.units.count, w.units.size)
+            .path.do.modify("square")
             .units.do.spread(w.path)
           ;
 
         }
 
 
-      } // end listener
+      } // end scripts
 
     }
 

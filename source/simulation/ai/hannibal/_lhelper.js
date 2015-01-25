@@ -292,7 +292,7 @@ H.extend(H, {
 
 
 
-  // ES6 Suite
+  // ES6 Abstraction Suite
   map:        function (o, fn){
     var r={}, isF = typeof fn==="function";
     Object.keys(o).forEach( k => {
@@ -301,19 +301,48 @@ H.extend(H, {
     return r;
   },
   unique:     function (a){return [...Set(a)];},
-  attribs:    function (o){return Object.keys(o);},
-  count:      function (o){return Object.keys(o).length;},
-  values:     function (o){return Object.keys(o).map(function(k){return o[k];});},
-  // each:       function (o,fn){Object.keys(o).forEach(k => fn(k, o[k]));},
-  // each:       function (o,fn){var i,k,a=Object.keys(o),al=a.length;for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}},
+  values:     function (o){
+    return (
+      o instanceof Map ? [...o.values()] : 
+        Object.keys(o).map(k => o[k])
+    );
+  },
+  attribs:    function (o){
+    return (
+      o instanceof Map ? [...o.entries()] : 
+        Object.keys(o)
+    );
+  },
+  count:      function (o){
+    return (
+      o instanceof Map ? o.size : 
+        Object.keys(o).length
+    );
+  },
+
   each:       function (){
+    
     var 
-      args = H.toArray(arguments),
-      objs = args.slice(0, -1),
-      fn   = args.slice(-1)[0];
-      objs.forEach(o => {
-        var i, k, a = Object.keys(o), al= a.length;
-        for(i=0;i<al;i++){k=a[i];fn(k, o[k]);}
+      i, k, a, al, args = H.toArray(arguments),
+      items = args.slice(0, -1),
+      fn    = args.slice(-1)[0];
+
+      items.forEach(item => {
+        if (Array.isArray(item)){
+          item.forEach( (value, key) => {
+            fn(key, value);
+          });
+
+        } if (item instanceof Map){
+          item.forEach( (value, key) => {
+            fn(key, value);
+          });
+
+        } else {
+          a = Object.keys(item); al= a.length;
+          for(i=0;i<al;i++){k=a[i];fn(k, item[k]);}
+        }
+
       });
   }
 

@@ -413,7 +413,7 @@ HANNIBAL = (function(H){
     doing: function(list, filter){ 
 
       // filters ids in list on unit ai state
-      // e.g. "idle"
+      // e.g. idle, approach, walk, gather
 
       var 
         ids = [], 
@@ -432,8 +432,7 @@ HANNIBAL = (function(H){
         });
       });
 
-      // this.deb("  GRPS: doing from: %s to %s by %s || found: %s", list, ids, filter, states);
-      this.deb("  GRPS: doing found: %s", states);
+      // this.deb("  GRPS: doing found: %s", states);
 
       return ids;
 

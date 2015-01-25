@@ -19,7 +19,12 @@ function loop (n, fn){for (var i=0; i<n; i++){fn(i);}}
 
     TriggerHelper
       .GetPlayerComponent(p)
-      .SetResourceCounts({food: 1000, wood: 1000, stone: 1000, metal: 1000})
+      .SetResourceCounts({
+        food:  1000, 
+        wood:  1000, 
+        stone: 1000, 
+        metal: 1000
+      })
     ;
 
   });
@@ -29,13 +34,38 @@ function loop (n, fn){for (var i=0; i<n; i++){fn(i);}}
 
 // GAME INITIALIZATION
 
+Trigger.prototype.cinema = function(){
+
+  var start = [   400,   400,    10,    0,    0,    0 ];
+  var end   = [    10,    10,    10,    0,    0,    0 ];
+
+
+  deb("------: Trigger.cinema.in");
+
+  Object.keys(Trigger.prototype).forEach(k => deb(k));
+
+
+  Engine.SetCameraData(...start);
+
+  deb("Camera: %s, %s, %s", Engine.CameraGetX(), Engine.CameraGetY(), Engine.CameraGetZ());
+
+    //   Engine.SetCameraData(data.camera.PosX, data.camera.PosY, data.camera.PosZ,
+    //      data.camera.RotX, data.camera.RotY, data.camera.Zoom);
+
+    Engine.CameraMoveTo(400, 400);
+
+  deb("------: Trigger.cinema.out");
+
+};
 Trigger.prototype.forceResearch = function(){
 
-  // deb("Triggers.forceResearch.in");
-
   var 
-    player, cmpTechnologyManager, 
-    technologies = ["phase_town_generic", "phase_city_generic"];
+    player, 
+    cmpTechnologyManager, 
+    technologies = [
+      // "phase_town_generic", 
+      // "phase_city_generic"
+    ];
 
   loop(TriggerHelper.GetNumberOfPlayers(), p => {
 
@@ -45,23 +75,25 @@ Trigger.prototype.forceResearch = function(){
      technologies.forEach(tech => {
 
        if (!cmpTechnologyManager.IsTechnologyResearched(tech)) {
-         // deb("Triggers.forceResearch.tech: %s research %s", p, tech);
+         deb("Triggers.forceResearch.tech: player %s researches %s", p, tech);
          cmpTechnologyManager.ResearchTechnology(tech); 
 
        } else {
          deb("Triggers.forceResearch.tech: %s rejected %s", p, tech);
-       }
 
+       }
 
      });
 
   });
    
-  // deb("Triggers.forceResearch.out");
-
 };
 
 Engine
   .QueryInterface(SYSTEM_ENTITY, IID_Trigger)
-  .DoAfterDelay(0, "forceResearch", {})
+  .DoAfterDelay(   0, "forceResearch", {})
+;
+Engine
+  .QueryInterface(SYSTEM_ENTITY, IID_Trigger)
+  .DoAfterDelay(1000, "cinema", {})
 ; 

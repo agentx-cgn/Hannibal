@@ -1,0 +1,43 @@
+  Object.keys(Engine).forEach(k => deb(k));
+
+    ProfileStart
+    ProfileStop
+    RegisterComponentType
+    RegisterSystemComponentType
+    ReRegisterComponentType
+    RegisterInterface
+    RegisterMessageType
+    RegisterGlobal
+    QueryInterface
+    GetEntitiesWithInterface
+    GetComponentsWithInterface
+    PostMessage
+    BroadcastMessage
+    AddEntity
+    AddLocalEntity
+    DestroyEntity
+    FlushDestroyedEntities
+    ReadJSONFile
+    ReadCivJSONFile
+    FindJSONFiles
+
+
+Object.keys(Trigger.prototype).forEach(k => deb(k));
+
+    Schema
+    eventNames
+    Init
+    RegisterTriggerPoint
+    RemoveRegisteredTriggerPoint
+    GetTriggerPoints
+    RegisterTrigger
+    DisableTrigger
+    EnableTrigger
+    CallEvent
+    OnGlobalConstructionFinished
+    OnGlobalTrainingFinished
+    OnGlobalOwnershipChanged
+    DoAfterDelay
+    DoAction
+    cinema
+    forceResearch

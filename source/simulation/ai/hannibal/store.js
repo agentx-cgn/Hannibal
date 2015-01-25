@@ -149,10 +149,23 @@ HANNIBAL = (function(H){
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Query,
     logNodes: function (){
-      var deb = this.params.deb;
-      if (deb > 0 && this.fromCache){this.deb("     Q: %s recs from cache: %s", this.results.length, this.query);}
-      if (deb > 0){this.deb("     Q: executed: msecs: %s, records: %s, ops: %s", this.t1, this.results.length, this.ops);}
-      if (deb > 1){this.logResult(this.results, this.params.fmt, this.params.max);}
+
+      if (this.params.deb > 0){
+        this.deb("      :");
+        this.deb("     Q: q: '%s'", this.query);
+        this.deb("      : c: '%s'", this.params.cmt || "no comment");
+        this.deb("      : recs: %s, ops: %s, msecs: %s", this.results.length, this.t1, this.ops);
+        this.logResult(this.results, this.params.fmt, this.params.max);
+        if (this.fromCache){
+          this.deb("     Q: %s recs from cache: %s", this.results.length, this.query);
+          this.deb("     Q: cache drop: hits: %s, qry: %s", 
+            this.store.cache[cacheDrop].hits, 
+            this.store.cache[cacheDrop]
+          );
+
+        }
+      }
+
     },
     sanitize: function(phrase){
       phrase = H.replace(phrase, "\n", " ");
@@ -303,7 +316,7 @@ HANNIBAL = (function(H){
         results = [],               
 
         // return strings without quotes
-        parse =    v => {
+        parse = v => {
           var f = parseFloat(v);
           return Array.isArray(v) ? v : isNaN(f) ? v.slice(1, -1) : f;
         };
@@ -324,13 +337,6 @@ HANNIBAL = (function(H){
 
       }
 
-
-      if (this.params.deb > 1){
-        this.deb("      :");
-        this.deb("     Q: q: '%s'", self.query);
-        this.deb("      : c: '%s'", this.params.com || "no comment");
-      }
-
       tree.forEach( clause => {
 
         var 
@@ -347,7 +353,8 @@ HANNIBAL = (function(H){
           // convert the names into nodes, remove unknown
           results = clause.split(", ")
             .map(function(name){ops++; return nodes[name] !== undefined ? nodes[name]: undefined;})
-            .filter(function(node){ops++; return node !== undefined;});
+            .filter(function(node){ops++; return node !== undefined;})
+          ;
 
 
         // a VERB
@@ -369,8 +376,7 @@ HANNIBAL = (function(H){
             case "LIMIT"    : ops += ~~rest; results = results.slice(0, ~~rest); break;
             case "RAND"     : ops += ~~rest; results = this.sample(results, ~~rest);  break;
             case "DISTINCT" : ops += results.length; results = [...Set(results)]; break;
-
-            case "SORT" :
+            case "SORT"     :
 
               oper = params[0]; attr = params[1];
               [ops, results] = self.sortResults(oper, attr, results, ops);
@@ -424,12 +430,12 @@ HANNIBAL = (function(H){
 
       this.t1 = Date.now() - this.t0;
 
-      // put in cache
+      // put/replace in cache
       if (cache.length > this.store.cacheSlots){
-        cacheDrop = Object.keys(cache).sort(function(a, b){
-          return cache[a].hits - cache[b].hits;
-        })[0];
-        if (this.debug > 0){this.deb("     Q: cache drop: hits: %s, qry: %s", cache[cacheDrop].hits, cache[cacheDrop]);}
+        cacheDrop = Object
+          .keys(cache)
+          .sort( (a, b) => cache[a].hits - cache[b].hits)[0]
+        ;
         delete cache[cacheDrop];
       }
       cache[this.query] = {hits: 0, results: results};

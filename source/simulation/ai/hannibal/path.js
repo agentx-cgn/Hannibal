@@ -214,38 +214,67 @@ HANNIBAL = (function(H){
       this.orientation = (this.orientation + rads) % TAU;
 
 
-    }, square: function(distance=6){
+    }, arrange: function(width, height, distance=6){
 
-      // formats points into a square + rest using distance
+      // TODO: needs this.orientation
 
       var
         x, y, p  = this.path,
         [cx, cz] = this.center,
-        w = ~~(p.length / sqrt(p.length)),
-        h = ~~(p.length / w),
-        rest = p.length % w;
+        rest = p.length % width;
 
       // trash current path
       this.path = [];
 
-      // make the square
-      for(x = 0; x < w; x++){
-        for(y = 0; y < h; y++){
+      // do for width/height
+      for(x = 0; x < width; x++){
+        for(y = 0; y < height; y++){
           this.path.push([
-            cx - (~~(w / 2) + x) * distance, 
-            cz - (~~(h / 2) + y) * distance
+            cx - (~~(width  / 2) + x) * distance, 
+            cz - (~~(height / 2) + y) * distance
           ]); 
       }}
 
       // pos the remaining
       for(x = 0; x < rest; x++){
         this.path.push([
-          cx - (~~(w / 2) + x) * distance, 
-          cz - (~~(h / 2) + y) * distance
+          cx - (~~(width  / 2) + x) * distance, 
+          cz - (~~(height / 2) + y) * distance
         ]);      
       }
 
-      // this.log("square.out");
+    }, square: function(distance=6){
+
+      // arranges points into a square + rest using distance
+
+      var
+        p = this.path,
+        width  = ~~(p.length / sqrt(p.length)),
+        height = ~~(p.length / width);
+
+      this.arrange(width, height, distance);
+
+
+    }, line: function(distance=6){
+
+      // arranges points into a line
+
+      var
+        p = this.path,
+        width  = p.length,
+        height = 1;
+
+      this.arrange(width, height, distance);
+
+    }, rect: function(width, distance=6){
+
+      // arranges points into a rectangle
+
+      var
+        p = this.path,
+        height = ~~(p.length / width);
+
+      this.arrange(width, height, distance);
 
 
     }, linspace: function(pt1, pt2){

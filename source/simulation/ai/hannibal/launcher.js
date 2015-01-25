@@ -1,5 +1,5 @@
 /*jslint bitwise: true, browser: true, todo: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
-/*globals HANNIBAL, HANNIBAL_DEBUG, API3, uneval */
+/*globals HANNIBAL, HANNIBAL_DEBUG, Engine, API3, uneval */
 
 /*--------------- L A U N C H E R   -------------------------------------------
 
@@ -58,7 +58,7 @@ HANNIBAL = (function(H) {
 
     var 
       t0  = Date.now(),
-      deb = this.deb.bind(this), 
+      // deb = this.deb.bind(this), 
       ss  = sharedScript, 
       gs  = gameState,
       civ = ss.playersData[this.id].civ;
@@ -324,7 +324,7 @@ HANNIBAL = (function(H) {
     deb("     A:          _entities: %s [  ]", H.count(ss._entities));
     deb("     A:         _templates: %s [  ]", H.count(ss._templates));
     deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
-    deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
+    deb("     H: _techModifications: %s [XX]", H.count(ss._techModifications[id])); // , H.attribs(ss._techModifications[id]));
     deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
     deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
     deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));

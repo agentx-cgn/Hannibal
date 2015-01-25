@@ -33,13 +33,19 @@
 
 HANNIBAL = (function(H){
 
+  // ultimtate switch
+  var DEBOFF = false;
+
   H.extend(H, {
 
     logFn: function (fn){return fn.toString().split("\n").join("").slice(0, 80) + "|...";},
 
+    deboff: function(what=true){DEBOFF = what;},
     deb: function(/* id, msg */){
 
-      // print("H.deb: args: " + uneval(arguments) + "\n");
+      // print("H.deb: DEBOFF: " + DEBOFF  + " args: " + uneval(arguments) + "\n");
+
+      if(DEBOFF) return;
 
       var 
         args = H.toArray(arguments), al = args.length,
@@ -215,13 +221,21 @@ HANNIBAL = (function(H){
         case "undefined":
         case "boolean":   return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
         case "object":
+
           if (Array.isArray(value)){
             return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
+
+          } else if (o instanceof Map) {
+            keys = o.entries();
+            return H.format("  %s: MAP [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
+
           } else if (value === null) {
             return H.format("  %s: NULL", name);
+
           } else {
             keys = Object.keys(value);
             return H.format("  %s: OBJECT [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
+
           }
         break;
         case "function":

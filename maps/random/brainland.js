@@ -299,8 +299,10 @@ function step3  (/* options */) {
 
     id = playerIDs[i];
 
+    // H.deb(" i: %s %s %s", i, id, uneval(g_MapSettings));
+
     // some constants
-    var radius = scaleByMapSize(15,25);
+    var radius = scaleByMapSize(15, 25);
 
     log("Creating base for player " + id + "...");
     
@@ -316,7 +318,8 @@ function step3  (/* options */) {
     var ix = round(fx);
     var iz = round(fz);
 
-    var civ = g_MapSettings.PlayerData[id-1].Civ;
+    // var civ = g_MapSettings.PlayerData[id-1].Civ;
+    var civ = getCivCode(id-1);
 
     addToClass(ix, iz, clPlayer);
     addToClass(ix+5, iz, clPlayer);
@@ -326,9 +329,6 @@ function step3  (/* options */) {
     
     // create starting units
     // placeCivDefaultEntities(fx, fz, id, BUILDING_ANGlE);
-
-    // set resources
-    g_MapSettings.PlayerData[id-1].resources = {wood: 1000, food: 1000};
 
     (function placeCivDefaultEntities(fx, fz, playerid, angle, kwargs) {
       
@@ -343,7 +343,9 @@ function step3  (/* options */) {
       // Place default civ starting entities
       // var civEntities = getStartingEntities(playerid-1);
       var civEntities = getCCEntities(civ, playerid-1);
-      var uDist = 16;
+
+      // distance of units from CC
+      var uDist = 10;
       var uSpace = 2;
 
       // CC
@@ -591,6 +593,10 @@ function step10  (/* options */) {
 
 }
 // Export map data
+
+// H.deb("global %s", typeof global);
+
+// H.logObject(global, "brainland.global");
 
 var sequence = [
   [ 2, step0,  "Place terrain",               {}],

@@ -64,8 +64,6 @@ HANNIBAL = (function(H){
     activate: function(){},
     tick: function(secs, tick, timing){
 
-      // logObject(this.map, "this.map");
-
       if (tick === 0){
 
         // allow processing autoresearch first
@@ -89,6 +87,7 @@ HANNIBAL = (function(H){
           ["eco", "Economy",         this.economy      ]
 
         ].forEach(task => {
+
           Engine.ProfileStart("Hannibal " + task[1]);
           timing[task[0]] = task[2].tick.apply(task[2], [secs, tick]);
           Engine.ProfileStop();

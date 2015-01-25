@@ -81,8 +81,8 @@ HANNIBAL = (function(H){
     serialize: function(){
       return {
         stock: H.deepcopy(this.stock), 
-        suply: H.deepcopy(this.suply), 
-        diffs: H.map(this.diffs, (key, buffer) => buffer.serialize()), // buffer !!
+        // suply: H.deepcopy(this.suply), 
+        // diffs: H.map(this.diffs, (key, buffer) => buffer.serialize()), // buffer !!
         flows: H.deepcopy(this.flows), 
         alloc: H.deepcopy(this.alloc),
         forec: H.deepcopy(this.forec), 
@@ -94,22 +94,22 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), curHits = 1, maxHits = 1, 
-        gathered  = this.player.statistics.resourcesGathered,
+        // gathered  = this.player.statistics.resourcesGathered,
         available = this.player.resourceCounts;
 
       // update
       this.import();
           
-      // gather diffs
-      this.gatherables.forEach( prop => { 
-        this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
-        this.suply[prop]   = gathered[prop];                 // totals
-        this.stock[prop]   = available[prop];                // available
-      });
+      // // gather diffs
+      // this.gatherables.forEach( prop => { 
+      //   this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
+      //   this.suply[prop]   = gathered[prop];                 // totals
+      //   this.stock[prop]   = available[prop];                // available
+      // });
       
       // other data
       this.stock.pops   = this.player.popCount;
-      this.stock.area   = this.player.statistics.percentMapExplored;
+      // this.stock.area   = this.player.statistics.percentMapExplored;
       this.stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
 
       // buffers
@@ -139,7 +139,7 @@ HANNIBAL = (function(H){
         "query",
         "culture",
         "config",
-        "entities",
+        "entities", // _entity.trainingQueue
         "metadata",
       ],
 
@@ -149,10 +149,10 @@ HANNIBAL = (function(H){
 
       // producer info template
       info:      {
-        id:        0,   // entity id
+        type:     "",   // ~~ unit|building, units do not have _entity.trainingQueue
+        entities: [],   // entity id(s)
         name:     "",   // node name
         queue:    [],   // taskids or techs
-        simqueue: [],   // simulates engine's queue for simulations
         allocs:    0,   // per orderqueue cycle
       },
 
@@ -172,7 +172,7 @@ HANNIBAL = (function(H){
           .sort((a, b) => ~~a < ~~b ? -1 : 1)
           .forEach( nameid => {
             var [name, id] = nameid.split("#");
-            this.deb("     P: %s %s", id, this.infoProducer(name));
+            this.deb("     P: %s %s", id ? "#" + id : "", this.infoProducer(name));
         });
       } else {
         this.deb("   PDC: log: no producer registered");
@@ -185,18 +185,35 @@ HANNIBAL = (function(H){
         name, id, apiqueue,
         producers = H.attribs(this.producers),
         countAll  = producers.length, 
-        countAct  = producers.filter(a => this.producers[a].queue.length).length;
+        countBld  = producers.filter(a => this.producers[a].type === "building").length,
+        countUnt  = producers.filter(a => this.producers[a].type === "unit").length;
 
       if (countAll){
-        this.deb("   PDC: %s/%s producers", countAct, countAll);
+        this.deb("   PDC: %s B/%s U/%s producers", countBld, countUnt, countAll);
+
         if (true){
+
+          // units
           this.deb("*");
           producers
+            .filter(a => this.producers[a].type === "unit")
+            .sort((a, b) => this.producers[a].entities.length > this.producers[b].entities.length ? -1 : 1)
+            .forEach( name => {
+              this.deb("     P: U %s %s ", 
+                t(this.producers[name].entities.length, 3), 
+                name
+              );
+          });
+
+          // buildings
+          this.deb("*");
+          producers
+            .filter(a => this.producers[a].type === "building")
             .filter(a => this.producers[a].queue.length)
             .sort((a, b) => this.producers[a].queue.length > this.producers[b].queue.length ? -1 : 1)
             .forEach( nameid => {
               [name, id] = nameid.split("#");
-              this.deb("     P: %s alc: %s, q: %s, n: %s ", 
+              this.deb("     P: B %s alc: %s, q: %s, n: %s ", 
                 t("#" + id, 4), 
                 t(this.producers[nameid].allocs, 3), 
                 uneval(this.producers[nameid].queue), 
@@ -265,20 +282,34 @@ HANNIBAL = (function(H){
         node = H.isInteger(nodeOrId) ? this.query("INGAME WITH id = " + nodeOrId).first() : nodeOrId,
         id   = H.isInteger(nodeOrId) ? nodeOrId : node.id,
         name = node.name.split("#")[0],
+        type = this.entities[id]._entity.trainingQueue ? "building" : "unit",
         tree = this.culture.tree.nodes;
 
       // deb("   PDC: to register: %s, %s", name, id);
 
       check = (
-        !this.producers[node.name] &&                 // is not already registered
+        // !this.producers[node.name] &&                 // is not already registered
         tree[name]                 &&                 // is a node
         tree[name].products.count                     // has products
       ); 
 
       if (check){
-        this.producers[node.name] = H.mixin(
-          H.deepcopy(this.info), {id: id, name: name}
-        );
+
+        if (type === "unit"){
+          if (this.producers[name]){
+            this.producers[name].entities.push(id);
+          } else {
+            this.producers[name] = H.mixin(
+              H.deepcopy(this.info), {type: type, name: name, entities: [id]}
+            );
+          }
+        
+        } else if (type === "building"){
+          this.producers[node.name] = H.mixin(
+            H.deepcopy(this.info), {type: type, entities: [id], name: name}
+          );
+        
+        }
         // deb("   PDC: registered: %s", uneval(this.producers[node.name]));
       } else {
         // deb("   PDC: NOT registered: %s, %s", name, id);
@@ -286,20 +317,38 @@ HANNIBAL = (function(H){
 
     },
     remove: function(nodeOrId){
-      
-      var id = H.isInteger(nodeOrId) ? nodeOrId : nodeOrId.id;
 
-      H.each(this.producers, (nameid, info) => {
-        if (info.id === id){
-          delete this.producers[nameid];
-          this.deb("   PDC: removed id: %s, name: %s", id, info.name);
-        }        
-      });
+      var      
+        node = H.isInteger(nodeOrId) ? this.query("INGAME WITH id = " + nodeOrId).first() : nodeOrId,
+        id   = H.isInteger(nodeOrId) ? nodeOrId : node ? node.id : NaN,
+        name = node ? node.name.split("#")[0] : undefined;
+
+      if (node && !isNaN(id))
+
+      // type == unit
+      if (this.producers[name]){
+        H.delete(this.producers[name].entities, entid => entid === id);
+
+      // type == building
+      } else if (this.producers[node.name]){
+        // TODO: re-create orders from queue
+        delete this.producers[node.name];
+
+      } else {
+
+        this.deb("WARN  : PDC can't delete producer with id: %s | ", id, name);
+      }
+
+      this.deb("   PDC: removed id: %s, name: %s", id, node.name);
+
+      // H.each(this.producers, (nameid, info) => {
+      //   if (info.id === id){
+      //     delete this.producers[nameid];
+      //     this.deb("   PDC: removed id: %s, name: %s", id, info.name);
+      //   }        
+      // });
 
     },  
-    // canqueue: function(producer, amount){
-    //   return producer.queue.length + amount < this.maxqueue;
-    // },
     queue: function(producer, taskidOrTech){
       producer.queue.push(taskidOrTech);
       this.deb("   PDC: queued: task: %s in queue: %s | %s", taskidOrTech, producer.queue, producer.name);
@@ -321,22 +370,25 @@ HANNIBAL = (function(H){
 
       if (!found) {
         // false alram for order.amount > 1;
-        this.deb("   PDC: unqueue: not found in any queue: %s, %s", verb, taskidOrTech);
+        // this.deb("   PDC: unqueue: not found in any queue: %s, %s", verb, taskidOrTech);
       }
 
     },
     resetAllocations: function(){
-      H.each(this.producers, (name, producer) => {
-        producer.allocs = producer.queue.length;
+      H.each(this.producers, (name, info) => {
+        if (info.type === "building"){
+          info.allocs = this.entities[info.entities[0]]._entity.trainingQueue.length;
+        }
       });      
     },
-    allocate: function(node, verb){
+    allocate: function(product, verb){
 
       if (verb === "build"){
+        // builder/unit have no queue
         return true;
 
-      } else if (node.producer.allocs < this.maxqueue){
-        node.producer.allocs += 1;
+      } else if (product.producer.allocs < this.maxqueue){
+        product.producer.allocs += 1;
         return true;
       
       } else {
@@ -347,7 +399,8 @@ HANNIBAL = (function(H){
     },
     find: function(product, cc){
 
-      // returns matching producer with most free slots, if avail.
+      // searches culture.tree for producer for product
+      // returns matching producer with most free slots, if avail. or null
       // TODO: calculate exactly best producer, based on queue length and -items
 
       var 
@@ -399,7 +452,7 @@ HANNIBAL = (function(H){
             check = (
               tree[producer.name].products.train[product] &&
               producer.allocs < this.maxqueue && 
-              (!cc || this.metadata[producer.id].cc === cc)
+              (!cc || this.metadata[producer.entities[0]].cc === cc)
             );
             if (check){
               candidates.push(producer);
@@ -407,8 +460,8 @@ HANNIBAL = (function(H){
           }
           if (candidates.length){
             found = true;
-            candidates.sort((a, b) => a.allocs > b.allocs ? 1 : -1);
-            producer = candidates[0];
+            producer = candidates
+              .sort((a, b) => a.allocs > b.allocs ? 1 : -1)[0];
           }
 
         break;
@@ -428,7 +481,9 @@ HANNIBAL = (function(H){
         //   uneval(this.metadata[producer.id])
         // );
       } else {
-        // deb("   PDC: no producer found for %s at cc: %s", product, cc)      
+        if (verb === "build"){
+          this.deb("   PDC: NO producer found for %s at cc: %s", product, cc);
+        }
       }
 
       return producer && found ? producer : null;
@@ -574,14 +629,19 @@ HANNIBAL = (function(H){
             phases = this.culture.phases;
           
           if (!phases.achieved(phase)){
+            /*
+              units.athen.support.female.citizen.house
+            */
             node.qualifies = false; 
             node.info = "needs phase " + phase; 
-            this.deb("   ORD: #%s needs phase %s | %s > %s", 
-              this.id, 
-              phase, 
-              phases.find(phase).idx,
-              phases.find(phases.current).idx
-            );
+            // this.deb("   ORD: #%s needs phase %s | %s > %s | %s, %s", 
+            //   this.id, 
+            //   phase, 
+            //   phases.find(phase).idx,
+            //   phases.find(phases.current).idx,
+            //   node.name,
+            //   this.hcq
+            // );
             return;
           }
 
@@ -741,7 +801,7 @@ HANNIBAL = (function(H){
 
       var 
         msg  = "", tb = H.tab,
-        header = "  id,     verb, age, amt, pro, rem, nodes, flags,                 source, template".split(","),
+        header = "  id,     verb, age, amt, pro, rem, nodes, flags,                 source, hcq|product".split(","),
         tabs   = "   4,       10,   5,   5,   5,   5,     7,     7,                    24, 12".split(",").map(s => ~~s),
         head   = header.map(String.trim).slice(0, -1),
         retr = {
@@ -768,7 +828,7 @@ HANNIBAL = (function(H){
             H.zip(head, tabs, (h, t) => {
               msg += tb(retr[h](o), t);
             });
-            this.deb("     Q: %s | %s", msg, o.product ? o.product.name : "no product");
+            this.deb("     Q: %s | %s", msg, o.product ? o.product.name :  o.hcq);
           });
         this.deb("*");
       }
@@ -805,6 +865,40 @@ HANNIBAL = (function(H){
       this.deb("   ORQ: have %s, %s", this.queue.length, this.queue.map(o => o.id).join("|"));
       H.throw("WARN  : no order found in queue with: %s", fn);
       return undefined;
+    },
+    prepare: function(){
+
+      // checks all trains and assigns existing, 
+      // even from already ordered, cancels order then
+      var 
+        queue,
+        ingames = this.query("INGAME WITH metadata.opname = 'none'"),
+        producers = this.economy.producers.producers,
+        producerlist = H.attribs(producers);
+
+      producerlist
+        .filter(a => producers[a].type === "building")
+        .filter(a => producers[a].queue.length)
+        .forEach( nameid => {
+          // item: id, unitTemplate, technologyTemplate, count, neededSlots, progress, timeRemaining, metadata
+          queue = this.entities[id]._entity.trainingQueue;
+          if(queue && queue.length){
+            // this.deb("     P: api: len: %s", queue.length);
+            queue.forEach( item => {
+              if (item.progress === 0){
+
+              }
+              // this.deb("     P:   %s, rem: %s, pro: %s, cnt: %s, tpl: %s", 
+              //   t(item.id, 3), 
+              //   t((item.timeRemaining/1000).toFixed(1), 8), 
+              //   t(~~(item.progress * 100), 4), 
+              //   t(item.count, 2), 
+              //   item.unitTemplate
+              // );
+            });
+          }
+      });
+
     },
     process: function(){
 
@@ -1004,7 +1098,15 @@ HANNIBAL = (function(H){
 
       // new producer
       events.on("ConstructionFinished", msg => {
+
+        // if (!msg.data.task){
+        //   this.deb("INFO  : ECO: got present: structure, not ordered %s", uneval(msg));
+        //   this.effector.chat("Thanks.");
+        //   return;
+        // }
+
         producers.register(msg.id);
+
       });
 
       // new unit
@@ -1014,7 +1116,7 @@ HANNIBAL = (function(H){
 
         if (!msg.data.task){
           this.deb("INFO  : ECO: got present: unit, not ordered");
-          H.chat("Thanks.");
+          this.effector.chat("Thanks.");
           return;
         }
 
@@ -1072,6 +1174,7 @@ HANNIBAL = (function(H){
       this.availability.sort((a, b) => stock[a] > stock[b] ? 1 : -1);
 
       // create value
+      // this.orderqueue.prepare();
       this.orderqueue.process();
 
       // report upstream
@@ -1119,7 +1222,7 @@ HANNIBAL = (function(H){
       var 
         pos, task, 
         product = order.product,
-        id = product.producer.id; 
+        id = product.producer.entities[0]; 
 
       this.deb("   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s",
         order.id, 

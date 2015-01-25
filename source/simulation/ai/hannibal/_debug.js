@@ -2,7 +2,7 @@ var HANNIBAL_DEBUG = {
   "map": "random/brainland", 
   "bots": {
     "1": {
-      "num": 1, 
+      "num": 0, 
       "cht": 1, 
       "log": 4, 
       "sup": 0, 

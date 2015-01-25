@@ -20,6 +20,7 @@ HANNIBAL = (function(H){
   function Message (name, msg) {
 
     // this is send around, has the mandatory default attributes
+    // uneval(msg) must work!!
 
     H.extend(this, {
       player:  null,
@@ -28,6 +29,12 @@ HANNIBAL = (function(H){
       id2:        0,
       data:      {},
     }, msg);
+
+    // this.name   = name;                 // event name
+    // this.player = msg.player || null;   // player id
+    // this.id     = msg.id     || 0;      // entity id
+    // this.id2    = msg.id2    || 0;      // entity id
+    // this.data   = msg.data   || {};     // pay load
 
   }
       
@@ -230,18 +237,22 @@ HANNIBAL = (function(H){
       // detects new techs and fires "Advance"
   
       H.each(this.players, (id, player) => {
-        H.each(player.researchedTechs, key => {
-          if (!H.contains(this.researchedTechs[id], key)){
+        if (player.researchedTechs){ // exclude gaya
 
-            this.fire("Advance", {
-              player: id,
-              data:   {technology: H.saniTemplateName(key), key: key}
-            });
+          H.each(player.researchedTechs, key => {
+            if (!H.contains(this.researchedTechs[id], key)){
 
-            this.researchedTechs[id].push(key);
+              this.fire("Advance", {
+                player: id,
+                data:   {technology: H.saniTemplateName(key), key: key}
+              });
 
-          }
-        });
+              this.researchedTechs[id].push(key);
+
+            }
+          });
+
+        }
       });
 
     },
@@ -365,12 +376,19 @@ HANNIBAL = (function(H){
 
       // listener: assets, culture, producers
 
+      var 
+        eold = this.entities[e.entity], 
+        enew = this.entities[e.newentity],
+        told = eold ? eold._templateName : "unknown",
+        tnew = enew ? enew._templateName : "unknown";
+
       // this.deb("   EVT: EntityRenamed %s" , uneval(e));
 
-      this.deb("   EVT: EntityRenamed %s, %s => %s, %s", 
-        e.entity,    this.entities[e.entity]    || "unknown",
-        e.newentity, this.entities[e.newentity] || "unknown"
-      );
+      // if (!eold || !enew){
+      if (!enew){
+        this.deb("   EVT: ignored EntityRenamed: %s => %s, %s => %s ", e.entity, e.newentity, told, tnew);
+        return;
+      }
 
       var msg = this.fire("EntityRenamed", {
         player: this.entities[e.newentity].owner(),
@@ -447,7 +465,9 @@ HANNIBAL = (function(H){
       // listener: assets, culture, mili?
       // TODO are foundations removed from triple store by Renamed?
 
-      var msg;
+      var 
+        msg,
+        tpln = e.entityObj._templateName || "unknown";
 
       if (this.createEvents[e.entity]){
         // this.deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
@@ -473,7 +493,7 @@ HANNIBAL = (function(H){
         id:     e.entity,
       });
 
-      this.deb("   EVT: Destroy fired: %s" , uneval(msg));
+      this.deb("   EVT: Destroy fired: own: %s, id: %s, tpl: %s" , msg.player, e.entity, tpln);
 
 
       if (this.dispatcher[msg.player][msg.id]){

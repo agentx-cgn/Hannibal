@@ -75,17 +75,17 @@ HANNIBAL = (function(H){
 
     // debug, avoid noisy logs during sequence
     this.logger = [
-      // "events", 
+      "events", 
       "culture",     // store, tree, phases
       "map",         // grids
       "resources",   // after map
       "villages", 
       "scanner",     // scanner after map, before groups
       "groups",      // assets
-      // "economy",     // stats, producers, orderqueue
-      // "military", 
-      // "brain", 
-      // "bot", 
+      "economy",     // stats, producers, orderqueue
+      "military", 
+      "brain", 
+      "bot", 
     ];
 
     // importer register here to update later on ticks
@@ -297,8 +297,21 @@ HANNIBAL = (function(H){
         this.players            = ss.playersData;
         // this.metadata           = ss._entityMetadata[this.id];
 
+        // H.logObject(ss.playersData[this.id], "ss.playersData[this.id]");
+
+        this.entities = new Proxy(ss._entities, {
+          get: (proxy, attr) => {
+            return (
+              H.isInteger(+attr)        ? proxy.get(+attr) :
+              proxy[attr] !== undefined ? proxy[attr]      :
+                H.throw("entities no attr: '%s'", uneval(attr))
+            );
+          }
+        });
+
         // escalate down
         for (item of this.importer){
+          // this.deb("   CTX: import %s %s", item.name, item.imports.sort());
           if (!item.name || !item.klass){
             this.deb("   CTX: update import, unknown: %s", H.attribs(item));
           }
@@ -330,10 +343,13 @@ HANNIBAL = (function(H){
         techtemplates:       ss._techTemplates, 
 
         // API read only, dynamic
-        entities:            entities,
         modifications:       ss._techModifications[settings.player],
         player:              ss.playersData[settings.player],
         players:             ss.playersData,
+
+        // entities:            new Proxy({}, {get: (proxy, id) => {
+        //   return ss._entities.get(~~id);
+        // }}),
 
         // API read/write
         metadata:            new Proxy({}, {get: (proxy, id) => {
@@ -398,7 +414,8 @@ HANNIBAL = (function(H){
 
 
       });
-
+  
+      this.updateEngine(sharedScript);
       this.effector = new H.LIB.Effector(this).import();
 
     },

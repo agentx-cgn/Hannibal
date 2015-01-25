@@ -56,7 +56,6 @@ HANNIBAL = (function(H){
 
         }, assign: function assign (w, item) {
 
-          w.deb();
           // w.deb("     G: assign.0: %s, %s", w, item);
 
           w.objectify("item", item);
@@ -81,13 +80,12 @@ HANNIBAL = (function(H){
           w.buildings.on
             .member(w.item)
             .match(w.item.foundation)
-            // .group.do
-            // .relocate(w.item.position)
+            // .group.do.relocate(w.item.position)
             .units.do.repair(w.item)
             .exit
           ;
 
-          // got the buildings, check order next, exits
+          // got the buildings check order next, exits
           w.buildings.on
             .member(w.item)
             .match(!w.item.foundation)
