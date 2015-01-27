@@ -22,7 +22,7 @@ HANNIBAL = (function(H){
 
       klass:    "grid",
       parent:   context,
-      // name:     context.name + ":grid:" + this.title, comes in initialize
+      // name:     context.name + ":grid:" + this.label, comes in initialize
 
       imports: [
         "map",         // width, height
@@ -30,7 +30,7 @@ HANNIBAL = (function(H){
         "effector",
       ],
 
-      title:  "",
+      label:  "",
       data:   null,
       width:  0,
       height: 0,
@@ -44,50 +44,98 @@ HANNIBAL = (function(H){
   H.LIB.Grid.prototype = H.mixin (
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Grid,
-    log: function(name){
+    log: function(){
       var stats = {},i = this.length,data = this.data;
       while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
-      this.deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(name || this.title, 12), this.min(), this.max(), H.prettify(stats));
+      this.deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(this.label, 12), this.min(), this.max(), H.prettify(stats));
     },    
+
+    tick: function(tick, secs){
+      this.ticks = tick;
+      this.secs  = secs;
+    },
     serialize: function(){
       return {
-        title:  this.title,
+        label:  this.label,
         bits:   this.bits,
         bytes:  H.toRLE(this.data),
       };
     },
     deserialize: function(data){
-      this.title = data.title;
+      this.label = data.label;
       this.bits  = data.bits;
       this.data  = H.fromRLE(data.bytes);
     },
-    initialize: function(config){
+    initialize: function(config){ // label, bits, data
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
-      config = config || {};
-
-      this.width  = this.map.width  / this.cellsize;
-      this.height = this.map.height / this.cellsize;
+      this.label  = config.label;
+      this.bits   = config.bits;
+      this.width  = ~~(this.map.width  / this.cellsize);
+      this.height = ~~(this.map.height / this.cellsize);
       this.length = this.width * this.height;
       this.size   = this.width;
+      this.name   = this.context.name + ":grid:" + config.label || "grid" + this.context.idgen++;
 
-      if (!this.data){
-        this.name   = this.context.name + ":grid:" + config.title || "grid" + this.context.idgen++;
-        this.bits   = config.bits  || "c8";
+      if (!this.data && !config.grid){
         this.data   = new Uint8ClampedArray(this.width * this.height);
+      } else if (config.grid){
+        this.data   = new Uint8ClampedArray(config.grid.data);
+        this.cellsize = config.grid.cellsize;
       }
+
+      this.deb("   GRD: init: %s cellsize: %s, size: %s, len: %s", 
+        this.label,
+        this.cellsize,
+        this.size,
+        this.length
+      );
 
       return this;
     },
     toArray: function(){
       return Array.prototype.slice.call(this.data);
     },
-    dump: function (name, threshold){
+    dump: function (comment, threshold){
       threshold = threshold || this.max() || 255;
-      name = H.format("%s-%s-%s", this.title, name, threshold);
+      var filename = H.format("%s-%s-%s", this.label, comment || this.ticks, threshold);
       // deb("   GRD: dumping '%s', w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
-      this.effector.dumpgrid(name, this, threshold);    
+      this.effector.dumpgrid(filename, this, threshold);    
     },
+
+    copy: function(label){
+      return (
+        new H.LIB.Grid(this.context)
+          .import()
+          .initialize({label: label, bits: this.bits, grid: this})
+      );
+    },
+
+    debIndex: function(index){
+      // puts lines on index for debugging
+
+      var x, z, [cx, cz] = this.indexToCoords(index);
+
+      x = this.size; while(x--){
+        this.data[this.coordsToIndex(x, cz)] = (x % 2) ? 255 : 0;
+      }
+			
+			z = this.size; while(z--){
+        this.data[this.coordsToIndex(cx, z)] = (z % 2) ? 255 : 0;
+      }
+
+    },
+    indexToCoords: function(index){
+      return [index % this.size, ~~(index / this.size)];
+    },
+    coordsToIndex: function(x, z){
+      this.deb(" %s, %s, %s", x, z, x + z * this.size);
+      return x + z * this.size;
+    },
+
+    /* 
+
+    */
     max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
     min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
     set:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = val;}return this;},
@@ -95,6 +143,39 @@ HANNIBAL = (function(H){
     mul:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
     div:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
     addGrid: function(grd){var g=this.data,o=grd.data,l=this.length;while(l--){g[l] += o[l];}return this;},
+
+    fillCircle: function(pos, radius, value){
+
+      // fills a circle into grid with value
+      
+      var 
+        z = 0|0, x = 0|0, idx = 0|0, 
+        r = radius/this.cellsize, rr = r * r,
+        len = this.length|0,
+        size = this.size|0,
+        data = this.data,
+        [cx, cz] = pos;
+
+      // hints
+      cx=cx|0; cz=cz|0; r=r|0; value=value|0; rr=rr|0;
+
+      for(z =-r; z<=r; z++){
+        for(x=-r; x<=r; x++){
+
+          if(x * x + z * z <= rr){
+
+            idx = (cx + x) + size * (cz + z);
+            
+            if (idx >= 0 && idx < len){
+              data[idx] = value;
+            }
+
+          }
+
+        }
+      }
+
+    }, 
 
     render: function (cvs, alpha=255, nozero=true){
 
@@ -133,6 +214,64 @@ HANNIBAL = (function(H){
       Function("s", "t", body)(this.data, target.data);  
 
     },
+    maxIndex: function(){
+      
+      var 
+        index = 0,
+        value = -1e6,
+        data  = this.data,
+        i = this.length;
+
+      while (i--) {
+        if (data[i] > value){
+          value = data[i];
+          index = i;
+        }
+      } 
+
+      return index;
+
+    },    
+    addInfluence: function(coords, strength, maxDist, type="linear") {
+
+      maxDist = maxDist || this.size;
+
+      var 
+        idx = 0,
+        [cx, cy] = coords,
+        data = this.data, 
+        size = this.size,
+        maxDist2 = maxDist * maxDist,
+        r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
+        x0 = ~~(Math.max(0, cx - maxDist)),
+        y0 = ~~(Math.max(0, cy - maxDist)),
+        x1 = ~~(Math.min(size -1, cx + maxDist)),  
+        y1 = ~~(Math.min(size -1, cy + maxDist)),
+        str = (
+          type === "linear"    ? (strength || maxDist) / maxDist  :
+          type === "quadratic" ? (strength || maxDist) / maxDist2 :
+          type === "constant"  ? strength :
+            H.throw("addInfluence: unknown type: '%s'", type)
+        ),
+        fnQuant = ( 
+          type === "linear"    ? (r) => str * (maxDist  - Math.sqrt(r)) :
+          type === "quadratic" ? (r) => str * (maxDist2 - r) : 
+          type === "constant"  ? ( ) => str :
+            H.throw("addInfluence: unknown type: '%s'", type)
+        );
+
+      for ( y = y0; y < y1; ++y) {
+        for ( x = x0; x < x1; ++x) {
+          idx = x + y * size;
+          dx = x - cx; 
+          dy = y - cy; 
+          r2 = dx * dx + dy * dy;
+          if (r2 < maxDist2) {
+            data[idx] += fnQuant(r2);
+          }
+      }}
+
+    },    
     blur: function (radius){
 
       // http://blog.ivank.net/fastest-gaussian-blur.html
@@ -141,7 +280,7 @@ HANNIBAL = (function(H){
         temp = [], 
         target = new H.LIB.Grid(this.context)
           .initialize({
-            title:  this.title + ".blur",
+            label:  this.label + ".blur",
             width:  this.width, 
             height: this.height, 
             bits: 8,

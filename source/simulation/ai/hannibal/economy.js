@@ -100,12 +100,12 @@ HANNIBAL = (function(H){
       // update
       this.import();
           
-      // // gather diffs
-      // this.gatherables.forEach( prop => { 
-      //   this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
-      //   this.suply[prop]   = gathered[prop];                 // totals
-      //   this.stock[prop]   = available[prop];                // available
-      // });
+      // gather diffs
+      this.gatherables.forEach( prop => { 
+        // this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
+        // this.suply[prop]   = gathered[prop];                 // totals
+        this.stock[prop]   = available[prop];                // available
+      });
       
       // other data
       this.stock.pops   = this.player.popCount;
@@ -113,11 +113,11 @@ HANNIBAL = (function(H){
       this.stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
 
       // buffers
-      H.attribs(this.ress).forEach( prop => { 
-        this.stack[prop].push(this.suply[prop]);      // buffers
-        this.trend[prop] = this.stack[prop].trend();  // trend
-        this.flows[prop] = this.diffs[prop].avg();    // 
-      });
+      // H.attribs(this.ress).forEach( prop => { 
+      //   this.stack[prop].push(this.suply[prop]);      // buffers
+      //   this.trend[prop] = this.stack[prop].trend();  // trend
+      //   this.flows[prop] = this.diffs[prop].avg();    // 
+      // });
 
       return Date.now() - t0;
 
@@ -998,7 +998,7 @@ HANNIBAL = (function(H){
         "query",
         "groups",
         "metadata",
-        // "resources",
+        "villages",
       ],
       childs: [
         "stats",
@@ -1247,10 +1247,11 @@ HANNIBAL = (function(H){
         this.effector.research(id, product.key);
 
       } else if (order.verb === "build") {
-        pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
-        this.effector.construct([id], product.key, [pos.x, pos.z, pos.angle], {order: order.id, cc:order.cc});
+        // pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
+        pos = this.villages.findPosForTemplate(product.key, [order.x, order.z]);
+        this.effector.construct([id], product.key, pos, {order: order.id, cc:order.cc});
 
-        // this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(pos), uneval([order.x, order.z]), product.key);
+        this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(pos), uneval([order.x, order.z]), product.key);
 
       } else if (order.verb === "find") {
         H.throw("ECO: find order leaked into do()");

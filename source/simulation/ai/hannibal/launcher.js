@@ -147,14 +147,14 @@ HANNIBAL = (function(H) {
     /* testing triple store */
     this.context.culture.debug = 5;
 
-    // this.context
-    //   .query("stonewall CONTAIN")
+    this.context
+      .query("structure CONTAIN INGAME")
     //   // .query("structures.athen.wall.tower")
     //   // .query("structures.athen.wallset.stone MEMBER")
     //   // .parameter({format: "metadata", deb: 5, debmax: 10, comment: "next phases"})
-    //   .parameter({fmt: "meta", deb: 5, max: 10, cmt: "launcher.CustomInit"})
-    //   .execute()
-    // ;
+      .parameter({fmt: "meta", deb: 5, max: 10, cmt: "launcher.CustomInit"})
+      .execute()
+    ;
     
     // this.context
     //   .query("structures.athen.wallset.stone BUILDBY")

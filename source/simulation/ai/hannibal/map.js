@@ -104,11 +104,12 @@ HANNIBAL = (function(H){
         "players",            // isEnemy
       ],
 
-      childs: [               // these are all grids
+      childs: [             // these are all grids
         "terrain",            // water, land, shore, etc, static
         "regionswater",       // connected water cells, static
         "regionsland",        // connected land cells, static
-        "obstructions",       // where buildings can be placed, dynamic
+        "buildable",          // dynamic, where buildings can be placed, = terrain - territory 
+        "obstructions",       // temporary, buildable - buildings restrictions
         "obstacles",          // where units can move, dynamic
         "claims",             // reserved space in villages, dynamic
         "attacks",            // where attacks happened, w/ radius, dynamic
@@ -116,8 +117,9 @@ HANNIBAL = (function(H){
       ],
 
       length:        0,
-      territory:     null,        // copy from API 
-      passability:   null,        // copy from API 
+
+      territory:     null,        // grids from API 
+      passability:   null,        // grids from API 
 
     });
 
@@ -136,7 +138,7 @@ HANNIBAL = (function(H){
         this.gridsize, 
         this.length
       );
-      this.childs.forEach(child => this[child].log(child));
+      this.childs.forEach(child => this[child].log());
 
       this.effector.dumparray("passability", this.passability.data, this.gridsize, this.gridsize, 255);    
       this.effector.dumparray("territory",   this.territory.data,   this.gridsize, this.gridsize, 255);    
@@ -178,7 +180,7 @@ HANNIBAL = (function(H){
         if (!this[child]){
           this[child] = new H.LIB.Grid(this.context)
             .import()
-            .initialize({title: child, bits: "c8"});
+            .initialize({label: child, bits: "c8"});
           this.updateGrid(child);
         }
       });
@@ -218,6 +220,8 @@ HANNIBAL = (function(H){
       this.territory   = this.context.territory;
       this.passability = this.context.passability;
 
+      this.childs.forEach(child => this[child].tick(tick, secs));
+
       return Date.now() - t0;
 
 
@@ -243,6 +247,14 @@ HANNIBAL = (function(H){
         [x, y] = this.mapPosToGridCoords(pos);
       
       return x + y * size;
+
+    }, gridIndexToMapPos: function(index, grid){
+
+      var 
+        size = grid && grid.size ? grid.size : this.gridsize,
+        cellsize = grid && grid.cellsize ? grid.cellsize : this.cellsize;
+      
+      return [(index % size) * cellsize, (index / size) * cellsize];
 
     }, distance: function(a, b){
 
@@ -293,7 +305,6 @@ HANNIBAL = (function(H){
         maxz = Math.max.apply(Math, zs);
 
       return Math.max(maxx - minx, maxz - minz);
-
 
     }, centerOf: function(poss){
 
@@ -362,51 +373,21 @@ HANNIBAL = (function(H){
     */
 
 
-    }, fillCircle: function(grid, pos, radius, value){
-
-      // fills a circle into grid with value
-      
-      var 
-        z = 0|0, x = 0|0, idx = 0|0, 
-        r = radius/grid.cellsize, rr = r * r,
-        len = grid.length|0,
-        size = grid.size|0,
-        [cx, cz] = pos;
-
-      // hints
-      cx=cx|0; cz=cz|0; r=r|0; value=value|0; rr=rr|0;
-
-      for(z =-r; z<=r; z++){
-        for(x=-r; x<=r; x++){
-
-          if(x * x + z * z <= rr){
-
-            idx = (cx + x) + size * (cz + z);
-            
-            if (idx >= 0 && idx < len){
-              grid[idx] = value;
-            }
-
-          }
-
-        }
-      }
-
-
     }, updateGrid: function(name){
 
       // intializes terrain, regionsland, regionswater
 
       var 
         t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
-        terr, regl, regw, mask, counter = 0;
+        pass, terr, regl, regw, buil, tori, 
+        check, mask, counter = 0, id = this.context.id;
 
       if (name === "terrain"){
 
       // translates into internal terrain (land, water, forbidden, steep, error)
 
-        src = this.passability.data;
-        tgt = this.terrain.data;
+        src = this.passability.data; // api
+        tgt = this.terrain.data;     // own
 
         while(i--){s = src[i]; tgt[i] = (
                                                                   (s & 64)   ?   0 :   //     0, border
@@ -420,7 +401,7 @@ HANNIBAL = (function(H){
         }
         t1 = Date.now();
         this.terrain.dump("init", 255);
-        // deb("   MAP: updated: terrain, ms: %s", t1 - t0);
+        // this.deb("   MAP: updated: terrain, ms: %s", t1 - t0);
 
 
       } else if (name === "regionsland") {
@@ -440,7 +421,8 @@ HANNIBAL = (function(H){
 
         t1 = Date.now();
         this.regionsland.dump("init", 255);
-        // deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
+        // this.deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
+
 
 
       } else if (name === "regionswater") {
@@ -458,11 +440,41 @@ HANNIBAL = (function(H){
 
         t1 = Date.now();
         this.regionswater.dump("init", 255);
-        // deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
+        // this.deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
 
+
+      } else if (name === "buildable") {
+
+        // own land terrain minus structures, trees
+        buil = this.buildable.data;
+        terr = this.terrain.data;
+        tori = this.territory.data;
+        pass = this.passability.data;
+        mask = 2; //2; //
+        this.deb("foundationObstruction: %s", this.context.gamestate.getPassabilityClassMask("foundationObstruction"));
+
+        while (i--) {
+          check = (
+            terr[i] === 4 &&
+            ((tori[i] & TERRITORY_PLAYER_MASK) === id)  
+            && !(pass[i] & mask)
+          );
+          buil[i] = check ? 128 : buil[i];
+        }
+
+        // while (i--) {
+        //   check = (
+        //     (pass[i] & 2)
+        //   );
+        //   buil[i] = check ? 128 : buil[i];
+        // }
+
+        t1 = Date.now();
+        this.buildable.dump("init", 255);
+        this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
 
       } else {
-        // deb("   MAP: initGrid: unknown grid: %s", name);
+        this.deb("   MAP: updateGrid: unknown: %s", name);
         
       }
 
@@ -504,6 +516,41 @@ HANNIBAL = (function(H){
         }
 
       }
+
+
+    }, templateObstructions: function(tpl){
+
+      // copies buildable and puts buildrestrictions in, with 0
+      // seperates e.g. fortresses from fortresses
+
+      var 
+        minDist, category, distance,
+        template = this.templates[tpl];
+
+      // is based on buildable
+      this.obstructions = this.buildable.copy("obstructions");
+
+      if ((distance = H.test(template, "BuildRestrictions.Distance"))){
+
+        minDist  = distance.MinDistance;
+        category = distance.FromCategory;
+
+        this.deb("   MAP: templateObstructions: tpl: %s %s, %s", tpl, minDist, category);
+
+        if (minDist !== undefined && category !== undefined){
+
+          this.query("structure CONTAIN INGAME")
+           .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "templateObstructions: ingame structures"})
+           .forEach( node => {
+            if (this.entities[node.id].buildCategory() === category){
+              this.obstructions.fillCircle(node.position, minDist/this.cellsize, 0);
+            }
+          });
+
+        }
+      }
+
+      return this.obstructions;
 
 
     }, scan: function(pos, radius){
@@ -666,30 +713,28 @@ HANNIBAL = (function(H){
     },
     findGoodPosition: function(tpl, position, angle) {
 
-      var x, z, j, len, value, bestIdx, bestVal, bestTile, secondBest, 
-          // gs       = H.Bot.gameState,
-          gs       = this.context.gamestate,
-          // cellSize = gs.cellSize,
-          cellSize = this.cellsize,
-          template = gs.getTemplate(tpl),
-          // template = this.templates[tpl],
-          // obstructionMap   = H.Map.createObstructionMap(0, template),
-          obstructionMap   = this.createObstructionMap(0, template),
-          // friendlyTiles    = new H.API.Map(gs.sharedScript),
-          friendlyTiles    = new H.API.Map(this.context.sharedscript),
-          alreadyHasHouses = false,
-          radius = 0,
-          result;
+      var 
+        x, z, j, len, value, bestIdx, bestVal, bestTile, secondBest, 
+        gs       = this.context.gamestate,
+        cellSize = this.cellsize,
+        template = gs.getTemplate(tpl),
+        // template = this.templates[tpl],
+        obstructionMap   = this.createObstructionMap(0, template),
+        // friendlyTiles    = new H.API.Map(gs.sharedScript),
+        friendlyTiles    = new H.API.Map(this.context.sharedscript),
+        alreadyHasHouses = false,
+        radius = 0,
+        result;
       
       angle = angle === undefined ? this.villages.angle * Math.PI / 180 : angle;
 
-      // this.deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
+      this.deb("   MAP: findGoodPosition.in: pos: %s, tpl: %s", position.map(c => c.toFixed(1)), tpl);
       
-      // obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
+      obstructionMap.dumpIm(template.buildCategory() + "_obstructions_pre.png");
 
       if (template.buildCategory() !== "Dock"){obstructionMap.expandInfluences();}
 
-      // obstructionMap.dumpIm(template.buildCategory() + "_obstructions.png");
+      obstructionMap.dumpIm(template.buildCategory() + "_obstructions.png");
 
       // Compute each tile's closeness to friendly structures:
 
@@ -776,7 +821,7 @@ HANNIBAL = (function(H){
         Math.ceil(template.obstructionRadius() / cellSize)
       );
 
-      // this.deb("   MAP: findGoodPosition radius %s", radius);
+      this.deb("   MAP: findGoodPosition radius %s", radius);
       
       // further contract cause walls
       // Note: I'm currently destroying them so that doesn't matter.
@@ -802,13 +847,13 @@ HANNIBAL = (function(H){
         return false;
       }
 
-      // this.deb("   MAP: findGoodPosition: tile: %s, idx: %s, val: %s, fwidth: %s, cs: %s", 
-      //   bestTile, 
-      //   bestIdx, 
-      //   bestVal, 
-      //   friendlyTiles.width,
-      //   cellSize
-      // );
+      this.deb("   MAP: findGoodPosition: tile: %s, idx: %s, val: %s, fwidth: %s, cs: %s", 
+        bestTile, 
+        bestIdx, 
+        bestVal, 
+        friendlyTiles.width,
+        cellSize
+      );
       
       //friendlyTiles.setInfluence((bestIdx % friendlyTiles.width), Math.floor(bestIdx / friendlyTiles.width), 1, 200);
       //friendlyTiles.dumpIm(template.buildCategory() + "_" +gameState.getTimeElapsed() + ".png", 200);
@@ -824,7 +869,7 @@ HANNIBAL = (function(H){
         secondBest = [x,z];
       }
 
-      // deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
+      deb("   MAP: findGoodPosition.out: pos: %s, tpl: %s", [x, z].map(c => c.toFixed(1)), tpl);
 
 
 
@@ -836,7 +881,7 @@ HANNIBAL = (function(H){
         "zz" : secondBest[1]
       };
 
-      // this.deb("   MAP: findGoodPosition: res: %s", uneval(result));
+      this.deb("   MAP: findGoodPosition: res: %s", uneval(result));
 
       return result;
 

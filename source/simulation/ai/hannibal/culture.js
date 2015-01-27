@@ -1095,6 +1095,7 @@ HANNIBAL = (function(H){
           speed     : this.getSpeed(template),
           armour    : this.getArmour(template),
           rates     : this.getRates(template),
+          radius    : this.getRadius(template),
           vision    : this.getVision(template),
           attack    : this.getAttack(template),
           affects   : this.getAffects(template),
@@ -1246,6 +1247,11 @@ HANNIBAL = (function(H){
     },    
     getAffects: function(t){
       return !!t.affects ? !t.affects.map(String.toLowerCase) : undefined;
+    },
+    getRadius: function(t){
+
+
+
     },
     getType: function(template, type){
       type = [type];

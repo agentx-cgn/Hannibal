@@ -465,9 +465,9 @@ HANNIBAL = (function(H){
       // listener: assets, culture, mili?
       // TODO are foundations removed from triple store by Renamed?
 
-      var 
-        msg,
-        tpln = e.entityObj._templateName || "unknown";
+      // this.deb("   EVT: Destroy: %s, %s", uneval(e), H.attribs(this.entities[e.entity]));
+
+      var msg, tpln;
 
       if (this.createEvents[e.entity]){
         // this.deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
@@ -479,6 +479,10 @@ HANNIBAL = (function(H){
         this.deb("WARN  : EVT got destroy no entityObj for ent: %s, mats: %s", e.entity, H.attribs(e));
         return;
       }
+
+      tpln = e.entityObj._templateName || "unknown";
+
+      this.deb("   EVT: Destroy: %s, %s", uneval(e), tpln);
 
       if (!!e.SuccessfulFoundation){
         // deb("   EVT: foundation ready");

@@ -155,17 +155,20 @@ HANNIBAL = (function (H){
       };
 
     },      
+    findMain: function(){
 
+      var max = -1, cic;
+
+      H.each(this.centres, (id, list) => {
+        if (list.length > max){cic = id; max = list.length;}
+      });
+      return ~~cic;
+
+    },
     organizeVillages: function () {
 
       var 
-        ccNodes, ccId, posMain, posCenter, getMain = () => {
-          var max = -1, cic;
-          H.each(this.centres, (id, list) => {
-            if (list.length > max){cic = id; max = list.length;}
-          });
-          return ~~cic;
-        };
+        ccNodes, ccId, posMain, posCenter;
 
       // first find all CC
       ccNodes = this
@@ -179,8 +182,8 @@ HANNIBAL = (function (H){
       }
 
       // update metadata with closest CC id
-      this.query("INGAME")
-        .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "organizeVillages: ingames"})
+      this.query("structure CONTAIN INGAME")
+        .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "organizeVillages: ingame structures"})
         .forEach( node => {
 
           var dis, distance = 1e7;
@@ -200,10 +203,8 @@ HANNIBAL = (function (H){
               }
             });
 
-            // keep building to find largest village
-            if (this.entities[node.id].hasClass("Structure")){
-              this.centres[ccId].push(node.id);
-            }
+            // store building to find largest village
+            this.centres[ccId].push(node.id);
 
           } else {
             // CCs have themself as cc
@@ -213,7 +214,7 @@ HANNIBAL = (function (H){
 
       });
 
-      this.main  = getMain();
+      this.main  = this.findMain();
       posMain    = this.entities[this.main].position();
       posCenter  = this.map.center();
       this.theta = Math.atan2(posCenter[1] - posMain[1], posCenter[0] - posMain[0]);
@@ -278,6 +279,42 @@ HANNIBAL = (function (H){
 
 
     },
+
+    findPosForTemplate: function(tpl, pos) {
+
+      // general method to find a possible place for a structure defined by tpl
+      // uses terrain, territory and buildind restriction
+
+      var 
+        t0 = Date.now(),
+        index, position, coords, obstructions;
+
+      // get land
+      this.map.updateGrid("buildable"); // needs neutral, enemy, etc
+      this.map.buildable.dump("0", 255);
+
+      // get building restrictions
+      obstructions = this.map.templateObstructions(tpl);
+      obstructions.dump("1", 255);
+
+      // flood with pos distance
+      coords = this.map.mapPosToGridCoords(pos, obstructions);
+      obstructions.addInfluence(coords, 84);
+
+      // get best index
+      index = obstructions.maxIndex();
+
+      obstructions.debIndex(index);
+      obstructions.dump("2", 255);
+
+      position = this.map.gridIndexToMapPos(index, obstructions);
+      position.push(this.angle);
+
+      this.deb("  VILL: findPosForTemplate: %s %s msec", position, Date.now() - t0);
+
+      return position;
+
+    }    
 
   });
 
