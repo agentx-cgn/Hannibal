@@ -217,7 +217,7 @@ HANNIBAL = (function(H) {
       Engine.ProfileStart("Hannibal Tick.in");
 
       // update context
-      this.context.updateEngine(sharedScript);
+      this.context.updateEngine(sharedScript, secs);
 
       // log top row debug info
       deb("------: %s@%s, elapsed: %s secs, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 

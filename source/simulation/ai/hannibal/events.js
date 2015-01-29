@@ -482,7 +482,7 @@ HANNIBAL = (function(H){
 
       tpln = e.entityObj._templateName || "unknown";
 
-      this.deb("   EVT: Destroy: %s, %s", uneval(e), tpln);
+      // this.deb("   EVT: Destroy: %s, %s", uneval(e), tpln);
 
       if (!!e.SuccessfulFoundation){
         // deb("   EVT: foundation ready");

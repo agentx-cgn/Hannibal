@@ -108,7 +108,7 @@ HANNIBAL = (function(H){
         // "0": [() => "< - START: " + map + " - >"],
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        "1": [T.builder (                          "house",  5,  10), "building 10 houses"], 
+        "1": [T.builder (                          "house",  8,  10), "building 10 houses"], 
        //  "2": [T.supplier(                     "food.fruit",  5),     "launching 1 food.fruit supplier group"], 
        //  "3": [T.supplier(                     "food.meat",   2),     "launching 1 food.meat supplier group"], 
        //  "4": [T.supplier(                           "wood", 10),     "launching 1 wood supplier (10)"], 

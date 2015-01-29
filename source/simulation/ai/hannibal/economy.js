@@ -1248,7 +1248,7 @@ HANNIBAL = (function(H){
 
       } else if (order.verb === "build") {
         // pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
-        pos = this.villages.findPosForTemplate(product.key, [order.x, order.z]);
+        pos = this.villages.findPosForOrder(order);
         this.effector.construct([id], product.key, pos, {order: order.id, cc:order.cc});
 
         this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(pos), uneval([order.x, order.z]), product.key);

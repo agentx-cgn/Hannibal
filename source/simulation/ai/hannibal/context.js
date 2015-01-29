@@ -277,13 +277,15 @@ HANNIBAL = (function(H){
         entities = gs.entities._entities,
         sanitize = H.saniTemplateName;
 
-      this.updateEngine = sharedScript => {
+      this.updateEngine = (sharedScript, secs) => {
 
         t0 = Date.now();
 
         // this.updates is here relevant
 
         ss = sharedScript;
+
+        this.secs = secs;
 
         this.sharedscript       = ss; // tmp for map
         this.gamestate          = ss.gameState[this.id]; // tmp for map
@@ -316,6 +318,17 @@ HANNIBAL = (function(H){
             this.deb("   CTX: update import, unknown: %s", H.attribs(item));
           }
           item.import();
+        }
+
+        if (this.map){
+          (new H.LIB.Grid(this))
+            .import()
+            .fromData("pass", this.passability.data)
+            .filter("pass" + this.tick, (i, x, z, v) => {
+              return (x > 90)  ? 255 : 0;
+            })
+            .dump("sync", 255)
+          ;
         }
 
       };
@@ -384,8 +397,7 @@ HANNIBAL = (function(H){
         // try to get all tech funcs here
         technologies:       new Proxy({}, {get: (proxy, name) => { return (
           name === "available" ? techname => {
-            
-            Object.keys(this.modifications).map(sanitize).some(t => t === techname)
+            return Object.keys(this.modifications).map(sanitize).some(t => t === techname);
           } :
           name === "templates" ? techname => ss._techTemplates[sanitize(techname)] :
               undefined

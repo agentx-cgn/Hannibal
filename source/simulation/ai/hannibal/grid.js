@@ -66,23 +66,42 @@ HANNIBAL = (function(H){
       this.bits  = data.bits;
       this.data  = H.fromRLE(data.bytes);
     },
-    initialize: function(config){ // label, bits, data
+    initialize: function(config){ // label, bits, grid, data
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
       this.label  = config.label;
-      this.bits   = config.bits;
-      this.width  = ~~(this.map.width  / this.cellsize);
-      this.height = ~~(this.map.height / this.cellsize);
+      this.bits   = config.bits || "c8";
+
+      if (!config.grid && !config.data){
+        this.width  = ~~(this.map.width  / this.cellsize);
+        this.height = ~~(this.map.height / this.cellsize);
+        this.data   = new Uint8ClampedArray(this.width * this.height);
+
+      } else if (config.grid && !config.data){
+        this.cellsize = config.grid.cellsize;
+        this.width  = config.grid.width;
+        this.height = config.grid.height;
+        this.data   = new Uint8ClampedArray(config.grid.data);
+
+      } else if (config.grid && config.data){
+        this.cellsize = config.grid.cellsize;
+        this.width  = config.grid.width;
+        this.height = config.grid.height;
+        this.data   = new Uint8ClampedArray(config.data);
+      
+      } else if (!config.grid && config.data){
+        this.cellsize = this.map.cellsize;
+        this.size   = ~~Math.sqrt(config.data.length);
+        this.width  = this.size;
+        this.height = this.size;
+        this.data   = new Uint8ClampedArray(config.data);
+      
+      }
+
+      this.name   = this.context.name + ":grid:" + config.label || "grid" + this.context.idgen++;
       this.length = this.width * this.height;
       this.size   = this.width;
-      this.name   = this.context.name + ":grid:" + config.label || "grid" + this.context.idgen++;
 
-      if (!this.data && !config.grid){
-        this.data   = new Uint8ClampedArray(this.width * this.height);
-      } else if (config.grid){
-        this.data   = new Uint8ClampedArray(config.grid.data);
-        this.cellsize = config.grid.cellsize;
-      }
 
       this.deb("   GRD: init: %s cellsize: %s, size: %s, len: %s", 
         this.label,
@@ -104,11 +123,49 @@ HANNIBAL = (function(H){
     },
 
     copy: function(label){
+      // new grid with same specs and same data
       return (
         new H.LIB.Grid(this.context)
           .import()
           .initialize({label: label, bits: this.bits, grid: this})
       );
+    },
+
+    clone: function(label, data){
+      // new grid with same specs and given data
+      return (
+        new H.LIB.Grid(this.context)
+          .import()
+          .initialize({label: label, bits: this.bits, grid: this, data: data})
+      );
+    },
+
+    fromData: function(label, data){
+
+      // new grid with no specs and given data
+      return (
+        new H.LIB.Grid(this.context)
+          .import()
+          .initialize({label: label, bits: "c8", data: data})
+      );
+
+    },
+    filter: function(label, fn){
+
+      var 
+        t0 = Date.now(),
+        x, z, i = this.length,
+        grid = this.clone(label, new Uint8ClampedArray(i));
+
+      while(i--){
+        x = i % this.size; z = ~~(i / this.size);
+        grid.data[i] = fn(i, x, z, this.data[i]);
+      }
+
+      this.deb("   GRD: filter: %s len: %s, %s msec", label, this.length, Date.now() - t0);
+
+      return grid;
+
     },
 
     debIndex: function(index){
@@ -129,7 +186,6 @@ HANNIBAL = (function(H){
       return [index % this.size, ~~(index / this.size)];
     },
     coordsToIndex: function(x, z){
-      this.deb(" %s, %s, %s", x, z, x + z * this.size);
       return x + z * this.size;
     },
 
@@ -214,7 +270,7 @@ HANNIBAL = (function(H){
       Function("s", "t", body)(this.data, target.data);  
 
     },
-    maxIndex: function(){
+    maxIndex: function(maxValue){
       
       var 
         index = 0,
@@ -223,13 +279,13 @@ HANNIBAL = (function(H){
         i = this.length;
 
       while (i--) {
-        if (data[i] > value){
+        if (data[i] > value && value < maxValue){
           value = data[i];
           index = i;
         }
       } 
 
-      return index;
+      return [index, value];
 
     },    
     addInfluence: function(coords, strength, maxDist, type="linear") {
@@ -237,12 +293,11 @@ HANNIBAL = (function(H){
       maxDist = maxDist || this.size;
 
       var 
-        idx = 0,
+        r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
         [cx, cy] = coords,
         data = this.data, 
         size = this.size,
         maxDist2 = maxDist * maxDist,
-        r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
         x0 = ~~(Math.max(0, cx - maxDist)),
         y0 = ~~(Math.max(0, cy - maxDist)),
         x1 = ~~(Math.min(size -1, cx + maxDist)),  
@@ -262,12 +317,11 @@ HANNIBAL = (function(H){
 
       for ( y = y0; y < y1; ++y) {
         for ( x = x0; x < x1; ++x) {
-          idx = x + y * size;
           dx = x - cx; 
           dy = y - cy; 
           r2 = dx * dx + dy * dy;
           if (r2 < maxDist2) {
-            data[idx] += fnQuant(r2);
+            data[x + y * size] += fnQuant(r2);
           }
       }}
 
@@ -275,25 +329,14 @@ HANNIBAL = (function(H){
     blur: function (radius){
 
       // http://blog.ivank.net/fastest-gaussian-blur.html
+      // destructive
 
-      var 
-        temp = [], 
-        target = new H.LIB.Grid(this.context)
-          .initialize({
-            label:  this.label + ".blur",
-            width:  this.width, 
-            height: this.height, 
-            bits: 8,
-          });
+      var target = Array.prototype.slice.call(this.data);
       
-      boxBlur_4(this.data, temp, this.width, this.height, radius);
-      target.data = new Uint8ClampedArray(temp);
-      // return target; // stupid SM
+      boxBlur_4(this.data, target, this.width, this.height, radius);
+      this.data = new Uint8ClampedArray(target);
 
       function boxBlur_4 (scl, tcl, w, h, r) {
-          // for(var i=0; i<scl.length; i++) {
-          //   tcl[i] = scl[i];
-          // }
           boxBlurH_4(tcl, scl, w, h, r);
           boxBlurT_4(scl, tcl, w, h, r);
       }
@@ -350,8 +393,6 @@ HANNIBAL = (function(H){
           }
 
       }
-
-      return target;
 
     },
   });

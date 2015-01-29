@@ -1,5 +1,5 @@
 var HANNIBAL_DEBUG = {
-  "map": "scenarios/Arcadia", 
+  "map": "random/brainland", 
   "bots": {
     "1": {
       "num": 0, 

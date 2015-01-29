@@ -28,7 +28,8 @@ HANNIBAL = (function (H){
         "groups",
         "config",
         "objects",
-        "entities",     // hasClass
+        "entities",      // hasClass
+        "templates",     // obstructionRadius
         "metadata",
       ],
 
@@ -280,37 +281,60 @@ HANNIBAL = (function (H){
 
     },
 
-    findPosForTemplate: function(tpl, pos) {
+    findPosForOrder: function(order) {
 
       // general method to find a possible place for a structure defined by tpl
       // uses terrain, territory and buildind restriction
 
       var 
-        t0 = Date.now(),
-        index, position, coords, obstructions;
+        t0 = Date.now(), size, w, h, radius,
+        index, value, position, coords, obstructions,
+        tpl = order.product.key,
+        template = this.templates[tpl],
+        pos = [order.x, order.z],
+        label = "O" + order.id;
 
-      // get land
+      // building radius from template
+      size = H.test(template, "Obstruction.Static");
+      w = +size["@width"];
+      h = +size["@depth"];
+      radius = Math.sqrt(w * w + h * h) / 2;
+
+      // get land cells in own territory
       this.map.updateGrid("buildable"); // needs neutral, enemy, etc
-      this.map.buildable.dump("0", 255);
+      // this.map.buildable.dump("0", 255);
 
-      // get building restrictions
+      // derive grid with cells removed by building restrictions
       obstructions = this.map.templateObstructions(tpl);
-      obstructions.dump("1", 255);
+      // obstructions.dump("1", 255);
+
+      // lower border cells
+      radius = ~~(radius / obstructions.cellsize);
+      obstructions.blur(radius);
+      // obstructions.dump("2", 255);
 
       // flood with pos distance
       coords = this.map.mapPosToGridCoords(pos, obstructions);
-      obstructions.addInfluence(coords, 84);
+      obstructions.addInfluence(coords, 224);
 
-      // get best index
-      index = obstructions.maxIndex();
+      // get best index, below distance
+      [index, value] = obstructions.maxIndex(250 - radius);
 
-      obstructions.debIndex(index);
-      obstructions.dump("2", 255);
-
+      // put x, z, angle in array
       position = this.map.gridIndexToMapPos(index, obstructions);
       position.push(this.angle);
 
-      this.deb("  VILL: findPosForTemplate: %s %s msec", position, Date.now() - t0);
+      // debug
+      obstructions.debIndex(index);
+      obstructions.dump(label, 255);
+
+      this.deb("  VILL: findPosForOrder: #%s, idx: %s, val: %s, %s, %s msec", 
+        order.id, 
+        index, 
+        value,
+        position.map(n => n.toFixed(1)), 
+        Date.now() - t0
+      );
 
       return position;
 

@@ -100,6 +100,8 @@ HANNIBAL = (function(H){
         "events",
         "entities",           
         "templates",           
+        "territory",           
+        "passability",           
         "villages",           
         "players",            // isEnemy
       ],
@@ -118,8 +120,8 @@ HANNIBAL = (function(H){
 
       length:        0,
 
-      territory:     null,        // grids from API 
-      passability:   null,        // grids from API 
+      // territory:     null,        // grids from API 
+      // passability:   null,        // grids from API 
 
     });
 
@@ -168,8 +170,8 @@ HANNIBAL = (function(H){
     },
     initialize: function(){
 
-      this.territory   = this.context.territory;
-      this.passability = this.context.passability;
+      // this.territory   = this.context.territory;
+      // this.passability = this.context.passability;
       this.length      = this.passability.data.length;
       this.gridsize    = this.passability.width; // only squares here
 
@@ -213,12 +215,16 @@ HANNIBAL = (function(H){
       });
 
     },
-    tick: function(tick, secs){
+    tick: function(secs, tick){
 
       var t0 = Date.now();
 
-      this.territory   = this.context.territory;
-      this.passability = this.context.passability;
+      this.ticks = tick; this.secs = secs;
+
+      // this.territory   = this.context.territory;
+      // this.passability = this.context.passability;
+
+      this.effector.dumparray("passability" + this.ticks, this.passability.data, this.gridsize, this.gridsize, 255);    
 
       this.childs.forEach(child => this[child].tick(tick, secs));
 
@@ -451,26 +457,19 @@ HANNIBAL = (function(H){
         tori = this.territory.data;
         pass = this.passability.data;
         mask = 2; //2; //
-        this.deb("foundationObstruction: %s", this.context.gamestate.getPassabilityClassMask("foundationObstruction"));
+        // this.deb("foundationObstruction: %s", this.context.gamestate.getPassabilityClassMask("foundationObstruction"));
 
         while (i--) {
           check = (
             terr[i] === 4 &&
-            ((tori[i] & TERRITORY_PLAYER_MASK) === id)  
-            && !(pass[i] & mask)
+            ((tori[i] & TERRITORY_PLAYER_MASK) === id) && 
+            !(pass[i] & mask)
           );
-          buil[i] = check ? 128 : buil[i];
+          buil[i] = check ? 32 : buil[i];
         }
 
-        // while (i--) {
-        //   check = (
-        //     (pass[i] & 2)
-        //   );
-        //   buil[i] = check ? 128 : buil[i];
-        // }
-
         t1 = Date.now();
-        this.buildable.dump("init", 255);
+        this.buildable.dump("T" + (this.ticks || 0), 255);
         this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
 
       } else {
