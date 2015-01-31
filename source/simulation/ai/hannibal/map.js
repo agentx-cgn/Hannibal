@@ -221,19 +221,16 @@ HANNIBAL = (function(H){
 
       this.ticks = tick; this.secs = secs;
 
-      // this.territory   = this.context.territory;
-      // this.passability = this.context.passability;
-
-      this.effector.dumparray("passability" + this.ticks, this.passability.data, this.gridsize, this.gridsize, 255);    
+      // this.effector.dumparray("passability" + this.ticks, this.passability.data, this.gridsize, this.gridsize, 255);    
 
       this.childs.forEach(child => this[child].tick(tick, secs));
 
       return Date.now() - t0;
 
 
-    /*#########################################################################
+  /*#########################################################################
     
-      simple map infos, calculations and converters
+    simple map infos, calculations and converters
 
     */
 
@@ -335,9 +332,9 @@ HANNIBAL = (function(H){
       );
 
 
-    /*#########################################################################
+  /*#########################################################################
 
-      simple infos about positions or index
+    simple infos about positions or index
 
     */
 
@@ -372,9 +369,9 @@ HANNIBAL = (function(H){
       return this.players.isEnemy[player];
 
 
-    /*#########################################################################
+  /*#########################################################################
 
-      advanced computations on grids
+    advanced computations on grids
 
     */
 
@@ -406,7 +403,7 @@ HANNIBAL = (function(H){
           );
         }
         t1 = Date.now();
-        this.terrain.dump("init", 255);
+        this.terrain.dump("T" + (this.ticks || 0), 255);
         // this.deb("   MAP: updated: terrain, ms: %s", t1 - t0);
 
 
@@ -426,7 +423,7 @@ HANNIBAL = (function(H){
         }
 
         t1 = Date.now();
-        this.regionsland.dump("init", 255);
+        // this.regionsland.dump("init", 255);
         // this.deb("   MAP: updated: regionsland, ms: %s, regions: %s", counter, t1 - t0);
 
 
@@ -445,7 +442,7 @@ HANNIBAL = (function(H){
         }
 
         t1 = Date.now();
-        this.regionswater.dump("init", 255);
+        // this.regionswater.dump("init", 255);
         // this.deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
 
 
@@ -456,16 +453,14 @@ HANNIBAL = (function(H){
         terr = this.terrain.data;
         tori = this.territory.data;
         pass = this.passability.data;
-        mask = 2; //2; //
-        // this.deb("foundationObstruction: %s", this.context.gamestate.getPassabilityClassMask("foundationObstruction"));
+        mask = 2; //this.context.gamestate.getPassabilityClassMask("foundationObstruction")
 
         while (i--) {
-          check = (
-            terr[i] === 4 &&
-            ((tori[i] & TERRITORY_PLAYER_MASK) === id) && 
-            !(pass[i] & mask)
-          );
-          buil[i] = check ? 32 : buil[i];
+          buil[i] = (
+            terr[i] === 4                              &&      // land
+            ((tori[i] & TERRITORY_PLAYER_MASK) === id) &&      // own territory
+            !(pass[i] & mask)                                  // obstructions
+          ) ? 32 : 0;
         }
 
         t1 = Date.now();
@@ -473,7 +468,7 @@ HANNIBAL = (function(H){
         this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
 
       } else {
-        this.deb("   MAP: updateGrid: unknown: %s", name);
+        // this.deb("   MAP: updateGrid: unknown: %s", name);
         
       }
 

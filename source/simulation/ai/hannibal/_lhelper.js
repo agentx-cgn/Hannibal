@@ -236,6 +236,18 @@ H.extend(H, {
 
   },
 
+  lowerbyte: function(a){
+    var i = a.length, out = new Uint8Array(i);
+    while(i--){out[i] = (a[i] & 0xFF);}
+    return out;
+  },
+
+  higherbyte: function(a){
+    var i = a.length, out = new Uint8Array(i);
+    while(i--){out[i] = (a[i] & 0xFF00);}
+    return out;
+  },
+
   // functions
   binda:      function(fn, obj, a){
     // return fn.bind.apply(obj, [obj].concat(args));
@@ -328,12 +340,13 @@ H.extend(H, {
       fn    = args.slice(-1)[0];
 
       items.forEach(item => {
+
         if (Array.isArray(item)){
           item.forEach( (value, key) => {
             fn(key, value);
           });
 
-        } if (item instanceof Map){
+        } if (item instanceof Map || item instanceof Set){
           item.forEach( (value, key) => {
             fn(key, value);
           });

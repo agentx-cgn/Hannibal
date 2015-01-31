@@ -287,33 +287,30 @@ HANNIBAL = (function (H){
       // uses terrain, territory and buildind restriction
 
       var 
-        t0 = Date.now(), size, w, h, radius,
+        t0 = Date.now(), size, r, radius,
         index, value, position, coords, obstructions,
-        tpl = order.product.key,
-        template = this.templates[tpl],
+        tpln = order.product.key,
+        template = this.templates[tpln],
         pos = [order.x, order.z],
         label = "O" + order.id;
 
       // building radius from template
       size = H.test(template, "Obstruction.Static");
-      w = +size["@width"];
-      h = +size["@depth"];
-      radius = Math.sqrt(w * w + h * h) / 2;
+      r = Math.max(+size["@width"], +size["@depth"]);
+      radius = Math.sqrt(2 * r * r) / 2;
 
       // get land cells in own territory
       this.map.updateGrid("buildable"); // needs neutral, enemy, etc
       // this.map.buildable.dump("0", 255);
 
       // derive grid with cells removed by building restrictions
-      obstructions = this.map.templateObstructions(tpl);
-      // obstructions.dump("1", 255);
+      obstructions = this.map.templateObstructions(tpln);
 
       // lower border cells
-      radius = ~~(radius / obstructions.cellsize);
+      radius = Math.ceil(radius / obstructions.cellsize) + 12;
       obstructions.blur(radius);
-      // obstructions.dump("2", 255);
 
-      // flood with pos distance
+      // flood with pos distancew
       coords = this.map.mapPosToGridCoords(pos, obstructions);
       obstructions.addInfluence(coords, 224);
 
@@ -322,18 +319,22 @@ HANNIBAL = (function (H){
 
       // put x, z, angle in array
       position = this.map.gridIndexToMapPos(index, obstructions);
-      position.push(this.angle);
+      position = position.map(p => p += obstructions.cellsize/2);
+      // position.push(this.angle); 
+      position.push(Math.random * Math.PI * 2); 
 
       // debug
       obstructions.debIndex(index);
       obstructions.dump(label, 255);
 
-      this.deb("  VILL: findPosForOrder: #%s, idx: %s, val: %s, %s, %s msec", 
+      this.deb("  VILL: findPosForOrder: #%s, idx: %s, rad: %s, val: %s, %s, %s msec | %s", 
         order.id, 
         index, 
+        radius,
         value,
         position.map(n => n.toFixed(1)), 
-        Date.now() - t0
+        Date.now() - t0,
+        tpln
       );
 
       return position;

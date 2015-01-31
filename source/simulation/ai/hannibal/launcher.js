@@ -58,13 +58,10 @@ HANNIBAL = (function(H) {
 
     var 
       t0  = Date.now(),
-      // deb = this.deb.bind(this), 
       ss  = sharedScript, 
       gs  = gameState,
       civ = ss.playersData[this.id].civ;
 
-    // H.deb("      :");
-    // H.deb("      :");
     H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s in", this.id, civ);
 
     // suppress this bot
@@ -73,17 +70,17 @@ HANNIBAL = (function(H) {
       return;
     }
 
-    // move window
+    // debug, move window
     if (this.debug.xdo){
       this.deb("#! xdotool init");
     }
 
-    // launch the stats extension
+    // debug, launch the stats extension
     if (this.debug.numerus){
       H.Numerus.init(this.id, ss, gs);          
     }             
 
-    // debug
+    // debug, game info
     this.logStart(ss, gs, this.settings);
     this.logPlayers(ss.playersData);
 
@@ -94,10 +91,6 @@ HANNIBAL = (function(H) {
     // This bot faces the other players
     this.bot = this.context.createBot();
     
-    /* run scripted actions named in H.Config.sequence */
-    // deb();
-    // H.Tester.activate(this.map, this.id, this.context);
-    /* end scripter */
 
 
     /*
@@ -171,6 +164,12 @@ HANNIBAL = (function(H) {
 
     // H.Config.deb = 0; // suppress further log lines
 
+    /*
+
+    end of development
+
+    */
+
     this.initialized = true;
 
     this.deb("      :");
@@ -189,8 +188,9 @@ HANNIBAL = (function(H) {
       secs = (ss.timeElapsed/1000).toFixed(1),
       msgTiming = "";
 
-    if (this.isFinished){return;} // API ????
+    // 
     if (this.debug.sup){return;}
+    if (this.isFinished){return;} // API ????
 
     if (!this.initialized){
       if (!this.noInitReported){
@@ -216,8 +216,23 @@ HANNIBAL = (function(H) {
 
       Engine.ProfileStart("Hannibal Tick.in");
 
+      // Engine.DumpImage("passabilityMap" + this.turn + ".png", 
+      //   H.lowerbyte(sharedScript.passabilityMap.data), 
+      //   sharedScript.passabilityMap.width, 
+      //   sharedScript.passabilityMap.height, 
+      //   255
+      // );    
+
       // update context
       this.context.updateEngine(sharedScript, secs);
+
+      // (new H.LIB.Grid(this.context))
+      //   .import()
+      //   .initialize({label: "pass", data: H.lowerbyte(sharedScript.passabilityMap.data)})
+      //   .process((i, x, z, v) => (v & 2) ? 255 : 0)
+      //   .dump("sync" + this.context.tick, 255)
+      //   .release()
+      // ;
 
       // log top row debug info
       deb("------: %s@%s, elapsed: %s secs, %s/%s, techs: %s, food: %s, wood: %s, metal: %s, stone: %s", 
@@ -234,12 +249,13 @@ HANNIBAL = (function(H) {
       this.timing.all = 0;
       this.timing.tst = 0;
 
+      // debug, init tester
       if (this.context.tick === 0 && this.debug.tst){
         H.Tester.activate(this.map, this.context); 
         H.Tester.log(); 
       }
 
-      // execute test scripts 
+      // debug, execute test scripts 
       if (this.debug.tst){
         this.timing.tst = H.Tester.tick(secs, this.context.tick, this.context);
       }
@@ -251,12 +267,12 @@ HANNIBAL = (function(H) {
 
       Engine.ProfileStart("Hannibal Tick.out");
 
-      // deb: collect stats
+      // debug, collect stats
       if (this.debug.numerus){
         H.Numerus.tick(secs, this.context.tick, sharedScript);
       }
 
-      // prepare bottom row debug info
+      // debug, prepare bottom row info
       H.each(this.timing, (name, msecs) => {
         if (name !== "all"){
           msgTiming += H.format(", %s: %s", name, msecs);

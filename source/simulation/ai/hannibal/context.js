@@ -287,21 +287,21 @@ HANNIBAL = (function(H){
 
         this.secs = secs;
 
-        this.sharedscript       = ss; // tmp for map
-        this.gamestate          = ss.gameState[this.id]; // tmp for map
+        this.sharedscript       = sharedScript; // tmp for map
+        this.gamestate          = sharedScript.gameState[this.id]; // tmp for map
 
-        this.timeElapsed        = ss.timeElapsed;
-        this.territory          = ss.territoryMap;
-        this.passability        = ss.passabilityMap;
-        this.passabilityClasses = ss.passabilityClasses;
-        this.techtemplates      = ss._techTemplates;
-        this.player             = ss.playersData[this.id];
-        this.players            = ss.playersData;
+        this.timeElapsed        = sharedScript.timeElapsed;
+        this.territory          = sharedScript.territoryMap;
+        this.passability        = sharedScript.passabilityMap;
+        this.passabilityClasses = sharedScript.passabilityClasses;
+        this.techtemplates      = sharedScript._techTemplates;
+        this.player             = sharedScript.playersData[this.id];
+        this.players            = sharedScript.playersData;
         // this.metadata           = ss._entityMetadata[this.id];
 
         // H.logObject(ss.playersData[this.id], "ss.playersData[this.id]");
 
-        this.entities = new Proxy(ss._entities, {
+        this.entities = new Proxy(sharedScript._entities, {
           get: (proxy, attr) => {
             return (
               H.isInteger(+attr)        ? proxy.get(+attr) :
@@ -312,24 +312,24 @@ HANNIBAL = (function(H){
         });
 
         // escalate down
-        for (item of this.importer){
+        // for (item of this.importer){
+        H.each(this.importer, (index, item) => {
           // this.deb("   CTX: import %s %s", item.name, item.imports.sort());
           if (!item.name || !item.klass){
-            this.deb("   CTX: update import, unknown: %s", H.attribs(item));
+            this.deb("   CTX: update import, unknown: n: '%s', k: '%s', props: %s", item.name || "", item.klass || "", H.attribs(item));
           }
           item.import();
-        }
+        });
 
-        if (this.map){
-          (new H.LIB.Grid(this))
-            .import()
-            .fromData("pass", this.passability.data)
-            .filter("pass" + this.tick, (i, x, z, v) => {
-              return (x > 90)  ? 255 : 0;
-            })
-            .dump("sync", 255)
-          ;
-        }
+        // if (this.map){
+        //   (new H.LIB.Grid(this))
+        //     .import()
+        //     .initialize({label: "pass",  data: H.lowerbyte(this.passability.data})
+        //     .process((i, x, z, v) => (v & 2) ? 255 : 0)
+        //     .dump("sync" + this.tick, 255)
+        //     .release()
+        //   ;
+        // }
 
       };
 

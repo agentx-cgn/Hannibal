@@ -88,8 +88,14 @@ var HANNIBAL = (function() {
     initialize: function(){return this;},
     finalize: function(){return this;},
     activate: function(){return this;},
+    release: function(){
+      if(!this.context.importer.delete(this)){
+        this.deb("WARN  : Serializer.release: could not release: %s", this);
+      }; 
+      return this;
+    },
     import: function(){
-      this.context.importer.add(this); //~~??
+      this.context.importer.add(this); 
       this.imports.forEach(imp => this[imp] = this.context[imp]);
       return this;
     },

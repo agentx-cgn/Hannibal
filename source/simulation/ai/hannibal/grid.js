@@ -83,17 +83,17 @@ HANNIBAL = (function(H){
         this.height = config.grid.height;
         this.data   = new Uint8ClampedArray(config.grid.data);
 
-      } else if (config.grid && config.data){
-        this.cellsize = config.grid.cellsize;
-        this.width  = config.grid.width;
-        this.height = config.grid.height;
-        this.data   = new Uint8ClampedArray(config.data);
-      
       } else if (!config.grid && config.data){
         this.cellsize = this.map.cellsize;
         this.size   = ~~Math.sqrt(config.data.length);
         this.width  = this.size;
         this.height = this.size;
+        this.data   = new Uint8ClampedArray(config.data);
+      
+      } else if (config.grid && config.data){
+        this.cellsize = config.grid.cellsize;
+        this.width  = config.grid.width;
+        this.height = config.grid.height;
         this.data   = new Uint8ClampedArray(config.data);
       
       }
@@ -119,7 +119,8 @@ HANNIBAL = (function(H){
       threshold = threshold || this.max() || 255;
       var filename = H.format("%s-%s-%s", this.label, comment || this.ticks, threshold);
       // deb("   GRD: dumping '%s', w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
-      this.effector.dumpgrid(filename, this, threshold);    
+      this.effector.dumpgrid(filename, this, threshold);   
+      return this; 
     },
 
     copy: function(label){
@@ -140,31 +141,29 @@ HANNIBAL = (function(H){
       );
     },
 
-    fromData: function(label, data){
-
-      // new grid with no specs and given data
-      return (
-        new H.LIB.Grid(this.context)
-          .import()
-          .initialize({label: label, bits: "c8", data: data})
-      );
-
+    read: function(label, data){
+      this.data = new Uint8ClampedArray(data);
+      return this;
     },
-    filter: function(label, fn){
+    
+    process: function(fn){
 
       var 
         t0 = Date.now(),
-        x, z, i = this.length,
-        grid = this.clone(label, new Uint8ClampedArray(i));
+        counter = 0, i = this.length;
 
       while(i--){
-        x = i % this.size; z = ~~(i / this.size);
-        grid.data[i] = fn(i, x, z, this.data[i]);
+        this.data[i] = fn( i, 
+          i % this.size, 
+          ~~(i / this.size), 
+          this.data[i]
+        );
+        counter += 1;
       }
 
-      this.deb("   GRD: filter: %s len: %s, %s msec", label, this.length, Date.now() - t0);
+      this.deb("   GRD: process: %s len: %s, %s msec", this.label, counter, Date.now() - t0);
 
-      return grid;
+      return this;
 
     },
 
@@ -258,18 +257,18 @@ HANNIBAL = (function(H){
       ctx.putImageData(image, 0, 0);
 
     },
-    process: function(target, fn){
+    // process: function(target, fn){
 
-      // target.data[n] = fn(this.data[n])
+    //   // target.data[n] = fn(this.data[n])
 
-      var body = "", proc = H.fnBody(fn);
+    //   var body = "", proc = H.fnBody(fn);
       
-      body += "var i = " + this.length + ";";
-      body += "while (i--) { t[i] = " + proc + "}";
+    //   body += "var i = " + this.length + ";";
+    //   body += "while (i--) { t[i] = " + proc + "}";
 
-      Function("s", "t", body)(this.data, target.data);  
+    //   Function("s", "t", body)(this.data, target.data);  
 
-    },
+    // },
     maxIndex: function(maxValue){
       
       var 
