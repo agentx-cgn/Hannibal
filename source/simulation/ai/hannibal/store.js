@@ -148,24 +148,22 @@ HANNIBAL = (function(H){
   H.LIB.Query.prototype = H.mixin (
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Query,
-    logNodes: function (){
-
+    logResult: function (){
       if (this.params.deb > 0){
         this.deb("      :");
         this.deb("     Q: q: '%s'", this.query);
         this.deb("      : c: '%s'", this.params.cmt || "no comment");
         this.deb("      : recs: %s, ops: %s, msecs: %s", this.results.length, this.t1, this.ops);
-        this.logResult(this.results, this.params.fmt, this.params.max);
         if (this.fromCache){
           this.deb("     Q: %s recs from cache: %s", this.results.length, this.query);
           this.deb("     Q: cache drop: hits: %s, qry: %s", 
             this.store.cache[cacheDrop].hits, 
             this.store.cache[cacheDrop]
           );
-
         }
+        this.logNodes(this.results, this.params.fmt, this.params.max);
+        this.deb("      :");
       }
-
     },
     sanitize: function(phrase){
       phrase = H.replace(phrase, "\n", " ");
@@ -326,7 +324,7 @@ HANNIBAL = (function(H){
         this.t1 = Date.now() - this.t0;
         this.results = results;
         if (this.params.deb > 0){
-          this.logNodes();
+          this.logResult();
         }
         return this.prepResults();
 
@@ -441,7 +439,7 @@ HANNIBAL = (function(H){
       cache[this.query] = {hits: 0, results: results};
 
       if (this.params.deb > 0){
-        this.logNodes();
+        this.logResult();
       }
 
       return this.prepResults();
@@ -481,7 +479,7 @@ HANNIBAL = (function(H){
       return [ops, out];
 
     },
-    logResult: function (result, format, debmax){
+    logNodes: function (result, format, debmax){
 
       var i, meta, node, c, p, t = H.tab, deb = this.deb.bind(this);
 

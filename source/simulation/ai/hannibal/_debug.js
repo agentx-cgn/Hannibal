@@ -92,5 +92,6 @@ var HANNIBAL_DEBUG = {
       "fil": 0
     }
   }, 
-  "counter": []
+  "counter": [], 
+  "export": "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/"
 };

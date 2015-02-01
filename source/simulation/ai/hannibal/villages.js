@@ -120,6 +120,13 @@ HANNIBAL = (function (H){
       });
 
     },
+    tick: function(secs, tick){
+
+      var t0 = Date.now();
+      this.ticks = tick; this.secs = secs;
+      return Date.now() - t0;
+
+    },    
     isShared: function (ent){
       var klasses = ent.classes().map(String.toLowerCase);
       // deb(klasses + "//" + this.config.data.sharedBuildingClasses);
@@ -294,38 +301,44 @@ HANNIBAL = (function (H){
         pos = [order.x, order.z],
         label = "O" + order.id;
 
-      // building radius from template
+      // building radius from template's longest side
       size = H.test(template, "Obstruction.Static");
       r = Math.max(+size["@width"], +size["@depth"]);
       radius = Math.sqrt(2 * r * r) / 2;
 
-      // get land cells in own territory
+      // mark land cells in own territory with 32
       this.map.updateGrid("buildable"); // needs neutral, enemy, etc
       // this.map.buildable.dump("0", 255);
 
       // derive grid with cells removed by building restrictions
       obstructions = this.map.templateObstructions(tpln);
 
-      // lower border cells
-      radius = Math.ceil(radius / obstructions.cellsize) + 12;
-      obstructions.blur(radius);
-
-      // flood with pos distancew
+      // remove cells by radius, priotize by pos
       coords = this.map.mapPosToGridCoords(pos, obstructions);
-      obstructions.addInfluence(coords, 224);
+      radius = Math.ceil(radius / obstructions.cellsize);
+      obstructions
+        // .dump("obst0", 255)
+        .blur(radius)
+        // .dump("obst1", 255)
+        .processValue(v => v < 32 ? 0 : v)
+        // .dump("obst2", 255)
+        .addInfluence(coords, 224)
+        // .dump("obst3", 255)
+      ;
 
-      // get best index, below distance
-      [index, value] = obstructions.maxIndex(250 - radius);
+      // get best index
+      // [index, value] = obstructions.maxIndex(250 - radius);
+      [index, value] = obstructions.maxIndex();
 
       // put x, z, angle in array
       position = this.map.gridIndexToMapPos(index, obstructions);
       position = position.map(p => p += obstructions.cellsize/2);
       // position.push(this.angle); 
-      position.push(Math.random * Math.PI * 2); 
+      position.push(Math.random() * Math.PI * 2); 
 
       // debug
-      obstructions.debIndex(index);
-      obstructions.dump(label, 255);
+      // obstructions.debIndex(index);
+      // obstructions.dump(label, 255);
 
       this.deb("  VILL: findPosForOrder: #%s, idx: %s, rad: %s, val: %s, %s, %s msec | %s", 
         order.id, 

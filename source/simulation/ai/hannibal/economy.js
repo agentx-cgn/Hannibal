@@ -592,9 +592,9 @@ HANNIBAL = (function(H){
           name:      node.name,
           key:       node.key,
           costs:     node.costs,
-          qualifies: true,
-          producer:  null,
-          info:      ""
+          qualifies: true,        // think positive
+          producer:  null,        // to be determined
+          info:      ""           // debug
         };
       });
 
@@ -627,6 +627,8 @@ HANNIBAL = (function(H){
             req    = this.culture.tree.nodes[node.name].requires,
             phase  = this.culture.tree.nodes[node.name].phase,
             phases = this.culture.phases;
+
+          // this.deb("   ORD: eval: %s req: %s, phs: %s", node.name, req, phase);
           
           if (!phases.achieved(phase)){
             /*
@@ -634,6 +636,8 @@ HANNIBAL = (function(H){
             */
             node.qualifies = false; 
             node.info = "needs phase " + phase; 
+            // this.deb("   ORD: eval: %s phase: %s, not achieved", node.name, phase);
+
             // this.deb("   ORD: #%s needs phase %s | %s > %s | %s, %s", 
             //   this.id, 
             //   phase, 
@@ -647,6 +651,7 @@ HANNIBAL = (function(H){
 
           // req might be phase
           if (req && phases.achieved(req)){
+            // this.deb("   ORD: eval: %s req: %s, achieved", node.name, req);
             return;
           }
 

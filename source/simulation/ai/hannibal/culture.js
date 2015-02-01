@@ -246,14 +246,9 @@ HANNIBAL = (function(H){
       //   H.attribs(this.context)
       // );
 
-      this.deb("ents: count: %s", H.count(this.entities));
+      // this.deb("ents: count: %s", H.count(this.entities));
       // this.deb("ents: attribs: %s", H.attribs(this.entities));
       
-      this.deb("ents: instance map: %s", this.entities instanceof Map);
-      this.deb("ents: instance object: %s", this.entities instanceof Object);
-
-
-
       H.each(this.entities, (id, entity) => {
         if (entity.owner() === this.id){
           templates.push(entity._templateName);
@@ -696,6 +691,8 @@ HANNIBAL = (function(H){
           this[child].finalize();
         }
       });
+
+      // this.tree.exportJSON();
 
     },
     initialize: function (){

@@ -464,7 +464,7 @@ HANNIBAL = (function(H){
         }
 
         t1 = Date.now();
-        this.buildable.dump("T" + (this.ticks || 0), 255);
+        // this.buildable.dump("T" + (this.ticks || 0), 255);
         this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
 
       } else {

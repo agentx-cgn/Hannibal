@@ -165,7 +165,15 @@ HANNIBAL = (function(H){
           return new H.LIB.Query(ctxClone.culture.store, hcq, debug);
         },
         class2name: function(klass){
-          return new H.LIB.Query(ctxClone.culture.store, klass + " CONTAIN").first().name;
+          var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
+            return klass === "civilcentre" ? true : node.name.contains(klass)
+          });
+          if(!res.length){
+            this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
+          } else {
+            // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
+          }
+          return res.length ? res[0].name : null;
         },
       });
 
@@ -203,12 +211,15 @@ HANNIBAL = (function(H){
           return new H.LIB.Query(this.culture.store, hcq, debug);
         },
         class2name:          klass => {
-          var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").execute();
+          var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
+            return klass === "civilcentre" ? true : node.name.contains(klass)
+          });
           if(!res.length){
             this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
+          } else {
+            // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
           }
           return res.length ? res[0].name : null;
-          // return new H.LIB.Query(this.culture.store, klass + " CONTAIN").first().name;
         },
 
         operators:           H.HTN.Economy.operators,

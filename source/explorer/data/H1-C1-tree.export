@@ -1,0 +1,3635 @@
+// EXPORTED H1:C1:tree at Sun Feb 01 2015 13:12:03 GMT+0100 (CET)
+{
+  "structures.gaul.civil.centre": {
+    "name": "structures.gaul.civil.centre",
+    "key": "structures/gaul_civil_centre",
+    "type": "stuc",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 6,
+      "train": {
+        "units.gaul.cavalry.javelinist.b": null,
+        "units.gaul.infantry.javelinist.b": null,
+        "units.gaul.infantry.spearman.b": null,
+        "units.gaul.support.female.citizen": null
+      },
+      "build": {},
+      "research": {
+        "phase.city.generic": null,
+        "phase.town.generic": null
+      }
+    },
+    "flow": {
+      "food": "8.3",
+      "wood": "5.0",
+      "stone": "0.0",
+      "metal": "0.0"
+    }
+  },
+  "units.gaul.support.female.citizen": {
+    "name": "units.gaul.support.female.citizen",
+    "key": "units/gaul_support_female_citizen",
+    "type": "unit",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 10,
+      "train": {},
+      "build": {
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.dock": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.infantry.javelinist.b": {
+    "name": "units.gaul.infantry.javelinist.b",
+    "key": "units/gaul_infantry_javelinist_b",
+    "type": "unit",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.barracks": null,
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.infantry.spearman.b": {
+    "name": "units.gaul.infantry.spearman.b",
+    "key": "units/gaul_infantry_spearman_b",
+    "type": "unit",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.barracks": null,
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.cavalry.javelinist.b": {
+    "name": "units.gaul.cavalry.javelinist.b",
+    "key": "units/gaul_cavalry_javelinist_b",
+    "type": "unit",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.barracks": null,
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "phase.village": {
+    "name": "phase.village",
+    "key": "phase_village",
+    "type": "tech",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "celts.civbonus.celts.wooden.struct": {
+    "name": "celts.civbonus.celts.wooden.struct",
+    "key": "celts/civbonus_celts_wooden_struct",
+    "type": "tech",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "phase.town.generic": {
+    "name": "phase.town.generic",
+    "key": "phase_town_generic",
+    "type": "tech",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "phase.city.generic": {
+    "name": "phase.city.generic",
+    "key": "phase_city_generic",
+    "type": "tech",
+    "template": null,
+    "depth": 0,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.house": {
+    "name": "structures.gaul.house",
+    "key": "structures/gaul_house",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 4,
+      "train": {
+        "units.gaul.support.female.citizen.house": null
+      },
+      "build": {},
+      "research": {
+        "unlock.females.house": null,
+        "pop.house.01": null,
+        "health.females.01": null
+      }
+    },
+    "flow": {
+      "food": "1.7",
+      "wood": "0.0",
+      "stone": "0.0",
+      "metal": "0.0"
+    }
+  },
+  "structures.gaul.storehouse": {
+    "name": "structures.gaul.storehouse",
+    "key": "structures/gaul_storehouse",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 12,
+      "train": {},
+      "build": {},
+      "research": {
+        "gather.capacity.carts": null,
+        "gather.capacity.wheelbarrow": null,
+        "gather.capacity.basket": null,
+        "gather.mining.silvermining": null,
+        "gather.mining.shaftmining": null,
+        "gather.mining.wedgemallet": null,
+        "gather.mining.slaves": null,
+        "gather.mining.serfs": null,
+        "gather.mining.servants": null,
+        "gather.lumbering.sharpaxes": null,
+        "gather.lumbering.strongeraxes": null,
+        "gather.lumbering.ironaxes": null
+      }
+    },
+    "flow": null
+  },
+  "structures.gaul.farmstead": {
+    "name": "structures.gaul.farmstead",
+    "key": "structures/gaul_farmstead",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 4,
+      "train": {},
+      "build": {},
+      "research": {
+        "gather.farming.fertilizer": null,
+        "gather.farming.training": null,
+        "gather.farming.plows": null,
+        "gather.wicker.baskets": null
+      }
+    },
+    "flow": null
+  },
+  "structures.gaul.field": {
+    "name": "structures.gaul.field",
+    "key": "structures/gaul_field",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.corral": {
+    "name": "structures.gaul.corral",
+    "key": "structures/gaul_corral",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 4,
+      "train": {
+        "gaia.fauna.sheep": null
+      },
+      "build": {},
+      "research": {
+        "speed.cavalry.02": null,
+        "speed.cavalry.01": null,
+        "gather.animals.stockbreeding": null
+      }
+    },
+    "flow": {
+      "food": "1.4",
+      "wood": "0.0",
+      "stone": "0.0",
+      "metal": "0.0"
+    }
+  },
+  "structures.gaul.dock": {
+    "name": "structures.gaul.dock",
+    "key": "structures/gaul_dock",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 7,
+      "train": {
+        "units.gaul.ship.trireme": null,
+        "units.gaul.ship.merchant": null,
+        "units.gaul.ship.fishing": null
+      },
+      "build": {},
+      "research": {
+        "armor.ship.hullsheathing": null,
+        "armor.ship.hypozomata": null,
+        "armor.ship.reinforcedhull": null,
+        "training.naval.architects": null
+      }
+    },
+    "flow": {
+      "food": "0.0",
+      "wood": "3.8",
+      "stone": "0.0",
+      "metal": "5.0"
+    }
+  },
+  "structures.gaul.temple": {
+    "name": "structures.gaul.temple",
+    "key": "structures/gaul_temple",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 7,
+      "train": {
+        "units.gaul.support.healer.b": null
+      },
+      "build": {},
+      "research": {
+        "health.regen.units": null,
+        "heal.temple": null,
+        "heal.rate.2": null,
+        "heal.rate": null,
+        "heal.range.2": null,
+        "heal.range": null
+      }
+    },
+    "flow": {
+      "food": "31.3",
+      "wood": "0.0",
+      "stone": "0.0",
+      "metal": "0.0"
+    }
+  },
+  "structures.gaul.market": {
+    "name": "structures.gaul.market",
+    "key": "structures/gaul_market",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 2,
+      "train": {
+        "units.gaul.support.trader": null
+      },
+      "build": {},
+      "research": {
+        "speed.trader.01": null
+      }
+    },
+    "flow": {
+      "food": "6.7",
+      "wood": "0.0",
+      "stone": "0.0",
+      "metal": "5.3"
+    }
+  },
+  "structures.gaul.rotarymill": {
+    "name": "structures.gaul.rotarymill",
+    "key": "structures/gaul_rotarymill",
+    "type": "stuc",
+    "template": null,
+    "depth": 1,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.support.female.citizen.house": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.support.female.citizen": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.infantry.javelinist.e": {
+    "name": "units.gaul.infantry.javelinist.e",
+    "key": "units/gaul_infantry_javelinist_e",
+    "type": "unit",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.infantry.javelinist.a": {
+    "name": "units.gaul.infantry.javelinist.a",
+    "key": "units/gaul_infantry_javelinist_a",
+    "type": "unit",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "structures.gaul.outpost": {
+    "name": "structures.gaul.outpost",
+    "key": "structures/gaul_outpost",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 2,
+      "train": {},
+      "build": {},
+      "research": {
+        "decay.outpost": null,
+        "vision.outpost": null
+      }
+    },
+    "flow": null
+  },
+  "other.wallset.palisade": {
+    "name": "other.wallset.palisade",
+    "key": "other/wallset_palisade",
+    "type": "othr",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "phase.village",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.barracks": {
+    "name": "structures.gaul.barracks",
+    "key": "structures/gaul_barracks",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "phase.village",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 10,
+      "train": {
+        "units.gaul.champion.cavalry.barracks": null,
+        "units.gaul.cavalry.javelinist.b": null,
+        "units.gaul.cavalry.swordsman.b": null,
+        "units.gaul.champion.infantry.barracks": null,
+        "units.gaul.infantry.slinger.b": null,
+        "units.gaul.infantry.javelinist.b": null,
+        "units.gaul.infantry.spearman.b": null
+      },
+      "build": {},
+      "research": {
+        "unlock.champion.units": null,
+        "training.conscription": null,
+        "heal.barracks": null
+      }
+    },
+    "flow": {
+      "food": "9.4",
+      "wood": "6.3",
+      "stone": "5.0",
+      "metal": "3.8"
+    }
+  },
+  "structures.gaul.blacksmith": {
+    "name": "structures.gaul.blacksmith",
+    "key": "structures/gaul_blacksmith",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 13,
+      "train": {},
+      "build": {},
+      "research": {
+        "armor.hero.01": null,
+        "armor.cav.02": null,
+        "armor.cav.01": null,
+        "armor.infantry.02": null,
+        "armor.infantry.01": null,
+        "attack.cavalry.ranged.02": null,
+        "attack.cavalry.ranged.01": null,
+        "attack.cavalry.melee.02": null,
+        "attack.cavalry.melee.01": null,
+        "attack.infantry.ranged.02": null,
+        "attack.infantry.ranged.01": null,
+        "attack.infantry.melee.02": null,
+        "attack.infantry.melee.01": null
+      }
+    },
+    "flow": null
+  },
+  "structures.gaul.defense.tower": {
+    "name": "structures.gaul.defense.tower",
+    "key": "structures/gaul_defense_tower",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 4,
+      "train": {},
+      "build": {},
+      "research": {
+        "attack.tower.defense": null,
+        "attack.tower.range": null,
+        "attack.tower.crenellations": null,
+        "attack.tower.watch": null
+      }
+    },
+    "flow": null
+  },
+  "structures.gaul.wallset.stone": {
+    "name": "structures.gaul.wallset.stone",
+    "key": "structures/gaul_wallset_stone",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.fortress": {
+    "name": "structures.gaul.fortress",
+    "key": "structures/gaul_fortress",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 11,
+      "train": {
+        "units.gaul.mechanical.siege.ram": null,
+        "units.gaul.champion.infantry": null,
+        "units.gaul.champion.cavalry": null,
+        "units.gaul.hero.vercingetorix": null,
+        "units.gaul.hero.britomartus": null,
+        "units.gaul.hero.brennus": null
+      },
+      "build": {},
+      "research": {
+        "siege.cost.wood": null,
+        "siege.cost.metal": null,
+        "siege.armor": null,
+        "siege.attack": null,
+        "attack.soldiers.will": null
+      }
+    },
+    "flow": {
+      "food": "9.4",
+      "wood": "14.0",
+      "stone": "0.0",
+      "metal": "8.0"
+    }
+  },
+  "structures.gaul.wonder": {
+    "name": "structures.gaul.wonder",
+    "key": "structures/gaul_wonder",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 1,
+      "train": {},
+      "build": {},
+      "research": {
+        "pop.wonder": null
+      }
+    },
+    "flow": null
+  },
+  "structures.gaul.tavern": {
+    "name": "structures.gaul.tavern",
+    "key": "structures/gaul_tavern",
+    "type": "stuc",
+    "template": null,
+    "depth": 2,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.slinger.a": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.b": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 5,
+      "train": {
+        "units.gaul.champion.fanatic": null,
+        "units.gaul.support.female.citizen.house": null
+      },
+      "build": {},
+      "research": {
+        "unlock.females.house": null,
+        "pop.house.01": null,
+        "health.females.01": null
+      }
+    },
+    "flow": {
+      "food": "1.7",
+      "wood": "7.7",
+      "stone": "0.0",
+      "metal": "6.2"
+    }
+  },
+  "units.gaul.infantry.spearman.e": {
+    "name": "units.gaul.infantry.spearman.e",
+    "key": "units/gaul_infantry_spearman_e",
+    "type": "unit",
+    "template": null,
+    "depth": 3,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.infantry.spearman.a": {
+    "name": "units.gaul.infantry.spearman.a",
+    "key": "units/gaul_infantry_spearman_a",
+    "type": "unit",
+    "template": null,
+    "depth": 3,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.cavalry.javelinist.e": {
+    "name": "units.gaul.cavalry.javelinist.e",
+    "key": "units/gaul_cavalry_javelinist_e",
+    "type": "unit",
+    "template": null,
+    "depth": 4,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.cavalry.javelinist.a": {
+    "name": "units.gaul.cavalry.javelinist.a",
+    "key": "units/gaul_cavalry_javelinist_a",
+    "type": "unit",
+    "template": null,
+    "depth": 4,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "health.females.01": {
+    "name": "health.females.01",
+    "key": "health_females_01",
+    "type": "tech",
+    "template": null,
+    "depth": 9,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.tavern": null,
+      "structures.gaul.house": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "pop.house.01": {
+    "name": "pop.house.01",
+    "key": "pop_house_01",
+    "type": "tech",
+    "template": null,
+    "depth": 9,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.tavern": null,
+      "structures.gaul.house": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "unlock.females.house": {
+    "name": "unlock.females.house",
+    "key": "unlock_females_house",
+    "type": "tech",
+    "template": null,
+    "depth": 9,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.tavern": null,
+      "structures.gaul.house": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.support.female.citizen.house": {
+    "name": "units.gaul.support.female.citizen.house",
+    "key": "units/gaul_support_female_citizen_house",
+    "type": "unit",
+    "template": null,
+    "depth": 9,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "unlock.females.house",
+    "producers": {
+      "structures.gaul.tavern": null,
+      "structures.gaul.house": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 10,
+      "train": {},
+      "build": {
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.dock": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.lumbering.ironaxes": {
+    "name": "gather.lumbering.ironaxes",
+    "key": "gather_lumbering_ironaxes",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.lumbering.strongeraxes": {
+    "name": "gather.lumbering.strongeraxes",
+    "key": "gather_lumbering_strongeraxes",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.lumbering.sharpaxes": {
+    "name": "gather.lumbering.sharpaxes",
+    "key": "gather_lumbering_sharpaxes",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.mining.servants": {
+    "name": "gather.mining.servants",
+    "key": "gather_mining_servants",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.mining.serfs": {
+    "name": "gather.mining.serfs",
+    "key": "gather_mining_serfs",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.mining.slaves": {
+    "name": "gather.mining.slaves",
+    "key": "gather_mining_slaves",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.mining.wedgemallet": {
+    "name": "gather.mining.wedgemallet",
+    "key": "gather_mining_wedgemallet",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.mining.shaftmining": {
+    "name": "gather.mining.shaftmining",
+    "key": "gather_mining_shaftmining",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.mining.silvermining": {
+    "name": "gather.mining.silvermining",
+    "key": "gather_mining_silvermining",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.capacity.basket": {
+    "name": "gather.capacity.basket",
+    "key": "gather_capacity_basket",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.capacity.wheelbarrow": {
+    "name": "gather.capacity.wheelbarrow",
+    "key": "gather_capacity_wheelbarrow",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.capacity.carts": {
+    "name": "gather.capacity.carts",
+    "key": "gather_capacity_carts",
+    "type": "tech",
+    "template": null,
+    "depth": 10,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.storehouse": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.wicker.baskets": {
+    "name": "gather.wicker.baskets",
+    "key": "gather_wicker_baskets",
+    "type": "tech",
+    "template": null,
+    "depth": 11,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.farmstead": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.farming.plows": {
+    "name": "gather.farming.plows",
+    "key": "gather_farming_plows",
+    "type": "tech",
+    "template": null,
+    "depth": 11,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.farmstead": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.farming.training": {
+    "name": "gather.farming.training",
+    "key": "gather_farming_training",
+    "type": "tech",
+    "template": null,
+    "depth": 11,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.farmstead": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.farming.fertilizer": {
+    "name": "gather.farming.fertilizer",
+    "key": "gather_farming_fertilizer",
+    "type": "tech",
+    "template": null,
+    "depth": 11,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.farmstead": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gather.animals.stockbreeding": {
+    "name": "gather.animals.stockbreeding",
+    "key": "gather_animals_stockbreeding",
+    "type": "tech",
+    "template": null,
+    "depth": 13,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.corral": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "speed.cavalry.01": {
+    "name": "speed.cavalry.01",
+    "key": "speed_cavalry_01",
+    "type": "tech",
+    "template": null,
+    "depth": 13,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.corral": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "speed.cavalry.02": {
+    "name": "speed.cavalry.02",
+    "key": "speed_cavalry_02",
+    "type": "tech",
+    "template": null,
+    "depth": 13,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.corral": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "gaia.fauna.sheep": {
+    "name": "gaia.fauna.sheep",
+    "key": "gaia/fauna_sheep",
+    "type": "gaia",
+    "template": null,
+    "depth": 13,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.corral": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "training.naval.architects": {
+    "name": "training.naval.architects",
+    "key": "training_naval_architects",
+    "type": "tech",
+    "template": null,
+    "depth": 14,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.dock": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.ship.reinforcedhull": {
+    "name": "armor.ship.reinforcedhull",
+    "key": "armor_ship_reinforcedhull",
+    "type": "tech",
+    "template": null,
+    "depth": 14,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.dock": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.ship.hypozomata": {
+    "name": "armor.ship.hypozomata",
+    "key": "armor_ship_hypozomata",
+    "type": "tech",
+    "template": null,
+    "depth": 14,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.dock": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.ship.hullsheathing": {
+    "name": "armor.ship.hullsheathing",
+    "key": "armor_ship_hullsheathing",
+    "type": "tech",
+    "template": null,
+    "depth": 14,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.dock": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.ship.fishing": {
+    "name": "units.gaul.ship.fishing",
+    "key": "units/gaul_ship_fishing",
+    "type": "unit",
+    "template": null,
+    "depth": 14,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.dock": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.ship.merchant": {
+    "name": "units.gaul.ship.merchant",
+    "key": "units/gaul_ship_merchant",
+    "type": "unit",
+    "template": null,
+    "depth": 14,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "structures.gaul.dock": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.ship.trireme": {
+    "name": "units.gaul.ship.trireme",
+    "key": "units/gaul_ship_trireme",
+    "type": "unit",
+    "template": null,
+    "depth": 14,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "structures.gaul.dock": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "heal.range": {
+    "name": "heal.range",
+    "key": "heal_range",
+    "type": "tech",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.temple": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "heal.range.2": {
+    "name": "heal.range.2",
+    "key": "heal_range_2",
+    "type": "tech",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.temple": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "heal.rate": {
+    "name": "heal.rate",
+    "key": "heal_rate",
+    "type": "tech",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.temple": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "heal.rate.2": {
+    "name": "heal.rate.2",
+    "key": "heal_rate_2",
+    "type": "tech",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.temple": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "heal.temple": {
+    "name": "heal.temple",
+    "key": "heal_temple",
+    "type": "tech",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.temple": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "health.regen.units": {
+    "name": "health.regen.units",
+    "key": "health_regen_units",
+    "type": "tech",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.temple": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.support.healer.b": {
+    "name": "units.gaul.support.healer.b",
+    "key": "units/gaul_support_healer_b",
+    "type": "unit",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.temple": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "phase.town": {
+    "name": "phase.town",
+    "key": "phase_town",
+    "type": "tech",
+    "template": null,
+    "depth": 15,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "speed.trader.01": {
+    "name": "speed.trader.01",
+    "key": "speed_trader_01",
+    "type": "tech",
+    "template": null,
+    "depth": 16,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.market": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.support.trader": {
+    "name": "units.gaul.support.trader",
+    "key": "units/gaul_support_trader",
+    "type": "unit",
+    "template": null,
+    "depth": 16,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.market": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "phase.city": {
+    "name": "phase.city",
+    "key": "phase_city",
+    "type": "tech",
+    "template": null,
+    "depth": 17,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.civil.centre": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "vision.outpost": {
+    "name": "vision.outpost",
+    "key": "vision_outpost",
+    "type": "tech",
+    "template": null,
+    "depth": 20,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.outpost": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "decay.outpost": {
+    "name": "decay.outpost",
+    "key": "decay_outpost",
+    "type": "tech",
+    "template": null,
+    "depth": 20,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {
+      "structures.gaul.outpost": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "other.palisades.rocks.gate": {
+    "name": "other.palisades.rocks.gate",
+    "key": "other/palisades_rocks_gate",
+    "type": "othr",
+    "template": null,
+    "depth": 21,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "phase.village",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "other.palisades.rocks.tower": {
+    "name": "other.palisades.rocks.tower",
+    "key": "other/palisades_rocks_tower",
+    "type": "othr",
+    "template": null,
+    "depth": 21,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "phase.village",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "other.palisades.rocks.long": {
+    "name": "other.palisades.rocks.long",
+    "key": "other/palisades_rocks_long",
+    "type": "othr",
+    "template": null,
+    "depth": 21,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "phase.village",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "other.palisades.rocks.medium": {
+    "name": "other.palisades.rocks.medium",
+    "key": "other/palisades_rocks_medium",
+    "type": "othr",
+    "template": null,
+    "depth": 21,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "phase.village",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "other.palisades.rocks.short": {
+    "name": "other.palisades.rocks.short",
+    "key": "other/palisades_rocks_short",
+    "type": "othr",
+    "template": null,
+    "depth": 21,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "phase.village",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "heal.barracks": {
+    "name": "heal.barracks",
+    "key": "heal_barracks",
+    "type": "tech",
+    "template": null,
+    "depth": 22,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.barracks": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "training.conscription": {
+    "name": "training.conscription",
+    "key": "training_conscription",
+    "type": "tech",
+    "template": null,
+    "depth": 22,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.barracks": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "unlock.champion.units": {
+    "name": "unlock.champion.units",
+    "key": "unlock_champion_units",
+    "type": "tech",
+    "template": null,
+    "depth": 22,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.barracks": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.infantry.slinger.b": {
+    "name": "units.gaul.infantry.slinger.b",
+    "key": "units/gaul_infantry_slinger_b",
+    "type": "unit",
+    "template": null,
+    "depth": 22,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "structures.gaul.barracks": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.champion.infantry.barracks": {
+    "name": "units.gaul.champion.infantry.barracks",
+    "key": "units/gaul_champion_infantry_barracks",
+    "type": "unit",
+    "template": null,
+    "depth": 22,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "unlock.champion.units",
+    "producers": {
+      "structures.gaul.barracks": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.cavalry.swordsman.b": {
+    "name": "units.gaul.cavalry.swordsman.b",
+    "key": "units/gaul_cavalry_swordsman_b",
+    "type": "unit",
+    "template": null,
+    "depth": 22,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "structures.gaul.barracks": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.champion.cavalry.barracks": {
+    "name": "units.gaul.champion.cavalry.barracks",
+    "key": "units/gaul_champion_cavalry_barracks",
+    "type": "unit",
+    "template": null,
+    "depth": 22,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "unlock.champion.units",
+    "producers": {
+      "structures.gaul.barracks": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.infantry.melee.01": {
+    "name": "attack.infantry.melee.01",
+    "key": "attack_infantry_melee_01",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.infantry.melee.02": {
+    "name": "attack.infantry.melee.02",
+    "key": "attack_infantry_melee_02",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.infantry.ranged.01": {
+    "name": "attack.infantry.ranged.01",
+    "key": "attack_infantry_ranged_01",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.infantry.ranged.02": {
+    "name": "attack.infantry.ranged.02",
+    "key": "attack_infantry_ranged_02",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.cavalry.melee.01": {
+    "name": "attack.cavalry.melee.01",
+    "key": "attack_cavalry_melee_01",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.cavalry.melee.02": {
+    "name": "attack.cavalry.melee.02",
+    "key": "attack_cavalry_melee_02",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.cavalry.ranged.01": {
+    "name": "attack.cavalry.ranged.01",
+    "key": "attack_cavalry_ranged_01",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.cavalry.ranged.02": {
+    "name": "attack.cavalry.ranged.02",
+    "key": "attack_cavalry_ranged_02",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.infantry.01": {
+    "name": "armor.infantry.01",
+    "key": "armor_infantry_01",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.infantry.02": {
+    "name": "armor.infantry.02",
+    "key": "armor_infantry_02",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.cav.01": {
+    "name": "armor.cav.01",
+    "key": "armor_cav_01",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.cav.02": {
+    "name": "armor.cav.02",
+    "key": "armor_cav_02",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "armor.hero.01": {
+    "name": "armor.hero.01",
+    "key": "armor_hero_01",
+    "type": "tech",
+    "template": null,
+    "depth": 23,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.blacksmith": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.tower.watch": {
+    "name": "attack.tower.watch",
+    "key": "attack_tower_watch",
+    "type": "tech",
+    "template": null,
+    "depth": 24,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.defense.tower": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.tower.crenellations": {
+    "name": "attack.tower.crenellations",
+    "key": "attack_tower_crenellations",
+    "type": "tech",
+    "template": null,
+    "depth": 24,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.defense.tower": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.tower.range": {
+    "name": "attack.tower.range",
+    "key": "attack_tower_range",
+    "type": "tech",
+    "template": null,
+    "depth": 24,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.defense.tower": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.tower.defense": {
+    "name": "attack.tower.defense",
+    "key": "attack_tower_defense",
+    "type": "tech",
+    "template": null,
+    "depth": 24,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.defense.tower": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.wall.gate": {
+    "name": "structures.gaul.wall.gate",
+    "key": "structures/gaul_wall_gate",
+    "type": "stuc",
+    "template": null,
+    "depth": 25,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.wall.tower": {
+    "name": "structures.gaul.wall.tower",
+    "key": "structures/gaul_wall_tower",
+    "type": "stuc",
+    "template": null,
+    "depth": 25,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 3,
+      "train": {},
+      "build": {},
+      "research": {
+        "pair.walls.01": null,
+        "health.walls.geometric.masonry": null,
+        "buildtime.walls.rubble": null
+      }
+    },
+    "flow": null
+  },
+  "structures.gaul.wall.long": {
+    "name": "structures.gaul.wall.long",
+    "key": "structures/gaul_wall_long",
+    "type": "stuc",
+    "template": null,
+    "depth": 25,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.wall.medium": {
+    "name": "structures.gaul.wall.medium",
+    "key": "structures/gaul_wall_medium",
+    "type": "stuc",
+    "template": null,
+    "depth": 25,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "structures.gaul.wall.short": {
+    "name": "structures.gaul.wall.short",
+    "key": "structures/gaul_wall_short",
+    "type": "stuc",
+    "template": null,
+    "depth": 25,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {
+      "units.gaul.infantry.javelinist.b": null,
+      "units.gaul.infantry.spearman.b": null,
+      "units.gaul.infantry.javelinist.e": null,
+      "units.gaul.infantry.javelinist.a": null,
+      "units.gaul.infantry.spearman.e": null,
+      "units.gaul.infantry.spearman.a": null,
+      "units.gaul.infantry.slinger.b": null,
+      "units.gaul.infantry.slinger.e": null,
+      "units.gaul.infantry.slinger.a": null
+    },
+    "verb": "build",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "attack.soldiers.will": {
+    "name": "attack.soldiers.will",
+    "key": "attack_soldiers_will",
+    "type": "tech",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "siege.attack": {
+    "name": "siege.attack",
+    "key": "siege_attack",
+    "type": "tech",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "siege.armor": {
+    "name": "siege.armor",
+    "key": "siege_armor",
+    "type": "tech",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "siege.cost.metal": {
+    "name": "siege.cost.metal",
+    "key": "siege_cost_metal",
+    "type": "tech",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "siege.cost.wood": {
+    "name": "siege.cost.wood",
+    "key": "siege_cost_wood",
+    "type": "tech",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.hero.brennus": {
+    "name": "units.gaul.hero.brennus",
+    "key": "units/gaul_hero_brennus",
+    "type": "unit",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.hero.britomartus": {
+    "name": "units.gaul.hero.britomartus",
+    "key": "units/gaul_hero_britomartus",
+    "type": "unit",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.hero.vercingetorix": {
+    "name": "units.gaul.hero.vercingetorix",
+    "key": "units/gaul_hero_vercingetorix",
+    "type": "unit",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.champion.cavalry": {
+    "name": "units.gaul.champion.cavalry",
+    "key": "units/gaul_champion_cavalry",
+    "type": "unit",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.champion.infantry": {
+    "name": "units.gaul.champion.infantry",
+    "key": "units/gaul_champion_infantry",
+    "type": "unit",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.mechanical.siege.ram": {
+    "name": "units.gaul.mechanical.siege.ram",
+    "key": "units/gaul_mechanical_siege_ram",
+    "type": "unit",
+    "template": null,
+    "depth": 26,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "structures.gaul.fortress": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "pop.wonder": {
+    "name": "pop.wonder",
+    "key": "pop_wonder",
+    "type": "tech",
+    "template": null,
+    "depth": 27,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "",
+    "producers": {
+      "structures.gaul.wonder": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.champion.fanatic": {
+    "name": "units.gaul.champion.fanatic",
+    "key": "units/gaul_champion_fanatic",
+    "type": "unit",
+    "template": null,
+    "depth": 28,
+    "operations": 0,
+    "order": 0,
+    "phase": "city",
+    "requires": "phase.city",
+    "producers": {
+      "structures.gaul.tavern": null
+    },
+    "verb": "train",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "units.gaul.support.healer.e": {
+    "name": "units.gaul.support.healer.e",
+    "key": "units/gaul_support_healer_e",
+    "type": "unit",
+    "template": null,
+    "depth": 70,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.support.healer.a": {
+    "name": "units.gaul.support.healer.a",
+    "key": "units/gaul_support_healer_a",
+    "type": "unit",
+    "template": null,
+    "depth": 70,
+    "operations": 0,
+    "order": 0,
+    "phase": "vill",
+    "requires": "",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.infantry.slinger.e": {
+    "name": "units.gaul.infantry.slinger.e",
+    "key": "units/gaul_infantry_slinger_e",
+    "type": "unit",
+    "template": null,
+    "depth": 85,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.infantry.slinger.a": {
+    "name": "units.gaul.infantry.slinger.a",
+    "key": "units/gaul_infantry_slinger_a",
+    "type": "unit",
+    "template": null,
+    "depth": 85,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 29,
+      "train": {},
+      "build": {
+        "structures.gaul.wall.tower": null,
+        "structures.gaul.wall.short": null,
+        "structures.gaul.wall.medium": null,
+        "structures.gaul.wall.long": null,
+        "structures.gaul.wall.gate": null,
+        "other.palisades.rocks.tower": null,
+        "other.palisades.rocks.short": null,
+        "other.palisades.rocks.medium": null,
+        "other.palisades.rocks.long": null,
+        "other.palisades.rocks.gate": null,
+        "structures.gaul.rotarymill": null,
+        "structures.gaul.tavern": null,
+        "structures.gaul.wonder": null,
+        "structures.gaul.fortress": null,
+        "structures.gaul.civil.centre": null,
+        "structures.gaul.wallset.stone": null,
+        "structures.gaul.defense.tower": null,
+        "structures.gaul.market": null,
+        "structures.gaul.temple": null,
+        "structures.gaul.blacksmith": null,
+        "structures.gaul.barracks": null,
+        "structures.gaul.dock": null,
+        "other.wallset.palisade": null,
+        "structures.gaul.outpost": null,
+        "structures.gaul.corral": null,
+        "structures.gaul.field": null,
+        "structures.gaul.farmstead": null,
+        "structures.gaul.storehouse": null,
+        "structures.gaul.house": null
+      },
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.cavalry.swordsman.e": {
+    "name": "units.gaul.cavalry.swordsman.e",
+    "key": "units/gaul_cavalry_swordsman_e",
+    "type": "unit",
+    "template": null,
+    "depth": 87,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "units.gaul.cavalry.swordsman.a": {
+    "name": "units.gaul.cavalry.swordsman.a",
+    "key": "units/gaul_cavalry_swordsman_a",
+    "type": "unit",
+    "template": null,
+    "depth": 87,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "phase.town",
+    "producers": {},
+    "verb": "",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "operator": null,
+    "flow": null
+  },
+  "pair.walls.01": {
+    "name": "pair.walls.01",
+    "key": "pair_walls_01",
+    "type": "tech",
+    "template": null,
+    "depth": 107,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.wall.tower": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "health.walls.geometric.masonry": {
+    "name": "health.walls.geometric.masonry",
+    "key": "health_walls_geometric_masonry",
+    "type": "tech",
+    "template": null,
+    "depth": 130,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.wall.tower": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  },
+  "buildtime.walls.rubble": {
+    "name": "buildtime.walls.rubble",
+    "key": "buildtime_walls_rubble",
+    "type": "tech",
+    "template": null,
+    "depth": 130,
+    "operations": 0,
+    "order": 0,
+    "phase": "town",
+    "requires": "",
+    "producers": {
+      "structures.gaul.wall.tower": null
+    },
+    "verb": "research",
+    "products": {
+      "count": 0,
+      "train": {},
+      "build": {},
+      "research": {}
+    },
+    "flow": null
+  }
+}
+// Export end of H1:C1:tree

@@ -92,7 +92,7 @@ HANNIBAL = (function(H){
 
     });
 
-    this.deb("  LANG: loaded corpus: %s", this.corpusname);
+    // this.deb("  LANG: loaded corpus: %s", this.corpusname);
 
   };
 

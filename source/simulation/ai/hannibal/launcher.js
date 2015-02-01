@@ -350,10 +350,10 @@ HANNIBAL = (function(H) {
   H.Launcher.prototype.logPlayers = function(players){
 
     var 
-      deb = this.deb, tab = H.tab, msg = "", head, props, format, tabs,
+      tab = H.tab, msg = "", head, props, format, tabs,
       fmtAEN = item => item.map(b => b ? "1" : "0").join("");
 
-    deb();
+    this.deb();
 
     head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut, colour".split(", ");
     props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
@@ -364,15 +364,15 @@ HANNIBAL = (function(H) {
       isNeutral: fmtAEN
     };
 
-    H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-    deb("PLAYER: " + msg);
+    H.zip(head, tabs, (h, t) => msg += tab(h, t));
+    this.deb("PLAYER: " + msg);
 
-    H.each(players, function(id, player){
+    H.each(players, (id, player) => {
       msg = "";
-      H.zip(props, tabs, function(p, t){
+      H.zip(props, tabs, (p, t) => {
         msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
       });    
-      deb("     %s: %s", id, msg);
+      this.deb("     %s: %s", id, msg);
     });
 
   };

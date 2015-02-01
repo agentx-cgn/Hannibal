@@ -167,6 +167,18 @@ HANNIBAL = (function(H){
 
     },
 
+    processValue: function(fn){
+
+      var t0 = Date.now(), i = this.length;
+
+      while(i--){
+        this.data[i] = fn(this.data[i]);
+      }
+      this.deb("   GRD: processValue: %s %s msec", this.label, Date.now() - t0);
+      return this;
+
+    },
+
     debIndex: function(index){
       // puts lines on index for debugging
 
@@ -269,8 +281,8 @@ HANNIBAL = (function(H){
     //   Function("s", "t", body)(this.data, target.data);  
 
     // },
-    maxIndex: function(maxValue){
-      
+    maxIndex: function(maxValue=256){
+
       var 
         index = 0,
         value = -1e6,
@@ -287,6 +299,36 @@ HANNIBAL = (function(H){
       return [index, value];
 
     },    
+
+    transform: function(data, x, y, w, min, max) {
+      // lifted
+      var g = data[x + y * w];
+      if (g > min){data[x + y * w] = min;}
+      else if (g < min){min = g;}
+      if (++min > max){min = max;}
+      return min;
+    },
+    distanceTransform: function() {
+
+      var 
+        data = this.data, 
+        transform = this.transform,
+        s = this.size,
+        x = 0, y = 0, min = 0, max = 255;
+
+      for ( y = 0; y < s; ++y) {
+        min = max;
+        for ( x = 0;     x <  s; ++x) {min = transform(data, x, y, s, min, max);}
+        for ( x = s - 2; x >= 0; --x) {min = transform(data, x, y, s, min, max);}
+      }
+      for ( x = 0; x < s; ++x) {
+        min = max;
+        for ( y = 0;     y <  s; ++y) {min = transform(data, x, y, s, min, max);}
+        for ( y = s - 2; y >= 0; --y) {min = transform(data, x, y, s, min, max);}
+      }
+
+    },
+
     addInfluence: function(coords, strength, maxDist, type="linear") {
 
       maxDist = maxDist || this.size;
@@ -323,6 +365,8 @@ HANNIBAL = (function(H){
             data[x + y * size] += fnQuant(r2);
           }
       }}
+
+      return this;
 
     },    
     blur: function (radius){
@@ -392,6 +436,8 @@ HANNIBAL = (function(H){
           }
 
       }
+
+      return this;
 
     },
   });

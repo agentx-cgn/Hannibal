@@ -91,7 +91,7 @@ var HANNIBAL = (function() {
     release: function(){
       if(!this.context.importer.delete(this)){
         this.deb("WARN  : Serializer.release: could not release: %s", this);
-      }; 
+      }
       return this;
     },
     import: function(){
@@ -103,6 +103,52 @@ var HANNIBAL = (function() {
       context.data[this.klass] = this.serialize();
       return new H.LIB[H.noun(this.name)](context);
     },
+    exportJSON: function(){
+
+      var 
+        file, lines, count, 
+        id = this.context.id,
+        prefix = id + "::";
+
+      function logg(){
+        print( arguments.length === 0 ? 
+          prefix + "#! append 0 ://\n" : 
+          prefix + "#! append 0 :" + H.format.apply(H, arguments) + "\n"
+        );
+      }    
+
+      if (
+        HANNIBAL_DEBUG && 
+        HANNIBAL_DEBUG.export && 
+        HANNIBAL_DEBUG.bots[id].fil
+        ){
+
+        this.deb("INFO  : exporting: %s", this.name);
+
+        file  = HANNIBAL_DEBUG.export + this.name + ".export";
+        file  = file.split(":").join("-");
+        lines = JSON.stringify(this.serialize(), null, "  ").split("\n");
+        count = lines.length;
+
+        this.deb();
+        this.deb("EXPORT: %s lines, %s", file, count);
+
+        print(H.format("%s#! open 0 %s\n", prefix, file));
+        logg("// EXPORTED %s at %s", this.name, new Date());
+        lines.forEach(line => logg(line));
+        logg("// Export end of %s", this.name);
+        print(H.format("%s#! close 0\n", prefix));
+        // print("#! close 0\n");
+
+        this.deb("EXPORT: Done");
+        this.deb();
+
+      } else {
+        this.deb("INFO  : did not export %s", this.name);
+
+      }
+
+    }    
   };  
 
 return H;}());
