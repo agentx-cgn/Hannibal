@@ -103,12 +103,12 @@ HANNIBAL = (function(H){
       this.size   = this.width;
 
 
-      this.deb("   GRD: init: %s cellsize: %s, size: %s, len: %s", 
-        this.label,
-        this.cellsize,
-        this.size,
-        this.length
-      );
+      // this.deb("   GRD: init: %s cellsize: %s, size: %s, len: %s", 
+      //   this.label,
+      //   this.cellsize,
+      //   this.size,
+      //   this.length
+      // );
 
       return this;
     },
@@ -174,7 +174,7 @@ HANNIBAL = (function(H){
       while(i--){
         this.data[i] = fn(this.data[i]);
       }
-      this.deb("   GRD: processValue: %s %s msec", this.label, Date.now() - t0);
+      // this.deb("   GRD: processValue: %s %s msec", this.label, Date.now() - t0);
       return this;
 
     },

@@ -118,6 +118,7 @@ var HANNIBAL = (function() {
       }    
 
       if (
+        // make sure to run only if in debug and filename and allowed
         HANNIBAL_DEBUG && 
         HANNIBAL_DEBUG.export && 
         HANNIBAL_DEBUG.bots[id].fil

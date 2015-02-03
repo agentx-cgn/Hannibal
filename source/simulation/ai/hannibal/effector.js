@@ -373,11 +373,11 @@ HANNIBAL = (function(H){
 
       this.deb("   EFF: construct: %s", uneval(arguments));
 
-      if (who.length && H.isInteger(who[0]) && this.templates[what] && pos.length >= 2){
+      if (who.length && H.isInteger(who[0]) && this.templates[what] && pos.length === 3){
 
         Engine.PostCommand(this.id, { type: "construct",
-          entities:     who, // array
-          template:     what,
+          entities:     who,     // array
+          template:     what,    // string
           x:            pos[0], 
           z:            pos[1],
           angle:        pos[2],

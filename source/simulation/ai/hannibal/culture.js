@@ -1453,7 +1453,8 @@ HANNIBAL = (function(H){
               counter += 1;
               if (debug){this.deb("     C: Edge.%s:      -> %s", verb, nodeTarget.name);}
             } else {
-              this.deb("ERROR : createEdges: verb: %s, no node for %s <= %s", verb, nameTarget, nodeSource.name);
+              // structures.celt.sb1
+              // this.deb("WARN : createEdges: verb: %s, no node for %s <= %s", verb, nameTarget, nodeSource.name);
             }
           });
         }

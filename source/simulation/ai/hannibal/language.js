@@ -78,7 +78,8 @@ HANNIBAL = (function(H){
       name:     context.name + ":language:" + corpus,
 
       imports: [
-        "map"
+        "map",
+        "entities",
       ],
 
       corpusname:    corpus,
@@ -380,8 +381,14 @@ HANNIBAL = (function(H){
   };
 
   H.DSL.Helper = {
-    health: function(){},
-    vision: function(){},
+    health: function(list){
+      return (
+        list
+          .map(id => Math.round(this.entities[id].hitpoints() / this.entities[id].maxHitpoints()))
+          .reduce( (a, b) => a + b, 0)
+      );
+    },
+    vision: function( /* list */ ){},
   };
 
   H.DSL.Corpora = {
@@ -482,7 +489,7 @@ HANNIBAL = (function(H){
         },
       },
       attributes: {
-        // health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
+        health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
         // vision:       function(s, o){return H.DSL.Helper.vision(o.list);}, 
         count:        function(s, o){return o.list.length;}, 
         size:         function(s, o){return o.size;}, 

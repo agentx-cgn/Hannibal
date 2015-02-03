@@ -55,9 +55,11 @@ HANNIBAL = (function(H){
     log: function(){
       this.deb();
       this.deb("  STAT: stock: %s", JSON.stringify(this.stock));
+      this.deb("  STAT: stock: %s", JSON.stringify(this.stock));
     },
     logTick: function(){
       this.deb("  STAT: stock: %s", JSON.stringify(this.stock));
+      this.deb("  STAT: flows: %s", JSON.stringify(this.flows));
     },
     initialize: function(){
       this.tick();
@@ -81,8 +83,8 @@ HANNIBAL = (function(H){
     serialize: function(){
       return {
         stock: H.deepcopy(this.stock), 
-        // suply: H.deepcopy(this.suply), 
-        // diffs: H.map(this.diffs, (key, buffer) => buffer.serialize()), // buffer !!
+        suply: H.deepcopy(this.suply), 
+        diffs: H.map(this.diffs, (key, buffer) => buffer.serialize()), // buffer !!
         flows: H.deepcopy(this.flows), 
         alloc: H.deepcopy(this.alloc),
         forec: H.deepcopy(this.forec), 
@@ -94,7 +96,7 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), curHits = 1, maxHits = 1, 
-        // gathered  = this.player.statistics.resourcesGathered,
+        gathered  = this.player.statistics.resourcesGathered,
         available = this.player.resourceCounts;
 
       // update
@@ -102,22 +104,22 @@ HANNIBAL = (function(H){
           
       // gather diffs
       this.gatherables.forEach( prop => { 
-        // this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
-        // this.suply[prop]   = gathered[prop];                 // totals
+        this.diffs[prop].push(gathered[prop] - this.suply[prop]); // prep flows
+        this.suply[prop]   = gathered[prop];                 // totals
         this.stock[prop]   = available[prop];                // available
       });
       
       // other data
       this.stock.pops   = this.player.popCount;
-      // this.stock.area   = this.player.statistics.percentMapExplored;
+      this.stock.area   = this.player.statistics.percentMapExplored;
       this.stock.health = ~~((curHits / maxHits) * 100); // integer percent only    
 
       // buffers
-      // H.attribs(this.ress).forEach( prop => { 
-      //   this.stack[prop].push(this.suply[prop]);      // buffers
-      //   this.trend[prop] = this.stack[prop].trend();  // trend
-      //   this.flows[prop] = this.diffs[prop].avg();    // 
-      // });
+      H.attribs(this.ress).forEach( prop => { 
+        this.stack[prop].push(this.suply[prop]);      // buffers
+        this.trend[prop] = this.stack[prop].trend();  // trend
+        this.flows[prop] = this.diffs[prop].avg();    // 
+      });
 
       return Date.now() - t0;
 
@@ -335,12 +337,12 @@ HANNIBAL = (function(H){
         delete this.producers[node.name];
 
       } else {
-
         this.deb("WARN  : PDC can't delete producer with id: %s | ", id, name);
+        return;
       }
 
-      this.deb("   PDC: removed id: %s, name: %s", id, node.name);
-
+      this.deb("   PDC: removed id: %s, name: %s", id, node ? node.name : "unknown");
+      
       // H.each(this.producers, (nameid, info) => {
       //   if (info.id === id){
       //     delete this.producers[nameid];
@@ -375,9 +377,15 @@ HANNIBAL = (function(H){
 
     },
     resetAllocations: function(){
+      var id;
       H.each(this.producers, (name, info) => {
         if (info.type === "building"){
-          info.allocs = this.entities[info.entities[0]]._entity.trainingQueue.length;
+          id = info.entities[0];
+          if (this.entities[id]){
+            info.allocs = this.entities[id]._entity.trainingQueue.length;
+          } else {
+            this.deb("WARN  : resetAllocations for id: %s failed", id);
+          }
         }
       });      
     },
@@ -404,7 +412,7 @@ HANNIBAL = (function(H){
       // TODO: calculate exactly best producer, based on queue length and -items
 
       var 
-        producer, check = false, found = false, candidates = [],
+        id, producer, check = false, found = false, candidates = [],
         tree  = this.culture.tree.nodes,
         verb  = tree[product].verb, 
         names = H.attribs(this.producers),
@@ -449,10 +457,12 @@ HANNIBAL = (function(H){
 
           while (i-- && !found){
             producer = this.producers[names[i]];
+            id = producer.entities[0];
             check = (
               tree[producer.name].products.train[product] &&
               producer.allocs < this.maxqueue && 
-              (!cc || this.metadata[producer.entities[0]].cc === cc)
+              this.metadata[id].cc && // TESTTHIS
+              (!cc || this.metadata[id].cc === cc)
             );
             if (check){
               candidates.push(producer);
@@ -628,7 +638,7 @@ HANNIBAL = (function(H){
             phase  = this.culture.tree.nodes[node.name].phase,
             phases = this.culture.phases;
 
-          // this.deb("   ORD: eval: %s req: %s, phs: %s", node.name, req, phase);
+          // this.deb("   ORD: eval: %s req: %s, phs: %s", node.name, req, phase);  
           
           if (!phases.achieved(phase)){
             /*
@@ -1029,20 +1039,20 @@ HANNIBAL = (function(H){
 
       // this.childs.forEach(child => this[child].logTick());
       
-      // var 
-      //   stock = this.stats.stock, 
-      //   flows = this.stats.flows,
-      //   t = H.tab, f = n => n > 0 ? "+" + n : n === 0 ? " 0": n;
+      var 
+        stock = this.stats.stock, 
+        flows = this.stats.flows,
+        t = H.tab, f = n => n > 0 ? "+" + n : n === 0 ? " 0": n;
 
-        // deb("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
-        //   t(stock.food,   6), f(flows.food.toFixed(1)),
-        //   t(stock.wood,   6), f(flows.wood.toFixed(1)),
-        //   t(stock.metal,  6), f(flows.metal.toFixed(1)),
-        //   t(stock.stone,  6), f(flows.stone.toFixed(1)),
-        //   t(stock.pops,   4), f(flows.pops.toFixed(1)),
-        //   t(stock.area,   4), f(flows.area.toFixed(1)),
-        //   t(stock.health, 4), f(flows.health.toFixed(1))
-        // );
+      this.deb("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
+        t(stock.food,   6), f(flows.food.toFixed(3)),
+        t(stock.wood,   6), f(flows.wood.toFixed(3)),
+        t(stock.metal,  6), f(flows.metal.toFixed(3)),
+        t(stock.stone,  6), f(flows.stone.toFixed(3)),
+        t(stock.pops,   4), f(flows.pops.toFixed(3)),
+        t(stock.area,   4), f(flows.area.toFixed(3)),
+        t(stock.health, 4), f(flows.health.toFixed(3))
+      );
 
     }, serialize: function(){
       return {

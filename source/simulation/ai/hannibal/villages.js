@@ -14,6 +14,22 @@
 
 HANNIBAL = (function (H){
 
+  const 
+    PI     = Math.PI,
+    TAU    = Math.PI * 2,
+    PI2    = Math.PI / 2,
+    RADDEG = Math.PI / 180,
+    DEGRAD = 1 / RADDEG,
+    SQRT2  = Math.sqrt(2),
+    sin    = Math.sin,
+    cos    = Math.cos,
+    sqrt   = Math.sqrt;
+
+  H.LIB.Centre = function (context){
+
+
+  };
+
   H.LIB.Villages = function (context){
 
     H.extend(this, {
@@ -37,6 +53,7 @@ HANNIBAL = (function (H){
       centres:   null,       // list of centres
       theta:     NaN,        // rads of main to center of map
       angle:     NaN,        // angle (degrees)
+      orient:    NaN,        // rads of main on map
 
       counter: {
         units:  0,
@@ -181,10 +198,15 @@ HANNIBAL = (function (H){
       // first find all CC
       ccNodes = this
         .query("civcentre CONTAIN INGAME")
-        .forEach( node => this.centres[node.id] = []);
+        .forEach( node => {
+          this.centres[node.id] = [];
+          this.deb("  VILL: organizeVillages centre id: %s, pos: %s", node.id, node.position);
+        })
+      ;
 
       if (!ccNodes.length){
-        this.deb("ERROR : organizeVillage No CC found with: civcentre CONTAIN INGAME");
+        this.deb("WARN  : organizeVillage No CC found with: civcentre CONTAIN INGAME");
+        return;
       } else {
         this.deb("  VILL: organizeVillage CCs found: %s", uneval(this.centres));
       }
@@ -294,12 +316,14 @@ HANNIBAL = (function (H){
       // uses terrain, territory and buildind restriction
 
       var 
-        t0 = Date.now(), size, r, radius,
+        t0 = Date.now(), size, r, radius, theta,
         index, value, position, coords, obstructions,
         tpln = order.product.key,
         template = this.templates[tpln],
         pos = [order.x, order.z],
-        label = "O" + order.id;
+        label = "O" + order.id,
+        // posCentre = this.entities[order.cc]._entity.position;
+        posCentre = this.entities[order.cc].position();
 
       // building radius from template's longest side
       size = H.test(template, "Obstruction.Static");
@@ -315,26 +339,34 @@ HANNIBAL = (function (H){
 
       // remove cells by radius, priotize by pos
       coords = this.map.mapPosToGridCoords(pos, obstructions);
+      // -1 very tight, 0 good, +1 generous
       radius = Math.ceil(radius / obstructions.cellsize);
       obstructions
-        // .dump("obst0", 255)
         .blur(radius)
-        // .dump("obst1", 255)
         .processValue(v => v < 32 ? 0 : v)
-        // .dump("obst2", 255)
         .addInfluence(coords, 224)
-        // .dump("obst3", 255)
       ;
 
       // get best index
-      // [index, value] = obstructions.maxIndex(250 - radius);
       [index, value] = obstructions.maxIndex();
 
       // put x, z, angle in array
       position = this.map.gridIndexToMapPos(index, obstructions);
       position = position.map(p => p += obstructions.cellsize/2);
-      // position.push(this.angle); 
-      position.push(Math.random() * Math.PI * 2); 
+
+      // random
+      // position.push(Math.random() * Math.PI * 2);  
+
+      // entrance points to north
+      // position.push(-(this.angle * RADDEG - Math.PI/2));
+
+      // entrance points to civil centre
+      // theta = this.map.getTheta(posCentre, position);
+      // position.push(-(theta + Math.PI/2));
+
+      // entrance points to map centre
+      theta = this.map.getTheta(this.map.center(), position);
+      position.push(-(theta + Math.PI/2));          
 
       // debug
       // obstructions.debIndex(index);
@@ -345,7 +377,7 @@ HANNIBAL = (function (H){
         index, 
         radius,
         value,
-        position.map(n => n.toFixed(1)), 
+        position.map(n => n.toFixed(1)).join("|"), 
         Date.now() - t0,
         tpln
       );
