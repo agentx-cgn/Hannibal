@@ -225,8 +225,8 @@ HANNIBAL = (function(H){
           if (Array.isArray(value)){
             return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
 
-          } else if (o instanceof Map) {
-            keys = o.entries();
+          } else if (value instanceof Map) {
+            keys = [...value.keys()];
             return H.format("  %s: MAP [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
 
           } else if (value === null) {

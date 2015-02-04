@@ -129,13 +129,13 @@ HANNIBAL = (function(H){
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
         "1": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        "2": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        "3": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        "4": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        "5": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        "6": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        "7": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        "8": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        // "2": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        // "3": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        // "4": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        // "5": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        // "6": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        // "7": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        // "8": [T.builder (                          "house", 4,  4), "building 20 houses"], 
         // "2": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
         // "3": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
         // "4": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
@@ -151,7 +151,7 @@ HANNIBAL = (function(H){
         // "7": [T.supplier(                          "stone",  5),     "launching 1 stone supplier (5)"], 
        // "12": [T.builder (                      "walltower",  2,  2), "building  2 walltower"], // needs phase town
        // "20": [T.launch  (                     "g.infantry",  9),     "launching 1 infantry group"], 
-       "21": [T.speed(3),                                            "more speed"], // 3 is good for 8 player, 5 for 2;
+       // "21": [T.speed(3),                                            "more speed"], // 3 is good for 8 player, 5 for 2;
       // "241": [T.quit(), () => "< - FINIS: " + map + " - >"],
     },
     // "Arcadia 02": {

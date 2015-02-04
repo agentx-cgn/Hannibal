@@ -31,7 +31,7 @@ HANNIBAL = (function(H){
         "states",
         "groups",
         "metadata",
-        "unitstates",
+        // "unitstates",
         "entities", // attackTypes, position, _templateName
       ],
 
@@ -206,7 +206,7 @@ HANNIBAL = (function(H){
             toString :   () => H.format("[dslobject attacker[%s]]", msg.id2)
           };
 
-          this.groups.callWorld(this.instance, "attack", [dslItem, dslAttacker, msg.damage, msg.type]);
+          this.groups.callWorld(this.instance, "attack", [dslItem, dslAttacker, msg.data.damage, msg.data.type]);
 
 
         } else if (msg.name === "EntityRenamed") {

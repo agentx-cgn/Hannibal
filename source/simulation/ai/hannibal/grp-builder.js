@@ -60,6 +60,13 @@ HANNIBAL = (function(H){
 
           w.objectify("item", item);
 
+          // have too much units, exits
+          w.units.on
+            .gt(w.units.count, w.units.size)
+            .release(w.item)
+            .exit
+          ;          
+
           // keep requesting units until size
           w.units.on
             .member(w.item)
@@ -104,18 +111,18 @@ HANNIBAL = (function(H){
 
         }, destroy: function destroy (w, item) {
 
-          w.deb("     G: destroy: %s, %s", w, item);
+          w.deb("     G: destroy: %s, %s", this, item);
 
           w.objectify("item", item);
 
           // lost unit, request another
-          w.units
+          w.units.on
             .member(w.item)
             .request()
           ;
 
           // lost building, request another
-          w.buildings
+          w.buildings.on
             .member(w.item)
             .request()
           ;
@@ -125,21 +132,24 @@ HANNIBAL = (function(H){
 
         }, attack: function attack (w, item, enemy, type, damage) {
 
-          w.deb("     G: attack: %s, %s, %s, %s", w, item, enemy, type, damage);
+          w.deb("     G: attack: %s, %s, %s, %s", this, item, enemy, type, damage);
 
           w.objectify("item",  item);
           // w.objectify("enemy", enemy);
 
           // don't care about buildings, exits
-          w.buildings
+          w.buildings.on
             .member(w.item)
-            .exit
+            // .exit
           ;
 
           // avoid loosing unit
-          w.units
+          w.units.on
+            .echo("############ HEALTH 0 ###############")
             .member(w.item)
+            .echo("############ HEALTH 1 ###############")
             .lt(w.item.health, 50)
+            .echo("############ HEALTH 2 ###############")
             // .item.do.garrison()
           ;
 

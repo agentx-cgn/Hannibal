@@ -152,4 +152,67 @@ var HANNIBAL = (function() {
     }    
   };  
 
+  // extends a context
+  H.LIB.Tools = function(){};
+  H.LIB.Tools.prototype = {
+    constructor: H.LIB.Tools,
+
+    /*
+      this can be any serializer here,
+      refer using this.context....
+    */
+
+    query:      function(hcq, debug){
+      return new H.LIB.Query(this.context.culture.store, hcq, debug);
+    },
+
+    class2name: function(klass){
+
+      var res = new H.LIB.Query(this.context.culture.store, klass + " CONTAIN").filter(node => {
+        return klass === "civilcentre" ? true : node.name.contains(klass);
+      });
+
+      if(!res.length){
+        this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
+      } else {
+        // this.deb(" TOOLS: class2name: klass: %s, name: %s", klass, res[0].name);
+      }
+      return res.length ? res[0].name : null;
+    },
+
+    health: function(list){
+      H.throw("################# health");
+      var 
+        ents = this.context.entities,
+        health = list
+          .map(id => Math.round(ents[id].hitpoints() / ents[id].maxHitpoints()))
+          .reduce( (a, b) => a + b, 0);
+
+      this.deb(" TOOLS: health: %s, %s", health, list);
+
+      return health;
+
+    },    
+
+
+    unitstate:  function(id){
+
+      // print("unitstates: " + id);
+      // this.deb("   CTX: unitstates of id: %s, %s", id, entities[id]._templateName || "no template");
+      var 
+        ents = this.context.entities,
+        state = (
+          ents[id] && ents[id]._entity.unitAIState ? 
+            H.replace(ents[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
+              undefined
+        );
+
+      // this.deb(" TOOLS: unitstate: %s, %s", state, id);
+
+      return state;
+
+    },
+
+  };
+
 return H;}());

@@ -98,6 +98,7 @@ HANNIBAL = (function(H){
   };
 
   H.LIB.Context.prototype = H.mixin(
+    H.LIB.Tools.prototype, 
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Context,
     log: function(){
@@ -159,23 +160,23 @@ HANNIBAL = (function(H){
       // reset id generator
       ctxClone.idgen = 1;  /// ????
 
-      // add helper, still confusing here
-      H.extend(ctxClone, {
-        query:      function(hcq, debug){
-          return new H.LIB.Query(ctxClone.culture.store, hcq, debug);
-        },
-        class2name: function(klass){
-          var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
-            return klass === "civilcentre" ? true : node.name.contains(klass)
-          });
-          if(!res.length){
-            this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
-          } else {
-            // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
-          }
-          return res.length ? res[0].name : null;
-        },
-      });
+      // // add helper, still confusing here
+      // H.extend(ctxClone, {
+      //   query:      function(hcq, debug){
+      //     return new H.LIB.Query(ctxClone.culture.store, hcq, debug);
+      //   },
+      //   class2name: function(klass){
+      //     var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
+      //       return klass === "civilcentre" ? true : node.name.contains(klass)
+      //     });
+      //     if(!res.length){
+      //       this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
+      //     } else {
+      //       // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
+      //     }
+      //     return res.length ? res[0].name : null;
+      //   },
+      // });
 
       // launch serializers
       this.runSequence( (serializer, action) => {
@@ -203,25 +204,11 @@ HANNIBAL = (function(H){
     },
     initialize: function(config){
 
+
       H.extend(this, {
 
         config:              config,
-
-        query:               (hcq, debug) => {
-          return new H.LIB.Query(this.culture.store, hcq, debug);
-        },
-        class2name:          klass => {
-          var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
-            return klass === "civilcentre" ? true : node.name.contains(klass)
-          });
-          if(!res.length){
-            this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
-          } else {
-            // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
-          }
-          return res.length ? res[0].name : null;
-        },
-
+        context:             this, // make tools.prototype work on it self
         operators:           H.HTN.Economy.operators,
         methods:             H.HTN.Economy.methods,
         planner:             new H.HTN.Planner(this, {
@@ -230,6 +217,25 @@ HANNIBAL = (function(H){
         }),
 
       });
+
+      // H.extend(this, {
+
+      //   query:               (hcq, debug) => {
+      //     return new H.LIB.Query(this.culture.store, hcq, debug);
+      //   },
+      //   class2name:          klass => {
+      //     var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
+      //       return klass === "civilcentre" ? true : node.name.contains(klass)
+      //     });
+      //     if(!res.length){
+      //       this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
+      //     } else {
+      //       // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
+      //     }
+      //     return res.length ? res[0].name : null;
+      //   },
+
+      // });
 
       this.runSequence( (serializer, action) => {
 
@@ -391,17 +397,17 @@ HANNIBAL = (function(H){
 
         // API ro/dynamic
         // sanitize UnitAI state // TODO: check if function works too
-        unitstates:          new Proxy({}, {get: (proxy, id) => {
+        // unitstates:          new Proxy({}, {get: (proxy, id) => {
 
-          // print("unitstates: " + id);
-          // this.deb("   CTX: unitstates of id: %s, %s", id, entities[id]._templateName || "no template");
+        //   // print("unitstates: " + id);
+        //   // this.deb("   CTX: unitstates of id: %s, %s", id, entities[id]._templateName || "no template");
 
-          return (
-            entities[id] && entities[id]._entity.unitAIState ? 
-              H.replace(entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
-                undefined
-          );}
-        }),
+        //   return (
+        //     entities[id] && entities[id]._entity.unitAIState ? 
+        //       H.replace(entities[id]._entity.unitAIState.split(".").slice(-1)[0].toLowerCase(), "ing", "") :
+        //         undefined
+        //   );}
+        // }),
 
 
         // API ro/dynamic
@@ -416,24 +422,24 @@ HANNIBAL = (function(H){
 
         // API ro/dynamic
         // 
-        health: function(ids){
+        // health: function(ids){
 
-          // calcs health of an array of ent ids as percentage
+        //   // calcs health of an array of ent ids as percentage
 
-          var curHits = 0, maxHits = 0;
+        //   var curHits = 0, maxHits = 0;
 
-          ids.forEach(function(id){
-            if (!entities[id]){
-              this.deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
-            } else {
-              curHits += entities[id]._entity.hitpoints;
-              maxHits += entities[id].maxHitpoints();
-            }
-          });
+        //   ids.forEach(function(id){
+        //     if (!entities[id]){
+        //       this.deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
+        //     } else {
+        //       curHits += entities[id]._entity.hitpoints;
+        //       maxHits += entities[id].maxHitpoints();
+        //     }
+        //   });
 
-          return ids.length ? (curHits / maxHits * 100).toFixed(1) : NaN;
+        //   return ids.length ? (curHits / maxHits * 100).toFixed(1) : NaN;
 
-        },
+        // },
 
 
       });

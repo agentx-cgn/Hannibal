@@ -51,24 +51,24 @@ HANNIBAL = (function(H) {
       }
     };
 
-  H.health = function(ids){
+  // H.health = function(ids){
 
-    // calcs health of an array of ent ids
+  //   // calcs health of an array of ent ids
 
-    var curHits = 0, maxHits = 0;
+  //   var curHits = 0, maxHits = 0;
 
-    ids.forEach(function(id){
-      if (!H.Entities[id]){
-        deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
-      } else {
-        curHits += H.Entities[id].hitpoints();
-        maxHits += H.Entities[id].maxHitpoints();
-      }
-    });
+  //   ids.forEach(function(id){
+  //     if (!H.Entities[id]){
+  //       deb("WARN  : Tools.health: id: %s in ids, but not in entities, type: %s", id, typeof id);
+  //     } else {
+  //       curHits += H.Entities[id].hitpoints();
+  //       maxHits += H.Entities[id].maxHitpoints();
+  //     }
+  //   });
 
-    return ids.length ? (curHits / maxHits * 100).toFixed(1) : NaN;
+  //   return ids.length ? (curHits / maxHits * 100).toFixed(1) : NaN;
 
-  };
+  // };
 
   // H.class2name = function(klass){return H.QRY(klass + " CONTAIN").first().name;};
 

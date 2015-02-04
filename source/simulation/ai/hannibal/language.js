@@ -79,6 +79,7 @@ HANNIBAL = (function(H){
 
       imports: [
         "map",
+        "health",
         "entities",
       ],
 
@@ -181,7 +182,6 @@ HANNIBAL = (function(H){
           }
           return world;
         },
-        // echo:   function(act, sub, obj, a){
         echo:   function(){
           if (world.execute && world.proceed){
             world.deb("   WLD: echo: %s", H.format.apply(null, arguments));
@@ -381,13 +381,13 @@ HANNIBAL = (function(H){
   };
 
   H.DSL.Helper = {
-    health: function(list){
-      return (
-        list
-          .map(id => Math.round(this.entities[id].hitpoints() / this.entities[id].maxHitpoints()))
-          .reduce( (a, b) => a + b, 0)
-      );
-    },
+    // health: function(list){
+    //   return (
+    //     list
+    //       .map(id => Math.round(this.entities[id].hitpoints() / this.entities[id].maxHitpoints()))
+    //       .reduce( (a, b) => a + b, 0)
+    //   );
+    // },
     vision: function( /* list */ ){},
   };
 
@@ -489,7 +489,8 @@ HANNIBAL = (function(H){
         },
       },
       attributes: {
-        health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
+        // health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
+        health:       function(s, o){return this.health(o.list);}, 
         // vision:       function(s, o){return H.DSL.Helper.vision(o.list);}, 
         count:        function(s, o){return o.list.length;}, 
         size:         function(s, o){return o.size;}, 

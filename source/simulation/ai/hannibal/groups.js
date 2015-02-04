@@ -31,7 +31,7 @@ HANNIBAL = (function(H){
         "economy",
         "orderqueue",
         "effector",
-        "unitstates",
+        "unitstate",
       ],
 
       instances: [],
@@ -208,6 +208,10 @@ HANNIBAL = (function(H){
           sub.host.resources = path;
           sub.update();
         },
+        release: (act, sub, obj, item) => {
+          H.delete(sub.host.resources, id => id === obj.list[0]);
+          this.deb("  GRPS: release: item: %s, obj: %s", item, obj);
+        },
 
       };
 
@@ -378,7 +382,7 @@ HANNIBAL = (function(H){
     },     
     dissolve: function(instance){
 
-      this.dsl.deleteWorld(instance);
+      instance.world = null;
       instance.assets.forEach(asset => asset.release());
       instance.assets = null;
       H.remove(this.instances, instance);
@@ -422,7 +426,7 @@ HANNIBAL = (function(H){
 
       actions.forEach(action => {
         list.forEach(id => {
-          var state = this.unitstates[id];
+          var state = this.unitstate(id);
           states.push(state);
           if (action[0] === "!"){
             if (state !== action.slice(1)){ids.push(id);}
@@ -432,7 +436,7 @@ HANNIBAL = (function(H){
         });
       });
 
-      // this.deb("  GRPS: doing found: %s", states);
+      this.deb("  GRPS: doing list: %s, filter: %s, found: %s", list.length, filter, ids.length);
 
       return ids;
 

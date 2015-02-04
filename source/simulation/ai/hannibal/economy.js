@@ -193,7 +193,7 @@ HANNIBAL = (function(H){
       if (countAll){
         this.deb("   PDC: %s B/%s U/%s producers", countBld, countUnt, countAll);
 
-        if (true){
+        if (false){
 
           // units
           this.deb("*");

@@ -407,19 +407,21 @@ HANNIBAL = (function(H){
 
     },
     getFlowFromClass: function(klass){
-
-      return H.attribs(this.nodes[this.class2name(klass)].products.train)
-        .map(name => this.query(name).first().costs)
-        .map(costs => H.cost2flow(costs))
-        .reduce(H.maxFlow, {food:0,wood:0,stone:0,metal:0});
+      return (
+        H.attribs(this.nodes[this.class2name(klass)].products.train)
+          .map(name => this.query(name).first().costs)
+          .map(costs => H.cost2flow(costs))
+          .reduce(H.maxFlow, {food:0,wood:0,stone:0,metal:0})
+      );
     },
 
     getFlowFromTrainer: function(name){
-
-      return H.attribs(this.nodes[name].products.train)
-        .map(name => this.query(name).first().costs)
-        .map(costs => H.cost2flow(costs))
-        .reduce(H.maxFlow, {food:0,wood:0,stone:0,metal:0});
+      return (
+        H.attribs(this.nodes[name].products.train)
+          .map(name => this.query(name).first().costs)
+          .map(costs => H.cost2flow(costs))
+          .reduce(H.maxFlow, {food:0,wood:0,stone:0,metal:0})
+      );
     },
     getType: function(tpln){
 
@@ -592,6 +594,7 @@ HANNIBAL = (function(H){
 
       imports: [
         "id",
+        "health",
         "player",
         "query",
         "entities",
@@ -1135,7 +1138,11 @@ HANNIBAL = (function(H){
     },
     addIngameProps: function(node){
 
-      var id = node.id, metadata  = this.metadata, entities = this.entities; // CLOSURE !!
+      var 
+        self = this,
+        id = node.id, 
+        metadata = this.metadata, 
+        entities = this.entities; // CLOSURE !!
 
       // deb("  CULT: addIngameProps: %s, %s", node.id, node.name);
 
@@ -1172,11 +1179,12 @@ HANNIBAL = (function(H){
 
         }},
         "health": {enumerable: true, get: function(){
-          return (
-            entities[id] ? 
-            Math.round(entities[id].hitpoints() / entities[id].maxHitpoints()) :
-            undefined
-          );
+          return self.health([id]);
+          // return (
+          //   entities[id] ? 
+          //   Math.round(entities[id].hitpoints() / entities[id].maxHitpoints()) :
+          //   undefined
+          // );
         }}
       });
     },

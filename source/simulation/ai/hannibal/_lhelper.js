@@ -321,7 +321,7 @@ H.extend(H, {
   },
   attribs:    function (o){
     return (
-      o instanceof Map ? [...o.entries()] : 
+      o instanceof Map ? [...o.keys()] : 
         Object.keys(o)
     );
   },
