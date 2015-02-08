@@ -42,7 +42,8 @@ HANNIBAL = (function(H){
         "ConstructionFinished",
         "EntityRenamed",
         "EntityAttacked",
-        "Destroy",
+        "UnitDestroyed",
+        "StructureDestroyed",
       ],
 
       handler:   this.listener.bind(this),
@@ -172,21 +173,17 @@ HANNIBAL = (function(H){
 
       } else if (H.contains(this.resources, id)){
 
-        if (msg.name === "Destroy") {
+        if (msg.name === "UnitDestroyed" || msg.name === "StructureDestroyed") {
 
           this.deb("   AST: listener Destroy: %s, %s", this.name, uneval(msg));
 
-          // no need to tell group about succesful foundations
-          if (!msg.data.foundation){
+          dslItem = {
+            name:        "item",
+            resources:   [id], 
+            toString :   () => H.format("[dslobject item[%s]]", id)
+          };
 
-            dslItem = {
-              name:        "item",
-              resources:   [id], 
-              toString :   () => H.format("[dslobject item[%s]]", id)
-            };
-            this.groups.callWorld(this.instance, "destroy", [dslItem]);
-
-          }
+          this.groups.callWorld(this.instance, "destroy", [dslItem]);
 
           // remove after so match works in instance
           H.remove(this.resources, id);
@@ -212,12 +209,9 @@ HANNIBAL = (function(H){
         } else if (msg.name === "EntityRenamed") {
 
           H.substitute(this.resources, msg.id, msg.id2);
-          // H.remove(this.resources, id);
-          // this.resources.push(msg.id2);
 
 
         } else if (msg.name === "ConstructionFinished") {
-
 
           dslItem = {
             name:        "item",

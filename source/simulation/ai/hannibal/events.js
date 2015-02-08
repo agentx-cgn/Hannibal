@@ -78,6 +78,7 @@ HANNIBAL = (function(H){
         "BroadCast",
         "EntityCreated",
         "EntityAttacked",
+        "BuildingDestroyed",
         // "ResourceFound",
       ],
 
@@ -323,7 +324,11 @@ HANNIBAL = (function(H){
 
     },
 
-    /* Handler for API Events */
+  /* 
+
+    Handler for API Events 
+
+    */
 
     Create: function(e){
 
@@ -481,27 +486,43 @@ HANNIBAL = (function(H){
       }
 
       tpln = e.entityObj._templateName || "unknown";
+      tpln = tpln.split("foundation|").join("");
 
       // this.deb("   EVT: Destroy: %s, %s", uneval(e), tpln);
 
+      // finished foundations do do not fire destroy
       if (!!e.SuccessfulFoundation){
         // deb("   EVT: foundation ready");
         return;
       }
 
-      // dont't do this it crashes
-      // data:   {entity: e.entityObj, foundation: !!e.SuccessfulFoundation},
+      if(e.entityObj.hasClass("Structure")){
 
-      msg = this.fire("Destroy", {
-        player: e.entityObj.owner(),
-        id:     e.entity,
-      });
+        // H.logObject(e.entityObj, "e.entityObj");
+
+        msg = this.fire("StructureDestroyed", {
+          player: e.entityObj.owner(),
+          id:     e.entity,
+          data:   {templatename: tpln, position: e.entityObj.position()}
+        });
+
+      } else if (e.entityObj.hasClass("Unit")){
+        msg = this.fire("UnitDestroyed", {
+          player: e.entityObj.owner(),
+          id:     e.entity,
+          data:   {templatename: tpln, position: e.entityObj.position()}
+        });
+
+      } else {
+        this.deb("ERROR : EVENTS: NOT Structure OR UNIT ############");
+        return;
+
+      }
 
       this.deb("   EVT: Destroy fired: own: %s, id: %s, tpl: %s" , msg.player, e.entity, tpln);
 
-
       if (this.dispatcher[msg.player][msg.id]){
-        // delete(dispatcher[msg.player][msg.id]);
+        delete(dispatcher[msg.player][msg.id]);
       }
 
     },

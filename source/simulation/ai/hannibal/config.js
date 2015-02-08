@@ -54,7 +54,12 @@ HANNIBAL = (function(H){
     economy: {
       intervalMonitorGoals: 10,
       // maxAllocations:        5, // queue length for producers
-      maxQueueLength:        5, // queue length for producers
+      maxQueueLength:        5,    // queue length for producers
+    },
+
+    map: {
+      DangerEventRadius:    60,    // meter
+      DangerEventRelax:      8,    // tick % N => 50%
     },
 
     civs : {

@@ -174,23 +174,22 @@ HANNIBAL = (function(H){
       while(i--){
         this.data[i] = fn(this.data[i]);
       }
-      // this.deb("   GRD: processValue: %s %s msec", this.label, Date.now() - t0);
+      this.deb("   GRD: processValue: %s %s msec, fn: %s", this.label, Date.now() - t0, H.fnBody(fn));
       return this;
 
     },
 
     debIndex: function(index){
+
       // puts lines on index for debugging
 
-      var x, z, [cx, cz] = this.indexToCoords(index);
+      var 
+        x = this.size, 
+        z = this.size,
+        [cx, cz] = this.indexToCoords(index);
 
-      x = this.size; while(x--){
-        this.data[this.coordsToIndex(x, cz)] = (x % 2) ? 255 : 0;
-      }
-			
-			z = this.size; while(z--){
-        this.data[this.coordsToIndex(cx, z)] = (z % 2) ? 255 : 0;
-      }
+      while(x--){this.data[this.coordsToIndex(x, cz)] = (x % 2) ? 255 : 0;}
+      while(z--){this.data[this.coordsToIndex(cx, z)] = (z % 2) ? 255 : 0;}
 
     },
     indexToCoords: function(index){
@@ -211,36 +210,67 @@ HANNIBAL = (function(H){
     div:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
     addGrid: function(grd){var g=this.data,o=grd.data,l=this.length;while(l--){g[l] += o[l];}return this;},
 
-    fillCircle: function(pos, radius, value){
+  /*#########################################################################
+
+    compute grid with grid
+
+    */
+
+
+    subtract: function(grid){
+
+      var i = this.length;
+
+      if (this.length === grid.length){
+        while(i--){
+          this.data[i] -= grid.data[i];
+        }
+
+      } else {
+        H.throw("ERROR: grid.subtract length do not match: %s %s", this, grid)
+
+      }
+
+      return this;
+
+    }, 
+
+
+  /*#########################################################################
+
+    conpute grid with grid
+
+    */
+
+    processCircle: function(coords, radius, fn){
 
       // fills a circle into grid with value
       
       var 
         z = 0|0, x = 0|0, idx = 0|0, 
-        r = radius/this.cellsize, rr = r * r,
+        r = radius, rr = r * r,
         len = this.length|0,
         size = this.size|0,
         data = this.data,
-        [cx, cz] = pos;
+        [cx, cz] = coords;
 
       // hints
-      cx=cx|0; cz=cz|0; r=r|0; value=value|0; rr=rr|0;
+      cx=cx|0; cz=cz|0; r=r|0; rr=rr|0;
 
       for(z =-r; z<=r; z++){
         for(x=-r; x<=r; x++){
-
           if(x * x + z * z <= rr){
 
             idx = (cx + x) + size * (cz + z);
-            
             if (idx >= 0 && idx < len){
-              data[idx] = value;
+              data[idx] = fn(data[idx]);
             }
 
           }
-
         }
       }
+
+      return this;
 
     }, 
 

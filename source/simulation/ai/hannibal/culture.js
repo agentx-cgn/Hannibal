@@ -768,10 +768,12 @@ HANNIBAL = (function(H){
       //   this.loadById(msg.id);
       // });
 
-      this.events.on("Destroy", msg => {
-        if (!msg.data.foundation){
-          this.removeById(msg.id);
-        }
+      this.events.on("UnitDestroyed", msg => {
+        this.removeById(msg.id);
+      });
+
+      this.events.on("StructureDestroyed", msg => {
+        this.removeById(msg.id);
       });
 
       // this.events.on("Advance", this.tree.id, msg => {

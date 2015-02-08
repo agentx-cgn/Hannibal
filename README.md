@@ -6,6 +6,10 @@
 
 Hannibal is a new approach to reduce the complexity of programming a bot for 0 A.D., a free, open-source, cross-platform real-time strategy game under development by Wildfire Games. Hannibal tackles the complexity of an RTS with hundreds of units by organizing them into a society of autonomous groups, each with its specific task. 
 
+### Blog ###
+
+Read development notes at [agentx.svbtle.com](http://agentx.svbtle.com/)
+
 ### Features ###
 
 * A **triple store** to interfere features of cultures, like  
@@ -33,9 +37,9 @@ Hannibal is a new approach to reduce the complexity of programming a bot for 0 A
 
 **Prerequisites**
 
-* Check [game paths]() for your system 
+* Check [game paths](http://trac.wildfiregames.com/wiki/GameDataPaths) for your system 
 * Locate folder \binaries\data\mods\ within 0 A.D. installation
-* Copy the zip + readme from latest [release]() into mods/
+* Copy the zip + readme from latest [release](https://github.com/agentx-cgn/Hannibal/releases) into mods/
 
 **Play**
 

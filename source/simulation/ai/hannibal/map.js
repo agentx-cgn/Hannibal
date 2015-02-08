@@ -97,6 +97,7 @@ HANNIBAL = (function(H){
         "width",
         "height",
         "cellsize",
+        "config",
         "effector",
         "events",
         "entities",           
@@ -115,7 +116,7 @@ HANNIBAL = (function(H){
         "obstructions",       // temporary, buildable - buildings restrictions
         "obstacles",          // where units can move, dynamic
         "claims",             // reserved space in villages, dynamic
-        "attacks",            // where attacks happened, w/ radius, dynamic
+        "danger",             // where attacks happened, w/ radius, dynamic
         "scanner",            // used by scouts to mark explored area
       ],
 
@@ -211,7 +212,18 @@ HANNIBAL = (function(H){
     },
     activate: function(){
 
-      this.events.on("Attack", msg => {
+      this.events.on("StructureDestroyed", msg => {
+
+        // mark ground as dangerous  
+
+        var 
+          coords = this.mapPosToGridCoords(msg.data.position),
+          tpl  = this.templates[msg.data.templatename],
+          radius = this.config.map.DangerEventRadius / this.cellsize;
+
+        this.deb("   MAP: StructureDestroyed: r: %s, c: %s, %s", radius, coords, uneval(msg));
+
+        this.danger.processCircle(coords, radius, v => v + 16);
 
       });
 
@@ -225,6 +237,11 @@ HANNIBAL = (function(H){
       // this.effector.dumparray("passability" + this.ticks, this.passability.data, this.gridsize, this.gridsize, 255);    
 
       this.childs.forEach(child => this[child].tick(tick, secs));
+
+      if (tick % this.config.map.DangerEventRelax === 0){
+        // relax danger by half
+        this.danger.processValue(v => v >> 1)
+      }
 
       return Date.now() - t0;
 
@@ -384,6 +401,7 @@ HANNIBAL = (function(H){
       return this.players.isEnemy[player];
 
 
+
   /*#########################################################################
 
     advanced computations on grids
@@ -533,7 +551,7 @@ HANNIBAL = (function(H){
       // seperates e.g. fortresses from fortresses
 
       var 
-        minDist, category, distance,
+        minDist, category, distance, coords,
         template = this.templates[tpl];
 
       // is based on buildable
@@ -552,7 +570,9 @@ HANNIBAL = (function(H){
            .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "templateObstructions: ingame structures"})
            .forEach( node => {
             if (this.entities[node.id].buildCategory() === category){
-              this.obstructions.fillCircle(node.position, minDist/this.cellsize, 0);
+              coords = this.mapPosToGridCoords(node.position);
+              // this.obstructions.fillCircle(node.position, minDist/this.cellsize, 0);
+              this.obstructions.processCircle(coords, minDist/this.cellsize, v => 0);
             }
           });
 

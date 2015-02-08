@@ -322,7 +322,6 @@ HANNIBAL = (function (H){
         template = this.templates[tpln],
         pos = [order.x, order.z],
         label = "O" + order.id,
-        // posCentre = this.entities[order.cc]._entity.position;
         posCentre = this.entities[order.cc].position();
 
       // building radius from template's longest side
@@ -340,11 +339,17 @@ HANNIBAL = (function (H){
       // remove cells by radius, priotize by pos
       coords = this.map.mapPosToGridCoords(pos, obstructions);
       // -1 very tight, 0 good, +1 generous
-      radius = Math.ceil(radius / obstructions.cellsize);
+      radius = Math.ceil(radius / obstructions.cellsize) + 0;
+      this.map.danger.dump("vill 0", 255);
       obstructions
         .blur(radius)
+        .dump("vill 0", 255)
         .processValue(v => v < 32 ? 0 : v)
+        .dump("vill 1", 255)
+        .subtract(this.map.danger)
+        .dump("vill 2", 255)
         .addInfluence(coords, 224)
+        .dump("vill 3", 255)
       ;
 
       // get best index
