@@ -343,13 +343,13 @@ HANNIBAL = (function (H){
       this.map.danger.dump("vill 0", 255);
       obstructions
         .blur(radius)
-        .dump("vill 0", 255)
+        // .dump("obst 0", 255)
         .processValue(v => v < 32 ? 0 : v)
-        .dump("vill 1", 255)
+        // .dump("obst 1", 255)
         .subtract(this.map.danger)
-        .dump("vill 2", 255)
+        // .dump("obst 2", 255)
         .addInfluence(coords, 224)
-        .dump("vill 3", 255)
+        // .dump("obst 3", 255)
       ;
 
       // get best index
@@ -375,7 +375,7 @@ HANNIBAL = (function (H){
 
       // debug
       // obstructions.debIndex(index);
-      // obstructions.dump(label, 255);
+      // obstructions.dump("obst 4", 255);
 
       this.deb("  VILL: findPosForOrder: #%s, idx: %s, rad: %s, val: %s, %s, %s msec | %s", 
         order.id, 

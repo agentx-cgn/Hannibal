@@ -21,7 +21,7 @@ HANNIBAL = (function(H){
       context: context,
 
       klass:    "grid",
-      parent:   context,
+      // parent:   context,
       // name:     context.name + ":grid:" + this.label, comes in initialize
 
       imports: [
@@ -49,10 +49,12 @@ HANNIBAL = (function(H){
       while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
       this.deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(this.label, 12), this.min(), this.max(), H.prettify(stats));
     },    
-
-    tick: function(tick, secs){
-      this.ticks = tick;
-      this.secs  = secs;
+    dump: function (comment, threshold){
+      threshold = threshold || this.max() || 255;
+      var filename = H.format("%s-%s-%s", this.label, comment || this.ticks, threshold);
+      // deb("   GRD: dumping '%s', w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
+      this.effector.dumpgrid(filename, this, threshold);   
+      return this; 
     },
     serialize: function(){
       return {
@@ -115,12 +117,9 @@ HANNIBAL = (function(H){
     toArray: function(){
       return Array.prototype.slice.call(this.data);
     },
-    dump: function (comment, threshold){
-      threshold = threshold || this.max() || 255;
-      var filename = H.format("%s-%s-%s", this.label, comment || this.ticks, threshold);
-      // deb("   GRD: dumping '%s', w: %s, h: %s, t: %s", name, this.width, this.height, threshold);
-      this.effector.dumpgrid(filename, this, threshold);   
-      return this; 
+    tick: function(tick, secs){
+      this.ticks = tick;
+      this.secs  = secs;
     },
 
     copy: function(label){
@@ -174,14 +173,14 @@ HANNIBAL = (function(H){
       while(i--){
         this.data[i] = fn(this.data[i]);
       }
-      this.deb("   GRD: processValue: %s %s msec, fn: %s", this.label, Date.now() - t0, H.fnBody(fn));
+      // this.deb("   GRD: processValue: %s %s msec, fn: %s", this.label, Date.now() - t0, H.fnBody(fn));
       return this;
 
     },
 
     debIndex: function(index){
 
-      // puts lines on index for debugging
+      // puts crossed lines on index for debugging
 
       var 
         x = this.size, 
@@ -204,18 +203,15 @@ HANNIBAL = (function(H){
     */
     max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
     min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
-    set:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = val;}return this;},
-    add:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;}, //check Math.imul
-    mul:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
-    div:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
-    addGrid: function(grd){var g=this.data,o=grd.data,l=this.length;while(l--){g[l] += o[l];}return this;},
+    // set:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = val;}return this;},
+    // add:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;}, //check Math.imul
+    // mul:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
+    // div:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
+    // addGrid: function(grd){var g=this.data,o=grd.data,l=this.length;while(l--){g[l] += o[l];}return this;},
 
-  /*#########################################################################
-
-    compute grid with grid
+  /* compute grid with grid
 
     */
-
 
     subtract: function(grid){
 
@@ -236,9 +232,7 @@ HANNIBAL = (function(H){
     }, 
 
 
-  /*#########################################################################
-
-    conpute grid with grid
+  /* compute stuff
 
     */
 
@@ -410,8 +404,8 @@ HANNIBAL = (function(H){
       this.data = new Uint8ClampedArray(target);
 
       function boxBlur_4 (scl, tcl, w, h, r) {
-          boxBlurH_4(tcl, scl, w, h, r);
-          boxBlurT_4(scl, tcl, w, h, r);
+        boxBlurH_4(tcl, scl, w, h, r);
+        boxBlurT_4(scl, tcl, w, h, r);
       }
       function boxBlurH_4 (scl, tcl, w, h, r) {
 

@@ -35,7 +35,7 @@ HANNIBAL = (function(H) {
       isInitialized:  false,                               // did that happen well?
       isTicking:      false,                               // toggles after first OnUpdate
       isFinished:     false,                               // there is still no winner
-      noInitReported: false,                               // report init failure only once
+      noInitReported: false,                               // debug, report init failure only once
       timing:         {all: 0},                            // used to identify perf. sinks in OnUpdate
       
     });
@@ -64,7 +64,7 @@ HANNIBAL = (function(H) {
 
     H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s in", this.id, civ);
 
-    // suppress this bot
+    // debug, suppress (not init) this bot
     if (this.debug.sup){
       H.deb("------: HANNIBAL.Launcher.CustomInit %s/%s supressed", this.id, civ);
       return;
@@ -84,7 +84,7 @@ HANNIBAL = (function(H) {
     this.logStart(ss, gs, this.settings);
     this.logPlayers(ss.playersData);
 
-    // connect the context
+    // link the context with game engine, and initialize
     this.context.connectEngine(this, gameState, sharedScript, this.settings);
     this.context.initialize(H.Config);
 
@@ -93,9 +93,7 @@ HANNIBAL = (function(H) {
     
 
 
-    /*
-
-    Below is for development
+  /* below is for development
 
     */
 
@@ -164,9 +162,7 @@ HANNIBAL = (function(H) {
 
     // H.Config.deb = 0; // suppress further log lines
 
-    /*
-
-    end of development
+  /* end of development
 
     */
 
@@ -262,9 +258,7 @@ HANNIBAL = (function(H) {
 
       // THIS IS THE MAIN ACT
       Engine.ProfileStop();
-
       this.bot.tick(secs, this.context.tick, this.timing);
-
       Engine.ProfileStart("Hannibal Tick.out");
 
       // debug, collect stats

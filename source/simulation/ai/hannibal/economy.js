@@ -17,7 +17,7 @@ HANNIBAL = (function(H){
   H.LIB.Stats = function(context){
 
     var 
-      bufferLength = context.config.stats.lengthStatsBuffer,
+      bufferLength = context.config.stats.LengthStatsBuffer,
       ress = {food: 0, wood: 0, stone: 0, metal: 0, pops: 0, health: 0, area: 0};
 
     H.extend(this, {
@@ -195,23 +195,11 @@ HANNIBAL = (function(H){
 
         if (false){
 
-          // units
-          this.deb("*");
-          producers
-            .filter(a => this.producers[a].type === "unit")
-            .sort((a, b) => this.producers[a].entities.length > this.producers[b].entities.length ? -1 : 1)
-            .forEach( name => {
-              this.deb("     P: U %s %s ", 
-                t(this.producers[name].entities.length, 3), 
-                name
-              );
-          });
-
           // buildings
           this.deb("*");
           producers
             .filter(a => this.producers[a].type === "building")
-            .filter(a => this.producers[a].queue.length)
+            .filter(a => !!this.producers[a].queue)
             .sort((a, b) => this.producers[a].queue.length > this.producers[b].queue.length ? -1 : 1)
             .forEach( nameid => {
               [name, id] = nameid.split("#");
@@ -227,7 +215,7 @@ HANNIBAL = (function(H){
               if(apiqueue && apiqueue.length){
                 // this.deb("     P: api: len: %s", apiqueue.length);
                 apiqueue.forEach( item => {
-                  this.deb("     P:   %s, rem: %s, pro: %s, cnt: %s, tpl: %s", 
+                  this.deb("      :   %s, rem: %s, pro: %s, cnt: %s, tpl: %s", 
                     t(item.id, 3), 
                     t((item.timeRemaining/1000).toFixed(1), 8), 
                     t(~~(item.progress * 100), 4), 
@@ -237,8 +225,23 @@ HANNIBAL = (function(H){
                 });
               }
           });
+
+          // units
+          this.deb("*");
+          producers
+            .filter(a => this.producers[a].type === "unit")
+            .sort((a, b) => this.producers[a].entities.length > this.producers[b].entities.length ? -1 : 1)
+            .forEach( name => {
+              this.deb("     P: U %s %s ", 
+                t(this.producers[name].entities.length, 3), 
+                name
+              );
+          });
+
+
           this.deb("*");
         }
+
       } else {
         this.deb("   PDC: log: no producer registered");
       }
@@ -251,7 +254,7 @@ HANNIBAL = (function(H){
       return H.deepcopy(this.producers);
     },
     initialize: function(){
-      this.maxqueue = this.config.economy.maxQueueLength;
+      this.maxqueue = this.config.economy.MaxQueueLength;
       return this;
     },
     finalize: function(){
@@ -320,35 +323,42 @@ HANNIBAL = (function(H){
     },
     remove: function(nodeOrId){
 
-      var      
-        node = H.isInteger(nodeOrId) ? this.query("INGAME WITH id = " + nodeOrId).first() : nodeOrId,
-        id   = H.isInteger(nodeOrId) ? nodeOrId : node ? node.id : NaN,
-        name = node ? node.name.split("#")[0] : undefined;
+      var 
+        name, id, found = false, 
+        idpdc = H.isInteger(nodeOrId) ? nodeOrId : nodeOrId.id;
 
-      if (node && !isNaN(id))
+      this.deb("   PDC: remove: idpdc: %s", idpdc);
 
-      // type == unit
-      if (this.producers[name]){
-        H.delete(this.producers[name].entities, entid => entid === id);
+      H.each(this.producers, (nameid, info) => {
 
-      // type == building
-      } else if (this.producers[node.name]){
-        // TODO: re-create orders from queue
-        delete this.producers[node.name];
+        if (!found){
 
-      } else {
-        this.deb("WARN  : PDC can't delete producer with id: %s | ", id, name);
-        return;
+          [name, id] = nameid.split("#");
+
+          if (~~id === idpdc){
+            // type == building with name#id
+            delete this.producers[nameid];
+            this.deb("   PDC: removed building, nameid: %s", nameid);
+            found = true;
+
+          } else if (H.contains(info.entities, idpdc)) {
+            // type == unit with ent list
+            H.delete(this.producers[nameid].entities, ident => ident === idpdc);
+            if(!this.producers[nameid].entities.length){
+              delete this.producers[nameid];
+            }
+            this.deb("   PDC: removed unit, id: %s, from: %s", idpdc, nameid);
+            found = true;
+
+          }
+
+        }
+
+      });
+
+      if (!found){
+        this.deb("WARN  : PDC can't delete producer with idpdc: %s", idpdc);
       }
-
-      this.deb("   PDC: removed id: %s, name: %s", id, node ? node.name : "unknown");
-      
-      // H.each(this.producers, (nameid, info) => {
-      //   if (info.id === id){
-      //     delete this.producers[nameid];
-      //     this.deb("   PDC: removed id: %s, name: %s", id, info.name);
-      //   }        
-      // });
 
     },  
     queue: function(producer, taskidOrTech){
@@ -1014,6 +1024,7 @@ HANNIBAL = (function(H){
         "groups",
         "metadata",
         "villages",
+        "entities",
       ],
       childs: [
         "stats",
@@ -1099,8 +1110,10 @@ HANNIBAL = (function(H){
         orderqueue = this.orderqueue;
 
       events.on("EntityRenamed", msg => {
-        producers.remove(msg.id);
-        producers.register(msg.id2);
+        if (this.entities[msg.id2].hasClass("Unit")){
+          producers.remove(msg.id);
+          producers.register(msg.id2);
+        }
       });
 
       // new technology
@@ -1154,13 +1167,13 @@ HANNIBAL = (function(H){
       // new metadata
       events.on("AIMetadata", msg => {
 
-        this.deb("   ECO: on AIMetadata, msg.data.order: %s", msg.data.order);
+        // this.deb("   ECO: on AIMetadata, msg.data.order: %s", msg.data.order);
 
         order = orderqueue.find(order => order.id === msg.data.order);
         order.remaining  -= 1;
         order.processing -= 1;
 
-        this.deb("   ECO: on AIMetadata order: #%s from %s", order.id, this.groups.findAsset(order.source).name);
+        // this.deb("   ECO: on AIMetadata order: #%s from %s", order.id, this.groups.findAsset(order.source).name);
         
         events.fire("OrderReady", {
           player: id,
@@ -1171,7 +1184,10 @@ HANNIBAL = (function(H){
       });
 
       // remove entity
-      events.on("Destroy", msg => {
+      events.on("UnitDestroyed", msg => {
+        producers.remove(msg.id);
+      });
+      events.on("StructureDestroyed", msg => {
         producers.remove(msg.id);
       });
 

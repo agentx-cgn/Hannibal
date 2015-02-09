@@ -11,25 +11,6 @@
 
 */
 
-// caller not allowed :( http://trac.wildfiregames.com/ticket/487
-// var debC = new Function("print ('> ' + debC.caller.name); 
-// print(H.format.apply(H, H.toArray(arguments)));");
-
-/* SNIPPETS */ 
-  // exportObject(gameState, "gameState");       // ERROR cyclic object value
-  // exportObject(sharedScript, "sharedScript"); // ERROR cyclic object value
-
-  // exportObject(this.settings.templates, "templates");
-  // exportObject(ss._techTemplates, "techtemplates")
-  // exportObject(sharedScript.playersData, "players");
-  // exportObject(sharedScript._entityMetadata, "metadata");
-  // exportObject(sharedScript.passabilityMap, "passabilityMap"); 
-  // exportObject(sharedScript.territoryMap, "territoryMap"); 
-  // exportObject(sharedScript.passabilityClasses, "passabilityClasses"); 
-
-  // dumpPassability(this.map, ss.passabilityMap);
-
-
 
 HANNIBAL = (function(H){
 
@@ -69,59 +50,20 @@ HANNIBAL = (function(H){
             4
         );
 
-      if (msglevel <= deblevel){print(id + "::" + msg);}
+      if (msglevel <= deblevel){
+        if (msg.length > 300){
+          print("TRUNCATED ##############################\n")
+          print(id + "::" + msg.slice(0, 300));
+          print("TRUNCATED ##############################\n")
+        } else {
+          print(id + "::" + msg);
+        }
+      }
 
     },
     printf: function(){
       print(H.format.apply(H, arguments) + "\n");
     },
-    // logStart: function(ss, gs, settings){
-
-    //   var H = HANNIBAL, id = settings.player;
-
-    //   H.deb("------: LAUNCHER.CustomInit: Players: %s, PID: %s, difficulty: %s", H.count(ss.playersData), id, settings.difficulty);
-    //   H.deb("      :");
-    //   H.deb("     A:     map from DEBUG: %s / %s", H.Debug.map ? H.Debug.map : "unkown", ss.gameType);
-    //   H.deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
-    //   H.deb("     A:          _entities: %s [  ]", H.count(ss._entities));
-    //   H.deb("     A:         _templates: %s [  ]", H.count(ss._templates));
-    //   H.deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
-    //   H.deb("     H: _techModifications: %s [%s]", H.count(ss._techModifications[id]), H.attribs(ss._techModifications[id]));
-    //   H.deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
-    //   H.deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
-    //   H.deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
-    //   H.deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
-
-    // },
-    // logPlayers: function(players){
-
-    //   var 
-    //     H = HANNIBAL, tab = H.tab, msg = "", head, props, format, tabs,
-    //     fmtAEN = item => item.map(b => b ? "1" : "0").join("");
-
-    //   H.deb();
-
-    //   head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut, colour".split(", ");
-    //   props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
-    //   tabs   = [  10,    6,   8,    10,        5,      6,       6,         6, 20];
-    //   format = {
-    //     isAlly:    fmtAEN,
-    //     isEnemy:   fmtAEN,
-    //     isNeutral: fmtAEN
-    //   };
-
-    //   H.zip(head, tabs, function(h, t){msg += tab(h, t);});
-    //   H.deb("PLAYER: " + msg);
-
-    //   H.each(players, function(id, player){
-    //     msg = "";
-    //     H.zip(props, tabs, function(p, t){
-    //       msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
-    //     });    
-    //     H.deb("     %s: %s", id, msg);
-    //   });
-
-    // },
     diffJSON: function (a, b) {
 
       // https://github.com/paldepind/dffptch

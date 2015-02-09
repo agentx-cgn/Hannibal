@@ -1,7 +1,7 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, todo: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals  HANNIBAL, Uint8Array, uneval, logObject */
 
-/*--------------- M A P S -----------------------------------------------------
+/*---------------  M A P ------------------------------------------------------
 
   Deals with map aspects in coordinates, contains all grids and fields
 
@@ -35,7 +35,7 @@
     obstructions:    where buildings can be placed, dynamic
     obstacles:       where units can move, dynamic
     claims:          reserved space in villages, dynamic
-    attacks:         where attacks happened, w/ radius, dynamic
+    danger:          where significant attacks happened, w/ radius, dynamic
     scanner:         used by scouts to mark explored area
 
 */
@@ -52,39 +52,17 @@
 //   ship: NUMBER (32)
 //   unrestricted: NUMBER (64)
 
-// sharedScript.passabilityMap
-//   data: OBJECT (0, 1, 2, 3, 4, ...)[65536]
-//   height: NUMBER (256)
-//   width: NUMBER (256)
-
-// sharedScript.territoryMap
-//   data: OBJECT (0, 1, 2, 3, 4, ...)[65536]
-//   height: NUMBER (256)
-//   width: NUMBER (256)
-
-
 HANNIBAL = (function(H){
 
   const 
 
     TERRITORY_PLAYER_MASK = 0x3F, // 63
 
-    sin = Math.sin,
-    cos = Math.cos,
+    sin  = Math.sin,
+    cos  = Math.cos,
     sqrt = Math.sqrt,
-    PI2  = Math.PI * 2,
     TAU  = Math.PI * 2,
-    PIH  = Math.PI / 2,
-
-    pritShort = function (a){
-      return (
-        !Array.isArray(a) ? a :
-        a.length === 0 ? "[]" : 
-          H.prettify(a.map(function(v){
-            return Array.isArray(v) ? pritShort(v) : v.toFixed(1);
-          }))
-      );
-    };
+    PI2  = Math.PI / 2;
 
   H.LIB.Map = function(context){
 
@@ -96,14 +74,15 @@ HANNIBAL = (function(H){
         "id",
         "width",
         "height",
-        "cellsize",
+        "cellsize",           // what is the reference
+        // "circular",
         "config",
         "effector",
         "events",
         "entities",           
         "templates",           
-        "territory",           
-        "passability",           
+        "territory",          // API obj  w/ typed array   
+        "passability",        // %
         "villages",           
         "players",            // isEnemy
       ],
@@ -120,10 +99,8 @@ HANNIBAL = (function(H){
         "scanner",            // used by scouts to mark explored area
       ],
 
-      length:        0,
-
-      // territory:     null,        // grids from API 
-      // passability:   null,        // grids from API 
+      length:        NaN,
+      gridsize:      NaN,
 
     });
 
@@ -203,28 +180,21 @@ HANNIBAL = (function(H){
       this.deb("   MAP: finalize: terrain x/z: %s/%s, size: %s, length: %s", x, z, this.terrain.size, this.terrain.length);
       this.deb("   MAP: finalize: land    x/z: %s/%s, size: %s, length: %s", x, z, this.regionsland.size, this.regionsland.length);
 
-      field = H.AI.FlowField.create(this.terrain, x, z, function(index){
-        return data[index] === reg ? 1 : 0;
-      });
+      field = H.AI.FlowField.create(this.terrain, x, z, index => data[index] === reg ? 1 : 0);
 
       this.effector.dumparray("flowfield", field, this.gridsize, this.gridsize, 255);
 
     },
     activate: function(){
 
+      var coords, radius; 
+
       this.events.on("StructureDestroyed", msg => {
-
         // mark ground as dangerous  
-
-        var 
-          coords = this.mapPosToGridCoords(msg.data.position),
-          tpl  = this.templates[msg.data.templatename],
-          radius = this.config.map.DangerEventRadius / this.cellsize;
-
-        this.deb("   MAP: StructureDestroyed: r: %s, c: %s, %s", radius, coords, uneval(msg));
-
-        this.danger.processCircle(coords, radius, v => v + 16);
-
+        coords = this.mapPosToGridCoords(msg.data.position);
+        radius = this.config.map.DangerEventRadius / this.cellsize;
+        this.danger.processCircle(coords, radius, v => v + 32);
+        // this.deb("   MAP: StructureDestroyed: tpl: %s, pos: %s", msg.data.templatename, msg.data.position);
       });
 
     },
@@ -246,9 +216,7 @@ HANNIBAL = (function(H){
       return Date.now() - t0;
 
 
-  /*#########################################################################
-    
-    simple map infos, calculations and converters
+  /* simple map infos, calculations and converters
 
     */
 
@@ -364,15 +332,13 @@ HANNIBAL = (function(H){
       return theta < 0 ? theta + TAU : theta;
 
 
-  /*#########################################################################
-
-    simple infos about positions or index
+  /* simple infos about positions or index
 
     */
 
     }, isOwnTerritory: function(pos){
 
-      this.deb("   MAP: isOwnTerritory %s", uneval(arguments));
+      // this.deb("   MAP: isOwnTerritory %s", uneval(arguments));
 
       var 
         index  = this.mapPosToGridIndex(pos, this.territory),
@@ -401,10 +367,7 @@ HANNIBAL = (function(H){
       return this.players.isEnemy[player];
 
 
-
-  /*#########################################################################
-
-    advanced computations on grids
+  /* advanced computations on grids
 
     */
 
@@ -498,7 +461,7 @@ HANNIBAL = (function(H){
 
         t1 = Date.now();
         // this.buildable.dump("T" + (this.ticks || 0), 255);
-        this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
+        // this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
 
       } else {
         // this.deb("   MAP: updateGrid: unknown: %s", name);
@@ -562,7 +525,7 @@ HANNIBAL = (function(H){
         minDist  = distance.MinDistance;
         category = distance.FromCategory;
 
-        this.deb("   MAP: templateObstructions: tpl: %s %s, %s", tpl, minDist, category);
+        // this.deb("   MAP: templateObstructions: tpl: %s %s, %s", tpl, minDist, category);
 
         if (minDist !== undefined && category !== undefined){
 
@@ -919,151 +882,4 @@ HANNIBAL = (function(H){
   
   });
 
-
 return H; }(HANNIBAL));
-
-
-// for (a of Object.getOwnPropertyNames(Math)){console.log(a)}
-
-// "toSource"
-// "abs"
-// "acos"
-// "asin"
-// "atan"
-// "atan2"
-// "ceil"
-// "cos"
-// "exp"
-// "floor"
-// "imul"
-// "fround"
-// "log"
-// "max"
-// "min"
-// "pow"
-// "random"
-// "round"
-// "sin"
-// "sqrt"
-// "tan"
-// "log10"
-// "log2"
-// "log1p"
-// "expm1"
-// "cosh"
-// "sinh"
-// "tanh"
-// "acosh"
-// "asinh"
-// "atanh"
-// "hypot"
-// "trunc"
-// "sign"
-// "cbrt"
-// "E"
-// "LOG2E"
-// "LOG10E"
-// "LN2"
-// "LN10"
-// "PI"
-// "SQRT2"
-// "SQRT1_2"
-
-// H.Map.createTerritoryMap = function() {
-//   var map = new H.API.Map(H.Bot.gameState.sharedScript, H.Bot.gameState.ai.territoryMap.data);
-//   map.getOwner      = function(p) {return this.point(p) & TERRITORY_PLAYER_MASK;};
-//   map.getOwnerIndex = function(p) {return this.map[p]   & TERRITORY_PLAYER_MASK;};
-//   return map;
-// };
-
-// H.Map.gamePosToMapPos = function(p){
-//   return [~~(p[0] / H.Map.cellsize), ~~(p[1] / H.Map.cellsize)];
-// };
-
-// H.Map.mapPosToGridPos = function(p){
-//   var [x, y] = H.Map.gamePosToMapPos(p);
-//   return x + y * H.Map.width;
-// };
-
-// H.Map.distance = function(a, b){
-//   var dx = a[0] - b[0], dz = a[1] - b[1];
-//   return Math.sqrt(dx * dx + dz * dz);
-//   // return Math.hypot(a[0] - b[0], a[1] - b[1]);
-// };
-
-// H.Map.nearest = function(point, ids){
-
-//   // deb("   MAP: nearest: target: %s, ids: %s", point, ids);
-
-//   var distance = 1e10, dis, result = 0, pos = 0.0;
-
-//   ids.forEach(id => {
-//     pos = H.Entities[id].position();
-//     dis = H.Map.distance(point, pos);
-//     if ( dis < distance){
-//       distance = dis; result = id;
-//     } 
-//   });
-
-//   return result;
-
-// };
-// H.Map.spread = function(ids){
-//   var poss = ids.map(id => H.Entities[id].position()),
-//       xs = poss.map(pos => pos[0]),
-//       zs = poss.map(pos => pos[1]),
-//       minx = Math.max.apply(Math, xs),
-//       minz = Math.max.apply(Math, zs),
-//       maxx = Math.max.apply(Math, xs),
-//       maxz = Math.max.apply(Math, zs),
-//       disx = maxx - minx,
-//       disz = maxz - minz;
-//   return Math.max(disx, disz);
-// };
-// H.Map.centerOf = function(poss){
-//   // deb("   MAP: centerOf.in %s", pritShort(poss));
-//   var out = [0, 0], len = poss.length;
-//   poss.forEach(function(pos){
-//     if (pos.length){
-//       out[0] += pos[0];
-//       out[1] += pos[1];
-//     } else { 
-//       len -= 1;
-//     }
-//   });
-//   return [out[0] / len, out[1] / len];
-// };
-
-// H.Map.getCenter = function(entids){
-
-//   // deb("   MAP: getCenter: %s", H.prettify(entids));
-
-//   if (!entids || entids.length === 0){
-//     throw new Error("getCenter with unusable param");
-//     return deb("ERROR : MAP getCenter with unusable param: %s", entids);
-
-//   } else if (entids.length === 1){
-//     if (!H.Entities[entids[0]]){
-//       return deb("ERROR : MAP getCenter with unusable id: %s, %s", prit(entids[0]), prit(entids));
-//     } else {
-//       return H.Entities[entids[0]].position();
-//     }
-
-//   } else {
-//     return H.Map.centerOf(entids.map(function(id){return H.Entities[id].position();}));
-
-//   }
-
-// };
-
-// H.Map.isOwnTerritory = function(pos){
-//   var index  = H.Map.mapPosToGridPos(pos),
-//       player = H.Grids.territory.data[index] & TERRITORY_PLAYER_MASK;
-//   return player === H.Bot.id;
-// };
-
-// H.Map.isEnemyTerritory = function(pos){
-//   var index  = H.Map.mapPosToGridPos(pos),
-//       player = H.Grids.territory.data[index] & TERRITORY_PLAYER_MASK;
-//   return H.GameState.playerData.isEnemy[player];
-// };

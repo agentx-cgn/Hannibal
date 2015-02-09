@@ -83,16 +83,25 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // got the foundation, update position, all units repair, exits
-          w.buildings.on
+          // got unit, send to repair, exits
+          w.units.on
             .member(w.item)
-            .match(w.item.foundation)
-            // .group.do.relocate(w.item.position)
-            .units.do.repair(w.item)
+            .gt(w.buildings.count, 0)
+            .item.do.repair(w.buildings)
             .exit
           ;
 
-          // got the buildings check order next, exits
+          // got foundation, all units repair, relocate on first, exits
+          w.buildings.on
+            .member(w.item)
+            .match(w.item.foundation)
+            .units.do.repair(w.item)
+            .match(w.buildings.count, 1)
+            .group.do.relocate(w.item.position)
+            .exit
+          ;
+
+          // got a building check order next, exits
           w.buildings.on
             .member(w.item)
             .match(!w.item.foundation)
@@ -101,11 +110,13 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // got unit, send to repair
-          w.item.on
+          // got a building check job done, exits
+          w.buildings.on
             .member(w.item)
-            .gt(w.buildings.count, 0)
-            .repair(w.buildings)  
+            .match(!w.item.foundation)
+            .match(w.buildings.count, w.buildings.size)
+            .group.do.dissolve()
+            .exit
           ;
 
 
@@ -121,9 +132,10 @@ HANNIBAL = (function(H){
             .request()
           ;
 
-          // lost building, request another
+          // lost foundation, request another
           w.buildings.on
             .member(w.item)
+            .match(!w.item.foundation)
             .request()
           ;
 
@@ -132,7 +144,7 @@ HANNIBAL = (function(H){
 
         }, attack: function attack (w, item, enemy, type, damage) {
 
-          w.deb("     G: attack: %s, %s, %s, %s", this, item, enemy, type, damage);
+          w.deb("     G: attack: %s, %s, %s, %s, %s", this, item, enemy, type, damage);
 
           w.objectify("item",  item);
           // w.objectify("enemy", enemy);
@@ -143,15 +155,15 @@ HANNIBAL = (function(H){
             // .exit
           ;
 
-          // avoid loosing unit
-          w.units.on
-            .echo("############ HEALTH 0 ###############")
-            .member(w.item)
-            .echo("############ HEALTH 1 ###############")
-            .lt(w.item.health, 50)
-            .echo("############ HEALTH 2 ###############")
-            // .item.do.garrison()
-          ;
+          // // avoid loosing unit
+          // w.units.on
+          //   .echo("############ HEALTH 0 ###############")
+          //   .member(w.item)
+          //   .echo("############ HEALTH 1 ###############")
+          //   .lt(w.item.health, 50)
+          //   .echo("############ HEALTH 2 ###############")
+          //   // .item.do.garrison()
+          // ;
 
         }, radio: function radio (w, msg) {
 

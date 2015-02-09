@@ -105,30 +105,30 @@ HANNIBAL = (function(H){
   // if any of these evaluate to a string, it gets chatted
   var sequences = {
 
-    "random/brainland/X": {
+    "random/brainland": {
 
        "1": [T.builder (                          "house", 12,  20), "building 20 houses"], 
        "2": [T.supplier(                     "food.fruit",  5),     "launching 1 food.fruit supplier group"], 
        "3": [T.supplier(                     "food.meat",   2),     "launching 1 food.meat supplier group"], 
        "4": [T.supplier(                           "wood", 10),     "launching 1 wood supplier (10)"], 
-       "5": [T.supplier(                           "wood", 10),     "launching 1 wood supplier (10)"], 
-       "6": [T.supplier(                          "metal",  5),     "launching 1 metal supplier (5)"], 
-       "7": [T.supplier(                          "stone",  5),     "launching 1 stone supplier (5)"], 
-       "8": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-       "9": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+       "5": [T.speed(3),                                            "more speed"], // 3 is good for 8 player, 5 for 2;
+       "7": [T.supplier(                           "wood", 10),     "launching 1 wood supplier (10)"], 
+       "8": [T.supplier(                          "metal",  5),     "launching 1 metal supplier (5)"], 
+       "9": [T.supplier(                          "stone",  5),     "launching 1 stone supplier (5)"], 
       "10": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
       "11": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-      "13": [T.builder (                       "barracks",  1,  2), "building  1 barracks"], 
-      "14": [T.builder (                      "farmstead",  1,  2), "building  1 farmstead"], 
-      "15": [T.builder (                     "storehouse",  1,  2), "building  1 storehouse"], 
-      "21": [T.speed(3),                                            "more speed"], // 3 is good for 8 player, 5 for 2;
+      "12": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+      "13": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+      "14": [T.builder (                       "barracks",  1,  2), "building  1 barracks"], 
+      "15": [T.builder (                      "farmstead",  1,  2), "building  1 farmstead"], 
+      "16": [T.builder (                     "storehouse",  1,  2), "building  1 storehouse"], 
     },
 
-    "random/brainland": {
+    "random/brainland-X": {
         // "0": [() => "< - START: " + map + " - >"],
         // "1": [T.camera(),                             "set camera on CC"],
         // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        "1": [T.builder (                          "house", 4,  4), "building 20 houses"], 
+        "1": [T.builder (                          "house", 12,  4), "building 4 houses"], 
         // "2": [T.builder (                          "house", 4,  4), "building 20 houses"], 
         // "3": [T.builder (                          "house", 4,  4), "building 20 houses"], 
         // "4": [T.builder (                          "house", 4,  4), "building 20 houses"], 

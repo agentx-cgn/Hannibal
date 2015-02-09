@@ -101,9 +101,8 @@ HANNIBAL = (function(H){
         }, assign: function assign (w, item) {
 
           w.deb("     G: assign.0: %s, %s", this, item);
-          w.debug = false;
-          w.objectify("item", item);
 
+          w.objectify("item", item);
 
           // got empty resource, dissolve group
           w.resources.on
@@ -145,7 +144,6 @@ HANNIBAL = (function(H){
           // keep requesting units until size
           w.units.on
             .member(w.item)
-            .echo("units: %s/%s", w.units.count, w.units.size)
             .lt(w.units.count, w.units.size)
             .request()
           ;
@@ -184,7 +182,7 @@ HANNIBAL = (function(H){
 
         }, attack: function attack (w, item, enemy, type, damage) {
 
-          w.deb("     G: destroy: %s, %s %s %s %s", this, item, enemy, type, damage);
+          w.deb("     G: destroy: %s, %s, %s, %s, %s", this, item, enemy, type, damage);
 
 
         }, radio: function radio (w, msg) {

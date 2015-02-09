@@ -103,18 +103,24 @@ HANNIBAL = (function(H){
     activate: function(){
       this.eventlist.forEach(e => this.events.on(e, this.handler));
     },
+    releaseEntity:function(id){
+      H.delete(this.resources, ident => ident === id);
+      this.metadata[id].opname = "none";
+      this.metadata[id].opid = undefined;
+    },
     release:    function(){
+      // frees all resources of this asset
+      this.deb("   AST: releasing %s => [%s]", this, uneval(this.resources));          
       this.eventlist.forEach(e => this.events.off(e, this.handler));
-      this.resources.forEach(id => {
+      this.resources.slice().forEach(id => {
         if (H.isInteger(id)){
-          this.metadata[id].opname = "none";
-          this.metadata[id].opid = undefined;
+          this.releaseEntity(id);
         } else {
           // no need to release virtual assets
         }
       });
+      this.resources = null;
       // users ????
-      this.deb("   AST: released %s => [%s]", this, uneval(this.resources));          
     },
 
     // events

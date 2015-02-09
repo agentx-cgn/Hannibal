@@ -139,7 +139,7 @@ HANNIBAL = (function(H){
 
         }, attack: function attack (w, item, enemy, type, damage){
 
-          w.deb("     G: attack.0: %s, %s", this, item);
+          w.deb("     G: attack: %s, %s", this, item);
 
           w.field.on
             .member(w.item)

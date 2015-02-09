@@ -182,7 +182,6 @@ HANNIBAL = (function(H){
       return {
 
         request:   (act, sub, obj, n)      => this.request(act, n || 1, sub.host, act.position),
-        relocate:  (act, sub, obj, path)   => sub.host.position = path[path.length -1],
         move:      (act, sub, obj, path)   => this.effector.move(sub.list, path),
         spread:    (act, sub, obj, path)   => this.effector.spread(sub.list, obj.list),
         gather:    (act, sub, obj)         => this.effector.gather(sub.list, obj.list),
@@ -209,8 +208,19 @@ HANNIBAL = (function(H){
           sub.update();
         },
         release: (act, sub, obj, item) => {
-          H.delete(sub.host.resources, id => id === obj.list[0]);
-          this.deb("  GRPS: release: item: %s, obj: %s", item, obj);
+          // release single entity of asset
+          sub.host.releaseEntity(obj.list[0]);
+          this.deb("  GRPS: release: act: %s, sub: %s, obj: %s, item: %s", act, sub, obj, item);
+        },
+        relocate:  (act, sub, obj, path)   => {
+          if (Array.isArray(path[0])){
+            // pick last entry
+            sub.host.position = path[path.length -1];
+          } else {
+            // pick position
+            sub.host.position = path;
+          }
+          this.deb("  GRPS: relocate: act: %s, sub: %s, obj: %s, item: %s", act, sub, obj, uneval(path));
         },
 
       };
@@ -382,6 +392,7 @@ HANNIBAL = (function(H){
     },     
     dissolve: function(instance){
 
+      this.deb("  GRPS: dissolving: %s", instance);
       instance.world = null;
       instance.assets.forEach(asset => asset.release());
       instance.assets = null;

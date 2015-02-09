@@ -14,7 +14,7 @@
 
 HANNIBAL = (function(H){
 
-  // log line same order as orderedEvents
+  // log line with same order as orderedEvents
   var msgTick = "EVENTS: CR: %s, ER: %s, TF: %s, CF: %s, MT: %s, AT: %s, OC: %s, GA: %s, UGA: %s, RA: %s, PD: %s, DY: %s";
 
   function Message (name, msg) {
@@ -29,12 +29,6 @@ HANNIBAL = (function(H){
       id2:        0,
       data:      {},
     }, msg);
-
-    // this.name   = name;                 // event name
-    // this.player = msg.player || null;   // player id
-    // this.id     = msg.id     || 0;      // entity id
-    // this.id2    = msg.id2    || 0;      // entity id
-    // this.data   = msg.data   || {};     // pay load
 
   }
       
@@ -53,7 +47,7 @@ HANNIBAL = (function(H){
       // events from other turns
       savedEvents: null,
 
-      // helps to ignore events
+      // helps to ignore events like failed constructions
       createEvents:     {},
       destroyEvents:    {},
 
@@ -74,11 +68,13 @@ HANNIBAL = (function(H){
       ],
 
       internalEvents:  [
+        "Advance",
         "OrderReady",
         "BroadCast",
         "EntityCreated",
         "EntityAttacked",
-        "BuildingDestroyed",
+        "UnitDestroyed",
+        "StructureDestroyed",
         // "ResourceFound",
       ],
 
@@ -154,8 +150,9 @@ HANNIBAL = (function(H){
         });
       });
 
-      this.savedEvents =   [];
-      this.createEvents =  {};
+      // reset
+      this.savedEvents   = [];
+      this.createEvents  = {};
       this.destroyEvents = {};
 
       return Date.now() - t0;
@@ -224,13 +221,21 @@ HANNIBAL = (function(H){
 
       var [type, player, listener] = this.readArgs.apply(this, H.toArray(arguments));
 
-      this.registerListener(player, type, listener);
+      if (H.contains(this.internalEvents, type) || H.contains(this.orderedEvents, type)){
 
-      // allows to add/sub type afterwards
-      return {
-        add : function(type){this.registerListener(player, type, listener);},
-        sub : function(type){this.removeListener(player, type, listener);}
-      };
+        this.registerListener(player, type, listener);
+
+        // allows to add/sub type afterwards
+        return {
+          add : function(type){this.registerListener(player, type, listener);},
+          sub : function(type){this.removeListener(player, type, listener);}
+        };
+
+      } else {
+        this.deb("ERROR : unknown event type: %s", type);
+        return null;
+
+      }
 
     },
     processTechs: function  () {
@@ -324,9 +329,7 @@ HANNIBAL = (function(H){
 
     },
 
-  /* 
-
-    Handler for API Events 
+  /* Handler for API Events 
 
     */
 
@@ -340,12 +343,15 @@ HANNIBAL = (function(H){
       if (!this.entities[id]){
         this.createEvents[id] = tpln;
 
-      } else {
+      } else if (player === this.id) {
         this.deb("   EVT: Create ent: %s, own: %s, tpl: %s, mats: %s", id, player, tpln, H.attribs(e));
         this.fire("EntityCreated", {
           player: player,
           id:     id,
         });
+
+      } else {
+        // ignore other bots
       }
 
     }, 
@@ -355,7 +361,7 @@ HANNIBAL = (function(H){
         idEntitiy = e.entity, 
         idHolder  = e.holder, 
         tplnEnt   = this.entities[idEntitiy] ? this.entities[idEntitiy]._templateName : "unknown",
-        tplnHol   = this.entities[idHolder]  ? this.entities[idHolder]._templateName   : "unknown"
+        tplnHol   = this.entities[idHolder]  ? this.entities[idHolder]._templateName   : "unknown",
         player    = this.entities[idHolder]  ? this.entities[idHolder].owner() : NaN;
 
       this.deb("   EVT: P:%s Garrison ent: #%s %s => holder: #%s %s", player, idEntitiy, tplnEnt, idHolder, tplnHol);
@@ -492,7 +498,7 @@ HANNIBAL = (function(H){
 
       // finished foundations do do not fire destroy
       if (!!e.SuccessfulFoundation){
-        // deb("   EVT: foundation ready");
+        // this.deb("   EVT: foundation ready: id: %s", e.entity);
         return;
       }
 
@@ -514,7 +520,8 @@ HANNIBAL = (function(H){
         });
 
       } else {
-        this.deb("ERROR : EVENTS: NOT Structure OR UNIT ############");
+        // ForestPlant, probably more
+        this.deb("WARN : EVENTS: NOT Structure OR UNIT: %s", e.entityObj.classes());
         return;
 
       }
@@ -522,7 +529,7 @@ HANNIBAL = (function(H){
       this.deb("   EVT: Destroy fired: own: %s, id: %s, tpl: %s" , msg.player, e.entity, tpln);
 
       if (this.dispatcher[msg.player][msg.id]){
-        delete(dispatcher[msg.player][msg.id]);
+        delete(this.dispatcher[msg.player][msg.id]);
       }
 
     },
