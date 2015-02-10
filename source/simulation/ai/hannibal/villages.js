@@ -20,15 +20,9 @@ HANNIBAL = (function (H){
     PI2    = Math.PI / 2,
     RADDEG = Math.PI / 180,
     DEGRAD = 1 / RADDEG,
-    SQRT2  = Math.sqrt(2),
-    sin    = Math.sin,
-    cos    = Math.cos,
-    sqrt   = Math.sqrt;
+    SQRT2  = Math.sqrt(2);
 
-  H.LIB.Centre = function (context){
-
-
-  };
+  // H.LIB.Centre = function (context){  };
 
   H.LIB.Villages = function (context){
 
@@ -52,8 +46,8 @@ HANNIBAL = (function (H){
       main:      NaN,        // id of first centre
       centres:   null,       // list of centres
       theta:     NaN,        // rads of main to center of map
-      angle:     NaN,        // angle (degrees)
-      orient:    NaN,        // rads of main on map
+      angle:     NaN,        // theta in degrees
+      orient:    NaN,        // rads of main on map (missing on API?)
 
       counter: {
         units:  0,
@@ -69,8 +63,8 @@ HANNIBAL = (function (H){
         temple:   {},
         market:   {},
         walls:    {},
-      }
-      
+      },
+
    });
 
   };
@@ -117,23 +111,36 @@ HANNIBAL = (function (H){
     },
     activate: function () {
 
+      var sizeBuilder = tpl => {
+        // something between 1 and 20
+        return Math.min(20, ~~(H.test(this.templates[tpl], "Cost.BuildTime") / 20) +1);
+      };
+
       this.events.on("ConstructionFinished", msg => {
-
-        // var order = this.objects(this.metadata[msg.id].order);
-
-        // if (order.cc){
-        //   this.metadata[msg.id].cc = order.cc;
-        //   // deb("  VILL: set cc: %s of %s %s", order.cc, msg.id, H.Entities[msg.id]._templateName);
-        // }
-
+        if (this.isShared(msg.data.classes)){
+          this.entities[msg.id].opmode = "shared";
+          this.deb("  VILL: ConstructionFinished: classes: %s, meta: %s", msg.data.classes, uneval(this.metadata[msg.id]));
+        }
       });
 
-      this.events.on("BroadCast", msg => {
-
-        if (msg.data.group === "g.builder"){
-
+      this.events.on("StructureDestroyed", msg => {
+        // launch group to rebuild, if shared and not foundation
+        this.deb("  VILL: StructureDestroyed: msg: %s", uneval(msg));
+        if (this.isShared(msg.data.classes) && !msg.data.foundation){
+          this.groups.launch({
+            groupname: "g.builder", 
+            cc: this.main, 
+            building: H.saniTemplateName(msg.data.templatename), 
+            quantity: 1, 
+            size: sizeBuilder(msg.data.templatename)
+          });
+          this.deb("  VILL: StructureDestroyed: %s, classes: %s, meta: %s, time: %s", 
+            msg.data.templatename,
+            msg.data.classes, 
+            uneval(this.metadata[msg.id]),
+            H.test(this.templates[msg.data.templatename], "Cost.BuildTime")
+          );
         }
-
       });
 
     },
@@ -144,10 +151,8 @@ HANNIBAL = (function (H){
       return Date.now() - t0;
 
     },    
-    isShared: function (ent){
-      var klasses = ent.classes().map(String.toLowerCase);
-      // deb(klasses + "//" + this.config.data.sharedBuildingClasses);
-      return this.config.data.sharedBuildingClasses.some(function (klass){
+    isShared: function (klasses){
+      return this.config.villages.sharedBuildingClasses.some(function (klass){
         return H.contains(klasses, klass);
       });
     },
@@ -284,7 +289,7 @@ HANNIBAL = (function (H){
               this.metadata[id].opmode = "shared";
               // deb("     V: set opname to 'g.mayor' for %s", ent);
 
-            } else if (this.isShared(ent)){
+            } else if (this.isShared(ent.classes().map(String.toLowerCase))){
               this.counter.shared += 1;
               this.metadata[id].opname = "g.custodian";
               this.metadata[id].opmode = "shared";
@@ -355,70 +360,44 @@ HANNIBAL = (function (H){
       // get best index
       [index, value] = obstructions.maxIndex();
 
-      // put x, z, angle in array
+      // center x, z in cell
       position = this.map.gridIndexToMapPos(index, obstructions);
-      position = position.map(p => p += obstructions.cellsize/2);
+
+      // add angle
 
       // random
       // position.push(Math.random() * Math.PI * 2);  
 
-      // entrance points to north
-      // position.push(-(this.angle * RADDEG - Math.PI/2));
+      // entrance points north
+      // position.push(-(this.angle * RADDEG - PI2));
+      // position.push(-(this.theta - PI2));
 
       // entrance points to civil centre
       // theta = this.map.getTheta(posCentre, position);
-      // position.push(-(theta + Math.PI/2));
+      // position.push(-(theta + PI2));
 
       // entrance points to map centre
-      theta = this.map.getTheta(this.map.center(), position);
-      position.push(-(theta + Math.PI/2));          
+      position.push(this.map.getTheta(this.map.center(), position));          
 
       // debug
       // obstructions.debIndex(index);
       // obstructions.dump("obst 4", 255);
 
-      this.deb("  VILL: findPosForOrder: #%s, idx: %s, rad: %s, val: %s, %s, %s msec | %s", 
+      this.deb("  VILL: findPosForOrder: #%s, val: %s, idx: %s, rad: %s, %s, %s msec | %s", 
         order.id, 
+        value,
         index, 
         radius,
-        value,
         position.map(n => n.toFixed(1)).join("|"), 
         Date.now() - t0,
         tpln
       );
 
-      return position;
+      // everything above 0 is good
+      return value ? position : null;
 
     }    
 
   });
 
 return H; }(HANNIBAL));  
-
-// "structures/athen_wallset_stone": {
-//   "@parent": "template_structure_defense_wallset",
-//   "Identity": {
-//     "Civ": "athen",
-//     "Classes": {
-//       "@datatype": "tokens",
-//       "_string": "Town StoneWall"
-//     },
-//     "GenericName": "City Wall",
-//     "History": "All Hellenic cities were surrounded by stone walls for protection against enemy raids. Some of these fortifications, like the Athenian Long Walls, for example, were massive structures.",
-//     "Icon": "structures/wall.png",
-//     "RequiredTechnology": "phase_town",
-//     "SpecificName": "TeÃ®khos",
-//     "Tooltip": "Wall off your town for a stout defense."
-//   },
-//   "WallSet": {
-//     "MaxTowerOverlap": "0.90",
-//     "MinTowerOverlap": "0.05",
-//     "Templates": {
-//       "Gate": "structures/athen_wall_gate",
-//       "Tower": "structures/athen_wall_tower",
-//       "WallLong": "structures/athen_wall_long",
-//       "WallMedium": "structures/athen_wall_medium",
-//       "WallShort": "structures/athen_wall_short"
-//     }
-//   }
-// },

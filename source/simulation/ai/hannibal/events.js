@@ -433,13 +433,15 @@ HANNIBAL = (function(H){
 
       // listener: assets, culture, groups
 
-      var msg = this.fire("ConstructionFinished", {
-            player: this.entities[e.newentity].owner(),
-            id:     e.newentity,
-            // id2:    e.newentity,
-          });
+      var 
+        ent = this.entities[e.newentity],
+        msg = this.fire("ConstructionFinished", {
+          player: ent.owner(),
+          id:     e.newentity,
+          data: {classes: ent.classes().map(String.toLowerCase)}
+        });
 
-      this.moveAllListener(msg);
+      // this.moveAllListener(msg);
 
     },
     AIMetadata: function(e){
@@ -478,7 +480,7 @@ HANNIBAL = (function(H){
 
       // this.deb("   EVT: Destroy: %s, %s", uneval(e), H.attribs(this.entities[e.entity]));
 
-      var msg, tpln;
+      var msg, tpln, type, foundation = false;
 
       if (this.createEvents[e.entity]){
         // this.deb("INFO  : got Destroy on '%s' entity", this.createEvents[e.entity]);
@@ -492,45 +494,50 @@ HANNIBAL = (function(H){
       }
 
       tpln = e.entityObj._templateName || "unknown";
-      tpln = tpln.split("foundation|").join("");
+      if (tpln.contains("foundation")){
+        foundation = true;
+        tpln = tpln.split("foundation|").join("");
+      }
 
       // this.deb("   EVT: Destroy: %s, %s", uneval(e), tpln);
 
-      // finished foundations do do not fire destroy
+      // suppress finished foundations
       if (!!e.SuccessfulFoundation){
         // this.deb("   EVT: foundation ready: id: %s", e.entity);
         return;
       }
 
-      if(e.entityObj.hasClass("Structure")){
+      type = (
+        e.entityObj.hasClass("Structure") ? "Structure" :
+        e.entityObj.hasClass("Unit")      ? "Unit"      :
+          "unknown"
+      );
 
-        // H.logObject(e.entityObj, "e.entityObj");
-
-        msg = this.fire("StructureDestroyed", {
+      if(type !== "unknown"){
+        msg = this.fire(type + "Destroyed", {
           player: e.entityObj.owner(),
           id:     e.entity,
-          data:   {templatename: tpln, position: e.entityObj.position()}
-        });
-
-      } else if (e.entityObj.hasClass("Unit")){
-        msg = this.fire("UnitDestroyed", {
-          player: e.entityObj.owner(),
-          id:     e.entity,
-          data:   {templatename: tpln, position: e.entityObj.position()}
+          data:   {
+            templatename: tpln, 
+            foundation: foundation,
+            position: e.entityObj.position(),
+            classes:  e.entityObj.classes().map(String.toLowerCase)
+          }
         });
 
       } else {
         // ForestPlant, probably more
-        this.deb("WARN : EVENTS: NOT Structure OR UNIT: %s", e.entityObj.classes());
+        this.deb("WARN : EVENTS: Destroy NOT Structure OR UNIT: %s", e.entityObj.classes());
         return;
 
       }
 
-      this.deb("   EVT: Destroy fired: own: %s, id: %s, tpl: %s" , msg.player, e.entity, tpln);
-
       if (this.dispatcher[msg.player][msg.id]){
         delete(this.dispatcher[msg.player][msg.id]);
+        this.deb("   EVT: Destroy %s dispatcher deleted for: %s %s", type, msg.player, msg.id);
       }
+
+      this.deb("   EVT: Destroy %s fired: own: %s, id: %s, tpl: %s", type, msg.player, e.entity, tpln);
 
     },
 

@@ -71,14 +71,19 @@ HANNIBAL = (function(H){
             .exit
           ;
 
+          // have too much units, exits
+          w.units.on
+            .gt(w.units.count, w.units.size)
+            .release(w.item)
+            .exit
+          ;          
+
           // keep requesting units until size
           w.units.on
             .member(w.item)
             .lt(w.units.count, w.units.size)
             .request()
           ;
-
-          // w.deb("     G: assign.3: %s, %s", w, item);
 
           //  the first unit requests field, exits
           w.units.on
@@ -101,11 +106,12 @@ HANNIBAL = (function(H){
           w.field.on
             .member(w.item)
             .match(w.item.foundation)
-            .units.do.repair(w.field)
+            .units.do.repair(w.item)
+            .group.do.relocate(w.item.position)
             .exit
           ;
 
-          // got the field, exits
+          // got the field, units gather exits
           w.field.on
             .member(w.item)
             .match(!w.item.foundation)
@@ -123,13 +129,13 @@ HANNIBAL = (function(H){
           w.objectify("item", item);
 
           // lost unit, request another
-          w.units
+          w.units.on
             .member(w.item)
             .request()
           ;
 
           // lost field, request another
-          w.field
+          w.field.on
             .member(w.item)
             .request()
           ;
@@ -140,6 +146,9 @@ HANNIBAL = (function(H){
         }, attack: function attack (w, item, enemy, type, damage){
 
           w.deb("     G: attack: %s, %s", this, item);
+
+          w.objectify("item",  item);
+          // w.objectify("enemy", enemy);
 
           w.field.on
             .member(w.item)

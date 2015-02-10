@@ -105,7 +105,7 @@ HANNIBAL = (function(H){
   // if any of these evaluate to a string, it gets chatted
   var sequences = {
 
-    "random/brainland": {
+    "random/brainland-x": {
 
        "1": [T.builder (                          "house", 12,  20), "building 20 houses"], 
        "2": [T.supplier(                     "food.fruit",  5),     "launching 1 food.fruit supplier group"], 
@@ -124,22 +124,38 @@ HANNIBAL = (function(H){
       "16": [T.builder (                     "storehouse",  1,  2), "building  1 storehouse"], 
     },
 
-    "random/brainland-X": {
-        // "0": [() => "< - START: " + map + " - >"],
-        // "1": [T.camera(),                             "set camera on CC"],
-        // "2": [T.chat("Hi, id:%s, cc:%s", PID, CC)], 
-        "1": [T.builder (                          "house", 12,  4), "building 4 houses"], 
+    "random/brainland": {
+        "1": [
+          "launching 4 harvester",
+            // T.launch  ("g.harvester"),         
+            // T.launch  ("g.harvester"),         
+            // T.launch  ("g.harvester"),         
+            // T.launch  ("g.harvester"),         
+          ], 
+        "2": [
+          "launching house builder",
+            // T.builder ("house", 4,  2),
+            // T.builder ("house", 4,  4),
+            // T.builder ("house", 4,  4),
+            // T.builder ("house", 4,  4),
+          ], 
+        "3": [
+          "launching other builder",
+            T.builder ("barracks", 2,  1),
+          ], 
+        },
+
+
+
+    "random/brainland-2": {
+        "1": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+        "2": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+        "3": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+        "4": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
+        // "1": [T.builder (                          "house", 4,  4), "building 4 houses"], 
         // "2": [T.builder (                          "house", 4,  4), "building 20 houses"], 
         // "3": [T.builder (                          "house", 4,  4), "building 20 houses"], 
         // "4": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        // "5": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        // "6": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        // "7": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        // "8": [T.builder (                          "house", 4,  4), "building 20 houses"], 
-        // "2": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-        // "3": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-        // "4": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
-        // "5": [T.launch  (                    "g.harvester"),         "launching 1 harvester group"], 
         // "6": [T.builder (                       "barracks",  3,  2), "building  2 barracks"], 
         // "7": [T.builder (                      "farmstead",  3,  2), "building  2 farmstead"], 
         // "8": [T.builder (                     "storehouse",  3,  2), "building  2 storehouse"], 

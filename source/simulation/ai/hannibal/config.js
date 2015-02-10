@@ -29,13 +29,6 @@ HANNIBAL = (function(H){
     // angle:                   3 * Math.PI/4,       // depends on first CC
 
     data:                    {
-      sharedBuildingClasses: [
-        "civilcentre", 
-        "blacksmith", 
-        "farmstead",
-        "storehouse",
-        "barracks", // temporarely
-                             ],
       prey:                  [ // possible food resources
         "chicken", 
         "sheep", 
@@ -63,6 +56,17 @@ HANNIBAL = (function(H){
       DangerEventRadius:    60,    // meter
       DangerEventRelax:      8,    // tick % N => 50%
     },
+
+    villages: {
+      sharedBuildingClasses: [
+        "civilcentre", 
+        "blacksmith", 
+        "farmstead",
+        "storehouse",
+        "barracks", // temporarely
+        "house",    // temporarely
+                             ],
+    }
 
 
   };

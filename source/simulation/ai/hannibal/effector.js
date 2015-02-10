@@ -84,14 +84,14 @@ HANNIBAL = (function(H){
         id = this.id, 
         map = this.context.launcher.map,
         filename = H.format("%s-%s-%s.png", id, map, name);
-      // Engine.DumpImage(filename, grid.toArray(), grid.width, grid.height, threshold);    
+      Engine.DumpImage(filename, grid.toArray(), grid.width, grid.height, threshold);    
     },
     dumparray: function(name, array, width, height, threshold){
       var 
         id = this.id, 
         map = this.context.launcher.map,
         filename = H.format("%s-%s-%s.png", id, map, name);
-      // Engine.DumpImage(filename, array, width, height, threshold);    
+      Engine.DumpImage(filename, array, width, height, threshold);    
     },
     execute: function(command){
       Engine.PostCommand(this.id, command);

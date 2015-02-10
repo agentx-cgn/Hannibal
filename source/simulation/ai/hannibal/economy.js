@@ -599,6 +599,7 @@ HANNIBAL = (function(H){
         producers = this.economy.producers;
 
       this.age += 1;
+      this.flags = "";
       this.product = null;   // to be determined
 
       if(this.remaining - this.processing < 1){
@@ -637,6 +638,13 @@ HANNIBAL = (function(H){
           node.info += !producer ? "no producer, " : "";
         }
       });
+
+      // remove disqualified nodes
+      H.delete(this.nodes, node => !node.qualifies);
+      if (!this.nodes.length){
+        this.flags = "NP";
+        return;
+      }
 
       // any unmet techs
       this.nodes
@@ -684,35 +692,34 @@ HANNIBAL = (function(H){
 
       });  
 
-      this.nodes.forEach( node => {
-        // deb("    OE: %s %s", node.name, node.info);
-      });
-
       // remove disqualified nodes
       H.delete(this.nodes, node => !node.qualifies);
+      if (!this.nodes.length){
+        this.flags = "M";
+        return;
+      }
 
       // still here?
-      if (this.nodes.length){
 
-        // bot priotizes units by phase, speed, availability, armor, etc.
-        if (this.verb === "train"){        
-          sorter = this.bot.unitprioritizer();
-          sorter(this.nodes);
-        }
-
-        // try to allocate slot from top node producer
-        if (producers.allocate(this.nodes[0], this.verb)){
-
-          // we have a winner
-          this.product    = this.nodes[0];  
-          this.executable = true;
-
-        } else {
-          // too bad
-          this.deb("###########'WTF");
-        }
-
+      // bot priotizes units by phase, speed, availability, armor, etc.
+      if (this.verb === "train"){        
+        sorter = this.bot.unitprioritizer();
+        sorter(this.nodes);
       }
+
+      // try to allocate slot from top node producer
+      if (producers.allocate(this.nodes[0], this.verb)){
+
+        // we have a winner
+        this.product    = this.nodes[0];  
+        this.executable = true;
+
+      } else {
+        // too bad
+        this.flags = "NP0";
+        return;
+      }
+
 
     },
     assignExisting: function(){
@@ -797,6 +804,7 @@ HANNIBAL = (function(H){
       imports:  [
         "economy",
         "groups",
+        "villages",
       ],
 
       tP: 0,            // processing time, msecs
@@ -837,7 +845,7 @@ HANNIBAL = (function(H){
           rem:      o => o.remaining,
           pro:      o => o.processing,
           nodes:    o => o.nodes ? o.nodes.length : 0,
-          flags:    o => (o.product ? "P" : "_"),
+          flags:    o => o.flags || "_",
           source:   o => o.source, //this.groups.findAsset(o.source).name || "no source :(",
           template: o => "tplXXXXXX",
         };
@@ -928,7 +936,7 @@ HANNIBAL = (function(H){
     process: function(){
 
       var 
-        t0 = Date.now(), amount, 
+        t0 = Date.now(), amount, position,
         hasBuild      = false, // only one construction per tick
         allGood       = false, 
         rep           = this.report,
@@ -974,20 +982,31 @@ HANNIBAL = (function(H){
           // process all or one
           amount = allGood ? order.remaining - order.processing : 1;
 
-          // one build a time
-          if (order.verb === "build"){
-            if (hasBuild) return; else hasBuild = true;
-          }
-
           // final global budget check
           if (eco.fits(product.costs, budget, amount)){
 
-            eco.do(amount, order); 
+            // one build a time
+            if (order.verb === "build"){
+              if (hasBuild) {
+                return;
+              } else {
+                position = this.villages.findPosForOrder(order);
+                if (position){
+                  hasBuild = true;
+                } else {
+                  order.flags += "S";
+                  return;
+                }
+              }
+            }
+
+            eco.do(amount, order, position); 
 
             eco.subtract(product.costs, budget, amount);
             rep.exe.push(id + ":" + amount);
 
           } else {
+            order.flags += "C";
             rep.ign.push(id);
 
           }
@@ -1188,7 +1207,9 @@ HANNIBAL = (function(H){
         producers.remove(msg.id);
       });
       events.on("StructureDestroyed", msg => {
-        producers.remove(msg.id);
+        if (!msg.data.foundation){
+          producers.remove(msg.id);
+        }
       });
 
     }, tick: function(tick, secs){
@@ -1248,10 +1269,10 @@ HANNIBAL = (function(H){
         objorder.hcq.slice(0, 40)
       );
 
-    }, do: function(amount, order){
+    }, do: function(amount, order, position){
 
       var 
-        pos, task, 
+        task, 
         product = order.product,
         id = product.producer.entities[0]; 
 
@@ -1278,11 +1299,8 @@ HANNIBAL = (function(H){
         this.effector.research(id, product.key);
 
       } else if (order.verb === "build") {
-        // pos = this.map.findGoodPosition(product.key, [order.x, order.z]);
-        pos = this.villages.findPosForOrder(order);
-        this.effector.construct([id], product.key, pos, {order: order.id, cc:order.cc});
-
-        this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(pos), uneval([order.x, order.z]), product.key);
+        this.effector.construct([id], product.key, position, {order: order.id, cc:order.cc});
+        this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(position), uneval([order.x, order.z]), product.key);
 
       } else if (order.verb === "find") {
         H.throw("ECO: find order leaked into do()");

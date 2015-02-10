@@ -194,7 +194,8 @@ HANNIBAL = (function(H){
         coords = this.mapPosToGridCoords(msg.data.position);
         radius = this.config.map.DangerEventRadius / this.cellsize;
         this.danger.processCircle(coords, radius, v => v + 32);
-        // this.deb("   MAP: StructureDestroyed: tpl: %s, pos: %s", msg.data.templatename, msg.data.position);
+        this.deb("   MAP: StructureDestroyed: tpl: %s, pos: %s", msg.data.templatename, msg.data.position);
+        this.danger.dump("-" + this.ticks, 255);
       });
 
     },
@@ -241,9 +242,13 @@ HANNIBAL = (function(H){
 
       var 
         size = grid && grid.size ? grid.size : this.gridsize,
-        cellsize = grid && grid.cellsize ? grid.cellsize : this.cellsize;
+        cellsize = grid && grid.cellsize ? grid.cellsize : this.cellsize,
+        offset = cellsize / 2;
       
-      return [(index % size) * cellsize, (index / size) * cellsize];
+      return [
+        (index % size) * cellsize + offset, 
+        ~~(index / size) * cellsize + offset
+      ];
 
     }, distance: function(a, b){
 
@@ -328,8 +333,9 @@ HANNIBAL = (function(H){
         theta = Math.atan2(dy, dx);
 
       // this.deb("   MAP: getTheta: %s, %s, %s", pos1, pos2, theta);
+      // return theta < 0 ? theta + TAU : theta;
 
-      return theta < 0 ? theta + TAU : theta;
+      return -(theta < 0 ? theta + TAU : theta) - PI2;
 
 
   /* simple infos about positions or index
