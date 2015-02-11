@@ -480,7 +480,7 @@ HANNIBAL = (function(H){
 
       }
 
-      this.deb("  GRPS: request: instance: %s, amount: %s, asset: %s, assetid: %s", instance, amount, asset, asset.id);
+      // this.deb("  GRPS: request: instance: %s, amount: %s, asset: %s, assetid: %s", instance, amount, asset, asset.id);
 
       asset.isRequested = true;
 

@@ -39,7 +39,8 @@ HANNIBAL = (function(H){
       "culture",     // has childs: store, tree, phases
       "map",         // grids
       "resources",   // after map
-      "villages", 
+      "claims",      // after map
+      "villages",    // after claims
       "scanner",     // scanner after map, before groups
       "groups",      // assets
       "stats",       // located in eco

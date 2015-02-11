@@ -195,7 +195,7 @@ HANNIBAL = (function(H){
         radius = this.config.map.DangerEventRadius / this.cellsize;
         this.danger.processCircle(coords, radius, v => v + 32);
         this.deb("   MAP: StructureDestroyed: tpl: %s, pos: %s", msg.data.templatename, msg.data.position);
-        this.danger.dump("-" + this.ticks, 255);
+        // this.danger.dump("-" + this.ticks, 255);
       });
 
     },
@@ -211,7 +211,7 @@ HANNIBAL = (function(H){
 
       if (tick % this.config.map.DangerEventRelax === 0){
         // relax danger by half
-        this.danger.processValue(v => v >> 1)
+        this.danger.processValue(v => v >>> 1)
       }
 
       return Date.now() - t0;
@@ -514,14 +514,25 @@ HANNIBAL = (function(H){
       }
 
 
+    }, templateTerritory: function(tpl){
+
+      // builds binary grid with allowed build cells
+      // own, ally, enemy, etc
+
+
     }, templateObstructions: function(tpl){
 
       // copies buildable and puts buildrestrictions in, with 0
       // seperates e.g. fortresses from fortresses
+      // TOOD: needs neutral, enemy, etc
 
       var 
         minDist, category, distance, coords,
         template = this.templates[tpl];
+
+      // mark land cells in own territory with 32
+      this.updateGrid("buildable"); 
+      // this.map.buildable.dump("0", 255);
 
       // is based on buildable
       this.obstructions = this.buildable.copy("obstructions");

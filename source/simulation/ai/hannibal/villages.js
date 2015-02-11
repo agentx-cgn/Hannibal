@@ -34,6 +34,7 @@ HANNIBAL = (function (H){
         "id",
         "map",
         "query",
+        "claims",
         "events",
         "groups",
         "config",
@@ -48,6 +49,8 @@ HANNIBAL = (function (H){
       theta:     NaN,        // rads of main to center of map
       angle:     NaN,        // theta in degrees
       orient:    NaN,        // rads of main on map (missing on API?)
+
+      claimed:    null,
 
       counter: {
         units:  0,
@@ -77,14 +80,14 @@ HANNIBAL = (function (H){
       this.deb("  VILL:    main: %s, angle: %s, theta: %s, counts: %s", this.main, this.angle.toFixed(1), this.theta, JSON.stringify(this.counter));
       this.deb("     V: centres: %s", JSON.stringify(this.centres));
     },
-    import: function () {
-      this.imports.forEach(imp => this[imp] = this.context[imp]);
-      return this;
-    },
-    clone: function (context){
-      context.data[this.name] = this.serialize();
-      return new H.LIB[H.noun(this.name)](context);
-    },
+    // import: function () {
+    //   this.imports.forEach(imp => this[imp] = this.context[imp]);
+    //   return this;
+    // },
+    // clone: function (context){
+    //   context.data[this.name] = this.serialize();
+    //   return new H.LIB[H.noun(this.name)](context);
+    // },
     deserialize: function () {
       var data;
       if (this.context.data[this.name]){
@@ -97,7 +100,7 @@ HANNIBAL = (function (H){
     serialize: function () {
       return {
         main:    this.main,
-        centres: H.deepcopy(this.centres)
+        centres: H.deepcopy(this.centres),
       };
     },
     initialize: function () {
@@ -107,6 +110,7 @@ HANNIBAL = (function (H){
         this.organizeVillages(); // set metadata.cc to nearest cc
         this.initializeMeta();
       }
+
       return this;
     },
     activate: function () {
@@ -315,46 +319,60 @@ HANNIBAL = (function (H){
 
     },
 
+    findPosFromClaim: function(name) {
+
+      this.deb("  VILL: got order for claimed structure: %s", name);
+
+      return null;
+
+
+    },
     findPosForOrder: function(order) {
 
       // general method to find a possible place for a structure defined by tpl
       // uses terrain, territory and buildind restriction
+      // check blur terrain border needed
 
       var 
-        t0 = Date.now(), size, r, radius, theta,
+        t0 = Date.now(),
         index, value, position, coords, obstructions,
-        tpln = order.product.key,
-        template = this.templates[tpln],
         pos = [order.x, order.z],
-        label = "O" + order.id,
+        tpln = order.product.key,
+        name = H.saniTemplateName(order.product.key),
+        template = this.templates[tpln],
+        // building radius from template's longest side
+        size = H.test(template, "Obstruction.Static"),
+        r = Math.max(+size["@width"], +size["@depth"]),
+        // radius = Math.sqrt(2 * r * r) / 2,
+        radius = SQRT2 * r / 2,
         posCentre = this.entities[order.cc].position();
 
-      // building radius from template's longest side
-      size = H.test(template, "Obstruction.Static");
-      r = Math.max(+size["@width"], +size["@depth"]);
-      radius = Math.sqrt(2 * r * r) / 2;
+      if (this.claims.isToClaim(name)){
+        position = this.findPosFromClaim(order);
+        if(position){return position;}
+      }
 
-      // mark land cells in own territory with 32
-      this.map.updateGrid("buildable"); // needs neutral, enemy, etc
-      // this.map.buildable.dump("0", 255);
-
-      // derive grid with cells removed by building restrictions
+      // derive grid [0|32] with cells removed by building restrictions
       obstructions = this.map.templateObstructions(tpln);
 
-      // remove cells by radius, priotize by pos
+      // convert pos
       coords = this.map.mapPosToGridCoords(pos, obstructions);
+
       // -1 very tight, 0 good, +1 generous
       radius = Math.ceil(radius / obstructions.cellsize) + 0;
       this.map.danger.dump("vill 0", 255);
+      
+      // remove cells by radius, danger, priotize by pos
       obstructions
-        .blur(radius)
         // .dump("obst 0", 255)
-        .processValue(v => v < 32 ? 0 : v)
+        .blur(radius)
         // .dump("obst 1", 255)
-        .subtract(this.map.danger)
+        .processValue(v => v < 32 ? 0 : v)
         // .dump("obst 2", 255)
-        .addInfluence(coords, 224)
+        .subtract(this.map.danger)
         // .dump("obst 3", 255)
+        .addInfluence(coords, 224)
+        // .dump("obst 4", 255)
       ;
 
       // get best index

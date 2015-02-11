@@ -203,7 +203,7 @@ HANNIBAL = (function(H){
     */
     max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
     min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
-    // set:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = val;}return this;},
+    set:  function(val){var g=this.data,l=this.length;while(l--){g[l] = val;}return this;},
     // add:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;}, //check Math.imul
     // mul:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
     // div:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
@@ -212,6 +212,26 @@ HANNIBAL = (function(H){
   /* compute grid with grid
 
     */
+    mask: function(grid){
+
+      // a mask may be a [0|255] grid
+      // this does a bitwise AND
+
+      var i = this.length;
+
+      if (this.length === grid.length){
+        while(i--){
+          this.data[i] &= grid.data[i];
+        }
+
+      } else {
+        H.throw("ERROR: grid.mask length do not match: %s %s", this, grid)
+
+      }
+
+      return this;
+
+    },
 
     subtract: function(grid){
 

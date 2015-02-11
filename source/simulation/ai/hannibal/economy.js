@@ -1276,14 +1276,13 @@ HANNIBAL = (function(H){
         product = order.product,
         id = product.producer.entities[0]; 
 
-      this.deb("   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, x: %s, z: %s",
+      this.deb("   EDO: #%s %s, producer: %s, amount: %s, tpl: %s, pos: %s",
         order.id, 
         order.verb, 
         id, 
         amount,
         product.key, 
-        order.x ? order.x.toFixed(0) : NaN, 
-        order.z ? order.z.toFixed(0) : NaN 
+        position || [] // for structs, units have pos
       );
 
       // assuming transaction succedes
