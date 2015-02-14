@@ -330,7 +330,8 @@ HANNIBAL = (function(H) {
     deb("------: LAUNCHER.CustomInit: PID: %s, Players: %s, difficulty: %s", id, H.count(ss.playersData), settings.difficulty);
     deb("      :");
     deb("     A:     map from DEBUG: %s / %s", this.map, ss.gameType);
-    deb("     A:                map: w: %s, h: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.height, ss.circularMap, gs.cellSize);
+    deb("     A:        passability: w: %s, l: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.data.length, ss.circularMap, gs.cellSize);
+    deb("     A:          territory: w: %s, l: %s, c: %s, cells: %s", ss.territoryMap.width, ss.territoryMap.data.length, ss.circularMap, gs.cellSize);
     deb("     A:          _entities: %s [  ]", H.count(ss._entities));
     deb("     A:         _templates: %s [  ]", H.count(ss._templates));
     deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));

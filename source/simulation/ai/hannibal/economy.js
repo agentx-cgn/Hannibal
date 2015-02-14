@@ -642,7 +642,7 @@ HANNIBAL = (function(H){
       // remove disqualified nodes
       H.delete(this.nodes, node => !node.qualifies);
       if (!this.nodes.length){
-        this.flags = "NP";
+        this.flags = "P"; // NO producer
         return;
       }
 
@@ -695,7 +695,7 @@ HANNIBAL = (function(H){
       // remove disqualified nodes
       H.delete(this.nodes, node => !node.qualifies);
       if (!this.nodes.length){
-        this.flags = "M";
+        this.flags = "T"; // NO Technology
         return;
       }
 
@@ -716,7 +716,7 @@ HANNIBAL = (function(H){
 
       } else {
         // too bad
-        this.flags = "NP0";
+        this.flags = "A"; // NO allocation
         return;
       }
 
@@ -834,8 +834,8 @@ HANNIBAL = (function(H){
 
       var 
         msg  = "", tb = H.tab,
-        header = "  id,     verb, age, amt, pro, rem, nodes, flags,                 source, hcq|product".split(","),
-        tabs   = "   4,       10,   5,   5,   5,   5,     7,     7,                    24, 12".split(",").map(s => ~~s),
+        header = "  id,     verb, age, amt, pro, rem, nodes, tim, no,                 source, hcq|product".split(","),
+        tabs   = "   4,       10,   5,   5,   5,   5,     7,   5,  4,                     24, 12".split(",").map(s => ~~s),
         head   = header.map(String.trim).slice(0, -1),
         retr = {
           id:       o => "#" + o.id,
@@ -845,7 +845,8 @@ HANNIBAL = (function(H){
           rem:      o => o.remaining,
           pro:      o => o.processing,
           nodes:    o => o.nodes ? o.nodes.length : 0,
-          flags:    o => o.flags || "_",
+          no:       o => o.flags || "_",
+          tim:      o => o.time !== undefined ? o.time : "_",
           source:   o => o.source, //this.groups.findAsset(o.source).name || "no source :(",
           template: o => "tplXXXXXX",
         };
@@ -936,7 +937,7 @@ HANNIBAL = (function(H){
     process: function(){
 
       var 
-        t0 = Date.now(), amount, position,
+        t1, t0 = Date.now(), amount, position,
         hasBuild      = false, // only one construction per tick
         allGood       = false, 
         rep           = this.report,
@@ -956,7 +957,9 @@ HANNIBAL = (function(H){
 
       // evaluate for product/producer/cost
       queue.forEach(order => {
+        t1 = Date.now();
         order.evaluate();
+        order.time = Date.now() - t1;
         if (!!order.product){
           amount = order.remaining - order.processing;
           allocs.food  += order.product.costs.food  * amount;

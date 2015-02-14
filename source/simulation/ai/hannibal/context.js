@@ -48,6 +48,7 @@ HANNIBAL = (function(H){
       "producers",   // located in eco
       "economy",     // stats, producers, orderqueue
       "military",    // attack groups and support buildings
+      "diplomacy",   // 
       "brain",       // keep information uptodate
       // "bot",      // make decisions
     ];
@@ -161,24 +162,6 @@ HANNIBAL = (function(H){
       // reset id generator
       ctxClone.idgen = 1;  /// ????
 
-      // // add helper, still confusing here
-      // H.extend(ctxClone, {
-      //   query:      function(hcq, debug){
-      //     return new H.LIB.Query(ctxClone.culture.store, hcq, debug);
-      //   },
-      //   class2name: function(klass){
-      //     var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
-      //       return klass === "civilcentre" ? true : node.name.contains(klass)
-      //     });
-      //     if(!res.length){
-      //       this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
-      //     } else {
-      //       // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
-      //     }
-      //     return res.length ? res[0].name : null;
-      //   },
-      // });
-
       // launch serializers
       this.runSequence( (serializer, action) => {
 
@@ -218,25 +201,6 @@ HANNIBAL = (function(H){
         }),
 
       });
-
-      // H.extend(this, {
-
-      //   query:               (hcq, debug) => {
-      //     return new H.LIB.Query(this.culture.store, hcq, debug);
-      //   },
-      //   class2name:          klass => {
-      //     var res = new H.LIB.Query(this.culture.store, klass + " CONTAIN").filter(node => {
-      //       return klass === "civilcentre" ? true : node.name.contains(klass)
-      //     });
-      //     if(!res.length){
-      //       this.deb("WARN  : class2name: civ: %s class: %s no result", this.culture.civ, klass);
-      //     } else {
-      //       // this.deb("   CTX: class2name: klass: %s, name: %s", klass, res[0].name);
-      //     }
-      //     return res.length ? res[0].name : null;
-      //   },
-
-      // });
 
       this.runSequence( (serializer, action) => {
 

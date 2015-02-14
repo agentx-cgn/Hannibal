@@ -62,7 +62,7 @@ HANNIBAL = (function (H){
     log: function(){},
     serialize: function(){
       return {
-        classes: H.deepcopy(this.classes),
+        classes:  H.deepcopy(this.classes),
         reserved: H.deepcopy(this.reserved),
       };
     },
@@ -108,6 +108,19 @@ HANNIBAL = (function (H){
       return this;
 
     },
+    findPosition: function(order) {
+
+      var name = H.saniTemplateName(order.product.key);
+
+      if (this.isToClaim(name)){
+        this.deb("  CLIM: got order for claimed structure: %s", name);
+
+
+      }
+
+      return null;
+
+    },    
     isToClaim: function(nodename){
 
       var 

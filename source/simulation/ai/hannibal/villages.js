@@ -32,16 +32,19 @@ HANNIBAL = (function (H){
 
       imports:  [
         "id",
+        "civ",
         "map",
         "query",
         "claims",
         "events",
         "groups",
         "config",
+        "player",
         "objects",
         "entities",      // hasClass
         "templates",     // obstructionRadius
         "metadata",
+        "passabilityClasses",
       ],
 
       main:      NaN,        // id of first centre
@@ -123,6 +126,7 @@ HANNIBAL = (function (H){
       this.events.on("ConstructionFinished", msg => {
         if (this.isShared(msg.data.classes)){
           this.entities[msg.id].opmode = "shared";
+          this.entities[msg.id].opname = "village";
           this.deb("  VILL: ConstructionFinished: classes: %s, meta: %s", msg.data.classes, uneval(this.metadata[msg.id]));
         }
       });
@@ -319,103 +323,166 @@ HANNIBAL = (function (H){
 
     },
 
-    findPosFromClaim: function(name) {
+    findLayout: function(order){
 
-      this.deb("  VILL: got order for claimed structure: %s", name);
+      var 
+        posCentre = this.entities[order.cc].position(),
+        template  = this.templates[order.product.key],
+        size = H.test(template, "Obstruction.Static"),
+        r = Math.max(+size["@width"], +size["@depth"]),
 
-      return null;
+        mapsize = this.map.gridsize <= 256 ? "small"  : "big",
+        bldsize = r < 15  ? "small" : r < 21 ? "middle" : "big",
 
+        angles = {
+          "random": (   ) => Math.random() * TAU,
+          "north":  (   ) => -this.theta + PI2,
+          "centre": (pos) => -this.map.getTheta(posCentre, pos) - PI2,
+          "map":    (pos) => this.map.getTheta(this.map.center(), pos),
+        },
+
+        civ  = this.player.civ,
+        civs = {
+          
+          // smalls with offset 0, big with +1, all centre
+          "*" : (ms, bs) => {
+            var offset = (bs === "big" ? +1 : 0);
+            return {
+              offset: () => offset,
+              angle : (pos) => angles.centre(pos)
+            };
+          },
+
+          // houses point north with off = -1, other centre
+          "maur" : (ms, bs) => {
+            var offset = (bs === "small" ? -1 : bs === "middle" ? +0 : +1);
+            return {
+              offset: () => offset,
+              angle : (pos) => offset === -1 ? angles.north(pos) : angles.centre(pos)
+            };
+          },
+
+        };
+
+      this.deb("  VILL: findLayout: civ: %s, bld: %s, map: %s", civ, bldsize, mapsize);
+
+      return ( civs[civ] ? 
+        civs[civ](mapsize, bldsize) :
+        civs["*"](mapsize, bldsize)
+      );
 
     },
     findPosForOrder: function(order) {
 
       // general method to find a possible place for a structure defined by tpl
-      // uses terrain, territory and buildind restriction
-      // check blur terrain border needed
+      // uses terrain, territory, claims, danger and building restriction
+      // takes longest building dimension as distance radius
 
       var 
+        
         t0 = Date.now(),
-        index, value, position, coords, obstructions,
-        pos = [order.x, order.z],
-        tpln = order.product.key,
-        name = H.saniTemplateName(order.product.key),
-        template = this.templates[tpln],
-        // building radius from template's longest side
-        size = H.test(template, "Obstruction.Static"),
-        r = Math.max(+size["@width"], +size["@depth"]),
-        // radius = Math.sqrt(2 * r * r) / 2,
-        radius = SQRT2 * r / 2,
-        posCentre = this.entities[order.cc].position();
+        index, value, position, 
+        fltFirst, fltFinal,
+        buildable, restrictions, territory, danger, distances, 
 
-      if (this.claims.isToClaim(name)){
-        position = this.findPosFromClaim(order);
-        if(position){return position;}
+        pos      = [order.x, order.z],
+        coords   = this.map.mapPosToGridCoords(pos),
+        cellsize = this.map.cellsize,
+        tpln     = order.product.key,
+        template = this.templates[tpln],
+
+        // set radius and layout
+        layout = this.findLayout(order),
+        size   = H.test(template, "Obstruction.Static"),
+        r = Math.max(+size["@width"], +size["@depth"]),
+        radius = Math.ceil(SQRT2 * r / 2 / cellsize) + layout.offset(),
+
+        // prepare placement filter
+        placement = H.test(template, "BuildRestrictions.PlacementType"),
+        maskFound = this.passabilityClasses["foundationObstruction"],
+        maskShore = maskFound | this.passabilityClasses["building-shore"],
+        maskLand  = maskFound | this.passabilityClasses["building-land"];
+
+
+      // is there an empty slot left
+      if((position = this.claims.findPosition(order))){
+        return position;
       }
 
-      // derive grid [0|32] with cells removed by building restrictions
-      obstructions = this.map.templateObstructions(tpln);
+      // compute input grids & masks
 
-      // convert pos
-      coords = this.map.mapPosToGridCoords(pos, obstructions);
+      // priotizes cells nearer to coords
+      distances    = this.map.distances.setCoords(coords);
 
-      // -1 very tight, 0 good, +1 generous
-      radius = Math.ceil(radius / obstructions.cellsize) + 0;
-      this.map.danger.dump("vill 0", 255);
-      
-      // remove cells by radius, danger, priotize by pos
-      obstructions
-        // .dump("obst 0", 255)
-        .blur(radius)
-        // .dump("obst 1", 255)
-        .processValue(v => v < 32 ? 0 : v)
-        // .dump("obst 2", 255)
-        .subtract(this.map.danger)
-        // .dump("obst 3", 255)
-        .addInfluence(coords, 224)
-        // .dump("obst 4", 255)
+      // masks (0 = unusable, 255 = good)
+      danger       = this.map.danger;
+      territory    = this.map.templateTerritory(tpln);
+      restrictions = this.map.templateRestrictions(tpln);
+
+      // filter functions
+      fltFirst = (
+        placement === "shore"      ? v => v & maskShore ? 0 : 255 :
+        placement === "land"       ? v => v & maskLand  ? 0 : 255 :
+        placement === "land-shore" ? v => v & maskShore || v & maskLand ? 0 : 255 :
+          H.throw("findPosForOrder: unknown PlacementType: %s for %s", placement, tpln)
+      );
+      fltFinal = (bd, di, da, rs, tt) => (bd === 255 ? di - da : 0) & rs & tt;
+
+      // crunching numbers
+      [index, value, position, buildable] = new H.LIB.Grid(this.context)
+        .import()
+        .release()
+        .initialize({label: "buildable", data: H.lowerbyte(this.map.passability.data)})
+        .filter(fltFirst)
+        .distanceTransform()
+        .filter(v => v <= radius ? 0 : 255)
+        .filter(distances, danger, territory, restrictions, fltFinal)
+        .maxIndex()
       ;
 
-      // get best index
-      [index, value] = obstructions.maxIndex();
-
-      // center x, z in cell
-      position = this.map.gridIndexToMapPos(index, obstructions);
-
-      // add angle
-
-      // random
-      // position.push(Math.random() * Math.PI * 2);  
-
-      // entrance points north
-      // position.push(-(this.angle * RADDEG - PI2));
-      // position.push(-(this.theta - PI2));
-
-      // entrance points to civil centre
-      // theta = this.map.getTheta(posCentre, position);
-      // position.push(-(theta + PI2));
-
-      // entrance points to map centre
-      position.push(this.map.getTheta(this.map.center(), position));          
+      // building rotation depends on civ
+      position.push(layout.angle(position));          
 
       // debug
-      // obstructions.debIndex(index);
-      // obstructions.dump("obst 4", 255);
-
-      this.deb("  VILL: findPosForOrder: #%s, val: %s, idx: %s, rad: %s, %s, %s msec | %s", 
+      // buildable.debIndex(index);
+      // buildable.dump("poso idx", 255);
+      this.deb("  VILL: #%s findPosForOrder %s msec, dis: %s, rad: %s, %s | %s %s", 
         order.id, 
-        value,
-        index, 
+        Date.now() - t0,
+        256 - value,
         radius,
         position.map(n => n.toFixed(1)).join("|"), 
-        Date.now() - t0,
+        placement,
         tpln
       );
 
       // everything above 0 is good
-      return value ? position : null;
+      return value > 0 ? position : null;
 
     }    
 
   });
 
 return H; }(HANNIBAL));  
+
+
+// get best index
+    // .processGrids(r => r < 32 ? 0 : 32)           // remove border
+// [index, value] = restrictions.maxIndex();
+
+// center x, z in cell
+// position = this.map.gridIndexToMapPos(index, restrictions);
+
+// add angle
+
+// random, may fail with tight
+// position.push(Math.random() * Math.PI * 2);  
+
+// entrance points north
+// position.push(-this.theta + PI2));
+
+// entrance points to civil centre
+// position.push(-this.map.getTheta(posCentre, position) - PI2);
+
+// entrance points to map centre
+// position.push(this.map.getTheta(this.map.center(), position));   

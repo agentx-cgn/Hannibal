@@ -149,35 +149,52 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(),
-        counter = 0, i = this.length;
+        counter = 0, 
+        i = this.length,
+        data = this.data,
+        size = this.size;
 
+      // call fn with index, x, z, value
       while(i--){
-        this.data[i] = fn( i, 
-          i % this.size, 
-          ~~(i / this.size), 
-          this.data[i]
-        );
+        data[i] = fn( i, i % size, ~~(i / size), data[i]);
         counter += 1;
       }
 
-      this.deb("   GRD: process: %s len: %s, %s msec", this.label, counter, Date.now() - t0);
+      this.deb("   GRD: %s %s process: %s", this.label, Date.now() - t0, H.fnBody(fn));
 
       return this;
 
     },
 
-    processValue: function(fn){
+    filter: function( /* arguments */){
 
-      var t0 = Date.now(), i = this.length;
+      var 
+        t0    = Date.now(),
+        args  = H.toArray(arguments),
+        fn    = args.slice(-1)[0],
+        // vars  = fn.length,
+        datas = args.slice(0, -1).map(g => g.data),
+        data  = this.data,
+        len   = datas.length,
+        i     = this.length;
 
-      while(i--){
-        this.data[i] = fn(this.data[i]);
+      if (len === 0){
+        while (i--) {data[i] = fn(data[i]);}
+      } else if (len === 1){
+        while (i--) {data[i] = fn(data[i], datas[0][i]);}
+      } else if (len === 2){
+        while (i--) {data[i] = fn(data[i], datas[0][i], datas[1][i]);}
+      } else if (len === 3){
+        while (i--) {data[i] = fn(data[i], datas[0][i], datas[1][i], datas[2][i]);}
+      } else if (len === 4){
+        while (i--) {data[i] = fn(data[i], datas[0][i], datas[1][i], datas[2][i], datas[3][i]);}
       }
-      // this.deb("   GRD: processValue: %s %s msec, fn: %s", this.label, Date.now() - t0, H.fnBody(fn));
+
+      this.deb("   GRD: %s %s processGrids: %s", this.label, Date.now() - t0, H.fnBody(fn));
+
       return this;
 
     },
-
     debIndex: function(index){
 
       // puts crossed lines on index for debugging
@@ -201,66 +218,22 @@ HANNIBAL = (function(H){
     /* 
 
     */
+
+  /* compute/alter grids
+
+    */
+
     max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
     min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
     set:  function(val){var g=this.data,l=this.length;while(l--){g[l] = val;}return this;},
-    // add:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;}, //check Math.imul
-    // mul:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
-    // div:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
-    // addGrid: function(grd){var g=this.data,o=grd.data,l=this.length;while(l--){g[l] += o[l];}return this;},
-
-  /* compute grid with grid
-
-    */
-    mask: function(grid){
-
-      // a mask may be a [0|255] grid
-      // this does a bitwise AND
-
-      var i = this.length;
-
-      if (this.length === grid.length){
-        while(i--){
-          this.data[i] &= grid.data[i];
-        }
-
-      } else {
-        H.throw("ERROR: grid.mask length do not match: %s %s", this, grid)
-
-      }
-
-      return this;
-
-    },
-
-    subtract: function(grid){
-
-      var i = this.length;
-
-      if (this.length === grid.length){
-        while(i--){
-          this.data[i] -= grid.data[i];
-        }
-
-      } else {
-        H.throw("ERROR: grid.subtract length do not match: %s %s", this, grid)
-
-      }
-
-      return this;
-
-    }, 
-
-
-  /* compute stuff
-
-    */
+    inv:  function(){var g=this.data,l=this.length;while(l--){g[l] = 255 - g[l];}return this;},
 
     processCircle: function(coords, radius, fn){
 
       // fills a circle into grid with value
       
       var 
+        t0 = Date.now(),
         z = 0|0, x = 0|0, idx = 0|0, 
         r = radius, rr = r * r,
         len = this.length|0,
@@ -283,6 +256,8 @@ HANNIBAL = (function(H){
           }
         }
       }
+
+      this.deb("   GRD: %s %s processCircle: radius: %s, %s", this.label, Date.now() - t0, radius, H.fnBody(fn));
 
       return this;
 
@@ -313,37 +288,24 @@ HANNIBAL = (function(H){
       ctx.putImageData(image, 0, 0);
 
     },
-    // process: function(target, fn){
-
-    //   // target.data[n] = fn(this.data[n])
-
-    //   var body = "", proc = H.fnBody(fn);
-      
-    //   body += "var i = " + this.length + ";";
-    //   body += "while (i--) { t[i] = " + proc + "}";
-
-    //   Function("s", "t", body)(this.data, target.data);  
-
-    // },
-    maxIndex: function(maxValue=256){
+    maxIndex: function(){
 
       var 
         index = 0,
-        value = -1e6,
+        value = 0,
         data  = this.data,
         i = this.length;
-
+        
       while (i--) {
-        if (data[i] > value && value < maxValue){
+        if (data[i] > value){
           value = data[i];
           index = i;
         }
       } 
 
-      return [index, value];
+      return [index, value, this.map.gridIndexToMapPos(index, this), this];
 
     },    
-
     transform: function(data, x, y, w, min, max) {
       // lifted
       var g = data[x + y * w];
@@ -354,7 +316,11 @@ HANNIBAL = (function(H){
     },
     distanceTransform: function() {
 
+      // destructive, leaves black pixel untouched
+      // all other have distance to nearest black
+
       var 
+        t0 = Date.now(),
         data = this.data, 
         transform = this.transform,
         s = this.size,
@@ -371,13 +337,57 @@ HANNIBAL = (function(H){
         for ( y = s - 2; y >= 0; --y) {min = transform(data, x, y, s, min, max);}
       }
 
+      this.deb("   GRD: %s %s distanceTransform", this.label, Date.now() - t0);
+
+      return this;
+
     },
 
+    setCoords: function(coords) {
+
+      // destructive, computes the distance to coords up to 255
+      // leaves pixel outside radius untouched
+
+      var 
+        t0 = Date.now(),
+        x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
+        [cx, cy] = coords,
+        data = this.data, 
+        size = this.size,
+        maxDist  = 256,
+        maxDist2 = maxDist * maxDist,
+        x0 = ~~(Math.max(0, cx - maxDist)),
+        y0 = ~~(Math.max(0, cy - maxDist)),
+        x1 = ~~(Math.min(size -1, cx + maxDist)),  
+        y1 = ~~(Math.min(size -1, cy + maxDist));
+
+      for ( y = y0; y < y1; ++y) {
+        for ( x = x0; x < x1; ++x) {
+          dx = x - cx; 
+          dy = y - cy; 
+          r2 = dx * dx + dy * dy;
+
+          data[x + y * size] = ( r2 < maxDist2 ? 
+            maxDist - Math.sqrt(r2) :
+            255
+          );
+          // if (r2 < maxDist2) {
+          //   data[x + y * size] = maxDist - Math.sqrt(r2);
+          // } 
+      }}
+
+      this.deb("   GRD: %s %s setCoords", this.label, Date.now() - t0);
+
+      return this;
+
+
+    },
     addInfluence: function(coords, strength, maxDist, type="linear") {
 
       maxDist = maxDist || this.size;
 
       var 
+        t0 = Date.now(),
         r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
         [cx, cy] = coords,
         data = this.data, 
@@ -410,6 +420,8 @@ HANNIBAL = (function(H){
           }
       }}
 
+      this.deb("   GRD: %s %s addInfluence", this.label, Date.now() - t0);
+
       return this;
 
     },    
@@ -418,7 +430,9 @@ HANNIBAL = (function(H){
       // http://blog.ivank.net/fastest-gaussian-blur.html
       // destructive
 
-      var target = Array.prototype.slice.call(this.data);
+      var 
+        t0 = Date.now(),
+        target = Array.prototype.slice.call(this.data);
       
       boxBlur_4(this.data, target, this.width, this.height, radius);
       this.data = new Uint8ClampedArray(target);
@@ -481,164 +495,16 @@ HANNIBAL = (function(H){
 
       }
 
+      this.deb("   GRD: %s %s blur: rad: %s", this.label, Date.now() - t0, radius);
+
       return this;
 
     },
   });
 
-
-// HANNIBAL = (function(H){
-
-//   var t0, width, height, length, cellsize, center = [],
-//       maskOpen,
-//       maskWater,
-//       maskLand,
-//       maskShore,
-//       maskBldgLand,
-//       maskBldgShore,
-//       maskFoundation,
-//       maskPathfinder,
-//       square  = [[-1,-1],[-1,0],[-1,1],[0,1],[1,1],[1,0],[1,-1],[0,-1],[0,0]],
-//       square0 = [[-1,-1],[-1,1],[1,-1],[1,1]],
-//       square2 = [[0,1],[0,-1],[1,0],[-1,0],[1,1],[-1,-1],[1,-1],[-1,1],
-//                  [0,2],[0,-2],[2,0],[-2,0],[2,2],[-2,-2],[2,-2],[-2,2]],
-
-//       grids = {
-//         topo: null,           // if avail
-//         pass: null,           // water, land, forbidden, shallow, steep
-//         terr: null,           // internal terrain code
-//         cost: null,           // pathinder cost arond water and hills
-//         regw: null,           // connected regions on water
-//         regl: null,           // connected regions on land
-//         food: null,
-//         wood: null,
-//         stone: null,
-//         metal: null,
-//         terrain: null,       
-//         territory: null,
-//         passability: null,   // Uint16Array 
-//         obstruction: null,   // Trees, Geology
-//         landPass: null,
-//         navalPass: null,
-//         attacks: null,
-//         scouting: null,
-//       };
+return H; }(HANNIBAL));
 
 
-//   function dump(name, grid, threshold){
-//     threshold = threshold || grid.max() || 255;
-//     name = H.format("%s-%s.png", name, threshold);
-//     Engine.DumpImage(name, grid.data, grid.width, grid.height, threshold);    
-//     deb("  GRID: dumping %s, w: %s, h: %s, t: %s", name, grid.width, grid.height, threshold);
-//   }
-
-//   function pritp(where){
-//     return where.map(c => c.toFixed(1));
-//   }
-//   function pritn(num){
-//     return num.toFixed(1);
-//   }
-
-//   // function mapPosToGridPos(p){return [~~(p[0] / cellsize), ~~(p[1] / cellsize)];}
-
-//   function gridFromMap(map){
-//     var grid;
-//     if (map instanceof Uint8Array){
-//       grid = new H.Grid(width, height, 8);
-//       grid.data = map;
-//     } else if (map.data){
-//       grid = new H.Grid(map.width, map.height, 8);
-//       grid.data = map.data;
-//     } else if (map.map instanceof Uint8Array){
-//       grid = new H.Grid(map.width, map.height, 8);
-//       grid.data = map.map;
-//     } else {
-//       deb(" ERROR: gridFromMap: can't handle map");
-//       // logObject(map, "gridFromMap.map");
-//     }
-//     return grid;
-//   }
-
-
-//   // self.landPass    = gridFromMap(H.GameState.sharedScript.accessibility.landPassMap);
-//   // self.navalPass   = gridFromMap(H.GameState.sharedScript.accessibility.navalPassMap);
-//   // self.passability = gridFromMap(H.SharedScript.passabilityMap);
-//   // self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
-//   // self.food        = gridFromMap(H.SharedScript.resourceMaps.food);
-//   // self.wood        = gridFromMap(H.SharedScript.resourceMaps.wood);
-//   // self.stone       = gridFromMap(H.SharedScript.resourceMaps.stone);
-//   // self.metal       = gridFromMap(H.SharedScript.resourceMaps.metal);
-//   // self.obstruction = obstructions();
-
-//   // self.attacks  = new H.Grid(width, height, 8);
-//   // self.pass     = new H.Grid(width, height, 8);
-//   // self.topo     = new H.Grid(width, height, 8);
-
-//   // deb();deb();
-//   // deb("  GRID: init w: %s, h: %s, cellsize: %s", width, height, cellsize);
-
-//   /*
-    
-//     handles the grids in use
-//     works in Explorer (browser) and in 0 A.D (jsshell)
-
-//   */
-
-
-//   H.Grids = (function(){
-
-//     var 
-//       self = {},
-//       isBrowser = false, topoBuffer, passImage;
-
-//     H.extend(self, grids, {
-//       center: center,
-//       register: function(name, grid){grids[name] = grid;},
-//       initExtern: function(size, buffer, image){
-//         isBrowser  = true;
-//         width      = self.width    = size; 
-//         height     = self.height   = size;
-//         length     = self.length   = width * height;
-//         cellsize   = self.cellsize = 4;      
-//         center[0]  = ~~(width  / 2);
-//         center[1]  = ~~(height / 2);
-//         topoBuffer = buffer;
-//         passImage  = image;
-//       },
-//       init: function(){
-
-//         width     = self.width    = H.SharedScript.passabilityMap.width;
-//         height    = self.height   = H.SharedScript.passabilityMap.height;
-//         length    = self.length   = width * height;
-//         cellsize  = self.cellsize = H.GameState.cellSize;
-//         center[0] = ~~(width  / 2);
-//         center[1] = ~~(height / 2);
-
-//         self.passability = gridFromMap(H.SharedScript.passabilityMap);
-//         self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
-//         self.attacks     = new H.Grid(width, height, 8);
-
-//         self.initMasks();  
-//         self.initTopo();  
-//         self.initPass();  
-//         self.initProp();  
-//         self.initTerrain();  
-//         self.initCost();  
-//         self.initRegionsLand();  
-//         self.initRegionsWater();  
-//       },
-//       initMasks: function(){
-//         // http://trac.wildfiregames.com/wiki/AIEngineAPI
-//         var pc = H.SharedScript && H.SharedScript.passabilityClasses ? H.SharedScript.passabilityClasses : undefined;
-//         maskPathfinder  = pc ? pc["pathfinderObstruction"] :  1;
-//         maskFoundation  = pc ? pc["foundationObstruction"] :  2;
-//         maskBldgLand    = pc ? pc["building-land"]         :  4;
-//         maskBldgShore   = pc ? pc["building-shore"]        :  8;
-//         maskLand        = pc ? pc["default"]               : 16;
-//         maskWater       = pc ? pc["ship"]                  : 32;
-//         maskOpen        = pc ? pc["unrestricted"]          : 64;
-//         maskShore       = maskBldgShore | maskFoundation;    // 1
-//       },
 //       initTopo: function(){
 
 //         var i, h, off, idx, x, y, len, iwidth = width +1, max = 0, min = 10e7;
@@ -762,92 +628,6 @@ HANNIBAL = (function(H){
 //         }
 
 //       },
-//       initRegionsLand: function(){
-
-//         var r, t, i = length, cntLand = 0, maskLand = 16 + 8 + 4;
-
-//         self.regl = new H.Grid(width, height, 8);
-
-//         while (i--) {
-//           t = self.terr.data[i]; 
-//           r = self.regl.data[i];
-//           if (r === 0 && ( t & maskLand) ) {
-//             H.Grids.fillRegion(self.terr.data, self.regl.data, maskLand, i, ++cntLand);
-//           }
-//         }
-
-//         self.regl.regions = cntLand;
-
-//       },
-//       initRegionsWater: function(){
-
-//         var r, t, i = length, cntWater = 0, maskWater = 16 + 32;
-
-//         self.regw = new H.Grid(width, height, 8);
-
-//         while (i--) {
-//           t = self.terr.data[i]; 
-//           r = self.regw.data[i];
-//           if (r === 0 && ( t & maskWater ) ) {
-//             H.Grids.fillRegion(self.terr.data, self.regw.data, maskWater, i, ++cntWater);
-//           }
-//         }
-
-//         self.regw.regions = cntWater;
-
-//       },
-//       fillRegion: function(src, tgt, mask, index, region){
-
-//         var 
-//           i, idx, nextX, nextY,
-//           y = ~~(index / width) | 0,
-//           x = index % width | 0,
-//           stack = [x, y], pointer = 2, // push/pop is too slow
-//           dx = [ 0, -1, +1,  0], 
-//           dy = [-1,  0,  0, +1]; 
-
-//         while (pointer) {
-
-//           y = stack[pointer -1];
-//           x = stack[pointer -2];
-//           pointer -= 2;
-
-//           tgt[y * width + x] = region;
-
-//           i = 4; while (i--) {
-
-//             nextX = x + dx[i];
-//             nextY = y + dy[i];
-//             idx   = (nextY * width + nextX);
-
-//             if (!tgt[idx] && (src[idx] & mask) && nextX && nextY && nextX < width && nextY < width) {
-//               stack[pointer]    = nextX;
-//               stack[pointer +1] = nextY;
-//               pointer += 2;
-//             }
-
-//           }
-
-//         }
-
-//       },      
-//       tick: function(secs){
-
-//         var t0 = Date.now();
-//         maskPathfinder  = H.SharedScript.passabilityClasses["pathfinderObstruction"] | 0;    // 1
-
-//         self.food        = gridFromMap(H.SharedScript.resourceMaps.food);
-//         self.wood        = gridFromMap(H.SharedScript.resourceMaps.wood);
-//         self.stone       = gridFromMap(H.SharedScript.resourceMaps.stone);
-//         self.metal       = gridFromMap(H.SharedScript.resourceMaps.metal);
-//         self.territory   = gridFromMap(H.Bot.gameState.ai.territoryMap);
-//         self.obstruction = obstructions();
-
-//         self.attacks.divVal(H.Config.attackRelax);
-
-//         return Date.now() - t0;
-
-//       },
 //       analyzePoint: function(x, y){
 //         var data = self.obstruction.data;
 //         return (
@@ -878,217 +658,6 @@ HANNIBAL = (function(H){
 //         }
 
 //       },
-//       record: function(what, where, amplitude){
-
-//         deb("  GRDS: record: what: %s, where: %s, amp: %s", what, pritp(where), pritn(amplitude));
-
-//         var [x, y] = where;
-
-//         x = ~~(x/cellsize); y = ~~(y/cellsize);
-        
-//         if (what === "attacks"){
-//           self.attacks.data[x + y * width] += amplitude;
-
-//         } else if (what === "scouting") {
-//           self.scouting.data[x + y * width] += amplitude;
-
-//         }
-
-
-//       },
-
-//       log: function(){
-//         var t0 = Date.now();
-//         deb("  GRDS: logging ------------");
-//         H.each(grids, function(name){
-//           if (self[name]){
-//             self[name].log(name);
-//           } else {
-//             deb("  GRDS: grid %s doesn't exist", name);
-//           }
-//         });
-//         deb("  GRDS: logging %s msecs ------------", Date.now() - t0);
-//       },
-//       dump: function(prefix){
-//         H.each(grids, function(grid){
-//           var name = prefix ? prefix + "-" + grid : grid;
-//           if (self[grid]){dump(name, self[grid]);}
-//         });
-//       }
-
-//     });
-
-//     return self;
-
-
-//   }());
-
-//   H.Grid = function (width, height, bits){
-
-//     // subarray, set, move, length, byteOffset, byteLength, buffer
-
-//     this.width  = width  || 0; 
-//     this.height = height || 0;
-//     this.length = width * height;
-//     this.bits   = bits;
-//     this.data   = (
-//       this.bits ===  8 ? new Uint8ClampedArray(width * height) :
-//       this.bits === 32 ? new Uint32Array(width * height) : 
-//         new Uint8Array(width * height) //??
-//     );
-
-//   };
-
-//   // function(a, b, c, op){
-//   //   var body = "";
-//   //   body += "var i = " + a.length + ";";
-//   //   body += "while (i--) { c[i] = " + op + ";}";
-//   //   Function("a", "b", "c", body)(a, b, c);
-//   // }
-
-//   H.Grid.prototype = {
-//     constructor: H.Grid,
-//     dump: function(name, threshold){
-//       Engine.DumpImage(name || "default.png", this.data, this.width, this.height, threshold || this.maxVal);
-//     },
-//     log: function(name){
-//       var stats = {},i = this.length,data = this.data;
-//       while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
-//       deb("   GRD: log: %s min: %s, max: %s, stats: %s", name || ">", this.min(), this.max(), H.prettify(stats));
-//     },    
-//     max:     function(){var m=0,  g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
-//     min:     function(){var m=255,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
-//     // all destructive
-//     setVal:  function(val){var g=this.data,l=this.length;while(l--){g[l]  = val;}return this;},
-//     addVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] += val;}return this;}, //check Math.imul
-//     mulVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] *= val;}return this;},
-//     divVal:  function(val){var g=this.data,l=this.length;while(l--){g[l] /= val;}return this;},
-//     addGrid: function(grd){var g=this.data,l=this.length;while(l--){g[l] += grd[l];}return this;},
-//     copyData: function(){
-//       return (
-//         this.bits ===  8 ? new Uint8ClampedArray(this.data.buffer.slice()) : 
-//         this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : 
-//           new Uint8Array(this.data.buffer.slice())
-//       );
-//     },
-//     copy: function(){
-//       var cp = new H.Grid(this.width, this.height, this.bits);
-//       cp.data = (
-//         this.bits ===  8 ? new Uint8ClampedArray(this.data.buffer.slice()) : 
-//         this.bits === 32 ? new Uint32Array(this.data.buffer.slice()) : 
-//           new Uint8Array(this.data.buffer.slice())
-//       );
-//       return cp;
-//     },
-//     process: function(target, fn){
-
-//       var body = "", proc = fnBody(fn);
-      
-//       body += "var i = " + this.length + ";";
-//       body += "while (i--) { t[i] = " + proc + "}";
-
-//       Function("s", "t", body)(this.data, target.data);  
-
-//     },
-//     render: function (cvs, alpha=255, nozero=true){
-
-//       // greyscales grid in imagedata of canvas
-
-//       var
-//         i, p, c, image, target, source,
-//         len = width * width,
-//         ctx = cvs.getContext("2d");
-
-//       // alpha = alpha !== undefined ? alpha : 255;
-//       cvs.width = cvs.height = width;
-//       image  = ctx.getImageData(0, 0, width, width);
-//       target = image.data;
-//       source = this.data;
-
-//       for (i=0; i<len; i++){
-//         c = source[i];
-//         p = i * 4; 
-//         target[p] = target[p + 1] = target[p + 2] = c;
-//         target[p + 3] = nozero && !c ? 0 : alpha;
-//       }
-      
-//       ctx.putImageData(image, 0, 0);
-
-//     },
-//     mark: function(){},
-//     blur: function (radius){
-
-//       // http://blog.ivank.net/fastest-gaussian-blur.html
-
-//       var temp = [], target = new H.Grid(width, width, 8);
-//       boxBlur_4(this.data, temp, width, height, radius);
-//       target.data = new Uint8ClampedArray(temp);
-//       // return target; // stupid SM
-
-//       function boxBlur_4 (scl, tcl, w, h, r) {
-//           for(var i=0; i<scl.length; i++) {
-//             tcl[i] = scl[i];
-//           }
-//           boxBlurH_4(tcl, scl, w, h, r);
-//           boxBlurT_4(scl, tcl, w, h, r);
-//       }
-//       function boxBlurH_4 (scl, tcl, w, h, r) {
-
-//           var i, j, ti, li, ri, fv, lv, val, iarr = 1 / (r+r+1);
-
-//           for (i=0; i<h; i++) {
-
-//               ti = i*w; li = ti; ri = ti+r;
-//               fv = scl[ti]; lv = scl[ti+w-1]; val = (r+1)*fv;
-
-//               for(j=0; j<r; j++) {
-//                 val += scl[ti+j];
-//               }
-//               for(j=0  ; j<=r ; j++) { 
-//                 val += scl[ri++] - fv;   
-//                 tcl[ti++] = Math.round(val*iarr); 
-//               }
-//               for(j=r+1; j<w-r; j++) { 
-//                 val += scl[ri++] - scl[li++];   
-//                 tcl[ti++] = Math.round(val*iarr); 
-//               }
-//               for(j=w-r; j<w  ; j++) { 
-//                 val += lv        - scl[li++];   
-//                 tcl[ti++] = Math.round(val*iarr); 
-//               }
-//           }
-//       }
-//       function boxBlurT_4 (scl, tcl, w, h, r) {
-
-//           var i, j, ti, li, ri, fv, lv, val, iarr = 1 / (r+r+1);
-
-//           for(i=0; i<w; i++) {
-
-//               ti = i; li = ti; ri = ti+r*w;
-//               fv = scl[ti]; lv = scl[ti+w*(h-1)]; val = (r+1)*fv;
-
-//               for(j=0; j<r; j++) {
-//                 val += scl[ti+j*w];
-//               }
-//               for(j=0  ; j<=r ; j++) { 
-//                 val += scl[ri] - fv     ;  
-//                 tcl[ti] = Math.round(val*iarr);  ri+=w; ti+=w; 
-//               }
-//               for(j=r+1; j<h-r; j++) { 
-//                 val += scl[ri] - scl[li];  
-//                 tcl[ti] = Math.round(val*iarr);  li+=w; ri+=w; ti+=w; 
-//               }
-//               for(j=h-r; j<h  ; j++) { 
-//                 val += lv      - scl[li];  
-//                 tcl[ti] = Math.round(val*iarr);  li+=w; ti+=w; 
-//               }
-//           }
-
-//       }
-
-//       return target;
-
-//     },
 //     // searchSpiral: function (xs, ys, expression){
 
 //     //   // http://stackoverflow.com/questions/3330181/algorithm-for-finding-nearest-object-on-2d-grid
@@ -1118,23 +687,6 @@ HANNIBAL = (function(H){
 //     //   }
 
 //     // },
-//     findBestTile: function(radius, obstruction){
-      
-//       // Find the best non-obstructed tile
-      
-//       var bestIdx = 0,
-//           bestVal = -1,
-//           data = this.data,
-//           obst = obstruction.data,
-//           i = this.length;
-
-//       while (i--) {
-//         if (obst[i] > radius && data[i] > bestVal){
-//           bestVal = data[i];
-//           bestIdx = i;
-//       }} return [bestIdx, bestVal];
-
-//     },
 //     findLowestNeighbor: function(posX, posY) {
 
 //       // returns the point with the lowest radius in the immediate vicinity
@@ -1208,37 +760,6 @@ HANNIBAL = (function(H){
 
 //     },
 //     /**
-//      * Make each cell's 16-bit/8-bit value at least one greater than each of its
-//      * neighbours' values. (If the grid is initialised with 0s and 65535s or 255s, the
-//      * result of each cell is its Manhattan distance to the nearest 0.)
-//      */
-//     expand: function(data, x, y, w, min, max) {
-//       // lifted
-//       var g = data[x + y * w];
-//       if (g > min){data[x + y * w] = min;}
-//       else if (g < min){min = g;}
-//       if (++min > max){min = max;}
-//       return min;
-//     },
-//     expandInfluences: function(maximum) {
-
-//       var data = this.data, expand = this.expand,
-//           w = width, h = height,
-//           x = 0, y = 0, min = 0, max = maximum || 255;
-
-//       for ( y = 0; y < h; ++y) {
-//         min = max;
-//         for ( x = 0;     x <  w; ++x) {min = expand(data, x, y, w, min, max);}
-//         for ( x = w - 2; x >= 0; --x) {min = expand(data, x, y, w, min, max);}
-//       }
-//       for ( x = 0; x < w; ++x) {
-//         min = max;
-//         for ( y = 0;     y <  h; ++y) {min = expand(data, x, y, w, min, max);}
-//         for ( y = h - 2; y >= 0; --y) {min = expand(data, x, y, w, min, max);}
-//       }
-
-//     },
-//     // Returns an estimate of a tile accessibility. It checks neighboring cells over two levels.
 //     // returns a count. It's not integer. About 2 should be fairly accessible already.
 //     countConnected: function(startIndex, byLand){
 
@@ -1278,86 +799,6 @@ HANNIBAL = (function(H){
 //     }
 
 //   };
-
-//   function obstructions(){
-
-//     var ents, ent, 
-//         x, y, xx, yy, sq, radius, pointer, value, 
-//         passData = H.Grids.passability.data,
-//         obstGrid = new H.Grid(width, height, 8),
-//         obstData = obstGrid.data,
-//         i = obstGrid.length; 
-
-//     /* Generated map legend:
-//      0 is impassable
-//      200 is deep water (ie non-passable by land units)
-//      201 is shallow water (passable by land units and water units)
-//      255 is land (or extremely shallow water where ships can't go).
-//      40 is "tree".
-//      The following 41-49 range is "near a tree", with the second number showing how many trees this tile neighbors.
-//      30 is "geological component", such as a mine
-//     */
-
-//     while(i--){
-//       obstData[i] = (passData[i] & maskLand) ? 0 : 255;
-//       obstData[i] = (
-//         (!(passData[i] & maskWater) && obstData[i] === 0)   ? 200 :
-//         (!(passData[i] & maskWater) && obstData[i] === 255) ? 201 : 
-//           obstData[i]
-//       );
-//     }
-
-//     ents = Object.keys(H.Entities);
-//     i = ents.length;
-
-//     while (i--){
-
-//       ent = H.Entities[ents[i]];
-
-//       if (ent.hasClass("ForestPlant")) {
-
-//         [x, y] = H.Map.mapPosToGridPos(ent.position());
-
-//         if (obstData[x + y * width] !== 0){obstData[x + y * width] = 40;}
-        
-//         for (sq in square){
-
-//           xx = square[sq][0];
-//           yy = square[sq][1];
-          
-//           if (x+xx >= 0 && x+xx < width && y+yy >= 0 && y+yy < height) {
-//             pointer = (x+xx) + (y+yy) * width;
-//             value = obstData[pointer];
-//             obstData[pointer] = (
-//               (value === 255)            ? 41 : 
-//               (value < 49 && value > 40) ? value + 1 : value
-//             );
-//           }
-
-//         }        
-
-//       } else if (ent.hasClass("Geology")) {
-
-//         radius = ~~(ent.obstructionRadius() / 4);
-//         [x, y] = this.mapPosToGridPos(ent.position());
-
-//         // Unless it's impassable, mark as 30. This takes precedence over trees.
-//         obstData[x + y * width] = obstData[x + y * width] === 0 ? 0 : 30; //??
-
-//         for (xx = -radius; xx <= radius; xx++){
-//           for (yy = -radius; yy <= radius; yy++){
-//             if (x+xx >= 0 && x+xx < width && y+yy >= 0 && y+yy < height){
-//               obstData[(x+xx) + (y+yy) * width] = obstData[(x+xx) + (y+yy) * width] === 0 ? 0 : 30; //??
-//         }}}
-
-//       }
-//     }
-
-//     return obstGrid;
-
-//   }
-
-return H; }(HANNIBAL));
 
 // Object [unidentified] : ss.resourceMaps['food']  ---------------
 // Object  constructor: (function Map(sharedScript, originalMap, actualCopy){"use st

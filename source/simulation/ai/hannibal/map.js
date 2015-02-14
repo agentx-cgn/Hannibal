@@ -84,6 +84,7 @@ HANNIBAL = (function(H){
         "territory",          // API obj  w/ typed array   
         "passability",        // %
         "villages",           
+        "player",           
         "players",            // isEnemy
       ],
 
@@ -91,12 +92,14 @@ HANNIBAL = (function(H){
         "terrain",            // water, land, shore, etc, static
         "regionswater",       // connected water cells, static
         "regionsland",        // connected land cells, static
-        "buildable",          // dynamic, where buildings can be placed, = terrain - territory 
+        "buildable",          // dynamic, where buildings can be placed, = terrain - obstructions 
+        "restrictions",       // temporary, where buildings can be placed, = map - (own,enemy,tower) 
         "obstructions",       // temporary, buildable - buildings restrictions
-        "obstacles",          // where units can move, dynamic
-        "claims",             // reserved space in villages, dynamic
-        "danger",             // where attacks happened, w/ radius, dynamic
-        "scanner",            // used by scouts to mark explored area
+        "distances",          // temporary, distances map
+        "obstacles",          // dynamic, where units can move
+        "claims",             // dynamic, reserved space in villages, dynamic
+        "danger",             // dynamic, where attacks happened, w/ radius, dynamic
+        "scanner",            // dynamic, used by scouts to mark explored area
       ],
 
       length:        NaN,
@@ -211,7 +214,7 @@ HANNIBAL = (function(H){
 
       if (tick % this.config.map.DangerEventRelax === 0){
         // relax danger by half
-        this.danger.processValue(v => v >>> 1)
+        this.danger.filter(d => d >>> 1);
       }
 
       return Date.now() - t0;
@@ -460,14 +463,14 @@ HANNIBAL = (function(H){
         while (i--) {
           buil[i] = (
             terr[i] === 4                              &&      // land
-            ((tori[i] & TERRITORY_PLAYER_MASK) === id) &&      // own territory
+            // ((tori[i] & TERRITORY_PLAYER_MASK) === id) &&      // own territory
             !(pass[i] & mask)                                  // obstructions
           ) ? 32 : 0;
         }
 
         t1 = Date.now();
         // this.buildable.dump("T" + (this.ticks || 0), 255);
-        // this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
+        this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
 
       } else {
         // this.deb("   MAP: updateGrid: unknown: %s", name);
@@ -513,31 +516,65 @@ HANNIBAL = (function(H){
 
       }
 
+    }, templateTerritory: function(tpln){
 
-    }, templateTerritory: function(tpl){
+      // returns a 255|0 mask with allowed territory
 
-      // builds binary grid with allowed build cells
-      // own, ally, enemy, etc
+      var 
+        t0 = Date.now(),
+        i, player,
+        id = this.id,
+        template = this.templates[tpln],
+        isAlly   = this.player.isAlly,
+        isEnemy  = this.player.isEnemy,
+        teri = new H.LIB.Grid(this.context).import().initialize({label: "tplteri"}),
+        data = teri.data,
+
+        territories  = H.test(template, "BuildRestrictions.Territory").split(" "),
+        buildOwn     = H.contains(territories, "own"),
+        buildAlly    = H.contains(territories, "ally"),
+        buildNeutral = H.contains(territories, "neutral"),
+        buildEnemy   = H.contains(territories, "enemy");
 
 
-    }, templateObstructions: function(tpl){
+      i = teri.length; while(i--) {
+
+        player = (this.territory.data[i] & TERRITORY_PLAYER_MASK);
+
+        data[i] = (
+          (!buildOwn     && player === id)                      ||
+          (!buildAlly    && player !== id && isAlly[player])    ||
+          (!buildNeutral && player ===  0)                      ||
+          (!buildEnemy   && player !==  0 && isEnemy[player])
+        ) ? 0 : 255;
+
+      }
+
+      this.deb("   MAP: templateTerritory: %s msec, tpl: %s, terri: %s", 
+        Date.now() - t0,
+        tpln,
+        territories
+      );
+
+      return teri;
+
+    }, templateRestrictions: function(tpln){
 
       // copies buildable and puts buildrestrictions in, with 0
       // seperates e.g. fortresses from fortresses
-      // TOOD: needs neutral, enemy, etc
+      // TOOD: placementType
 
       var 
-        minDist, category, distance, coords,
-        template = this.templates[tpl];
+        t0 = Date.now(),
+        minDist, category, coords, 
+        template  = this.templates[tpln],
+        placement = H.test(template, "BuildRestrictions.PlacementType"),
+        distance  = H.test(template, "BuildRestrictions.Distance");
 
-      // mark land cells in own territory with 32
-      this.updateGrid("buildable"); 
-      // this.map.buildable.dump("0", 255);
+      // make a copy all white
+      this.restrictions = this.buildable.copy("restrictions").set(255);
 
-      // is based on buildable
-      this.obstructions = this.buildable.copy("obstructions");
-
-      if ((distance = H.test(template, "BuildRestrictions.Distance"))){
+      if (distance){
 
         minDist  = distance.MinDistance;
         category = distance.FromCategory;
@@ -551,15 +588,22 @@ HANNIBAL = (function(H){
            .forEach( node => {
             if (this.entities[node.id].buildCategory() === category){
               coords = this.mapPosToGridCoords(node.position);
-              // this.obstructions.fillCircle(node.position, minDist/this.cellsize, 0);
-              this.obstructions.processCircle(coords, minDist/this.cellsize, v => 0);
+              // set restricted to black
+              this.restrictions.processCircle(coords, minDist/this.cellsize, () => 0);
             }
           });
 
         }
       }
 
-      return this.obstructions;
+      this.deb("   MAP: templateRestrictions %s msec, tpl: %s, plce: %s, dist: %s", 
+        Date.now() - t0,
+        tpln,
+        placement,
+        distance
+      );
+
+      return this.restrictions;
 
 
     }, scan: function(pos, radius){

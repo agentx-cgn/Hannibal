@@ -127,21 +127,21 @@ HANNIBAL = (function(H){
     "random/brainland": {
         "2": [
           "launching 4 harvester",
-            // T.launch  ("g.harvester"),         
-            // T.launch  ("g.harvester"),         
-            // T.launch  ("g.harvester"),         
-            // T.launch  ("g.harvester"),         
+            T.launch  ("g.harvester"),         
+            T.launch  ("g.harvester"),         
+            T.launch  ("g.harvester"),         
+            T.launch  ("g.harvester"),         
           ], 
         "1": [
           "launching house builder",     // size, quantity
             T.builder ("house", 8,  4), 
-            // T.builder ("house", 4,  4),
-            // T.builder ("house", 4,  4),
-            // T.builder ("house", 4,  4),
+            T.builder ("house", 4,  4),
+            T.builder ("house", 4,  4),
+            T.builder ("house", 4,  4),
           ], 
         "3": [
           "launching other builder",
-            // T.builder ("barracks", 2,  1),
+            T.builder ("barracks", 2,  1),
           ], 
         },
 
