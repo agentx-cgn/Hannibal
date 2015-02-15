@@ -98,8 +98,11 @@ HANNIBAL = (function(H){
         "distances",          // temporary, distances map
         "obstacles",          // dynamic, where units can move
         "claims",             // dynamic, reserved space in villages, dynamic
+        "streets",            // dynamic, reserved space in villages, dynamic
         "danger",             // dynamic, where attacks happened, w/ radius, dynamic
         "scanner",            // dynamic, used by scouts to mark explored area
+        "white",              // fixed, used to as copy source
+        "black",              // fixed, used to as copy source
       ],
 
       length:        NaN,
@@ -388,6 +391,7 @@ HANNIBAL = (function(H){
       var 
         t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
         pass, terr, regl, regw, buil, tori, 
+        path1, path2, pos1, pos2,
         check, mask, counter = 0, id = this.context.id;
 
       if (name === "terrain"){
@@ -451,26 +455,36 @@ HANNIBAL = (function(H){
         // this.deb("   MAP: updated: regionswater, ms: %s, regions: %s", counter, t1 - t0);
 
 
-      } else if (name === "buildable") {
-
-        // own land terrain minus structures, trees
-        buil = this.buildable.data;
-        terr = this.terrain.data;
-        tori = this.territory.data;
-        pass = this.passability.data;
-        mask = 2; //this.context.gamestate.getPassabilityClassMask("foundationObstruction")
-
-        while (i--) {
-          buil[i] = (
-            terr[i] === 4                              &&      // land
-            // ((tori[i] & TERRITORY_PLAYER_MASK) === id) &&      // own territory
-            !(pass[i] & mask)                                  // obstructions
-          ) ? 32 : 0;
+      } else if (name === "white") {
+        while(i--){
+          this.white.data[i] = 255;
         }
 
-        t1 = Date.now();
-        // this.buildable.dump("T" + (this.ticks || 0), 255);
-        this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
+      } else if (name === "black") {
+        while(i--){
+          this.black.data[i] = 0;
+        }
+
+      // } else if (name === "buildable") {
+
+      //   // own land terrain minus structures, trees
+      //   buil = this.buildable.data;
+      //   terr = this.terrain.data;
+      //   tori = this.territory.data;
+      //   pass = this.passability.data;
+      //   mask = 2; //this.context.gamestate.getPassabilityClassMask("foundationObstruction")
+
+      //   while (i--) {
+      //     buil[i] = (
+      //       terr[i] === 4                              &&      // land
+      //       // ((tori[i] & TERRITORY_PLAYER_MASK) === id) &&      // own territory
+      //       !(pass[i] & mask)                                  // obstructions
+      //     ) ? 32 : 0;
+      //   }
+
+      //   t1 = Date.now();
+      //   // this.buildable.dump("T" + (this.ticks || 0), 255);
+      //   this.deb("   MAP: updated: buildable, ms: %s", t1 - t0);
 
       } else {
         // this.deb("   MAP: updateGrid: unknown: %s", name);
@@ -550,11 +564,11 @@ HANNIBAL = (function(H){
 
       }
 
-      this.deb("   MAP: templateTerritory: %s msec, tpl: %s, terri: %s", 
-        Date.now() - t0,
-        tpln,
-        territories
-      );
+      // this.deb("   MAP: templateTerritory: %s msec, tpl: %s, terri: %s", 
+      //   Date.now() - t0,
+      //   tpln,
+      //   territories
+      // );
 
       return teri;
 
@@ -571,8 +585,9 @@ HANNIBAL = (function(H){
         placement = H.test(template, "BuildRestrictions.PlacementType"),
         distance  = H.test(template, "BuildRestrictions.Distance");
 
-      // make a copy all white
-      this.restrictions = this.buildable.copy("restrictions").set(255);
+      // make a temporary copy all white
+      // this.restrictions = this.buildable.copy("restrictions").set(255);
+      this.restrictions = this.white.copy("restrictions").release();
 
       if (distance){
 
@@ -596,12 +611,12 @@ HANNIBAL = (function(H){
         }
       }
 
-      this.deb("   MAP: templateRestrictions %s msec, tpl: %s, plce: %s, dist: %s", 
-        Date.now() - t0,
-        tpln,
-        placement,
-        distance
-      );
+      // this.deb("   MAP: templateRestrictions %s msec, placement: %s, dist: %s | %s", 
+      //   Date.now() - t0,
+      //   placement,
+      //   distance,
+      //   tpln
+      // );
 
       return this.restrictions;
 

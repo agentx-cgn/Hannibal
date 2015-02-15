@@ -113,7 +113,7 @@ HANNIBAL = (function (H){
       var name = H.saniTemplateName(order.product.key);
 
       if (this.isToClaim(name)){
-        this.deb("  CLIM: got order for claimed structure: %s", name);
+        this.deb("  CLIM: #%s got order for claimed structure: %s", order.id, name);
 
 
       }
@@ -138,3 +138,26 @@ HANNIBAL = (function (H){
   });
 
 return H; }(HANNIBAL));  
+
+/*
+
+INITIALIZE
+  claim    1 agora
+  claim    1 centre space, ignoring agora
+  claim    8 fields (+ dropsite)
+  claim    6 tower (iber=4)
+  claim    1 temple (cart=2)
+  claim    1 market
+  claim  1-2 corrals
+  claim   10 houses (needs civ)
+  claim  1-4 Barracks (needs difficulty)
+
+INGAME
+    build structure, needs pos, offset, angle
+      isClaimed
+        y -> search claim
+        n -> 
+
+
+
+*/

@@ -51,10 +51,10 @@ HANNIBAL = (function(H){
         );
 
       if (msglevel <= deblevel){
-        if (msg.length > 300){
-          print("TRUNCATED ##############################\n")
+        if (msg.length > 3000){
+          print("\nTRUNCATED ##############################\n")
           print(id + "::" + msg.slice(0, 300));
-          print("TRUNCATED ##############################\n")
+          print("\nTRUNCATED ##############################\n\n")
         } else {
           print(id + "::" + msg);
         }

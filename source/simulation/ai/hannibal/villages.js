@@ -112,6 +112,7 @@ HANNIBAL = (function (H){
         this.centres = {};
         this.organizeVillages(); // set metadata.cc to nearest cc
         this.initializeMeta();
+        this.updateStreets();
       }
 
       return this;
@@ -325,9 +326,12 @@ HANNIBAL = (function (H){
 
     findLayout: function(order){
 
+      // random doesn't work with offset = -1
+
       var 
         posCentre = this.entities[order.cc].position(),
         template  = this.templates[order.product.key],
+        placement = H.test(template, "BuildRestrictions.PlacementType"),
         size = H.test(template, "Obstruction.Static"),
         r = Math.max(+size["@width"], +size["@depth"]),
 
@@ -337,39 +341,41 @@ HANNIBAL = (function (H){
         angles = {
           "random": (   ) => Math.random() * TAU,
           "north":  (   ) => -this.theta + PI2,
-          "centre": (pos) => -this.map.getTheta(posCentre, pos) - PI2,
+          "centre": (pos) => this.map.getTheta(posCentre, pos),
           "map":    (pos) => this.map.getTheta(this.map.center(), pos),
         },
 
-        civ  = this.player.civ,
         civs = {
           
           // smalls with offset 0, big with +1, all centre
           "*" : (ms, bs) => {
             var offset = (bs === "big" ? +1 : 0);
+            var angle = "centre";
             return {
               offset: () => offset,
-              angle : (pos) => angles.centre(pos)
+              angle : (pos) => angles[angle](pos),
+              info: H.format("%s/%s: %s %s %s", this.player.civ, civ, placement, angle, offset),
             };
           },
 
           // houses point north with off = -1, other centre
           "maur" : (ms, bs) => {
             var offset = (bs === "small" ? -1 : bs === "middle" ? +0 : +1);
+            var angle = offset === -1 ? "north" : "centre";
             return {
               offset: () => offset,
-              angle : (pos) => offset === -1 ? angles.north(pos) : angles.centre(pos)
+              angle : (pos) => offset === -1 ? angles[angle](pos) : angles[angle](pos),
+              info: H.format("%s/%s: %s %s %s", this.player.civ, civ, placement, angle, offset),
             };
           },
 
-        };
+        },
+        civ = civs[this.player.civ] ? this.player.civ : "*";
 
-      this.deb("  VILL: findLayout: civ: %s, bld: %s, map: %s", civ, bldsize, mapsize);
 
-      return ( civs[civ] ? 
-        civs[civ](mapsize, bldsize) :
-        civs["*"](mapsize, bldsize)
-      );
+      // this.deb("  VILL: findLayout: civ: %s, bld: %s, map: %s", civ, bldsize, mapsize);
+
+      return civs[civ](mapsize, bldsize);
 
     },
     findPosForOrder: function(order) {
@@ -381,9 +387,9 @@ HANNIBAL = (function (H){
       var 
         
         t0 = Date.now(),
-        index, value, position, 
+        value, position, index,
         fltFirst, fltFinal,
-        buildable, restrictions, territory, danger, distances, 
+        buildable, restrictions, territory, danger, distances, streets,
 
         pos      = [order.x, order.z],
         coords   = this.map.mapPosToGridCoords(pos),
@@ -416,6 +422,7 @@ HANNIBAL = (function (H){
 
       // masks (0 = unusable, 255 = good)
       danger       = this.map.danger;
+      streets      = this.map.streets;
       territory    = this.map.templateTerritory(tpln);
       restrictions = this.map.templateRestrictions(tpln);
 
@@ -426,41 +433,115 @@ HANNIBAL = (function (H){
         placement === "land-shore" ? v => v & maskShore || v & maskLand ? 0 : 255 :
           H.throw("findPosForOrder: unknown PlacementType: %s for %s", placement, tpln)
       );
-      fltFinal = (bd, di, da, rs, tt) => (bd === 255 ? di - da : 0) & rs & tt;
+      fltFinal = (bd, di, da, rs, tt, st) => (bd === 255 ? di - da : 0) & rs & tt & st;
 
       // crunching numbers
-      [index, value, position, buildable] = new H.LIB.Grid(this.context)
+      [buildable, value, position, index] = new H.LIB.Grid(this.context)
         .import()
         .release()
         .initialize({label: "buildable", data: H.lowerbyte(this.map.passability.data)})
         .filter(fltFirst)
         .distanceTransform()
         .filter(v => v <= radius ? 0 : 255)
-        .filter(distances, danger, territory, restrictions, fltFinal)
-        .maxIndex()
+        .filter(distances, danger, restrictions, territory, streets, fltFinal)
+        .maxValue()
       ;
 
       // building rotation depends on civ
       position.push(layout.angle(position));          
 
       // debug
-      // buildable.debIndex(index);
-      // buildable.dump("poso idx", 255);
-      this.deb("  VILL: #%s findPosForOrder %s msec, dis: %s, rad: %s, %s | %s %s", 
+      buildable.debIndex(index);
+      buildable.dump("poso idx", 255);
+
+      this.deb("  VILL: #%s findPosForOrder %s msec, dis: %s, radius: %s, layout: %s | %s", 
         order.id, 
         Date.now() - t0,
         256 - value,
         radius,
-        position.map(n => n.toFixed(1)).join("|"), 
-        placement,
+        // position.map(n => n.toFixed(1)).join("|"), 
+        layout.info,
         tpln
       );
 
       // everything above 0 is good
       return value > 0 ? position : null;
 
-    }    
+    },
+    updateStreets: function(){
 
+      /*  template_structure_civic_civil_centre.xml
+          <TerritoryInfluence><Root>true</Root><Radius>140</Radius>
+          <Footprint><Square width="32.0" depth="32.0"/>
+          <Attack><Ranged><MaxRange>72.0</MaxRange>        
+      */
+      var 
+        t0 = Date.now(), points = 48;
+        i, x, y, p, result, graph, start, end, node, index, 
+        heuristic = H.AI.AStar.heuristics.euclidian,
+        grid = this.map.black.copy("graph").release(),
+        [cx, cz] = this.entities[this.main].position(),
+        coords = this.map.mapPosToGridCoords([cx, cz]),
+        pathInner = points + "; translate " + cx + " " + cz + "; circle 40",
+        pathOuter = points + "; translate " + cx + " " + cz + "; circle 140",
+        innerCircle = new H.LIB.Path(this.context, pathInner).path,
+        outerCircle = new H.LIB.Path(this.context, pathOuter).path,
+
+        strs = this.map.streets.set(255).processCircle(coords, 10, () => 0),
+        terr = this.map.terrain.data,
+      //   tori = this.territory.data,
+        pass = this.map.passability.data,
+        mask = 2; //this.context.gamestate.getPassabilityClassMask("foundationObstruction")
+
+      // this.deb("  VILL: updateStreets: inner: %s", innerCircle);
+      // this.deb("  VILL: updateStreets: outer: %s", outerCircle);
+
+      // the grid encodes walls as 0, cost as 1
+      i = grid.length;
+      while (i--) {
+        grid.data[i] = (
+          terr[i] === 4        &&      // land
+          !(pass[i] & mask)            // obstructions
+        ) ? 1 : 0;
+      }
+
+      graph = new H.AI.GraphFromFunction(grid, i => grid.data[i]);
+
+      p = innerCircle.length; while(p--){
+
+        [x, y] = this.map.mapPosToGridCoords(innerCircle[p]);
+        start = graph.grid[x][y];
+        [x, y] = this.map.mapPosToGridCoords(outerCircle[p]);
+        end = graph.grid[x][y];
+
+        result = H.AI.AStar.search(graph, start, end, { 
+          closest:   true,
+          heuristic: heuristic,
+          algotweak: 3
+        });
+
+        i = result.path.length; while(i--){
+          node = result.path[i];
+          index = strs.coordsToIndex(node.x, node.y);
+          strs.data[index] -= 64;
+        }
+
+        // make graph reusable
+        graph.clear();
+
+      }
+
+
+      this.deb("  VILL: %s updateStreets: points: %s path.length: %s", 
+        Date.now() - t0, 
+        points,
+        result.path.length
+      );
+
+      strs.filter(v => v <= 128 ? 0 : 255);
+      strs.dump("after", 255);
+
+    }
   });
 
 return H; }(HANNIBAL));  

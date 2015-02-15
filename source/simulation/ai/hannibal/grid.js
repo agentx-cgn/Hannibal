@@ -42,13 +42,20 @@ HANNIBAL = (function(H){
   };
 
   H.LIB.Grid.prototype = H.mixin (
+
+  /* internals
+    */
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Grid,
     log: function(){
-      var stats = {},i = this.length,data = this.data;
-      while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
+      var stats = this.stats();
       this.deb("   GRD: %s, min: %s, max: %s, stats: %s", H.tab(this.label, 12), this.min(), this.max(), H.prettify(stats));
     },    
+    stats: function (){
+      var stats = {}, i = this.length, data = this.data;
+      while (i--){stats[data[i]] = stats[data[i]] ? stats[data[i]] +1 : 1;}
+      return stats;
+    },
     dump: function (comment, threshold){
       threshold = threshold || this.max() || 255;
       var filename = H.format("%s-%s-%s", this.label, comment || this.ticks, threshold);
@@ -144,7 +151,58 @@ HANNIBAL = (function(H){
       this.data = new Uint8ClampedArray(data);
       return this;
     },
-    
+
+  /* information, debug
+
+    */
+
+    indexToCoords: function(index){
+      return [index % this.size, ~~(index / this.size)];
+    },
+    coordsToIndex: function(x, z){
+      return x + z * this.size;
+    },
+    maxValue: function(){
+
+      var 
+        index = 0,
+        value = 0,
+        data  = this.data,
+        i = this.length;
+        
+      while (i--) {
+        if (data[i] > value){
+          value = data[i];
+          index = i;
+        }
+      } 
+
+      return [this, value, this.map.gridIndexToMapPos(index, this), index];
+
+    },    
+    debIndex: function(index){
+
+      // puts crossed lines on index for debugging
+
+      var 
+        x = this.size, 
+        z = this.size,
+        [cx, cz] = this.indexToCoords(index);
+
+      while(x--){this.data[this.coordsToIndex(x, cz)] = (x % 2) ? 255 : 0;}
+      while(z--){this.data[this.coordsToIndex(cx, z)] = (z % 2) ? 255 : 0;}
+
+    },
+
+  /* compute/alter grids
+
+    */
+
+    max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
+    min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
+    set:  function(val){var g=this.data,l=this.length;while(l--){g[l] = val;}return this;},
+    inv:  function(){var g=this.data,l=this.length;while(l--){g[l] = 255 - g[l];}return this;},
+
     process: function(fn){
 
       var 
@@ -160,7 +218,7 @@ HANNIBAL = (function(H){
         counter += 1;
       }
 
-      this.deb("   GRD: %s %s process: %s", this.label, Date.now() - t0, H.fnBody(fn));
+      // this.deb("   GRD: %s %s process: %s", this.label, Date.now() - t0, H.fnBody(fn));
 
       return this;
 
@@ -188,46 +246,19 @@ HANNIBAL = (function(H){
         while (i--) {data[i] = fn(data[i], datas[0][i], datas[1][i], datas[2][i]);}
       } else if (len === 4){
         while (i--) {data[i] = fn(data[i], datas[0][i], datas[1][i], datas[2][i], datas[3][i]);}
+      } else if (len === 5){
+        while (i--) {data[i] = fn(data[i], datas[0][i], datas[1][i], datas[2][i], datas[3][i], datas[4][i]);}
+      } else if (len === 6){
+        while (i--) {data[i] = fn(data[i], datas[0][i], datas[1][i], datas[2][i], datas[3][i], datas[4][i], datas[5][i]);}
+      } else {
+        H.throw("grid.filter: too many arguments");
       }
 
-      this.deb("   GRD: %s %s processGrids: %s", this.label, Date.now() - t0, H.fnBody(fn));
+      // this.deb("   GRD: %s %s filter: %s", this.label, Date.now() - t0, H.fnBody(fn));
 
       return this;
 
     },
-    debIndex: function(index){
-
-      // puts crossed lines on index for debugging
-
-      var 
-        x = this.size, 
-        z = this.size,
-        [cx, cz] = this.indexToCoords(index);
-
-      while(x--){this.data[this.coordsToIndex(x, cz)] = (x % 2) ? 255 : 0;}
-      while(z--){this.data[this.coordsToIndex(cx, z)] = (z % 2) ? 255 : 0;}
-
-    },
-    indexToCoords: function(index){
-      return [index % this.size, ~~(index / this.size)];
-    },
-    coordsToIndex: function(x, z){
-      return x + z * this.size;
-    },
-
-    /* 
-
-    */
-
-  /* compute/alter grids
-
-    */
-
-    max:  function(){var m=0,   g=this.data,l=this.length;while(l--){m=(g[l]>m)?g[l]:m;}return m;},
-    min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
-    set:  function(val){var g=this.data,l=this.length;while(l--){g[l] = val;}return this;},
-    inv:  function(){var g=this.data,l=this.length;while(l--){g[l] = 255 - g[l];}return this;},
-
     processCircle: function(coords, radius, fn){
 
       // fills a circle into grid with value
@@ -257,55 +288,16 @@ HANNIBAL = (function(H){
         }
       }
 
-      this.deb("   GRD: %s %s processCircle: radius: %s, %s", this.label, Date.now() - t0, radius, H.fnBody(fn));
+      // this.deb("   GRD: %s %s processCircle: radius: %s, %s", this.label, Date.now() - t0, radius, H.fnBody(fn));
 
       return this;
 
     }, 
+  
+  /* analysis
 
-    render: function (cvs, alpha=255, nozero=true){
+    */
 
-      // greyscales grid in imagedata of canvas
-
-      var
-        i, p, c, image, target, source,
-        len = this.length,
-        ctx = cvs.getContext("2d");
-
-      // alpha = alpha !== undefined ? alpha : 255;
-      cvs.width = cvs.height = this.width;
-      image  = ctx.getImageData(0, 0, this.width, this.height);
-      target = image.data;
-      source = this.data;
-
-      for (i=0; i<len; i++){
-        c = source[i];
-        p = i * 4; 
-        target[p] = target[p + 1] = target[p + 2] = c;
-        target[p + 3] = nozero && !c ? 0 : alpha;
-      }
-      
-      ctx.putImageData(image, 0, 0);
-
-    },
-    maxIndex: function(){
-
-      var 
-        index = 0,
-        value = 0,
-        data  = this.data,
-        i = this.length;
-        
-      while (i--) {
-        if (data[i] > value){
-          value = data[i];
-          index = i;
-        }
-      } 
-
-      return [index, value, this.map.gridIndexToMapPos(index, this), this];
-
-    },    
     transform: function(data, x, y, w, min, max) {
       // lifted
       var g = data[x + y * w];
@@ -337,7 +329,7 @@ HANNIBAL = (function(H){
         for ( y = s - 2; y >= 0; --y) {min = transform(data, x, y, s, min, max);}
       }
 
-      this.deb("   GRD: %s %s distanceTransform", this.label, Date.now() - t0);
+      // this.deb("   GRD: %s %s distanceTransform", this.label, Date.now() - t0);
 
       return this;
 
@@ -376,55 +368,55 @@ HANNIBAL = (function(H){
           // } 
       }}
 
-      this.deb("   GRD: %s %s setCoords", this.label, Date.now() - t0);
+      // this.deb("   GRD: %s %s setCoords", this.label, Date.now() - t0);
 
       return this;
 
 
     },
-    addInfluence: function(coords, strength, maxDist, type="linear") {
+    // addInfluence: function(coords, strength, maxDist, type="linear") {
 
-      maxDist = maxDist || this.size;
+    //   maxDist = maxDist || this.size;
 
-      var 
-        t0 = Date.now(),
-        r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
-        [cx, cy] = coords,
-        data = this.data, 
-        size = this.size,
-        maxDist2 = maxDist * maxDist,
-        x0 = ~~(Math.max(0, cx - maxDist)),
-        y0 = ~~(Math.max(0, cy - maxDist)),
-        x1 = ~~(Math.min(size -1, cx + maxDist)),  
-        y1 = ~~(Math.min(size -1, cy + maxDist)),
-        str = (
-          type === "linear"    ? (strength || maxDist) / maxDist  :
-          type === "quadratic" ? (strength || maxDist) / maxDist2 :
-          type === "constant"  ? strength :
-            H.throw("addInfluence: unknown type: '%s'", type)
-        ),
-        fnQuant = ( 
-          type === "linear"    ? (r) => str * (maxDist  - Math.sqrt(r)) :
-          type === "quadratic" ? (r) => str * (maxDist2 - r) : 
-          type === "constant"  ? ( ) => str :
-            H.throw("addInfluence: unknown type: '%s'", type)
-        );
+    //   var 
+    //     t0 = Date.now(),
+    //     r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
+    //     [cx, cy] = coords,
+    //     data = this.data, 
+    //     size = this.size,
+    //     maxDist2 = maxDist * maxDist,
+    //     x0 = ~~(Math.max(0, cx - maxDist)),
+    //     y0 = ~~(Math.max(0, cy - maxDist)),
+    //     x1 = ~~(Math.min(size -1, cx + maxDist)),  
+    //     y1 = ~~(Math.min(size -1, cy + maxDist)),
+    //     str = (
+    //       type === "linear"    ? (strength || maxDist) / maxDist  :
+    //       type === "quadratic" ? (strength || maxDist) / maxDist2 :
+    //       type === "constant"  ? strength :
+    //         H.throw("addInfluence: unknown type: '%s'", type)
+    //     ),
+    //     fnQuant = ( 
+    //       type === "linear"    ? (r) => str * (maxDist  - Math.sqrt(r)) :
+    //       type === "quadratic" ? (r) => str * (maxDist2 - r) : 
+    //       type === "constant"  ? ( ) => str :
+    //         H.throw("addInfluence: unknown type: '%s'", type)
+    //     );
 
-      for ( y = y0; y < y1; ++y) {
-        for ( x = x0; x < x1; ++x) {
-          dx = x - cx; 
-          dy = y - cy; 
-          r2 = dx * dx + dy * dy;
-          if (r2 < maxDist2) {
-            data[x + y * size] += fnQuant(r2);
-          }
-      }}
+    //   for ( y = y0; y < y1; ++y) {
+    //     for ( x = x0; x < x1; ++x) {
+    //       dx = x - cx; 
+    //       dy = y - cy; 
+    //       r2 = dx * dx + dy * dy;
+    //       if (r2 < maxDist2) {
+    //         data[x + y * size] += fnQuant(r2);
+    //       }
+    //   }}
 
-      this.deb("   GRD: %s %s addInfluence", this.label, Date.now() - t0);
+    //   // this.deb("   GRD: %s %s addInfluence", this.label, Date.now() - t0);
 
-      return this;
+    //   return this;
 
-    },    
+    // },    
     blur: function (radius){
 
       // http://blog.ivank.net/fastest-gaussian-blur.html
@@ -500,6 +492,36 @@ HANNIBAL = (function(H){
       return this;
 
     },
+
+  /* other
+
+    */
+    render: function (cvs, alpha=255, nozero=true){
+
+      // greyscales grid in imagedata of canvas
+
+      var
+        i, p, c, image, target, source,
+        len = this.length,
+        ctx = cvs.getContext("2d");
+
+      // alpha = alpha !== undefined ? alpha : 255;
+      cvs.width = cvs.height = this.width;
+      image  = ctx.getImageData(0, 0, this.width, this.height);
+      target = image.data;
+      source = this.data;
+
+      for (i=0; i<len; i++){
+        c = source[i];
+        p = i * 4; 
+        target[p] = target[p + 1] = target[p + 2] = c;
+        target[p + 3] = nozero && !c ? 0 : alpha;
+      }
+      
+      ctx.putImageData(image, 0, 0);
+
+    },
+
   });
 
 return H; }(HANNIBAL));

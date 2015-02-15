@@ -303,6 +303,10 @@ HANNIBAL = (function(H){
     this.closed  = false;
     this.parent  = null;
   };
+  H.AI.GraphNode.prototype = {
+    constructor: H.AI.GraphNode,
+    toString: function(){return H.format("[GraphNode %s %s]", this.x, this.y);},
+  };
 
   H.AI.GraphFromFunction = function(grid, fnWeight){
 

@@ -136,7 +136,7 @@ HANNIBAL = (function(H){
 
       var 
         p = this.path,
-        s = PI2 / p.length,
+        s = TAU / p.length,
         org  = this.center;
 
       loop(p.length, n => {
