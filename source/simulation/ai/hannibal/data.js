@@ -55,6 +55,7 @@ HANNIBAL = (function(H){
   ];
 
   H.Data.formations = [
+    "None", 
     "Scatter", 
     "Column Closed", 
     "Line Closed", 

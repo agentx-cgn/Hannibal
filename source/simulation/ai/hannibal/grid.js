@@ -28,6 +28,7 @@ HANNIBAL = (function(H){
         "map",         // width, height
         "cellsize",
         "effector",
+        "entities",
       ],
 
       label:  "",
@@ -156,6 +157,13 @@ HANNIBAL = (function(H){
 
     */
 
+    coordsWithinSize: function(x, y){
+      var size = this.size;
+      return [
+        x < 0 ? 0 : x > size -1 ? size -1 : x,
+        y < 0 ? 0 : y > size -1 ? size -1 : y,
+      ];
+    },
     indexToCoords: function(index){
       return [index % this.size, ~~(index / this.size)];
     },
@@ -202,6 +210,54 @@ HANNIBAL = (function(H){
     min:  function(){var m=1e10,g=this.data,l=this.length;while(l--){m=(g[l]<m)?g[l]:m;}return m;},
     set:  function(val){var g=this.data,l=this.length;while(l--){g[l] = val;}return this;},
     inv:  function(){var g=this.data,l=this.length;while(l--){g[l] = 255 - g[l];}return this;},
+
+    markPositions: function(poss, key="wb"){
+
+      var pattern = {
+        "bw" : [0, 255, 255, 255, 255], // middle, up, right, down, left
+        "wb" : [255, 0, 0, 0],
+      }[key];
+
+      poss.forEach(pos => {
+
+        var [x, z] = this.map.mapPosToGridCoords(pos, this);
+
+        this.data[this.coordsToIndex(x   , z   )] = pattern[0];
+        this.data[this.coordsToIndex(x +1, z   )] = pattern[1];
+        this.data[this.coordsToIndex(x   , z +1)] = pattern[2];
+        this.data[this.coordsToIndex(x -1, z   )] = pattern[3];
+        this.data[this.coordsToIndex(x   , z -1)] = pattern[4];
+
+      });
+
+      return this;
+
+    },
+    markEntities: function(ids, key="bw"){
+
+      var pattern = {
+        "bw" : [0, 255, 255, 255, 255],
+        "wb" : [255, 0, 0, 0],
+      }[key];
+
+      ids.forEach(id => {
+
+        var 
+          ent = this.entities[id],
+          pos = ent.position(),
+          [x, z] = this.map.mapPosToGridCoords(pos, this);
+
+        this.data[this.coordsToIndex(x   , z   )] = pattern[0];
+        this.data[this.coordsToIndex(x +1, z   )] = pattern[1];
+        this.data[this.coordsToIndex(x   , z +1)] = pattern[2];
+        this.data[this.coordsToIndex(x -1, z   )] = pattern[3];
+        this.data[this.coordsToIndex(x   , z -1)] = pattern[4];
+
+      });
+
+      return this;
+
+    },
 
     process: function(fn){
 

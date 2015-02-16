@@ -96,6 +96,7 @@ HANNIBAL = (function(H){
         "restrictions",       // temporary, where buildings can be placed, = map - (own,enemy,tower) 
         "obstructions",       // temporary, buildable - buildings restrictions
         "distances",          // temporary, distances map
+        "resources",          // temporary, filled from resource maps
         "obstacles",          // dynamic, where units can move
         "claims",             // dynamic, reserved space in villages, dynamic
         "streets",            // dynamic, reserved space in villages, dynamic
@@ -125,7 +126,7 @@ HANNIBAL = (function(H){
         this.gridsize, 
         this.length
       );
-      this.childs.forEach(child => this[child].log());
+      // this.childs.forEach(child => this[child].log());
 
       this.effector.dumparray("passability", this.passability.data, this.gridsize, this.gridsize, 255);    
       this.effector.dumparray("territory",   this.territory.data,   this.gridsize, this.gridsize, 255);    
@@ -221,6 +222,14 @@ HANNIBAL = (function(H){
       }
 
       return Date.now() - t0;
+
+  /* compute resource maps
+
+    */
+
+    }, getResource: function(generic) {
+
+      return this.resources.read(this.resourcemaps[generic]);
 
 
   /* simple map infos, calculations and converters

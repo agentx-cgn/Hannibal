@@ -42,15 +42,15 @@ HANNIBAL = (function(H){
       ],
 
       "1" : {
-        idx: 1, abbr: "vill", next: "", generic: "phase_village", 
+        idx: 1, abbr: "vill", next: "", generic: "phase_village", intern: "phase.village",
         alternates: ["vill", "phase.village", "phase_village"]},
 
       "2" : {
-        idx: 2, abbr: "town", next: "", generic: "phase_town",    
+        idx: 2, abbr: "town", next: "", generic: "phase_town", intern: "phase.town",    
         alternates: ["town", "phase.town", "phase_town"]},
 
       "3" : {
-        idx: 3, abbr: "city", next: "", generic: "phase_city",    
+        idx: 3, abbr: "city", next: "", generic: "phase_city", intern: "phase.city",    
         alternates: ["city", "phase.city", "phase_city"]},
         
       current: "",
@@ -118,8 +118,14 @@ HANNIBAL = (function(H){
           if (phase.idx > this.find(this.current).idx){
             this.context.phase = phase.idx;
             this.current = phase.abbr;
-            this.deb("PHASES: onAdvance: new phase: '%s'", this.current);
-            this.log();
+            phase = this.find(this.current);
+            this.events.fire("PhaseChanged", {
+              player: this.id,
+              data: {phase: phase.intern}
+            });
+            this.deb("PHASES: onAdvance: new phase: '%s/%s'", this.current, phase.intern);
+          } else {
+            // this.deb("PHASES: onAdvance: old phase: '%s'", this.current);
           }
         }
       });      
@@ -241,18 +247,10 @@ HANNIBAL = (function(H){
 
       this.civ = this.player.civ;
 
-      // this.deb("  TREE: init %s:", 
-      //   // H.attribs(this.context.gamestate.entities._entities)
-      //   H.attribs(this.context)
-      // );
-
-      // this.deb("ents: count: %s", H.count(this.entities));
-      // this.deb("ents: attribs: %s", H.attribs(this.entities));
-      
       H.each(this.entities, (id, entity) => {
         if (entity.owner() === this.id){
           templates.push(entity._templateName);
-          this.deb("  TREE: init: found: %s %s %s", entity.owner(), id, entity._templateName);
+          // this.deb("  TREE: init: found: %s %s %s", entity.owner(), id, entity._templateName);
         }
       });
 
@@ -702,7 +700,7 @@ HANNIBAL = (function(H){
 
       this.civ = this.player.civ; 
 
-      this.deb("  CULT: phases...");
+      // this.deb("  CULT: phases...");
 
       if (!this.phases){
         this.phases = new H.LIB.Phases(this.context)
@@ -710,7 +708,7 @@ HANNIBAL = (function(H){
           .initialize();
       }
 
-      this.deb("  CULT: tree...");
+      // this.deb("  CULT: tree...");
 
       if (!this.tree){
         this.tree = new H.LIB.Tree(this.context)
@@ -718,23 +716,23 @@ HANNIBAL = (function(H){
           .initialize();
       }
 
-      this.deb("  CULT: store...");
+      // this.deb("  CULT: store...");
 
       if (!this.store){
         this.store = new H.LIB.Store(this.context)
           .import()
           .initialize();
 
-        this.deb("  CULT: searchTemplates...");
+        // this.deb("  CULT: searchTemplates...");
         this.searchTemplates();          // extrcact classes, resources, etc from templates
 
-        this.deb("  CULT: loadNodes...");
+        // this.deb("  CULT: loadNodes...");
         this.loadNodes();                // turn templates to nodes
 
         this.deb("  CULT: loadEdges...");
         this.loadEdges();                // add edges
 
-        this.deb("  CULT: loadWallset...");
+        // this.deb("  CULT: loadWallset...");
         this.loadWallset();              // add wallset builder
 
         this.deb("  CULT: loadEntities...");
@@ -790,7 +788,7 @@ HANNIBAL = (function(H){
 
       // add wall pieces and their builder
       this.query(wallsetname + " BUILDBY")
-        .parameter({fmt: "meta", deb: 5, max: 10, cmt: "culture.loadWallset builder"})
+        // .parameter({fmt: "meta", deb: 5, max: 10, cmt: "culture.loadWallset builder"})
         .forEach( builder => {
 
           this.wallset.forEach( piece => {
@@ -878,9 +876,9 @@ HANNIBAL = (function(H){
         node = this.addNode(template.name, template.key, template.template);
       });
 
-      this.deb("  CULT: created %s nodes for units", H.tab(counterUnits, 4));
-      this.deb("  CULT: created %s nodes for structures", H.tab(counterStucs, 4));
-      this.deb("  CULT: created %s nodes for technologies", H.tab(counterTechs, 4));
+      // this.deb("  CULT: created %s nodes for units", H.tab(counterUnits, 4));
+      // this.deb("  CULT: created %s nodes for structures", H.tab(counterStucs, 4));
+      // this.deb("  CULT: created %s nodes for technologies", H.tab(counterTechs, 4));
 
     },
     searchTemplates: function(){

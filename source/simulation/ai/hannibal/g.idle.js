@@ -16,18 +16,20 @@ HANNIBAL = (function(H){
 
   H.extend(H.Groups, {
 
-    "g.dancer" : {
+    "g.idle" : {
 
       /* Behaviour: 
-        runs some digital dance moves to amuse the opponent
+        centers units at agora
+        works as buffer
+        has extra comm caps
       */
 
       // variables available in listener with *this*. All optional
 
       active:         true,           // ready to init/launch ...
-      description:    "dancer",       // text field for humans 
+      description:    "idle",         // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
-      interval:       2,              // call onInterval every x ticks
+      interval:       4,              // call onInterval every x ticks
 
       scripts: {
 
@@ -36,10 +38,10 @@ HANNIBAL = (function(H){
 
           var path, pos = w.group.position[0] + " " + w.group.position[1];
 
-          w.units       = ["exclusive", "food.grain GATHEREDBY"];
-          w.units.size  = 6;
+          w.units       = ["exclusive", "citizen CONTAIN"];
+          w.units.size  = 20;
 
-          path          = w.units.size + "; translate " + pos + "; translatep 0 50; circle 20";
+          path          = w.units.size + "; translatep 0 20; circle 10";
           w.path        = ["path", path];
           w.path.size   = w.units.size;
 
@@ -58,21 +60,21 @@ HANNIBAL = (function(H){
           // got path, request all units, exits
           w.path.on
             .member(w.item)
-            .units.do.request(w.units.size)
+            .units.do.request()
             .exit
           ;
 
-          // got a unit, send to path start
+          // have too much units, exits
+          w.units.on
+            .gt(w.units.count, w.units.size)
+            .release(w.item)
+            .exit
+          ;          
+
+          // got a unit, send to path
           w.units.on
             .member(w.item)
             .stance("passive")
-            .item.do.move(w.path.points("0"))
-          ;
-
-          //  got final unit, spread them over path
-          w.units.on
-            .member(w.item)
-            .match(w.units.count, w.units.size)
             .spread(w.path) 
           ;
 
@@ -83,18 +85,23 @@ HANNIBAL = (function(H){
 
           w.objectify("item", item);
 
-          // lost unit, request another
-          w.units
+          // keep minumum units, exits
+          w.units.on
             .member(w.item)
+            .lt(w.units.count, 5)
             .request()
-          ;
+            .exit
+          ;          
 
 
         // there are enemies and gaia
 
-        }, attack: function attack (w, item, enemy, type, damage){
+        }, attack: function attack (w, shooter, victim, type, damage){
 
-          w.deb("     G: attack.0: %s, %s, %s", w, item, enemy);
+          w.deb("     G: attack.0: %s, %s, %s", w, shooter, victim);
+
+          w.objectify("shooter", shooter);
+          w.objectify("victim",  victim);
 
 
         // de-garrison
@@ -113,22 +120,34 @@ HANNIBAL = (function(H){
 
         // defined by this.interval
 
-        }, interval: function interval (w, tick, secs){
+        }, interval: function interval (w, secs, ticks){
 
-          w.deb("     G: interval: %s, %s secs", w, secs);
+          w.deb("     G: interval: %s, %s secs", this, secs);
 
           //  if complete and idle, change path and spread
+          
           w.units.on
+            .match(ticks % 4, 0)
             .doing("idle")
             .match(w.units.count, w.units.size)
-            .path.do.modify("rotate 60")
-            .units.do.spread(w.path)
+            .stance("passive")
+            .spread(w.path)
+            .path.do.modify("rotate 120")
+          ;
+
+          w.units.on
+            .match(ticks % 4, 2)
+            .doing("idle")
+            .match(w.units.count, w.units.size)
+            .stance("passive")
+            .spread(w.path)
+            .path.do.modify("rotate 20")
           ;
 
         }
 
 
-      } // end listener
+      } // end scripts
 
     }
 

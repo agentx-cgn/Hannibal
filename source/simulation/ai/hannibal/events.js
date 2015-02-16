@@ -75,6 +75,8 @@ HANNIBAL = (function(H){
         "EntityAttacked",
         "UnitDestroyed",
         "StructureDestroyed",
+        "ResourceDestroyed",
+        "PhaseChanged",        // fired by Phases
         // "ResourceFound",
       ],
 
@@ -461,14 +463,26 @@ HANNIBAL = (function(H){
 
       // this.deb("   EVT: got attacked: %s", uneval(e));
 
-      if (this.entities[e.target]){
+      if (
+        this.entities[e.target]   && 
+        this.entities[e.attacker] && 
+         (this.entities[e.target].owner()   === this.id   || 
+          this.entities[e.attacker].owner() === this.id
+        )){
 
         this.fire("EntityAttacked", {
-          player: this.entities[e.target].owner(),
-          id:     e.target,
-          id2:    e.attacker,
+          player: this.id,
+          id:     e.attacker,
+          id2:    e.target,
           data:   {damage: e.damage, type: e.type},
         });
+
+      } else {
+
+        this.deb("   EVT: attacked suppressed: ids: %s, %s",
+          this.entities[e.target]   ? this.entities[e.target].owner()   : "unknown owner" ,
+          this.entities[e.attacker] ? this.entities[e.attacker].owner() : "unknown owner" 
+        );
 
       }
 
@@ -508,8 +522,9 @@ HANNIBAL = (function(H){
       }
 
       type = (
-        e.entityObj.hasClass("Structure") ? "Structure" :
-        e.entityObj.hasClass("Unit")      ? "Unit"      :
+        e.entityObj.hasClass("Structure")    ? "Structure" :
+        e.entityObj.hasClass("Unit")         ? "Unit"      :
+        e.entityObj.hasClass("ForestPlant")  ? "Resource"  :
           "unknown"
       );
 
@@ -527,7 +542,7 @@ HANNIBAL = (function(H){
 
       } else {
         // ForestPlant, probably more
-        this.deb("WARN : EVENTS: Destroy NOT Structure OR UNIT: %s", e.entityObj.classes());
+        this.deb("WARN : EVENTS: Destroy NOT Structure NOR Unit NOR Resource: %s", e.entityObj.classes());
         return;
 
       }

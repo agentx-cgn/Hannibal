@@ -99,8 +99,8 @@ HANNIBAL = (function(H){
     quit:  function(){
       this.execute({type: "quit"});
     },
-    chat:  function(msg){
-      this.execute({type: "chat", message: msg});
+    chat:  function(){
+      this.execute({type: "chat", message: H.format.apply(null, arguments)});
     },
     
     format: function(who, what){

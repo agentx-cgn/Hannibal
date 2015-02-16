@@ -47,7 +47,7 @@ HANNIBAL = (function(H){
 
       scripts: {
 
-        launch: function launch (w, config /* supply, size */){
+        launch: function launch (w, config /* supply, size, quantity */){
 
           var supply = config.supply;
 
@@ -74,6 +74,7 @@ HANNIBAL = (function(H){
           );
 
           w.resources.size = (
+            config.quantity         ? config.quantity : 
             supply === "metal"      ?  1  :
             supply === "stone"      ?  1  :
             supply === "wood"       ?  10 :
@@ -83,6 +84,7 @@ HANNIBAL = (function(H){
           );
 
           w.units.size = (
+            config.size             ? config.size : 
             supply === "metal"      ?  10 :
             supply === "stone"      ?  10 :
             supply === "wood"       ?  10 :
@@ -119,6 +121,13 @@ HANNIBAL = (function(H){
             .units.do.request()
             .exit
           ;
+
+          // have too much units, exits
+          w.units.on
+            .gt(w.units.count, w.units.size)
+            .release(w.item)
+            .exit
+          ;          
 
           // got initial unit, request dropsite
           w.units.on
@@ -190,9 +199,16 @@ HANNIBAL = (function(H){
           w.deb("     G: %s radio %s, %s", this, msg);
 
 
-        }, interval:  function interval(w, tick, secs) {
+        }, interval:  function interval(w, secs, tick) {
 
           w.deb("     G: interval: %s, %s secs", this, secs);
+
+          // test, transfer units, exits
+          w.units.on
+            .transfer("g.idle")
+            .echo("DID IDLE")
+            .exit
+          ;
 
           // run out of resources, request more, exits
           w.resources.on

@@ -43,6 +43,11 @@ HANNIBAL = (function(H){
   };
 
   H.LIB.Groups.prototype = H.mixin (
+  
+  /*  Internals
+  
+    */  
+
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Groups,
     log: function(){
@@ -123,7 +128,7 @@ HANNIBAL = (function(H){
 
 
     },
-    tick: function(tick, secs){
+    tick: function(secs, ticks){
 
       // delegates down to all instances of all groups
       
@@ -131,101 +136,17 @@ HANNIBAL = (function(H){
       
       this.instances.forEach(instance => {
         interval = ~~instance.interval; 
-        if (interval > 0 && (tick % interval === 0) && instance.scripts.interval){ 
-          this.callWorld(instance, "interval", [secs, tick]);
+        if (interval > 0 && (ticks % interval === 0) && instance.scripts.interval){ 
+          this.callWorld(instance, "interval", [secs, ticks]);
+        } else {
+          // this.deb("  GRPS: @%s did not tick: %s with %s", ticks, instance, interval);
         }
       });
 
       return Date.now() - t0;
 
     },
-    callWorld: function(instance, scriptname, params){
 
-      // calls a script in this dsl world
-      // assuming nouns and verbs are all set
-
-      this.dsl.runScript(instance.world, instance, instance.scripts[scriptname], params);
-
-    },
-    // objectify: function(instance, name, resources){
-
-    //   // this.deb("  GRPS: objectify %s %s %s", instance, name, resources);
-
-    // },
-    nounify: function(world, instance, noun){
-
-      // in a script world is asked to register a noun
-      // dsl callbacks handler with actor/instance and noun
-
-      // this.deb("  GRPS: nounify %s %s, def: %s, size: %s", instance, noun, world[noun], world[noun].size);
-
-      if (instance === world[noun]){
-        // special case group !== asset
-        return instance;
-
-      } else {
-        return this.createAsset({
-          instance:   instance,
-          property:   noun,
-          definition: world[noun],
-          size:       world[noun].size,
-        });
-      }
-
-    },
-    getverbs: function () {
-
-      var path;
-
-      // nouns and attributes are listed in corpus
-
-      return {
-
-        request:   (act, sub, obj, n)      => this.request(act, n || 1, sub.host, act.position),
-        move:      (act, sub, obj, path)   => this.effector.move(sub.list, path),
-        spread:    (act, sub, obj, path)   => this.effector.spread(sub.list, obj.list),
-        gather:    (act, sub, obj)         => this.effector.gather(sub.list, obj.list),
-        stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
-        format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
-        attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
-        dissolve:  (act, sub)              => this.dissolve(sub.host),
-        shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
-        doing:     (act, sub, obj, filter) => sub.list = this.doing(sub.list, filter),
-        repair:    (act, sub, obj)         => {
-
-          // TODO: skip buildings with health > 90%
-          this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
-          this.effector.repair(sub.list, obj.list);
-
-        },
-        shift:     (act, sub, obj, n)         => {
-          sub.list = H.rotate(sub.list, n || 1);
-          sub.host.resources = H.rotate(sub.host.resources, n || 1);
-        },
-        modify:    (act, sub, obj, definition) => {
-          path = new H.LIB.Path(this.context, sub.list).modify(definition).path;
-          sub.host.resources = path;
-          sub.update();
-        },
-        release: (act, sub, obj, item) => {
-          // release single entity of asset
-          sub.host.releaseEntity(obj.list[0]);
-          this.deb("  GRPS: release: act: %s, sub: %s, obj: %s, item: %s", act, sub, obj, item);
-        },
-        relocate:  (act, sub, obj, path)   => {
-          if (Array.isArray(path[0])){
-            // pick last entry
-            sub.host.position = path[path.length -1];
-          } else {
-            // pick position
-            sub.host.position = path;
-          }
-          this.deb("  GRPS: relocate: act: %s, sub: %s, obj: %s, item: %s", act, sub, obj, uneval(path));
-        },
-
-      };
-
-    },
     launchOperators: function () {
 
       var opname;
@@ -261,9 +182,24 @@ HANNIBAL = (function(H){
       });
 
     },    
-    // findGroups: function (fn){
-    //   return this.instances.filter(fn);
-    // },
+    findGroup: function (fn){
+
+      var i, il = this.instances.length;
+
+      for (i=0; i<il; i++){
+        if (fn(this.instances[i])){
+          return this.instances[i];
+        }
+      }
+      H.throw("WARN  : no group found in instances with: %s", fn);
+      return undefined;
+
+    },
+
+  /* deals with assets
+
+    */
+
     findAsset: function (idOrFn){
 
       // this.deb("findAsset: %s", uneval(idOrFn));
@@ -330,6 +266,7 @@ HANNIBAL = (function(H){
       // this.deb("  GRPS: createAsset: %s, res: %s", asset, uneval(asset.resources));
       
       return asset;
+
     },   
     getAssetVerb: function (definition){
 
@@ -390,6 +327,121 @@ HANNIBAL = (function(H){
       return hcq;
 
     },     
+
+  /* deals with the world
+
+    */
+
+    callWorld: function(instance, scriptname, params){
+
+      // calls a script in this dsl world
+      // assuming nouns and verbs are all set
+
+      this.dsl.runScript(instance.world, instance, instance.scripts[scriptname], params);
+
+    },
+    nounify: function(world, instance, noun){
+
+      // in a script world is asked to register a noun
+      // dsl callbacks handler with actor/instance and noun
+
+      // this.deb("  GRPS: nounify %s %s, def: %s, size: %s", instance, noun, world[noun], world[noun].size);
+
+      if (instance === world[noun]){
+        // special case group !== asset
+        return instance;
+
+      } else {
+        return this.createAsset({
+          instance:   instance,
+          property:   noun,
+          definition: world[noun],
+          size:       world[noun].size,
+        });
+      }
+
+    },
+
+  /* world verbs
+
+    */
+
+    getverbs: function () {
+
+      var path, group;
+
+      // nouns and attributes are listed in corpus
+
+      return {
+
+        request:   (act, sub, obj, n)      => this.request(act, n || 1, sub.host, act.position),
+        move:      (act, sub, obj, path)   => this.effector.move(sub.list, path),
+        spread:    (act, sub, obj, path)   => this.effector.spread(sub.list, obj.list),
+        gather:    (act, sub, obj)         => this.effector.gather(sub.list, obj.list),
+        stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
+        format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
+        attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
+        dissolve:  (act, sub)              => this.dissolve(sub.host),
+        shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
+        doing:     (act, sub, obj, filter) => sub.list = this.doing(sub.list, filter),
+        repair:    (act, sub, obj)         => {
+
+          // TODO: skip buildings with health > 90%
+          this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
+          this.effector.repair(sub.list, obj.list);
+
+        },
+        shift:     (act, sub, obj, n)         => {
+          sub.list = H.rotate(sub.list, n || 1);
+          sub.host.resources = H.rotate(sub.host.resources, n || 1);
+        },
+        modify:    (act, sub, obj, definition) => {
+          path = new H.LIB.Path(this.context, sub.list).modify(definition).path;
+          sub.host.resources = path;
+          sub.update();
+        },
+        release: (act, sub, obj, item) => {
+          // release single entity of asset
+          sub.host.releaseEntity(obj.list[0]);
+          this.deb("  GRPS: release: act: %s, sub: %s, obj: %s, item: %s", act, sub, obj, item);
+        },
+        relocate:  (act, sub, obj, path)   => {
+          if (Array.isArray(path[0])){
+            // pick last entry
+            sub.host.position = path[path.length -1];
+          } else {
+            // pick position
+            sub.host.position = path;
+          }
+          this.deb("  GRPS: relocate: act: %s, sub: %s, obj: %s, item: %s", act, sub, obj, uneval(path));
+        },
+        transfer:  (act, sub, obj, groupname)   => {
+          if ((group = this.findGroup(g => g.groupname === groupname))){
+            this.transfer(act, sub, group);
+          } else {
+            this.deb("  GRPS: transfer: unknown/not launched group: '%s'", groupname);
+          }
+        },
+
+      };
+
+    },
+    transfer: function(source, asset, target){
+
+      this.deb("  GRPS: transfer: s: %s, a: %s, t: %s", source, asset, target);
+
+      // dslItem = {
+      //   name:        "item",
+      //   resources:   ids, 
+      //   ispath:      tpln.contains("path"),      // mark for world.member
+      //   isresource:  tpln.contains("resources"), // mark for world.member
+      //   foundation:  tpln.contains("foundation"),
+      //   toString :   () => H.format("[dslobject item[%s]]", id)
+      // };
+
+      // this.groups.callWorld(this.instance, "assign", [dslItem]);
+
+    },
     dissolve: function(instance){
 
       this.deb("  GRPS: dissolving: %s", instance);
@@ -472,6 +524,7 @@ HANNIBAL = (function(H){
 
     },
     claim: function( /* instance */ ){},
+
     request: function(instance, amount, asset, position){
       
       if (!(instance && amount && asset.id && position.length === 2)){
@@ -496,9 +549,13 @@ HANNIBAL = (function(H){
 
     },
 
+  /* launch
+
+    */
+
     launch: function(config){
 
-      this.deb("  GRPS: launch, %s", uneval(config));
+      // this.deb("  GRPS: launch, %s", uneval(config));
 
       // Object Factory
 

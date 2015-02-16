@@ -50,6 +50,7 @@ HANNIBAL = (function(H){
       "military",    // attack groups and support buildings
       "diplomacy",   // 
       "brain",       // keep information uptodate
+      "scripter",    // boot up groups
       // "bot",      // make decisions
     ];
 
@@ -279,6 +280,8 @@ HANNIBAL = (function(H){
         this.techtemplates      = sharedScript._techTemplates;
         this.player             = sharedScript.playersData[this.id];
         this.players            = sharedScript.playersData;
+        this.resourcemaps       = sharedScript.resourceMaps;
+        
         // this.metadata           = ss._entityMetadata[this.id];
 
         // H.logObject(ss.playersData[this.id], "ss.playersData[this.id]");

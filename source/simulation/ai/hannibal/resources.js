@@ -39,6 +39,7 @@ HANNIBAL = (function(H){
       klass:    "resource",
       found:    false,
       consumed: false,
+      claimed:  false,
     }, data);
 
     if (!this.entities || !this.map){
@@ -46,8 +47,6 @@ HANNIBAL = (function(H){
     }
 
     this.deb = H.deb.bind(null, pid);
-
-    // this.deb("   RES: id: '%s'", uneval(this.id));
 
   }
 
@@ -67,6 +66,7 @@ HANNIBAL = (function(H){
         id: this.id,
         found: this.found,
         consumed: this.consumed,
+        claimed:  this.claimed,
       };
     },
     initialize: function(){
@@ -112,9 +112,11 @@ HANNIBAL = (function(H){
 
       imports:  [
         "map",
+        "events",
         "config",
         "groups",
         "entities",
+        "resourcemaps",
       ],
 
       resources: null,
@@ -151,6 +153,11 @@ HANNIBAL = (function(H){
   };
 
   H.LIB.Resources.prototype = H.mixin (
+  
+  /* Internals
+
+    */
+  
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Resources,
     log: function(){
@@ -172,7 +179,6 @@ HANNIBAL = (function(H){
         type = H.tab(generic + "." + specific, 13);
         this.deb("     R: %s: %s", type, msg);
       });
-
     },
     serialize: function(){
       var data = {};
@@ -198,6 +204,31 @@ HANNIBAL = (function(H){
           })).initialize();
         });
       }
+    },
+    activate: function(){
+
+      var found = false;
+
+      this.events.on("ResourceDestroyed", msg => {
+
+        found = false;
+        
+        this.eachAll((generic, specific, stats, id, res) => {
+          if (msg.id === id){
+            this.deb("  RESS: got ResourceDestroyed, id %s found, %s.%s", msg.id, generic, specific);
+            found = true;
+            res.found = true;
+            res.consumed = true;
+          }
+        });
+
+        if (!found){
+          this.deb("  RESS: got ResourceDestroyed, id %s not found", msg.id);
+        }
+
+      });
+
+
     },
     initialize: function(){
 
@@ -255,19 +286,52 @@ HANNIBAL = (function(H){
       // deb("     R: found %s, %s msecs", counter, Date.now() - t0);
 
     },
-    activate: function(){},
+
+    // tick: function(ticks, secs){
+
+    //   var t0 = Date.now();
+    //   this.ticks = ticks;
+    //   this.secs  = secs;
+    //   return Date.now() - t0;
+
+    // },
+
+  /* Find, nearest
+  
+    */
     find: function(order){
 
       // return array of resource ids, sorted
       // ,amount,cc,location,verb,hcq,source,shared,id,processing,remaining,product,x,z,nodes
 
       var 
-        asset  = this.groups.findAsset(asset => asset.id === order.source),
-        result = this.nearest(order.location, order.hcq)
-          .slice(0, order.amount)
-          .map(res => res.id);
+        result, asset   = this.groups.findAsset(asset => asset.id === order.source),
+        generic = order.hcq.split(".")[0];
+        
+      this.deb("  RESS: FIND.in: %s of %s, near: %s, from: %s", 
+        order.amount, 
+        order.hcq, 
+        order.location.map(p => p.toFixed(1)), 
+        asset
+      );
 
-      this.deb("  RESS: find: %s of %s, near loc: %s, from: %s || result: [%s]", 
+      result = this
+        .nearest(order.location, order.hcq)
+        .slice(0, order.amount)
+      ;
+      result.forEach(res => res.claimed = true);
+      result = result.map(res => res.id);
+
+      if (true && this.resourcemaps[generic]){
+          this.map.resources
+            .read("resources", this.resourcemaps[generic].map)
+            .markEntities(result)
+            .markPositions([order.location])
+            .dump(this.context.tick + "-" + generic)
+          ;
+      }
+
+      this.deb("  RESS: FIND.out: %s of %s, near loc: %s, from: %s || result: [%s]", 
         order.amount, 
         order.hcq, 
         order.location, 
@@ -277,96 +341,6 @@ HANNIBAL = (function(H){
 
       return result;
 
-    },
-    availability: function( /* arguments */ ){
-
-        var 
-          types = H.toArray(arguments), 
-          res = {food: 0, wood: 0, stone: 0, metal: 0};
-
-        types.forEach(type => this.eachType(type, (generic, specific, id, resource) => {
-          resource.update();
-          if (resource.found){
-            if (generic === "treasure"){
-              res[specific] += resource.supply;              
-            } else {
-              res[generic] += resource.supply;
-            }
-          }
-        }));
-
-        return res;
-
-    },
-    eachType: function(type, fn){
-
-      var 
-        types     = type.split("."),
-        generic   = types[0],
-        specific  = types[1] || "",
-        resources = this.resources;
-
-      if (resources[generic] && specific === ""){
-
-        H.each(resources[generic], (specific, specentry) => {
-          H.each(specentry, (id, resource) => {
-            if (id !== "stats"){
-              fn(generic, specific, id, resource);
-            }
-          });
-        });
-
-      } else if (resources[generic][specific]){
-
-        H.each(resources[generic][specific], (id, resource) => {
-          if (id !== "stats"){
-            fn(generic, specific, id, resource);
-          }
-        });
-
-      } else {
-        this.deb("ERROR : res.each: type: '%s' unknown", type);
-
-      }
-
-    },
-    eachAll: function(fn){
-
-      H.each(this.resources, (generic, genentry) => {
-        H.each(genentry, (specific, specentry) => {
-          H.each(specentry, (id, resource) => {
-            if (id !== "stats"){
-              fn(generic, specific, specentry.stats, id, resource);
-            }
-          });
-        });
-      });
-
-    },
-    eachStats: function(fn){
-
-      H.each(this.resources, (generic, genentry) => {
-        H.each(genentry, (specific, specentry) => {
-          fn(generic, specific, specentry.stats);
-        });
-      });
-
-    },
-    consume: function(ids){ //TODO
-      this.eachAll( (generic, specific, stats, id, res) => {
-        if (H.contains(ids, id)){
-          res.consumed = true;
-          stats.consumed += res.supply;
-          stats.depleted += 1;
-        }
-      });
-    },
-    markFound: function(pos, radius){ //TODO: slow
-      this.eachAll( (generic, specific, stats, id, res) => {
-        if (this.map.distance(pos, res.position) < radius){
-          res.found = true;
-        }            
-      });
     },
     nearest: function(pos, type){
 
@@ -396,7 +370,7 @@ HANNIBAL = (function(H){
         case "food.fish":  // untested
           this.eachType(type, (generic, specific, id, res) => {
             if (this.entities[id]){
-              if (res.found && !res.consumed){
+              if (res.found && !res.consumed && !res.claimed ){
                 resources.push(res);
               }
             } else { res.consumed = true; }
@@ -522,7 +496,106 @@ HANNIBAL = (function(H){
 
       return resources;
 
-    },      
+    },     
+
+  /* Helper
+  
+    */
+
+    availability: function( /* arguments */ ){
+
+        var 
+          types = H.toArray(arguments), 
+          res = {food: 0, wood: 0, stone: 0, metal: 0};
+
+        types.forEach(type => this.eachType(type, (generic, specific, id, resource) => {
+          resource.update();
+          if (resource.found){
+            if (generic === "treasure"){
+              res[specific] += resource.supply;              
+            } else {
+              res[generic] += resource.supply;
+            }
+          }
+        }));
+
+        return res;
+
+    },
+    eachType: function(type, fn){
+
+      var 
+        types     = type.split("."),
+        generic   = types[0],
+        specific  = types[1] || "",
+        resources = this.resources;
+
+      if (resources[generic] && specific === ""){
+
+        H.each(resources[generic], (specific, specentry) => {
+          H.each(specentry, (id, resource) => {
+            if (id !== "stats"){
+              fn(generic, specific, id, resource);
+            }
+          });
+        });
+
+      } else if (resources[generic][specific]){
+
+        H.each(resources[generic][specific], (id, resource) => {
+          if (id !== "stats"){
+            fn(generic, specific, id, resource);
+          }
+        });
+
+      } else {
+        this.deb("ERROR : res.each: type: '%s' unknown", type);
+
+      }
+
+    },
+    eachAll: function(fn){
+
+      H.each(this.resources, (generic, genentry) => {
+        H.each(genentry, (specific, specentry) => {
+          H.each(specentry, (id, resource) => {
+            if (id !== "stats"){
+              fn(generic, specific, specentry.stats, id, resource);
+            }
+          });
+        });
+      });
+
+    },
+    eachStats: function(fn){
+
+      H.each(this.resources, (generic, genentry) => {
+        H.each(genentry, (specific, specentry) => {
+          fn(generic, specific, specentry.stats);
+        });
+      });
+
+    },
+    consume: function(ids){ //TODO
+
+      this.eachAll( (generic, specific, stats, id, res) => {
+        if (H.contains(ids, id)){
+          res.consumed = true;
+          stats.consumed += res.supply;
+          stats.depleted += 1;
+        }
+      });
+
+    },
+    markFound: function(pos, radius){ //TODO: slow
+
+      this.eachAll( (generic, specific, stats, id, res) => {
+        if (this.map.distance(pos, res.position) < radius){
+          res.found = true;
+        }            
+      });
+
+    },
   
   });
 

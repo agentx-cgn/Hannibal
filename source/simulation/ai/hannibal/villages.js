@@ -124,6 +124,10 @@ HANNIBAL = (function (H){
         return Math.min(20, ~~(H.test(this.templates[tpl], "Cost.BuildTime") / 20) +1);
       };
 
+      this.events.on("PhaseChanged", msg => {
+        this.updateStreets();
+      });
+
       this.events.on("ConstructionFinished", msg => {
         if (this.isShared(msg.data.classes)){
           this.entities[msg.id].opmode = "shared";
@@ -341,16 +345,17 @@ HANNIBAL = (function (H){
         angles = {
           "random": (   ) => Math.random() * TAU,
           "north":  (   ) => -this.theta + PI2,
+          "south":  (   ) => -this.theta,
           "centre": (pos) => this.map.getTheta(posCentre, pos),
-          "map":    (pos) => this.map.getTheta(this.map.center(), pos),
+          "middle": (pos) => this.map.getTheta(this.map.center(), pos),
         },
 
         civs = {
           
           // smalls with offset 0, big with +1, all centre
           "*" : (ms, bs) => {
-            var offset = (bs === "big" ? +1 : 0);
-            var angle = "centre";
+            var offset = (bs === "small" ? -1 : bs === "middle" ? +0 : +1);
+            var angle  = offset === -1 ? "middle" : "centre";
             return {
               offset: () => offset,
               angle : (pos) => angles[angle](pos),
@@ -358,10 +363,10 @@ HANNIBAL = (function (H){
             };
           },
 
-          // houses point north with off = -1, other centre
+          // houses point south with off = -1, other centre
           "maur" : (ms, bs) => {
             var offset = (bs === "small" ? -1 : bs === "middle" ? +0 : +1);
-            var angle = offset === -1 ? "north" : "centre";
+            var angle = offset === -1 ? "south" : "centre";
             return {
               offset: () => offset,
               angle : (pos) => offset === -1 ? angles[angle](pos) : angles[angle](pos),
@@ -428,22 +433,22 @@ HANNIBAL = (function (H){
 
       // filter functions
       fltFirst = (
-        placement === "shore"      ? v => v & maskShore ? 0 : 255 :
-        placement === "land"       ? v => v & maskLand  ? 0 : 255 :
-        placement === "land-shore" ? v => v & maskShore || v & maskLand ? 0 : 255 :
+        placement === "shore"      ? (v, s) => s & (v & maskShore ? 0 : 255) :
+        placement === "land"       ? (v, s) => s & (v & maskLand  ? 0 : 255) :
+        placement === "land-shore" ? (v, s) => s & (v & maskShore || v & maskLand ? 0 : 255) :
           H.throw("findPosForOrder: unknown PlacementType: %s for %s", placement, tpln)
       );
-      fltFinal = (bd, di, da, rs, tt, st) => (bd === 255 ? di - da : 0) & rs & tt & st;
+      fltFinal = (bd, di, da, rs, tt) => (bd === 255 ? di - da : 0) & rs & tt;
 
       // crunching numbers
       [buildable, value, position, index] = new H.LIB.Grid(this.context)
         .import()
         .release()
         .initialize({label: "buildable", data: H.lowerbyte(this.map.passability.data)})
-        .filter(fltFirst)
+        .filter(streets, fltFirst)
         .distanceTransform()
         .filter(v => v <= radius ? 0 : 255)
-        .filter(distances, danger, restrictions, territory, streets, fltFinal)
+        .filter(distances, danger, restrictions, territory, fltFinal)
         .maxValue()
       ;
 
@@ -470,13 +475,18 @@ HANNIBAL = (function (H){
     },
     updateStreets: function(){
 
+      // determines streets by running pathfinder from an inner circle
+      // to an outer circle. Cells hit multiple times qualify as street
+      // TODO: agora, centre area only, if space enough, check that crazy map!!
+
       /*  template_structure_civic_civil_centre.xml
           <TerritoryInfluence><Root>true</Root><Radius>140</Radius>
           <Footprint><Square width="32.0" depth="32.0"/>
           <Attack><Ranged><MaxRange>72.0</MaxRange>        
       */
+
       var 
-        t0 = Date.now(), points = 48;
+        t0 = Date.now(), points = 48,
         i, x, y, p, result, graph, start, end, node, index, 
         heuristic = H.AI.AStar.heuristics.euclidian,
         grid = this.map.black.copy("graph").release(),
@@ -487,22 +497,15 @@ HANNIBAL = (function (H){
         innerCircle = new H.LIB.Path(this.context, pathInner).path,
         outerCircle = new H.LIB.Path(this.context, pathOuter).path,
 
-        strs = this.map.streets.set(255).processCircle(coords, 10, () => 0),
+        // streets with centre area excluded
+        streets = this.map.streets.set(255).processCircle(coords, 10, () => 0),
         terr = this.map.terrain.data,
-      //   tori = this.territory.data,
         pass = this.map.passability.data,
         mask = 2; //this.context.gamestate.getPassabilityClassMask("foundationObstruction")
 
-      // this.deb("  VILL: updateStreets: inner: %s", innerCircle);
-      // this.deb("  VILL: updateStreets: outer: %s", outerCircle);
-
-      // the grid encodes walls as 0, cost as 1
-      i = grid.length;
-      while (i--) {
-        grid.data[i] = (
-          terr[i] === 4        &&      // land
-          !(pass[i] & mask)            // obstructions
-        ) ? 1 : 0;
+      // the grid encodes walls as 0, cost as 1, looking for land and passable
+      i = grid.length; while (i--) {
+        grid.data[i] = ( terr[i] === 4 && !(pass[i] & mask) ) ? 1 : 0;
       }
 
       graph = new H.AI.GraphFromFunction(grid, i => grid.data[i]);
@@ -510,9 +513,11 @@ HANNIBAL = (function (H){
       p = innerCircle.length; while(p--){
 
         [x, y] = this.map.mapPosToGridCoords(innerCircle[p]);
-        start = graph.grid[x][y];
+        [x, y] = grid.coordsWithinSize(x, y);
+        start  = graph.grid[x][y];
         [x, y] = this.map.mapPosToGridCoords(outerCircle[p]);
-        end = graph.grid[x][y];
+        [x, y] = grid.coordsWithinSize(x, y);
+        end    = graph.grid[x][y];
 
         result = H.AI.AStar.search(graph, start, end, { 
           closest:   true,
@@ -522,8 +527,8 @@ HANNIBAL = (function (H){
 
         i = result.path.length; while(i--){
           node = result.path[i];
-          index = strs.coordsToIndex(node.x, node.y);
-          strs.data[index] -= 64;
+          index = streets.coordsToIndex(node.x, node.y);
+          streets.data[index] -= 64;
         }
 
         // make graph reusable
@@ -538,8 +543,9 @@ HANNIBAL = (function (H){
         result.path.length
       );
 
-      strs.filter(v => v <= 128 ? 0 : 255);
-      strs.dump("after", 255);
+      streets.dump("before", 255);
+      streets.filter(v => v <= 128 ? 0 : 255);
+      streets.dump("after", 255);
 
     }
   });

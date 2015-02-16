@@ -126,7 +126,9 @@ HANNIBAL = (function(H){
     // events
     listener: function(msg){
 
-      var dslItem, dslAttacker, tpln, ids, id = msg.id;
+      var 
+        dslItem, dslAttacker, dslVictim,
+        tpln, ids, id = msg.id;
 
       if (msg.name === "OrderReady"){
 
@@ -197,19 +199,19 @@ HANNIBAL = (function(H){
 
         } else if (msg.name === "EntityAttacked") {
 
-          dslItem = {
-            name:        "item",
-            resources:   [id], 
-            toString :   () => H.format("[dslobject item[%s]]", id)
-          };
-
           dslAttacker = {
             name:        "attacker",
-            resources:   [msg.id2], 
-            toString :   () => H.format("[dslobject attacker[%s]]", msg.id2)
+            resources:   [id], 
+            toString :   () => H.format("[dslobject attacker[%s]]", id)
           };
 
-          this.groups.callWorld(this.instance, "attack", [dslItem, dslAttacker, msg.data.damage, msg.data.type]);
+          dslVictim = {
+            name:        "victim",
+            resources:   [msg.id2], 
+            toString :   () => H.format("[dslobject victim[%s]]", msg.id2)
+          };
+
+          this.groups.callWorld(this.instance, "attack", [dslAttacker, dslVictim, msg.data.damage, msg.data.type]);
 
 
         } else if (msg.name === "EntityRenamed") {

@@ -346,7 +346,7 @@ H.extend(H, {
             fn(key, value);
           });
 
-        } if (item instanceof Map || item instanceof Set){
+        } else if (item instanceof Map || item instanceof Set){
           item.forEach( (value, key) => {
             fn(key, value);
           });

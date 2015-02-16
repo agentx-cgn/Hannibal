@@ -722,6 +722,28 @@ HANNIBAL = (function(H){
 
 
     },
+    assignIdle: function(){
+
+      var hcq, verb = this.verb;
+
+      if (verb === "train"){
+
+        this.query(this.hcq + " INGAME WITH metadata.opname = 'idle'")
+          .execute()
+          .slice(0, this.remaining - this.processing)
+          .forEach( node => {
+            this.remaining -= 1; 
+            this.events.fire("OrderReady", {
+              player: this.context.id,
+              id:     node.id,
+              data:   {order: this.id, source: this.source}
+          });
+        });
+
+      }
+
+
+    },
     assignExisting: function(){
 
       var verb = this.verb, hcq = (
@@ -743,7 +765,7 @@ HANNIBAL = (function(H){
         verb === "build" && !this.shared ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
 
         // error
-          this.log() && H.throw("assignExisting run into unhandled case: verb: %s, shared: %s", this.verb, this.shared)
+          H.throw("assignExisting run into unhandled case: verb: %s, shared: %s", this.verb, this.shared)
       
       );
 
@@ -1070,22 +1092,20 @@ HANNIBAL = (function(H){
 
     }, logTick: function(){
 
-      // this.childs.forEach(child => this[child].logTick());
-      
       var 
         stock = this.stats.stock, 
         flows = this.stats.flows,
         t = H.tab, f = n => n > 0 ? "+" + n : n === 0 ? " 0": n;
 
-      this.deb("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
-        t(stock.food,   6), f(flows.food.toFixed(3)),
-        t(stock.wood,   6), f(flows.wood.toFixed(3)),
-        t(stock.metal,  6), f(flows.metal.toFixed(3)),
-        t(stock.stone,  6), f(flows.stone.toFixed(3)),
-        t(stock.pops,   4), f(flows.pops.toFixed(3)),
-        t(stock.area,   4), f(flows.area.toFixed(3)),
-        t(stock.health, 4), f(flows.health.toFixed(3))
-      );
+      // this.deb("   ECO: F%s %s, W%s %s, M%s %s, S%s %s, P%s %s, A%s %s, H%s %s", 
+      //   t(stock.food,   6), f(flows.food.toFixed(3)),
+      //   t(stock.wood,   6), f(flows.wood.toFixed(3)),
+      //   t(stock.metal,  6), f(flows.metal.toFixed(3)),
+      //   t(stock.stone,  6), f(flows.stone.toFixed(3)),
+      //   t(stock.pops,   4), f(flows.pops.toFixed(3)),
+      //   t(stock.area,   4), f(flows.area.toFixed(3)),
+      //   t(stock.health, 4), f(flows.health.toFixed(3))
+      // );
 
     }, serialize: function(){
       return {
@@ -1246,7 +1266,7 @@ HANNIBAL = (function(H){
       //     entityCounts: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
       //     entityLimits: OBJECT (Apadana, Council, DefenseTower, Embassy, Fortress, ...)[13]
 
-      // this.deb("  EREQ: order: %s", uneval(order));
+      // this.deb("  ECOR: order: %s", uneval(order));
 
       var  
         objorder,
@@ -1261,7 +1281,7 @@ HANNIBAL = (function(H){
       objorder = new H.LIB.Order(this.context).import().initialize(order);
       this.orderqueue.queue.push(objorder);
 
-      this.deb("  EREQ: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
+      this.deb("  ECOR: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
         objorder.id, 
         objorder.verb, 
         objorder.amount, 

@@ -83,6 +83,7 @@ HANNIBAL = (function(H) {
     // debug, game info
     this.logStart(ss, gs, this.settings);
     this.logPlayers(ss.playersData);
+    this.deb();
 
     // link the context with game engine, and initialize
     this.context.connectEngine(this, gameState, sharedScript, this.settings);
@@ -242,18 +243,20 @@ HANNIBAL = (function(H) {
         this.bot.player.resourceCounts.stone
       );
 
+      // reset timing info
       this.timing.all = 0;
-      this.timing.tst = 0;
+      // this.timing.tst = 0;
 
       // debug, init tester
       if (this.context.tick === 0 && this.debug.tst){
-        H.Tester.activate(this.map, this.context); 
-        H.Tester.log(); 
+        this.context.scripter.prepare(this.map);
+        // H.Tester.activate(this.map, this.context); 
+        // H.Tester.log(); 
       }
 
       // debug, execute test scripts 
       if (this.debug.tst){
-        this.timing.tst = H.Tester.tick(secs, this.context.tick, this.context);
+        this.timing.tst = this.context.scripter.tick(secs, this.context.tick);
       }
 
       // THIS IS THE MAIN ACT
@@ -342,32 +345,66 @@ HANNIBAL = (function(H) {
     deb("     A:       barterPrices: %s", H.prettify(ss.barterPrices));
 
   };
+  H.Launcher.prototype.colorFromRGBA = function(color){
+
+    var 
+      colorname,
+      c = {r: color.r.toFixed(2), g: color.g.toFixed(2), b: color.b.toFixed(2), a: color.a.toFixed(2)};
+
+    colorname = (
+      (c.r === "1.00" && c.g === "1.00" && c.b === "1.00") ? "white" : 
+      (c.r === "0.18" && c.g === "0.18" && c.b === "0.78") ? "blue" : 
+      (c.r === "0.59" && c.g === "0.08" && c.b === "0.08") ? "red" : 
+      (c.r === "0.20" && c.g === "0.65" && c.b === "0.02") ? "green" : 
+      (c.r === "0.90" && c.g === "0.90" && c.b === "0.29") ? "yellow" : 
+      (c.r === "0.20" && c.g === "0.67" && c.b === "0.67") ? "turquois" : 
+      (c.r === "0.63" && c.g === "0.31" && c.b === "0.78") ? "violet" : 
+      (c.r === "0.92" && c.g === "0.47" && c.b === "0.08") ? "orange" : 
+      (c.r === "0.25" && c.g === "0.25" && c.b === "0.25") ? "black" : 
+        "unknown"
+    );
+
+    return [c, colorname];
+
+  },
   H.Launcher.prototype.logPlayers = function(players){
 
     var 
+      deb = this.deb.bind(this), len = players.length,
       tab = H.tab, msg = "", head, props, format, tabs,
       fmtAEN = item => item.map(b => b ? "1" : "0").join("");
 
     this.deb();
 
-    head   = "name, team, civ, phase,      pop,   ally,    enmy,      neut, colour".split(", ");
+    head   = "name, team, civ, phase,      pop,   ally,   enemy,      neut, colour".split(", ");
     props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
-    tabs   = [  10,    6,   8,    10,        5,      6,       6,         6, 20];
+    tabs   = [  10,    6,   8,    10,        5,      3,       4,         3,     12];
     format = {
       isAlly:    fmtAEN,
       isEnemy:   fmtAEN,
-      isNeutral: fmtAEN
+      isNeutral: fmtAEN,
+      colour:    (c) => this.colorFromRGBA(c)[1],
     };
 
-    H.zip(head, tabs, (h, t) => msg += tab(h, t));
-    this.deb("PLAYER: " + msg);
+    H.zip(head, tabs, (h, t) => {
+      if (h.trim()==="ally" || h.trim()==="enemy" || h.trim()==="neut"){
+        t += len;
+      }
+      msg += tab(h, t);
+    });
+    deb("PLAYER: " + msg);
+
+    // H.logObject(players, "logPlayers: players");
 
     H.each(players, (id, player) => {
       msg = "";
       H.zip(props, tabs, (p, t) => {
+        if (p==="isAlly" || p==="isEnemy" || p==="isNeutral"){
+          t += len;
+        }
         msg += (format[p]) ? tab(format[p](player[p]), t) : tab(player[p], t);
       });    
-      this.deb("     %s: %s", id, msg);
+      deb("     %s: %s", id, msg);
     });
 
   };
