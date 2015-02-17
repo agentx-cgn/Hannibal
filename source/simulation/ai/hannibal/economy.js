@@ -619,6 +619,13 @@ HANNIBAL = (function(H){
         };
       });
 
+      // assigns idle citizens ingames if available and matching
+      this.assignIdle();      
+      if(this.remaining - this.processing < 1){
+        // nothing left to do
+        return;
+      } 
+
       // assigns ingames if available and matching
       this.assignExisting();      
       if(this.remaining - this.processing < 1){
@@ -724,24 +731,40 @@ HANNIBAL = (function(H){
     },
     assignIdle: function(){
 
-      var hcq, verb = this.verb;
+      var source, target; // both assets
 
-      if (verb === "train"){
+      if (this.verb === "train"){
 
-        this.query(this.hcq + " INGAME WITH metadata.opname = 'idle'")
-          .execute()
-          .slice(0, this.remaining - this.processing)
-          .forEach( node => {
-            this.remaining -= 1; 
-            this.events.fire("OrderReady", {
-              player: this.context.id,
-              id:     node.id,
-              data:   {order: this.id, source: this.source}
-          });
+        target = this.groups.findAsset(a => a.id === this.source);
+
+        source = this.groups.findAsset(a => {
+          return (a.instance.groupname === "g.idle" && a.property === "units");
         });
 
-      }
+        if (source.resources.length) {
 
+          this.query(this.hcq + " INGAME WITH metadata.opname = 'g.idle'")
+            // .parameter({fmt: "metadata", deb: 5, max: 10, cmt: "eco.assignIdle"})
+            .execute()
+            .slice(0, this.remaining - this.processing)
+            .forEach( node => {
+              this.deb("     O: assignIdle transfer unit: %s to %s", node.id, target);
+              H.delete(source.resources, id => id === node.id);
+              this.remaining -= 1; 
+              this.events.fire("OrderReady", {
+                player: this.context.id,
+                id:     node.id,
+                data:   {order: this.id, source: this.source}
+              });
+            })
+          ;
+
+        } else {
+          this.deb("     O: assignIdle no units in g.idle");
+
+        }
+
+      }
 
     },
     assignExisting: function(){
@@ -922,40 +945,40 @@ HANNIBAL = (function(H){
       H.throw("WARN  : no order found in queue with: %s", fn);
       return undefined;
     },
-    prepare: function(){
+    // prepare: function(){
 
-      // checks all trains and assigns existing, 
-      // even from already ordered, cancels order then
-      var 
-        queue,
-        ingames = this.query("INGAME WITH metadata.opname = 'none'"),
-        producers = this.economy.producers.producers,
-        producerlist = H.attribs(producers);
+    //   // checks all trains and assigns existing, 
+    //   // even from already ordered, cancels order then
+    //   var 
+    //     queue,
+    //     ingames = this.query("INGAME WITH metadata.opname = 'none'"),
+    //     producers = this.economy.producers.producers,
+    //     producerlist = H.attribs(producers);
 
-      producerlist
-        .filter(a => producers[a].type === "building")
-        .filter(a => producers[a].queue.length)
-        .forEach( nameid => {
-          // item: id, unitTemplate, technologyTemplate, count, neededSlots, progress, timeRemaining, metadata
-          queue = this.entities[id]._entity.trainingQueue;
-          if(queue && queue.length){
-            // this.deb("     P: api: len: %s", queue.length);
-            queue.forEach( item => {
-              if (item.progress === 0){
+    //   producerlist
+    //     .filter(a => producers[a].type === "building")
+    //     .filter(a => producers[a].queue.length)
+    //     .forEach( nameid => {
+    //       // item: id, unitTemplate, technologyTemplate, count, neededSlots, progress, timeRemaining, metadata
+    //       queue = this.entities[id]._entity.trainingQueue;
+    //       if(queue && queue.length){
+    //         // this.deb("     P: api: len: %s", queue.length);
+    //         queue.forEach( item => {
+    //           if (item.progress === 0){
 
-              }
-              // this.deb("     P:   %s, rem: %s, pro: %s, cnt: %s, tpl: %s", 
-              //   t(item.id, 3), 
-              //   t((item.timeRemaining/1000).toFixed(1), 8), 
-              //   t(~~(item.progress * 100), 4), 
-              //   t(item.count, 2), 
-              //   item.unitTemplate
-              // );
-            });
-          }
-      });
+    //           }
+    //           // this.deb("     P:   %s, rem: %s, pro: %s, cnt: %s, tpl: %s", 
+    //           //   t(item.id, 3), 
+    //           //   t((item.timeRemaining/1000).toFixed(1), 8), 
+    //           //   t(~~(item.progress * 100), 4), 
+    //           //   t(item.count, 2), 
+    //           //   item.unitTemplate
+    //           // );
+    //         });
+    //       }
+    //   });
 
-    },
+    // },
     process: function(){
 
       var 
@@ -1305,7 +1328,7 @@ HANNIBAL = (function(H){
         id, 
         amount,
         product.key, 
-        position || [] // for structs, units have pos
+        (position || []).map(p => p.toFixed(1)) // for structs, units have pos
       );
 
       // assuming transaction succedes

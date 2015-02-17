@@ -100,7 +100,7 @@ HANNIBAL = (function (H){
 
         this.classes["house"]["block4"].radius = radius;
 
-        this.deb("  CLIM: rad for house.block4: %s", radius);
+        this.deb(" CLAIM: rad for house.block4: %s", radius);
 
 
       }
@@ -113,7 +113,7 @@ HANNIBAL = (function (H){
       var name = H.saniTemplateName(order.product.key);
 
       if (this.isToClaim(name)){
-        this.deb("  CLIM: #%s got order for claimed structure: %s", order.id, name);
+        this.deb(" CLAIM: #%s got order for claimed structure: %s", order.id, name);
 
 
       }

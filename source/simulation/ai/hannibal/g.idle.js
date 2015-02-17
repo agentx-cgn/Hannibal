@@ -38,10 +38,12 @@ HANNIBAL = (function(H){
 
           var path, pos = w.group.position[0] + " " + w.group.position[1];
 
+          this.minsize  = 5;
+
           w.units       = ["exclusive", "citizen CONTAIN"];
           w.units.size  = 20;
 
-          path          = w.units.size + "; translatep 0 20; circle 10";
+          path          = w.units.size + "; translate " + pos + "; circle 32";
           w.path        = ["path", path];
           w.path.size   = w.units.size;
 
@@ -53,14 +55,15 @@ HANNIBAL = (function(H){
 
         }, assign: function assign (w, item) {
 
-          // w.deb("     G: assign.0: %s, %s", w, item);
+          w.deb("     G: assign: %s, %s", this, item);
 
           w.objectify("item", item);
 
-          // got path, request all units, exits
+          // got path, request unit, exits
           w.path.on
             .member(w.item)
-            .units.do.request()
+            // .echo("path.resources" + item.resources)
+            .units.do.request(this.minsize)
             .exit
           ;
 
@@ -88,7 +91,7 @@ HANNIBAL = (function(H){
           // keep minumum units, exits
           w.units.on
             .member(w.item)
-            .lt(w.units.count, 5)
+            .lt(w.units.count, this.minsize)
             .request()
             .exit
           ;          
@@ -124,25 +127,23 @@ HANNIBAL = (function(H){
 
           w.deb("     G: interval: %s, %s secs", this, secs);
 
-          //  if complete and idle, change path and spread
+          //  idle units dance
           
           w.units.on
-            .match(ticks % 4, 0)
+            .match(ticks % 2, 0)
             .doing("idle")
-            .match(w.units.count, w.units.size)
-            .stance("passive")
-            .spread(w.path)
-            .path.do.modify("rotate 120")
+            .path.do.modify("rotate 18")
+            .units.do.spread(w.path)
           ;
 
-          w.units.on
-            .match(ticks % 4, 2)
-            .doing("idle")
-            .match(w.units.count, w.units.size)
-            .stance("passive")
-            .spread(w.path)
-            .path.do.modify("rotate 20")
-          ;
+          // w.units.on
+          //   .match(ticks % 4, 2)
+          //   .doing("idle")
+          //   // .match(w.units.count, w.units.size)
+          //   .stance("passive")
+          //   .path.do.modify("rotate 342")
+          //   .units.do.spread(w.path)
+          // ;
 
         }
 

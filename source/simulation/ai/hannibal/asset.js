@@ -159,7 +159,7 @@ HANNIBAL = (function(H){
 
             // take over ownership
             this.metadata[id].opid   = this.instance.id;
-            this.metadata[id].opname = this.instance.name;
+            this.metadata[id].opname = this.instance.groupname;
 
           }
 

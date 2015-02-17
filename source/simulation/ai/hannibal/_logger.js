@@ -52,9 +52,9 @@ HANNIBAL = (function(H){
 
       if (msglevel <= deblevel){
         if (msg.length > 3000){
-          print("\nTRUNCATED ##############################\n")
+          print("\nTRUNCATED ##############################\n");
           print(id + "::" + msg.slice(0, 300));
-          print("\nTRUNCATED ##############################\n\n")
+          print("\nTRUNCATED ##############################\n\n");
         } else {
           print(id + "::" + msg);
         }
@@ -147,51 +147,79 @@ HANNIBAL = (function(H){
     logObjectShort: function(o){
       H.attribs(o)
         .sort()
-        .forEach(a => H.deb(this.getAttribType(a, o[a])));
+        .forEach(a => H.deb(this.getAttribType(o, a)));
     },
-    getAttribType: function(name, value){
+    getAttribType: function(object, attr){
 
-      var keys, body;
+      var keys, body, value, test, [o, a] = [object, attr];
 
       function toString(value){
-        return value.toString ? value.toString() : value+"";
+        return value.toString ? value.toString() : value + "";
       }
 
-      switch (typeof value) {
+      function toFunc(body){
+        return ( body
+          .split("\n").join("")
+          .split("\r").join("")
+          .split("\t").join(" ")
+          .split("     ").join(" ")
+          .split("    ").join(" ")
+          .split("   ").join(" ")
+          .split("  ").join(" ")
+          .slice(0, 100)
+        );
+      }
+
+      try {
+        value = o[a];
+      } catch(e){
+        test = Object.getOwnPropertyDescriptor(object, attr);
+        if (test.get){
+          body = toFunc(test.get.toString());
+          return H.format("  %s: GETTER %s (...)", attr, body);
+        } else if (test.set){
+          body = toFunc(test.set.toString());
+          return H.format("  %s: SETTER %s (...)", attr, body);
+        } else {
+          return H.format("  %s: VALUEERROR", attr);
+        }
+      }
+
+      switch (typeof o[a]) {
+
         case "string":
         case "number":
         case "undefined":
-        case "boolean":   return H.format("  %s: %s (%s)", name, (typeof value).toUpperCase(), value);
+        case "boolean":   
+          return H.format("  %s: %s (%s)", attr, (typeof o[a]).toUpperCase(), o[a] + "");
+
         case "object":
 
-          if (Array.isArray(value)){
-            return H.format("  %s: ARRAY [%s](%s, ...)", name, value.length, value.map(toString).slice(0, 5).join(", "));
+          if (Array.isArray(o[a])){
+            return H.format("  %s: ARRAY [%s](%s, ...)", attr, o[a].length, o[a].map(toString).slice(0, 5).join(", "));
 
-          } else if (value instanceof Map) {
-            keys = [...value.keys()];
-            return H.format("  %s: MAP [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
+          } else if (o[a] instanceof Map) {
+            keys = [...o[a].keys()];
+            return H.format("  %s: MAP [%s](%s, ...)", attr, keys.length, keys.slice(0, 5).join(", "));
 
-          } else if (value === null) {
-            return H.format("  %s: NULL", name);
+          } else if (o[a] === null) {
+            return H.format("  %s: NULL", attr);
 
           } else {
-            keys = Object.keys(value);
-            return H.format("  %s: OBJECT [%s](%s, ...)", name, keys.length, keys.slice(0, 5).join(", "));
+            keys = Object.keys(o[a]);
+            return H.format("  %s: OBJECT [%s](%s, ...)", attr, keys.length, keys.slice(0, 5).join(", "));
 
           }
-        break;
+          break;
+
         case "function":
-          body = value.toString()
-            .split("\n").join("")
-            .split("\r").join("")
-            .split("\t").join(" ")
-            .split("     ").join(" ")
-            .split("    ").join(" ")
-            .split("   ").join(" ")
-            .split("  ").join(" ")
-            .slice(0, 100);
-          return H.format("  %s: FUNCTION %s (...)", name, body);
+          body = toFunc(o[a].toString());
+          return H.format("  %s: FUNCTION %s (...)", attr, body);
+
+        default: 
+          H.throw("UNKNOWN TYPE '%s' in getAttribType", typeof o[a]);
       }
+
       return "WTF";
     },
 

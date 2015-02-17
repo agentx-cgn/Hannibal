@@ -156,10 +156,10 @@ HANNIBAL = (function(H){
         this.deb("      : recs: %s, ops: %s, msecs: %s", this.results.length, this.t1, this.ops);
         if (this.fromCache){
           this.deb("     Q: %s recs from cache: %s", this.results.length, this.query);
-          this.deb("     Q: cache drop: hits: %s, qry: %s", 
-            this.store.cache[cacheDrop].hits, 
-            this.store.cache[cacheDrop]
-          );
+          // this.deb("     Q: cache drop: hits: %s, qry: %s", 
+          //   this.store.cache[cacheDrop].hits, 
+          //   this.store.cache[cacheDrop]
+          // );
         }
         this.logNodes(this.results, this.params.fmt, this.params.max);
         this.deb("      :");

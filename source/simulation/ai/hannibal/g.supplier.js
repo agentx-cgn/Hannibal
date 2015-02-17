@@ -34,7 +34,7 @@ HANNIBAL = (function(H){
       active:         true,             // prepared for init/launch ...
       description:    "supplier",       // text field for humans 
       civilisations:  ["*"],            // 
-      interval:       5,                // call scripts.interval every x ticks
+      interval:       3,                // call scripts.interval every x ticks
 
       technologies: [                   // these techs help
         "gather.lumbering.ironaxes",
@@ -102,14 +102,15 @@ HANNIBAL = (function(H){
 
         }, assign: function assign (w, item) {
 
-          w.deb("     G: assign.0: %s, %s", this, item);
+          w.deb("     G: assign: %s, %s", this, item);
 
           w.objectify("item", item);
 
-          // got empty resource, dissolve group
+          // got empty resource, transfer units to idle, dissolve group
           w.resources.on
             .member(w.item)
             .match(w.resources.count, 0)
+            .units.do.transfer("g.idle")
             .group.do.dissolve()  
             .exit
           ;
@@ -122,10 +123,10 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // have too much units, exits
+          // have too many units, transfer, exits
           w.units.on
             .gt(w.units.count, w.units.size)
-            .release(w.item)
+            .item.do.transfer("g.idle")
             .exit
           ;          
 
@@ -143,14 +144,15 @@ HANNIBAL = (function(H){
             .units.do.repair(w.dropsite)
           ;
 
-          // got initial dropsite, units gather
+          // got dropsite, units gather, group relocate
           w.dropsite.on
             .member(w.item)
             .match(!w.item.foundation)
             .units.do.gather(w.resources)
+            .group.do.relocate(w.dropsite.position)
           ;
 
-          // keep requesting units until size
+          // got unit, keep requesting until size
           w.units.on
             .member(w.item)
             .lt(w.units.count, w.units.size)
@@ -160,7 +162,7 @@ HANNIBAL = (function(H){
           // got unit, let gather on next resource
           w.units.on
             .member(w.item)
-            .resources.do.shift()
+            .resources.do.rotate()
             .item.do.gather(w.resources)
           ;
 
@@ -203,16 +205,18 @@ HANNIBAL = (function(H){
 
           w.deb("     G: interval: %s, %s secs", this, secs);
 
-          // test, transfer units, exits
-          w.units.on
-            .transfer("g.idle")
-            .echo("DID IDLE")
-            .exit
-          ;
+          // // test, transfer units, exits
+          // w.units.on
+          //   .transfer("g.idle")
+          //   .echo("DID IDLE")
+          //   .exit
+          // ;
 
           // run out of resources, request more, exits
           w.resources.on
+            .refresh()
             .match(w.resources.count, 0)
+            .echo("interval.match: have %s resources", w.resources.count)
             .request()
             .exit
           ;
@@ -221,6 +225,7 @@ HANNIBAL = (function(H){
           w.units.on
             .doing("idle")
             .gather(w.resources)
+            .echo("interval.idle, have %s resources", w.resources.count)
           ;
 
         }

@@ -51,9 +51,9 @@ HANNIBAL = (function(H){
           w.path.on.request();   
 
 
-        // a request was succesful
-
         }, assign: function assign (w, item) {
+
+          // a request was succesful
 
           // w.deb("     G: assign.0: %s, %s", w, item);
 
@@ -71,7 +71,7 @@ HANNIBAL = (function(H){
             .gt(w.units.count, w.units.size)
             .release(w.item)
             .exit
-          ;          
+          ;         
 
           // got a unit, send to path start
           w.units.on
@@ -88,10 +88,10 @@ HANNIBAL = (function(H){
             .spread(w.path) 
           ;
 
-
-        // resource lost
-
+  
         }, destroy: function destroy (w, item) {
+
+          // resource lost
 
           w.objectify("item", item);
 
@@ -102,9 +102,10 @@ HANNIBAL = (function(H){
             .stance("agressive")
           ;
 
-        // there are enemies and gaia
 
         }, attack: function attack (w, shooter, victim, type, damage){
+
+          // there are enemies and gaia
 
           w.deb("     G: attack.0: %s, %s, %s", w, shooter, victim);
 
@@ -128,21 +129,19 @@ HANNIBAL = (function(H){
           ;
 
 
-        // de-garrison
-
         }, release: function release (w, item) {
+
+          // de-garrison
 
           w.deb("     G: release.0: %s, %s", w, item);
 
 
-        // group radio
-
         }, radio: function radio (w, source, msg){
+
+          // group radio
 
           w.deb("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
 
-
-        // defined by this.interval
 
         }, interval: function interval (w, tick, secs){
 

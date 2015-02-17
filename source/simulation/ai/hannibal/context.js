@@ -48,6 +48,7 @@ HANNIBAL = (function(H){
       "producers",   // located in eco
       "economy",     // stats, producers, orderqueue
       "military",    // attack groups and support buildings
+      "comms",       // range query units for group radio
       "diplomacy",   // 
       "brain",       // keep information uptodate
       "scripter",    // boot up groups
@@ -86,6 +87,8 @@ HANNIBAL = (function(H){
       // "scanner",     // scanner after map, before groups
       "groups",      // assets
       "economy",     // stats, producers, orderqueue
+      "diplomacy",   // policies
+      "comms",       // policies
       // "military", 
       // "brain", 
       // "bot", 

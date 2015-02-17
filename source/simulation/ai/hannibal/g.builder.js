@@ -110,11 +110,12 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // got a building check job done, exits
+          // got a building, check job done, transfers exits
           w.buildings.on
             .member(w.item)
             .match(!w.item.foundation)
             .match(w.buildings.count, w.buildings.size)
+            .units.do.transfer("g.idle")
             .group.do.dissolve()
             .exit
           ;

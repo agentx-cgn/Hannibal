@@ -24,8 +24,27 @@ HANNIBAL = (function(H){
         "events",
         "query",
         "effector",
+        "entities",
         "player", 
+        "players", 
       ],
+
+      policies: null,
+      mood:     "friendly",
+
+      // color, 
+      defaults: {
+        "0": {},
+        "1": {},
+        "2": {},
+        "3": {},
+        "4": {},
+        "5": {},
+        "6": {},
+        "7": {},
+        "8": {},
+      }
+
     });
 
   };
@@ -34,17 +53,74 @@ HANNIBAL = (function(H){
   H.LIB.Diplomacy.prototype = H.mixin(
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Diplomacy,
-    log: function(){this.deb("   %s: logging", this.name.slice(0,3).toUpperCase());},
-    serialize: function(){return {};},
-    deserialize: function(){return this;},
-    initialize: function(){return this;},
+    log: function(){
+      this.deb(" DIPLO: ---------");
+      H.each(this.policies, (id, policy) => {
+        if(policy.color){
+          this.deb("     D: %s : %s", id, uneval(policy));
+        }
+      });
+    },
+    serialize: function(){
+      return {
+        policies: H.deepcopy(this.policies)
+      };
+    },
+    deserialize: function(data){
+      if(data){
+        this.policies = data.policies;
+      }
+      return this;
+    },
     finalize: function(){return this;},
-    activate: function(){return this;},
-    
+
+    initialize: function(){
+
+      if(this.policies === null){
+        this.policies = H.deepcopy(this.defaults);
+        this.readPlayerColors();
+      }
+
+
+      return this;
+
+
+    },
+    activate: function(){
+
+      this.events.on("EntityCreated", msg => {
+        if(this.entities[msg.id]){
+          if (H.contains(this.entities[msg.id].classes(), "Unit")){
+            this.deb("  DIPL: %s, got unit with classes: %s", this.mood, this.entities[msg.id].classes());
+          } else {
+            this.deb("  DIPL: %s, got NON unit with classes: %s", this.mood, this.entities[msg.id].classes());
+          }
+        } else {
+          this.deb("WARN  : DIPL got ID NOT ENTITY: %s", msg.id);
+        }
+      });
+      
+      return this;
+
+    },
+
+    readPlayerColors: function () {
+
+      var colorName = (id) => {
+        return this.context.launcher.colorFromRGBA(this.players[id].colour);
+      };
+
+      H.each(this.policies, (id, policy) => {
+        if (this.players[id]){
+          policy.color = colorName(id)[1];
+        }
+      });
+    },
+
     isAlly:  function(id){return this.player.isAlly[id];},
     isEnemy: function(id){return this.player.isEnemy[id];},
     
-    tribute: function(id){},
+    tribute: function(){},
 
 
 

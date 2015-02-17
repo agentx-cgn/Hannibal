@@ -271,7 +271,7 @@ HANNIBAL = (function(H) {
 
       // debug, prepare bottom row info
       H.each(this.timing, (name, msecs) => {
-        if (name !== "all"){
+        if (name !== "all" && msecs > 0){
           msgTiming += H.format(", %s: %s", name, msecs);
         }
         this.timing.all += msecs;

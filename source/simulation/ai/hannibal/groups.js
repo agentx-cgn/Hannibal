@@ -383,7 +383,7 @@ HANNIBAL = (function(H){
         attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
         dissolve:  (act, sub)              => this.dissolve(sub.host),
         shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
-        doing:     (act, sub, obj, filter) => sub.list = this.doing(sub.list, filter),
+        doing:     (act, sub, obj, filter) => sub.list = this.doing(sub, filter),
         repair:    (act, sub, obj)         => {
 
           // TODO: skip buildings with health > 90%
@@ -391,7 +391,7 @@ HANNIBAL = (function(H){
           this.effector.repair(sub.list, obj.list);
 
         },
-        shift:     (act, sub, obj, n)         => {
+        rotate:   (act, sub, obj, n)         => {
           sub.list = H.rotate(sub.list, n || 1);
           sub.host.resources = H.rotate(sub.host.resources, n || 1);
         },
@@ -422,13 +422,71 @@ HANNIBAL = (function(H){
             this.deb("  GRPS: transfer: unknown/not launched group: '%s'", groupname);
           }
         },
+        refresh:  (act, sub, obj)   => {
+          // makes only sense on resources
+          H.delete(sub.host.resources, id => !this.entities[id]);
+          H.delete(sub.list, id => !this.entities[id]);
+        }
 
       };
 
     },
-    transfer: function(source, asset, target){
+    transfer: function(source, assetsource, target){
 
-      this.deb("  GRPS: transfer: s: %s, a: %s, t: %s", source, asset, target);
+      // called internal by group via dsl or
+      // by economy with assignIdle
+
+      var check, targetasset, dslItem;
+
+      // this.deb("  GRPS: transfer: s: %s, asset: %s, t: %s", source, assetsource, target);
+
+      // H.logObject(source, "source");
+      // H.logObject(target, "target");
+      // H.logObject(asset, "asset");
+
+      if (!assetsource.list.length){
+        this.deb("  GRPS: ignored transfer: no units %s, %s, %s", source, assetsource, target);
+        return;
+      }
+
+      targetasset = target.assets.filter(a => a.property === assetsource.name)[0];
+
+      this.deb("  GRPS: transfer %s %s from %s -> %s", assetsource.list.length, assetsource.name, source, target);
+      this.deb("  GRPS: transfer assets %s -> %s", assetsource, targetasset);
+      this.deb("  GRPS: transfer lists %s -> %s", assetsource.list, targetasset.resources);
+
+      if (targetasset){
+
+        H.consume(assetsource.list, id => {
+
+          dslItem = {
+            name:        "item",
+            resources:   [id], 
+            ispath:      false, // only units
+            isresource:  false, // only units
+            foundation:  false, // only units
+            toString :   () => H.format("[dslobject transfer item[%s]]", id)
+          };
+
+          // take over ownership
+          this.metadata[id].opid   = target.id;
+          this.metadata[id].opname = target.groupname;
+
+          H.delete(assetsource.host.resources, idass => idass === id);
+          targetasset.resources.push(id);
+
+          this.callWorld(target, "assign", [dslItem]);
+
+          this.deb("  GRPS: transfered: %s %s -> %s | %s", id, assetsource, targetasset, uneval(this.metadata[id]));
+
+        });
+
+      } else {
+
+        H.throw("Transfer failed %s, %s, %s", source, assetsource, target);
+
+      }
+
 
       // dslItem = {
       //   name:        "item",
@@ -467,7 +525,7 @@ HANNIBAL = (function(H){
 
       this.metadata[id].opmode = "shared";
       this.metadata[id].opid   = instance.id;
-      this.metadata[id].opname = instance.name;
+      this.metadata[id].opname = instance.groupname;
 
       instance.structure = ["private", nodename];
       instance.register("structure");
@@ -477,14 +535,16 @@ HANNIBAL = (function(H){
       return instance;
 
     },
-    doing: function(list, filter){ 
+    doing: function(subject, filter){ 
 
       // filters ids in list on unit ai state
       // e.g. idle, approach, walk, gather
 
       var 
-        ids = [], 
+        ids    = [], 
         states = [],
+        other  = [],
+        list = subject.list,
         actions = filter.split(" ").filter(a => !!a);
 
       actions.forEach(action => {
@@ -492,14 +552,14 @@ HANNIBAL = (function(H){
           var state = this.unitstate(id);
           states.push(state);
           if (action[0] === "!"){
-            if (state !== action.slice(1)){ids.push(id);}
+            if (state !== action.slice(1)){ids.push(id);} else {other.push(state);}
           } else {
-            if (state === action){ids.push(id);}
+            if (state === action){ids.push(id);} else {other.push(state);}
           }
         });
       });
 
-      this.deb("  GRPS: doing list: %s, filter: %s, found: %s", list.length, filter, ids.length);
+      this.deb("  GRPS: doing list for %s: %s, filter: %s, found: %s, other: %s", subject, list.length, filter, ids.length, other);
 
       return ids;
 

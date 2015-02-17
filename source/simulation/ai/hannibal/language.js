@@ -229,7 +229,7 @@ HANNIBAL = (function(H){
       script.apply(actor, params);
       t1 = Date.now();
       if(t1 - t0 > 10){
-        this.deb("WARN  : DSL: runScript took %s msec %s %s", t1 - t0, script.name, actor);
+        this.deb("WARN  : DSL: runScript took %s msec %s.%s", t1 - t0, actor, script.name);
       }
     },
     setnoun:  function(world, noun, obj){

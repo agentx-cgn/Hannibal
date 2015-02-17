@@ -33,6 +33,7 @@ HANNIBAL = (function(H){
         "map",
         "brain",
         "groups",
+        "comms",
         "economy", 
         "culture",
         "effector",
@@ -79,6 +80,7 @@ HANNIBAL = (function(H){
         [
 
           ["evt", "Events",          this.events       ],
+          ["com", "Communication",   this.comms        ],
           ["brn", "Brain",           this.brain        ], 
           ["map", "Map",             this.map          ], 
           ["gps", "Groups",          this.groups       ], 

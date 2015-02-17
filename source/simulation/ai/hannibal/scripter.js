@@ -26,14 +26,22 @@ HANNIBAL = (function(H){
     "*": function (T) { return {
 
       "1": [ "... idle, 4 * 3 wood",     // size, quantity
-        T.launch  ("g.idle",    3),         
-        T.supplier("wood",      3), 
-        T.supplier("wood",      3), 
+        T.launch  ("g.idle",     3),         
+        T.supplier("wood",      20), 
+        // T.supplier("wood",     10), 
+        // T.supplier("wood",      3), 
+
+      ], "2": [ "... speed",
+        T.builder ("house",      4,  2), 
+        T.builder ("house",      4,  2),
+
+      ], "3": [ "... speed",
+        T.speed(3),
 
       ],
     
 
-    };}, "random/brainland-x": function (T) { return {
+    };}, "random/brainland": function (T) { return {
 
       " t % 100 | (w, f) => (w+f) > 1600": [ "... phase town",
         T.research("phase.town")
@@ -46,6 +54,7 @@ HANNIBAL = (function(H){
       
 
       ], "1": [ "... 2 * 4 house, 2 barracks",     // size, quantity
+        T.launch  ("g.idle",     3),         
         T.builder ("house",      4,  2), 
         T.builder ("house",      4,  2),
         T.builder ("barracks",   4,  1),
@@ -60,8 +69,10 @@ HANNIBAL = (function(H){
         T.builder ("house",      4,  8),
         T.builder ("house",      4,  8),
       
-      ], "3": [ "... 4 wood, fruit, meat",
+      ], "3": [ "... speed",
         T.speed(3),
+
+      ], "4": [ "... 4 wood, fruit, meat",
         T.supplier("wood",      10), 
         T.supplier("wood",      10), 
         T.supplier("wood",      10), 
@@ -69,11 +80,11 @@ HANNIBAL = (function(H){
         T.supplier("food.fruit", 2), 
         T.supplier("food.meat",  2), 
         
-      ], "4": [ "... farmstead, storehouse",
+      ], "5": [ "... farmstead, storehouse",
         T.builder ("farmstead",  2,  2), 
         T.builder ("storehouse", 3,  2), 
       
-      ], "5": [ "... metal, stone",
+      ], "6": [ "... metal, stone",
         T.supplier("metal",      5), 
         T.supplier("stone",      5), 
       

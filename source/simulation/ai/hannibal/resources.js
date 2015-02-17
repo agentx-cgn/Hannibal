@@ -305,7 +305,8 @@ HANNIBAL = (function(H){
       // ,amount,cc,location,verb,hcq,source,shared,id,processing,remaining,product,x,z,nodes
 
       var 
-        result, asset   = this.groups.findAsset(asset => asset.id === order.source),
+        t0 = Date.now(), result = [],
+        asset = this.groups.findAsset(asset => asset.id === order.source),
         generic = order.hcq.split(".")[0];
         
       this.deb("  RESS: FIND.in: %s of %s, near: %s, from: %s", 
@@ -315,29 +316,59 @@ HANNIBAL = (function(H){
         asset
       );
 
-      result = this
-        .nearest(order.location, order.hcq)
-        .slice(0, order.amount)
-      ;
-      result.forEach(res => res.claimed = true);
-      result = result.map(res => res.id);
+      // first look for resources close to order.location
 
-      if (true && this.resourcemaps[generic]){
-          this.map.resources
-            .read("resources", this.resourcemaps[generic].map)
-            .markEntities(result)
-            .markPositions([order.location])
-            .dump(this.context.tick + "-" + generic)
-          ;
+      this.eachType(order.hcq, (generic, specific, id, res) => {
+
+        if (result.length < order.amount){
+          if (this.entities[id]){
+            if (res.found && !res.consumed && !res.claimed){
+              if (this.map.distance(res.position, order.location) < 60){
+                res.claimed = true;
+                result.push(~~id);
+              }
+            }
+          } else { res.consumed = true; }
+        }
+
+      });
+
+      // if nothing look for cluster
+
+      if (!result.length){
+
+        result = this
+          .nearest(order.location, order.hcq)
+          .slice(0, order.amount)
+        ;
+        result.forEach(res => res.claimed = true);
+        result = result.map(res => res.id);
+
       }
 
-      this.deb("  RESS: FIND.out: %s of %s, near loc: %s, from: %s || result: [%s]", 
+      // debug
+      if (result.length){
+
+        if (true && this.resourcemaps[generic]){
+            this.map.resources
+              .read("resources", this.resourcemaps[generic].map)
+              .markEntities(result)
+              .markPositions([order.location])
+              .dump(this.context.tick + "-" + generic)
+            ;
+        }
+
+      }
+
+      this.deb("  RESS: FIND.out: %s/%s of %s in %s msecs, near loc: %s, from: %s", 
+        result.length,
         order.amount, 
         order.hcq, 
-        order.location, 
-        asset,
-        result
+        Date.now() - t0,
+        order.location.map(p => p.toFixed(1)), 
+        asset
       );
+      this.deb("  RESS: FIND.out: %s", uneval(result));
 
       return result;
 
