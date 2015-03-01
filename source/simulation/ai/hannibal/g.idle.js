@@ -57,7 +57,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: assign: %s, %s", this, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // got path, request unit, exits
           w.path.on
@@ -86,7 +86,7 @@ HANNIBAL = (function(H){
 
         }, destroy: function destroy (w, item) {
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // keep minumum units, exits
           w.units.on
@@ -103,8 +103,8 @@ HANNIBAL = (function(H){
 
           w.deb("     G: attack.0: %s, %s, %s", w, shooter, victim);
 
-          w.objectify("shooter", shooter);
-          w.objectify("victim",  victim);
+          w.nounify("shooter", shooter);
+          w.nounify("victim",  victim);
 
 
         // de-garrison
@@ -125,13 +125,14 @@ HANNIBAL = (function(H){
 
         }, interval: function interval (w, secs, ticks){
 
-          w.deb("     G: interval: %s, %s secs", this, secs);
+          // w.deb("     G: interval: %s, secs: %s, intv: %s", this, secs, this.interval);
 
           //  idle units dance
           
           w.units.on
             .match(ticks % 2, 0)
             .doing("idle")
+            .gt(w.units.count, 0)
             .path.do.modify("rotate 18")
             .units.do.spread(w.path)
           ;

@@ -91,12 +91,12 @@ HANNIBAL = (function(H){
       this.events.on("EntityCreated", msg => {
         if(this.entities[msg.id]){
           if (H.contains(this.entities[msg.id].classes(), "Unit")){
-            this.deb("  DIPL: %s, got unit with classes: %s", this.mood, this.entities[msg.id].classes());
+            // this.deb("  DIPL: %s, got unit with classes: %s", this.mood, this.entities[msg.id].classes());
           } else {
-            this.deb("  DIPL: %s, got NON unit with classes: %s", this.mood, this.entities[msg.id].classes());
+            // this.deb("  DIPL: %s, got NON unit with classes: %s", this.mood, this.entities[msg.id].classes());
           }
         } else {
-          this.deb("WARN  : DIPL got ID NOT ENTITY: %s", msg.id);
+          // this.deb("WARN  : DIPL got ID NOT ENTITY: %s", msg.id);
         }
       });
       

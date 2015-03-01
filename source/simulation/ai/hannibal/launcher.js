@@ -31,12 +31,14 @@ HANNIBAL = (function(H) {
       deb:            H.deb.bind(null, id),
       chat:           H.chat.bind(null, id),
 
-      settings:       settings,                            // from ai config dialog
-      isInitialized:  false,                               // did that happen well?
-      isTicking:      false,                               // toggles after first OnUpdate
-      isFinished:     false,                               // there is still no winner
-      noInitReported: false,                               // debug, report init failure only once
-      timing:         {all: 0},                            // used to identify perf. sinks in OnUpdate
+      settings:         settings,                    // from ai config dialog
+      isInitialized:    false,                       // did that happen well?
+      isTicking:        false,                       // toggles after first OnUpdate
+      isFinished:       false,                       // there is still no winner
+      cantplay:         false,                       // map/game misses something important
+      cantplayReported: false,                       // debug, report init failure only once
+      noInitReported:   false,                       // debug, report init failure only once
+      timing:           {all: 0},                    // used to identify perf. sinks in OnUpdate
       
     });
 
@@ -91,6 +93,7 @@ HANNIBAL = (function(H) {
 
     // This bot faces the other players
     this.bot = this.context.createBot();
+    this.cantplay = !this.bot.canplay;
     
 
 
@@ -194,6 +197,14 @@ HANNIBAL = (function(H) {
         this.logNotInitialized();
       }
       this.noInitReported = true;
+      return;      
+    }
+
+    if (this.cantplay){
+      if (!this.cantplayReported){
+        this.logCantPlay();
+      }
+      this.cantplayReported = true;
       return;      
     }
 
@@ -311,6 +322,15 @@ HANNIBAL = (function(H) {
     this.context.turn++;
     this.turn++;
 
+  };
+  H.Launcher.prototype.logCantPlay = function() {
+    var deb = this.deb.bind(this);
+    deb("------: ### --- ### --- ### --- PID: %s, HANNIBAL: ", this.id, new Date());
+    deb();
+    deb("ERROR : HANNIBAL CAN'T PLAY THIS MAP/GAME !!!");
+    this.chat("HANNIBAL CAN'T PLAY THIS MAP/GAME, check install.txt");
+    deb();
+    deb("------: ### --- ### --- ### --- PID: %s, HANNIBAL: ", this.id, new Date());
   };
   H.Launcher.prototype.logNotInitialized = function() {
     var deb = this.deb.bind(this);

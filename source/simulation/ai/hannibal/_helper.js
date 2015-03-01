@@ -141,6 +141,7 @@ H.extend(H, {
     // check: http://stackoverflow.com/a/18885102/515069
     var i=0,o=0;while(a[i]!==undefined){if(fn(a[i])){a.splice(i,1);o++;}else{i++;}}return o;
   },
+  compress:   function (a){var o = {}; a.forEach(i => o[i] = o[i] === undefined ? 1: o[i] +1); return o;},
   substitute: function (a, b, c){a.splice(a.indexOf(b), 1, c);},
   contains:   function (a, e){return a.indexOf(e)!==-1;},
   toFixed:    function (a, n){ n=n||1;return a.map(function(n){return n.toFixed(1);});},
@@ -246,6 +247,19 @@ H.extend(H, {
     var i = a.length, out = new Uint8Array(i);
     while(i--){out[i] = (a[i] & 0xFF00);}
     return out;
+  },
+
+  peakNext: function (arr, num, fn){
+    
+    var 
+     pointer = 0, len = arr.length, copy = [...arr, ...Array(num)],
+     next  = function(n){pointer += n;},
+     slice = function(){return copy.slice(pointer, pointer + num);};
+    
+    while (pointer < len){
+      fn(...slice(num), next);
+    }
+    
   },
 
   // functions

@@ -42,6 +42,10 @@ HANNIBAL = (function(H){
         "resources",
       ],
 
+      canplay: false, // assuming game/map is incomplete
+
+      plan: null,
+
     });
 
   };
@@ -50,9 +54,13 @@ HANNIBAL = (function(H){
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Bot,
     log: function(){
-      deb(); deb("   BOT: loaded: %s", this);
+      this.deb(); this.deb("   BOT: loaded: %s", this);
     },
     deserialize: function(data){
+      if (data){
+        this.canplay = data.canplay;
+        this.plan    = data.plan;
+      }
       return this;
     },
     serialize: function(){
@@ -60,9 +68,22 @@ HANNIBAL = (function(H){
       return data;
     },
     initialize: function(){
+
+      // launch default groups for all settlements
+      // get plan to phases city
+
+      this.canplay = this.checkGame();
+
+      if (!this.plan){
+
+      }
+
+
       return this;
+
     },
-    activate: function(){},
+    activate: function(){
+    },
     tick: function(secs, tick, timing){
 
       if (tick === 0){
@@ -86,7 +107,7 @@ HANNIBAL = (function(H){
           ["gps", "Groups",          this.groups       ], 
           ["mil", "Military",        this.military     ], 
           ["sts", "Economy.Stats",   this.economy.stats], 
-          ["eco", "Economy",         this.economy      ]
+          ["eco", "Economy",         this.economy      ],
 
         ].forEach(task => {
 
@@ -97,6 +118,26 @@ HANNIBAL = (function(H){
         });
 
       }
+
+    },
+    checkGame: function(){
+
+      var check = true, checks = [
+        ["no seeds", () => this.villages.seedTemplates.length > 0],
+      ];
+
+      checks.forEach(chk => {
+        if (!chk[1]()){
+          check = false;
+          this.deb("   BOT: Game problem: %s !!", chk[0]);
+        }
+      });
+
+      if (check){
+        this.deb("   BOT: game/map is playable");
+      }
+
+      return check;
 
     },
     unitprioritizer: function(){

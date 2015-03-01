@@ -50,18 +50,20 @@ HANNIBAL = (function(H){
 
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Groups,
-    log: function(){
-      var t = H.tab, deb = this.deb.bind(this);
+    log: function(force){
+      var t = H.tab, deb = force ? H.deb : this.deb.bind(this);
       deb();
-      deb("  GRPS: %s instances", this.instances.length);
+      deb("  GRPS: %s instances %s", this.instances.length, this);
       this.instances
-        .sort( (a, b) => a.name > b.name ? 1 : -1)
+        .sort( (a, b) => a.id > b.id ? 1 : -1)
         .forEach(ins => {
           deb("     G: %s, assets: %s", ins.name, ins.assets.length);
           ins.assets.forEach( ast => {
-            deb("     G:   %s: [%s], %s, ", t(ast.property, 12), ast.resources.length, ast);
+            deb("           %s: [%s], %s, ", ast.property, ast.resources.length, (ast + "").slice(0, 30));
             ast.resources.forEach( id => {
-              deb("     G:      tlp:  %s, meta: %s", this.entities[id], uneval(this.metadata[id]));
+              if (ast.property !== "path"){
+                deb("             %s, meta: %s", this.entities[id], uneval(this.metadata[id]));
+              }
             });
           });
         });
@@ -72,7 +74,7 @@ HANNIBAL = (function(H){
     serializegroup: function(instance){
       return {
         id:        instance.id,
-        cc:        instance.cc,
+        sid:       instance.sid,
         groupname: instance.groupname,
         name:      instance.name,
         position:  instance.position,
@@ -168,11 +170,11 @@ HANNIBAL = (function(H){
 
         } else if (opname === "g.custodian"){
           // deb("  GRPS: appOps %s for %s", opname, node.name);
-          this.appoint(node.id, {groupname: "g.custodian", cc: this.metadata[node.id].cc});
+          this.appoint(node.id, {groupname: "g.custodian", sid: this.metadata[node.id].sid});
 
         } else if (opname === "g.mayor"){
           // deb("  GRPS: appOps %s for %s", opname, node.name);
-          this.appoint(node.id, {groupname: "g.mayor", cc: this.metadata[node.id].cc});
+          this.appoint(node.id, {groupname: "g.mayor", sid: this.metadata[node.id].sid});
 
         } else {
           // deb("  GRPS: appOps ignored %s for %s", opname, node.name);
@@ -313,7 +315,7 @@ HANNIBAL = (function(H){
                   hcq.substr(pos1 +1, pos2 - pos1 -1) : 
                   null;
 
-      if (token === "cc"){
+      if (token === "sid"){
         hcq = H.replace(hcq, "<" + token + ">", instance[token]);
 
       } else if (token && instance[token] !== undefined){
@@ -387,7 +389,7 @@ HANNIBAL = (function(H){
         repair:    (act, sub, obj)         => {
 
           // TODO: skip buildings with health > 90%
-          this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
+          // this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
           this.effector.repair(sub.list, obj.list);
 
         },
@@ -453,7 +455,7 @@ HANNIBAL = (function(H){
 
       this.deb("  GRPS: transfer %s %s from %s -> %s", assetsource.list.length, assetsource.name, source, target);
       this.deb("  GRPS: transfer assets %s -> %s", assetsource, targetasset);
-      this.deb("  GRPS: transfer lists %s -> %s", assetsource.list, targetasset.resources);
+      this.deb("  GRPS: transfer lists %s -> [%s]", assetsource.list, targetasset.resources);
 
       if (targetasset){
 
@@ -510,31 +512,31 @@ HANNIBAL = (function(H){
       this.deb("  GRPS: dissolved %s", instance);
 
     },
-    appoint: function(id, config){
+    // appoint: function(id, config){
 
-      // shared assets are handled by unitless groups like custodian or mayor
-      // they keep a list of users = other groups to radio repair, etc
+    //   // shared assets are handled by unitless groups like custodian or mayor
+    //   // they keep a list of users = other groups to radio repair, etc
 
-      // launches and inits a group instance to manage a shared ingame structure/building
-      // called at init ??and during game??, if an order for a shared asset is ready
+    //   // launches and inits a group instance to manage a shared ingame structure/building
+    //   // called at init ??and during game??, if an order for a shared asset is ready
 
-      var 
-        instance = this.launch(config),
-        node = this.query("INGAME WITH id = " + id, 0).first(),
-        nodename = node.name.split("#")[0];
+    //   var 
+    //     instance = this.launch(config),
+    //     node = this.query("INGAME WITH id = " + id, 0).first(),
+    //     nodename = node.name.split("#")[0];
 
-      this.metadata[id].opmode = "shared";
-      this.metadata[id].opid   = instance.id;
-      this.metadata[id].opname = instance.groupname;
+    //   this.metadata[id].opmode = "shared";
+    //   this.metadata[id].opid   = instance.id;
+    //   this.metadata[id].opname = instance.groupname;
 
-      instance.structure = ["private", nodename];
-      instance.register("structure");
+    //   instance.structure = ["private", nodename];
+    //   instance.register("structure");
       
-      // this.deb("  GRPS: appointed %s for %s, cc: %s", instance.name, this.entities[id], config.cc);
+    //   // this.deb("  GRPS: appointed %s for %s, sid: %s", instance.name, this.entities[id], config.sid);
 
-      return instance;
+    //   return instance;
 
-    },
+    // },
     doing: function(subject, filter){ 
 
       // filters ids in list on unit ai state
@@ -543,7 +545,7 @@ HANNIBAL = (function(H){
       var 
         ids    = [], 
         states = [],
-        other  = [],
+        other  = [], others,
         list = subject.list,
         actions = filter.split(" ").filter(a => !!a);
 
@@ -559,7 +561,9 @@ HANNIBAL = (function(H){
         });
       });
 
-      this.deb("  GRPS: doing list for %s: %s, filter: %s, found: %s, other: %s", subject, list.length, filter, ids.length, other);
+      // debug
+      // others = H.prettify(H.compress(other));
+      // this.deb("  GRPS: doing list for %s: %s, filter: %s, found: %s, other: %s", subject, list.length, filter, ids.length, others);
 
       return ids;
 
@@ -599,7 +603,7 @@ HANNIBAL = (function(H){
 
       this.economy.request({
         amount:     amount,
-        cc:         instance.cc,
+        sid:        instance.sid,
         location:   position,
         verb:       asset.verb, 
         hcq:        asset.hcq, 
@@ -615,13 +619,13 @@ HANNIBAL = (function(H){
 
     launch: function(config){
 
-      // this.deb("  GRPS: launch, %s", uneval(config));
+      this.deb("  GRPS: launch, %s", uneval(config));
 
       // Object Factory
 
       // groups are defined in grp-[config.groupname].js 
       // instance is what is running
-      // cc        -> required
+      // sid       -> required
       // groupname -> required
       // assets
       // id
@@ -631,38 +635,35 @@ HANNIBAL = (function(H){
 
       var 
         world, 
-        ccpos = this.entities[config.cc].position(),
+        pos = this.entities[config.sid].position(),
         instance = {id: config.id || this.context.idgen++};
 
       // prepare a dsl world
       world = this.dsl.createWorld(instance);
-      this.dsl.setverbs(world, this.getverbs());
       world.group = instance;
       world.group.size = 1;
       world.nounify("group");
+      this.dsl.setverbs(world, this.getverbs());
 
       H.extend(instance, {
 
         klass:     "group",
         context:   this.context,
-        name:      config.groupname + "#" + instance.id,
-        id:        config.id || this.context.idgen++,
-        cc:        config.cc,
+        sid:       config.sid,
         groupname: config.groupname,
+        name:      config.groupname + "#" + instance.id,
+
+        // id:        config.id || this.context.idgen++,
         scripts:   {},
-
         world:     world,
-
         resources: this.resources, // needs lexical signature
-
-        position:  config.position || ccpos || this.deb("ERROR : no pos in group"),
+        position:  config.position || pos || this.deb("ERROR : no pos in group"),
         assets:    [],
 
         toString: function(){return H.format("[%s %s]", this.klass, this.name);},
 
 
       });
-
 
       // keep a reference
       this.instances.push(instance);

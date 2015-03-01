@@ -27,13 +27,23 @@ HANNIBAL = (function(H){
 
       "1": [ "... idle, 4 * 3 wood",     // size, quantity
         T.launch  ("g.idle",     3),         
-        T.supplier("wood",      20), 
-        // T.supplier("wood",     10), 
-        // T.supplier("wood",      3), 
+        T.launch  ("g.harvester"),         
+        // T.launch  ("g.harvester"),         
+        // T.launch  ("g.harvester"),         
+        // T.launch  ("g.harvester"),         
+        // T.launch  ("g.harvester"),         
+        // T.supplier("wood",      10), 
+        // T.supplier("wood",      10), 
+        // T.supplier("wood",      10), 
+        // T.supplier("wood",      10), 
+        // T.supplier("food.fruit", 2), 
+        // T.supplier("food.meat",  2), 
 
       ], "2": [ "... speed",
         T.builder ("house",      4,  2), 
-        T.builder ("house",      4,  2),
+        // T.builder ("house",      4,  2),
+        // T.builder ("house",      4,  2),
+        // T.builder ("house",      4,  2),
 
       ], "3": [ "... speed",
         T.speed(3),
@@ -41,7 +51,7 @@ HANNIBAL = (function(H){
       ],
     
 
-    };}, "random/brainland": function (T) { return {
+    };}, "random/brainland-X": function (T) { return {
 
       " t % 100 | (w, f) => (w+f) > 1600": [ "... phase town",
         T.research("phase.town")
@@ -115,8 +125,8 @@ HANNIBAL = (function(H){
       ],
 
       mapname: "",
-      cc:      NaN,
-      ccpos :  null,
+      sid:     NaN,
+      sidpos:  null,
 
     });
 
@@ -126,9 +136,9 @@ HANNIBAL = (function(H){
   H.LIB.Scripter.prototype = H.mixin (
     H.LIB.Serializer.prototype, {
     prepare: function(seqmap){
-      this.cc = this.villages.main;
-      this.ccpos = this.entities[this.cc].position();
-      this.ccloc = () => this.ccpos[0] + ", " + this.ccpos[1];
+      this.sid = this.villages.findMain();
+      this.sidpos = this.entities[this.sid].position();
+      this.sidloc = () => this.sidpos[0] + ", " + this.ccpos[1];
       this.mapname  = sequences[seqmap] ? seqmap : "*";
       this.sequence = sequences[this.mapname](this);
       this.evaluator = this.evaluate.bind(this);
@@ -191,7 +201,7 @@ HANNIBAL = (function(H){
       return () => {
         return this.groups.launch({
           groupname: group, 
-          cc: this.cc, 
+          sid: this.sid, 
           size: size, 
           quantity: quantity,
         });
@@ -201,7 +211,7 @@ HANNIBAL = (function(H){
       return () => {
         this.groups.launch({
           groupname: "g.supplier", 
-          cc: this.cc, 
+          sid: this.sid, 
           supply: supply,
           size: size, 
           quantity: quantity,
@@ -214,7 +224,7 @@ HANNIBAL = (function(H){
         if (name){
           this.groups.launch({
             groupname: "g.builder", 
-            cc: this.cc, 
+            sid: this.sid, 
             building: name, 
             quantity: quantity, 
             size: size

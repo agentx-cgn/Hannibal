@@ -58,7 +58,7 @@ HANNIBAL = (function(H){
 
           // w.deb("     G: assign.0: %s, %s", w, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // have too much units, exits
           w.units.on
@@ -117,6 +117,7 @@ HANNIBAL = (function(H){
             .match(w.buildings.count, w.buildings.size)
             .units.do.transfer("g.idle")
             .group.do.dissolve()
+            .echo("dissolved %s/%s", w.buildings.count, w.buildings.size)
             .exit
           ;
 
@@ -125,7 +126,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: destroy: %s, %s", this, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // lost unit, request another
           w.units.on
@@ -147,13 +148,12 @@ HANNIBAL = (function(H){
 
           w.deb("     G: attack: %s, %s, %s, %s, %s", this, item, enemy, type, damage);
 
-          w.objectify("item",  item);
-          // w.objectify("enemy", enemy);
+          w.nounify("item",  item);
 
           // don't care about buildings, exits
           w.buildings.on
             .member(w.item)
-            // .exit
+            .exit
           ;
 
           // // avoid loosing unit
@@ -173,7 +173,7 @@ HANNIBAL = (function(H){
 
         }, interval:  function interval (w, tick, secs) {
 
-          w.deb("     G: interval: %s, %s secs", this, secs);
+          // w.deb("     G: interval: %s, secs: %s, intv: %s", this, secs, this.interval);
 
           // w.units.on
           //   .doing("idle")
@@ -182,7 +182,7 @@ HANNIBAL = (function(H){
           // ;
 
           // // avoid loosing units
-          // w.units
+          // w.units.on
           //   .doing("!garrison")
           //   .doing("!healing")
           //   .having("health < 30")

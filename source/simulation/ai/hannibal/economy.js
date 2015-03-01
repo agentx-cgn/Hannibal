@@ -327,7 +327,7 @@ HANNIBAL = (function(H){
         name, id, found = false, 
         idpdc = H.isInteger(nodeOrId) ? nodeOrId : nodeOrId.id;
 
-      this.deb("   PDC: remove: idpdc: %s", idpdc);
+      // this.deb("   PDC: remove: idpdc: %s", idpdc);
 
       H.each(this.producers, (nameid, info) => {
 
@@ -347,7 +347,7 @@ HANNIBAL = (function(H){
             if(!this.producers[nameid].entities.length){
               delete this.producers[nameid];
             }
-            this.deb("   PDC: removed unit, id: %s, from: %s", idpdc, nameid);
+            this.deb("   PDC: removed unit: %s", nameid);
             found = true;
 
           }
@@ -415,7 +415,7 @@ HANNIBAL = (function(H){
       }
 
     },
-    find: function(product, cc){
+    find: function(product, sid){
 
       // searches culture.tree for producer for product
       // returns matching producer with most free slots, if avail. or null
@@ -444,7 +444,7 @@ HANNIBAL = (function(H){
 
         case "research":
 
-          // can ignore cc
+          // can ignore sid
           if (product.contains("phase")){
             if ((producer = this.findCentre())){ // TODO: search over all centres
               if (producer.allocs >= this.maxqueue){
@@ -471,8 +471,8 @@ HANNIBAL = (function(H){
             check = (
               tree[producer.name].products.train[product] &&
               producer.allocs < this.maxqueue && 
-              this.metadata[id].cc && // TESTTHIS
-              (!cc || this.metadata[id].cc === cc)
+              this.metadata[id].sid && // TESTTHIS
+              (!sid || this.metadata[id].sid === sid)
             );
             if (check){
               candidates.push(producer);
@@ -497,12 +497,12 @@ HANNIBAL = (function(H){
         // deb("   PDC: found: verb: %s : %s#%s for %s in %s, meta: %s", 
         //   verb, 
         //   producer.name, producer.id, 
-        //   product, cc,
+        //   product, sid,
         //   uneval(this.metadata[producer.id])
         // );
       } else {
         if (verb === "build"){
-          this.deb("   PDC: NO producer found for %s at cc: %s", product, cc);
+          this.deb("   PDC: NO producer found for %s at sid: %s", product, sid);
         }
       }
 
@@ -547,11 +547,11 @@ HANNIBAL = (function(H){
         source = this.groups.findAsset(this.source),  // this is an asset id
         loc = (this.location === undefined) ? "undefined" : H.fixed1(this.location);
 
-      this.deb("   ORD: log #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
+      this.deb("   ORD: log #%s, %s amount: %s, sid: %s, loc: %s, from: %s, shared: %s, hcq: %s",
         this.id, 
         this.verb, 
         this.amount, 
-        this.cc || "NO CC" , 
+        this.sid || "NO sid" , 
         loc, 
         source,  // that's an asset
         this.shared, 
@@ -577,6 +577,7 @@ HANNIBAL = (function(H){
         id:         this.id,
         x:          this.x,
         z:          this.z,
+        sid:        this.sid,
         amount:     this.amount,
         remaining:  this.remaining,
         processing: this.processing,
@@ -633,10 +634,10 @@ HANNIBAL = (function(H){
         return;
       } 
 
-      // check whether ingame producer exists
+      // check whether ingame producers exist
       this.nodes.forEach( node => {
         // deb("evaluate: %s node: ", self.id, node.name);
-        producer = producers.find(node.name, this.cc);
+        producer = producers.find(node.name, this.sid);
         if (producer){
           node.producer = producer;
           // deb("evaluate: %s prod for %s #%s %s", self.id, node.name, producer.id, producer.name);
@@ -737,6 +738,11 @@ HANNIBAL = (function(H){
 
         target = this.groups.findAsset(a => a.id === this.source);
 
+        if (!target){
+          this.groups.log(true);
+          H.throw("assignIdle: target %s not found, %s", uneval(this.source), this);
+        }
+
         source = this.groups.findAsset(a => {
           return (a.instance.groupname === "g.idle" && a.property === "units");
         });
@@ -760,7 +766,7 @@ HANNIBAL = (function(H){
           ;
 
         } else {
-          this.deb("     O: assignIdle no units in g.idle");
+          // this.deb("     O: assignIdle no units in g.idle");
 
         }
 
@@ -781,11 +787,11 @@ HANNIBAL = (function(H){
         // looking for unit not assigned to a group
         verb === "train" ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
         
-        // looking for a shared structure
-        verb === "build" && this.shared ? this.hcq + " INGAME WITH metadata.opmode = 'shared'" :
+        // looking for a structure in same settlement
+        verb === "build" ? this.hcq + " INGAME WITH metadata.sid = " + this.sid :
 
-        // looking for abandoned structure not assigned to a group
-        verb === "build" && !this.shared ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
+        // // looking for abandoned structure not assigned to a group
+        // verb === "build" && !this.shared ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
 
         // error
           H.throw("assignExisting run into unhandled case: verb: %s, shared: %s", this.verb, this.shared)
@@ -849,6 +855,7 @@ HANNIBAL = (function(H){
       imports:  [
         "economy",
         "groups",
+        "player",
         "villages",
       ],
 
@@ -866,13 +873,13 @@ HANNIBAL = (function(H){
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Orderqueue,
     log: function(){
-      this.deb();
       if (this.queue.length){
+        this.deb();
         this.queue.forEach( order => {
           order.log();
         });
       } else {
-        this.deb("   ORQ: empty");
+        // this.deb("   ORQ: empty");
       }
     },
     logTick: function(){
@@ -896,8 +903,8 @@ HANNIBAL = (function(H){
           template: o => "tplXXXXXX",
         };
 
-      this.deb("   ORQ: length: %s, rep: %s", this.queue.length, uneval(this.report));
       if (this.queue.length){
+        this.deb("   ORQ: length: %s, rep: %s", this.queue.length, uneval(this.report));
         this.deb("*");
         this.deb("     Q: %s", header);
         this.queue
@@ -1000,6 +1007,14 @@ HANNIBAL = (function(H){
       // clear allocs from last tick
       eco.producers.resetAllocations();
 
+      // check whether source/purchaser for units still exists
+      H.delete(queue, order => {
+        if (order.verb === "train" && !this.groups.findAsset(a => a.id === order.source)){
+          rep.rem.push(order.id);
+          return true;
+        } else {return false;}
+      });
+
       // evaluate for product/producer/cost
       queue.forEach(order => {
         t1 = Date.now();
@@ -1024,40 +1039,49 @@ HANNIBAL = (function(H){
         .forEach( order => {
 
           var 
-            id  = order.id,
+            id = order.id,
             product = order.product;
 
           // process all or one
           amount = allGood ? order.remaining - order.processing : 1;
 
           // final global budget check
-          if (eco.fits(product.costs, budget, amount)){
-
-            // one build a time
-            if (order.verb === "build"){
-              if (hasBuild) {
-                return;
-              } else {
-                position = this.villages.findPosForOrder(order);
-                if (position){
-                  hasBuild = true;
-                } else {
-                  order.flags += "S";
-                  return;
-                }
-              }
-            }
-
-            eco.do(amount, order, position); 
-
-            eco.subtract(product.costs, budget, amount);
-            rep.exe.push(id + ":" + amount);
-
-          } else {
+          if (!eco.fits(product.costs, budget, amount)){
             order.flags += "C";
             rep.ign.push(id);
-
           }
+
+          // only one build per tick
+          if (order.verb === "build"){
+            if (hasBuild) {
+              order.flags += "B"; // has already build
+              rep.ign.push(id);
+              return;
+            } else {
+              position = this.villages.findPosForOrder(order);
+              if (position){
+                hasBuild = true;
+              } else {
+                order.flags += "S"; // no space
+                rep.ign.push(id);
+                return;
+              }
+            }
+          }
+
+          // check popmax
+          if (order.verb === "train"){
+            if (this.player.popCount + amount > this.player.popLimit -1){
+              order.flags += "H"; // no houses
+              rep.ign.push(id);
+              return;
+            }
+          }
+
+          // all checks OK, execute
+          eco.do(amount, order, position); 
+          eco.subtract(product.costs, budget, amount);
+          rep.exe.push(id + ":" + amount);
 
       });
 
@@ -1170,11 +1194,10 @@ HANNIBAL = (function(H){
       var 
         order,
         id = this.id,
-        events = this.events,
         producers = this.producers,
         orderqueue = this.orderqueue;
 
-      events.on("EntityRenamed", msg => {
+      this.events.on("EntityRenamed", msg => {
         if (this.entities[msg.id2].hasClass("Unit")){
           producers.remove(msg.id);
           producers.register(msg.id2);
@@ -1182,28 +1205,20 @@ HANNIBAL = (function(H){
       });
 
       // new technology
-      events.on("Advance", msg => {
+      this.events.on("Advance", msg => {
         if (orderqueue.delete(order => order.hcq === msg.data.technology)){
           producers.unqueue("research", msg.data.technology);
           this.deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
         }        
       });
 
-      // new producer
-      events.on("ConstructionFinished", msg => {
-
-        // if (!msg.data.task){
-        //   this.deb("INFO  : ECO: got present: structure, not ordered %s", uneval(msg));
-        //   this.effector.chat("Thanks.");
-        //   return;
-        // }
-
+      // new producer/building
+      this.events.on("ConstructionFinished", msg => {
         producers.register(msg.id);
-
       });
 
-      // new unit
-      events.on("TrainingFinished", msg => {
+      // new producer/unit
+      this.events.on("TrainingFinished", msg => {
 
         this.deb("   ECO: TrainingFinished id: %s, meta: %s", msg.id, uneval(this.metadata[msg.id]));
 
@@ -1221,7 +1236,7 @@ HANNIBAL = (function(H){
         order.remaining  -= 1;
         order.processing -= 1;
         
-        events.fire("OrderReady", {
+        this.events.fire("OrderReady", {
           player: id,
           id:     msg.id,
           data:   {order: msg.data.order, source: order.source}
@@ -1230,7 +1245,7 @@ HANNIBAL = (function(H){
       });
 
       // new metadata
-      events.on("AIMetadata", msg => {
+      this.events.on("AIMetadata", msg => {
 
         // this.deb("   ECO: on AIMetadata, msg.data.order: %s", msg.data.order);
 
@@ -1240,7 +1255,7 @@ HANNIBAL = (function(H){
 
         // this.deb("   ECO: on AIMetadata order: #%s from %s", order.id, this.groups.findAsset(order.source).name);
         
-        events.fire("OrderReady", {
+        this.events.fire("OrderReady", {
           player: id,
           id:     msg.id,
           data:   {order: msg.data.order, source: order.source}
@@ -1249,10 +1264,10 @@ HANNIBAL = (function(H){
       });
 
       // remove entity
-      events.on("UnitDestroyed", msg => {
+      this.events.on("UnitDestroyed", msg => {
         producers.remove(msg.id);
       });
-      events.on("StructureDestroyed", msg => {
+      this.events.on("StructureDestroyed", msg => {
         if (!msg.data.foundation){
           producers.remove(msg.id);
         }
@@ -1304,11 +1319,11 @@ HANNIBAL = (function(H){
       objorder = new H.LIB.Order(this.context).import().initialize(order);
       this.orderqueue.queue.push(objorder);
 
-      this.deb("  ECOR: #%s, %s amount: %s, cc: %s, loc: %s, from: %s, shared: %s, hcq: %s",
+      this.deb("  ECOR: #%s, %s amount: %s, sid: %s, loc: %s, from: %s, shared: %s, hcq: %s",
         objorder.id, 
         objorder.verb, 
         objorder.amount, 
-        objorder.cc || "NO CC" , 
+        objorder.sid || "NO SID" , 
         loc, 
         source,  // that's an asset
         objorder.shared, 
@@ -1331,26 +1346,31 @@ HANNIBAL = (function(H){
         (position || []).map(p => p.toFixed(1)) // for structs, units have pos
       );
 
-      // assuming transaction succedes
+      // assuming transaction succedes !!
       order.processing += amount;
 
       if (order.verb === "train"){
         task = this.context.idgen++;
         this.producers.queue(product.producer, task);
-        this.effector.train([id], product.key, amount, {order: order.id, task: task, cc:order.cc});
+        this.effector.train([id], product.key, amount, {order: order.id, task: task, sid:order.sid});
 
       } else if (order.verb === "research") {
         this.producers.queue(product.producer, product.name);
         this.effector.research(id, product.key);
 
       } else if (order.verb === "build") {
-        this.effector.construct([id], product.key, position, {order: order.id, cc:order.cc});
-        this.deb("   ECO: do.build: pos: %s, ord: %s, key: %s", uneval(position), uneval([order.x, order.z]), product.key);
+        this.effector.construct([id], product.key, position, {order: order.id, sid:order.sid});
+        this.deb("   EDO: build: pos: %s, ord: %s, key: %s", 
+          position.map(p => p.toFixed(1)),
+          [order.x, order.z].map(p => p.toFixed(1)), 
+          // [order.x || NaN, order.z || NaN], 
+          product.key
+        );
 
       } else if (order.verb === "find") {
-        H.throw("ECO: find order leaked into do()");
+        H.throw("EDO: find order leaked into do()");
       } else if (order.verb === "path") {
-        H.throw("ECO: path order leaked into do()");
+        H.throw("EDO: path order leaked into do()");
 
       }
 

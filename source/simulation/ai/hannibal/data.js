@@ -15,17 +15,17 @@
 HANNIBAL = (function(H){
 
   // group scripts
-  H.Data.Groups.whitelist = [
-    "launch",       // group instance launched
-    "assign",       // resource added to asset
-    "destroy",      // final call
-    "attack",       // enemies become a thread
-    "tick",         // ticking
-    "connect",      // user added to shared asset
-    "disConnect",   // remove user from shared asset
-    "radio",        // bot radio
-    "release"       // de-garrison
-  ];
+  // H.Data.Groups.whitelist = [
+  //   "launch",       // group instance launched
+  //   "assign",       // resource added to asset
+  //   "destroy",      // final call
+  //   "attack",       // enemies become a thread
+  //   "tick",         // ticking
+  //   "connect",      // user added to shared asset
+  //   "disConnect",   // remove user from shared asset
+  //   "radio",        // bot radio
+  //   "release"       // de-garrison
+  // ];
 
   // Triple Store Verbs, in order of frequency with ingames first
   H.Data.verbs = [

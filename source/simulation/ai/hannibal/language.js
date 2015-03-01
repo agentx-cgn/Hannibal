@@ -51,7 +51,7 @@
                   var assign = function(w, item){
                     
                     // make item available as object
-                    w.objectify("item", item);
+                    w.nounify("item", item);
                     
                     // keep requesting units until size
                     w.units.on                          // set units as subject
@@ -140,23 +140,43 @@ HANNIBAL = (function(H){
 
         },
 
-        objectify:  (name, obj) => {
+        // objectify:  (name, obj) => {
 
-          // this.deb("   DSL: objectifying: %s for %s", name, world.actor);
-          this.setnoun(world, name, new this.corpus.nouns[name](obj, name));
+        //   // this.deb("   DSL: objectifying: %s for %s", name, world.actor);
+        //   this.setnoun(world, name, new this.corpus.nouns[name](obj, name));
 
-        },
+        // },
         nounify:  () => {
 
-          H.toArray(arguments).forEach( noun => {
+          var host, args = H.toArray(arguments);
 
-            // this.deb("   DSL: nounifying: %s for %s", noun, world.actor);
+          H.peakNext(args, 2, (noun, obj, next) => {
             
-            var host = this.handler.nounify(world, actor, noun);
-            this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
-
+            if (typeof noun === "string" && typeof obj === "object"){
+              this.setnoun(world, noun, new this.corpus.nouns[noun](obj, noun));
+              next(2);
+              
+            } else {
+              host = this.handler.nounify(world, actor, noun);
+              this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
+              next(1);
+              
+            }
+            
           });
+
         },
+        // nounifyX:  () => {
+
+        //   H.toArray(arguments).forEach( noun => {
+
+        //     // this.deb("   DSL: nounifying: %s for %s", noun, world.actor);
+            
+        //     var host = this.handler.nounify(world, actor, noun);
+        //     this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
+
+        //   });
+        // },
 
         // debug
         sentence: [],
@@ -184,7 +204,7 @@ HANNIBAL = (function(H){
         },
         echo:   function(){
           if (world.execute && world.proceed){
-            world.deb("   WLD: echo: %s", H.format.apply(null, arguments));
+            world.deb("   WLD: ECHO: %s %s", world.actor, H.format.apply(null, arguments));
           }
           return world;
         },

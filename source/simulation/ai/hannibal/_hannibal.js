@@ -55,6 +55,8 @@ var HANNIBAL = (function() {
       H.deb(msg);
       stack.forEach(line => H.deb("  " + line));      
       throw "\n*\n*";
+      // game over
+      H.deboff(true);
     },
     
     extend: function (o){
@@ -84,6 +86,14 @@ var HANNIBAL = (function() {
     log: function(){this.deb("   %s: logging", this.name.slice(0,3).toUpperCase());},
     logtick: function(){this.deb("   %s: logticking", this.name.slice(0,3).toUpperCase());},
     serialize: function(){return {};},
+    checkDebug: function(what){
+      return (
+        !HANNIBAL_DEBUG ? 0 :
+        !HANNIBAL_DEBUG.bots[this.context.id] ? 0 :
+        !HANNIBAL_DEBUG.bots[this.context.id][what] ? 0 :
+          HANNIBAL_DEBUG.bots[this.context.id][what]
+      );
+    },
     deserialize: function(){return this;},
     initialize: function(){return this;},
     finalize: function(){return this;},

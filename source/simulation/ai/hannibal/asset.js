@@ -81,7 +81,7 @@ HANNIBAL = (function(H){
       // resources    // array of ids
       // verb         // the action performed
       // hcq          // resource selector
-      // shared       // or private
+      // // shared       // or private
       // definition   // from group's assets
       // users        // list of ??? for shared asset users
 
@@ -103,14 +103,9 @@ HANNIBAL = (function(H){
     activate: function(){
       this.eventlist.forEach(e => this.events.on(e, this.handler));
     },
-    releaseEntity:function(id){
-      H.delete(this.resources, ident => ident === id);
-      this.metadata[id].opname = "none";
-      this.metadata[id].opid = undefined;
-    },
     release:    function(){
       // frees all resources of this asset
-      this.deb("   AST: releasing %s => [%s]", this, uneval(this.resources));          
+      this.deb("   AST: releasing %s [%s]", this, uneval(this.resources));          
       this.eventlist.forEach(e => this.events.off(e, this.handler));
       this.resources.slice().forEach(id => {
         if (H.isInteger(id)){
@@ -121,6 +116,11 @@ HANNIBAL = (function(H){
       });
       this.resources = null;
       // users ????
+    },
+    releaseEntity:function(id){
+      H.delete(this.resources, ident => ident === id);
+      this.metadata[id].opname = "none";
+      this.metadata[id].opid = undefined;
     },
 
     // events
@@ -171,7 +171,7 @@ HANNIBAL = (function(H){
             ispath:      tpln.contains("path"),      // mark for world.member
             isresource:  tpln.contains("resources"), // mark for world.member
             foundation:  tpln.contains("foundation"),
-            toString :   () => H.format("[dslobject item[%s]]", id)
+            toString :   () => H.format("[dslobject item[%s]]", id || tpln)
           };
 
           this.groups.callWorld(this.instance, "assign", [dslItem]);

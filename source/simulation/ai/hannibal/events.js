@@ -436,14 +436,17 @@ HANNIBAL = (function(H){
       // listener: assets, culture, groups
 
       var 
-        ent = this.entities[e.newentity],
-        msg = this.fire("ConstructionFinished", {
-          player: ent.owner(),
-          id:     e.newentity,
-          data: {classes: ent.classes().map(String.toLowerCase)}
-        });
+        ent  = this.entities[e.newentity],
+        tpln = ent._templateName;
 
-      // this.moveAllListener(msg);
+      this.fire("ConstructionFinished", {
+        player: ent.owner(),
+        id:     e.newentity,
+        data: {
+          templatename: tpln,
+          classes: ent.classes().map(String.toLowerCase),
+        }
+      });
 
     },
     AIMetadata: function(e){

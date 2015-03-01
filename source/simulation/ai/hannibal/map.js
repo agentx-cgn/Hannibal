@@ -58,11 +58,12 @@ HANNIBAL = (function(H){
 
     TERRITORY_PLAYER_MASK = 0x3F, // 63
 
-    sin  = Math.sin,
-    cos  = Math.cos,
-    sqrt = Math.sqrt,
-    TAU  = Math.PI * 2,
-    PI2  = Math.PI / 2;
+    PI     = Math.PI,
+    TAU    = PI + PI,
+    PI2    = PI / 2,
+    RADDEG = PI / 180,
+    DEGRAD = 180 / PI,
+    SQRT2  = Math.sqrt(2);
 
   H.LIB.Map = function(context){
 
@@ -180,7 +181,7 @@ HANNIBAL = (function(H){
 
       var 
         field, 
-        [x, z] = this.mapPosToGridCoords(this.entities[this.villages.main].position()),
+        [x, z] = this.mapPosToGridCoords(this.entities[this.villages.findMain()].position()),
         data   = this.regionsland.data,
         reg    = data[x + z * this.regionsland.size];
 

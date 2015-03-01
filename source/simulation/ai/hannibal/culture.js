@@ -729,7 +729,7 @@ HANNIBAL = (function(H){
         // this.deb("  CULT: loadNodes...");
         this.loadNodes();                // turn templates to nodes
 
-        this.deb("  CULT: loadEdges...");
+        // this.deb("  CULT: loadEdges...");
         this.loadEdges();                // add edges
 
         // this.deb("  CULT: loadWallset...");
@@ -1468,7 +1468,7 @@ HANNIBAL = (function(H){
         }
       });
 
-      this.deb("     C: created %s edges on pair: %s|%s - %s", H.tab(counter*2, 4), verb, inverse, msg);
+      // this.deb("     C: created %s edges on pair: %s|%s - %s", H.tab(counter*2, 4), verb, inverse, msg);
 
     },        
     loadEdges: function(){

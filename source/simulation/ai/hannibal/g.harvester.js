@@ -45,7 +45,7 @@ HANNIBAL = (function(H){
 
           w.units    = ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0"];
           w.field    = ["exclusive", "food.grain PROVIDEDBY"];
-          w.dropsite = ["shared", "food ACCEPTEDBY"]; //TODO: exclude docks
+          w.dropsite = ["shared",    "food ACCEPTEDBY"]; //TODO: exclude docks
 
           w.units.size    = 5;
           w.field.size    = 1;
@@ -62,7 +62,7 @@ HANNIBAL = (function(H){
 
           // w.deb("     G: assign.0: %s, %s", w, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // got dropsite, request unit, exits
           w.dropsite.on
@@ -126,7 +126,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: destroy: %s, %s", this, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // lost unit, request another
           w.units.on
@@ -147,8 +147,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: attack: %s, %s", this, item);
 
-          w.objectify("item",  item);
-          // w.objectify("enemy", enemy);
+          w.nounify("item",  item);
 
           w.field.on
             .member(w.item)
@@ -173,14 +172,23 @@ HANNIBAL = (function(H){
 
         }, interval: function interval (w, tick, secs){
 
-          w.deb("     G: interval: %s, %s secs", this, secs);
+          // w.deb("     G: interval: %s, secs: %s, intv: %s", this, secs, this.interval);
 
-          
-          // w.units.on
-          //   .doing("idle")
-          //   .match(w.units.size)
-            // .units.on.gather(w.field)
-          // ;
+          // send few idle unit to gather, exits
+          w.units.on
+            .doing("idle")
+            .lt(w.units.count, w.units.size)
+            .units.on.gather(w.field)
+            .exit
+          ;
+
+          // if all idle, release group
+          w.units.on
+            .doing("idle")
+            .match(w.units.count, w.units.size)
+            .group.release()
+          ;
+
 
         }
 

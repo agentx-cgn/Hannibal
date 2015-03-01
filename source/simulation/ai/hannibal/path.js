@@ -14,10 +14,10 @@ HANNIBAL = (function(H){
 
   const 
     PI     = Math.PI,
-    TAU    = Math.PI * 2,
-    PI2    = Math.PI / 2,
-    RADDEG = Math.PI / 180,
-    DEGRAD = 1 / RADDEG,
+    TAU    = PI + PI,
+    PI2    = PI / 2,
+    RADDEG = PI / 180,
+    DEGRAD = 180 / PI,
     SQRT2  = Math.sqrt(2),
     sin    = Math.sin,
     cos    = Math.cos,
@@ -39,8 +39,10 @@ HANNIBAL = (function(H){
 
     this.path = [];                         // stores the coords
 
-    this.theta       = this.villages.theta; // rads from cc to map center
-    this.orientation = this.theta;          // rads
+    // this.theta       = this.villages.theta; // rads from cc to map center
+    // this.orientation = this.theta;          // rads
+    this.theta       = 0;
+    this.orientation = 0;
     this.center = 0;
 
     if (typeof definition === "string"){
@@ -169,7 +171,7 @@ HANNIBAL = (function(H){
 
     }, translatep: function(angle, radius){
 
-      // displaces all point in polar system
+      // displaces all coords in polar system
 
       var
         p    = this.path,

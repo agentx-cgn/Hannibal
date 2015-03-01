@@ -57,7 +57,7 @@ HANNIBAL = (function(H){
 
           // w.deb("     G: assign.0: %s, %s", w, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // got path, request all units, exits
           w.path.on
@@ -93,7 +93,7 @@ HANNIBAL = (function(H){
 
           // resource lost
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // lost unit, request another, go mad
           w.units.on
@@ -109,8 +109,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: attack.0: %s, %s, %s", w, shooter, victim);
 
-          w.objectify("shooter", shooter);
-          w.objectify("victim",  victim);
+          w.nounify("shooter", shooter, "victim",  victim);
 
           // we hit someone, I'm good
           w.units.on
@@ -145,7 +144,7 @@ HANNIBAL = (function(H){
 
         }, interval: function interval (w, tick, secs){
 
-          w.deb("     G: interval: %s, %s secs", this, secs);
+          // w.deb("     G: interval: %s, secs: %s, intv: %s", this, secs, this.interval);
 
           //  if complete and idle, change path and spread
           

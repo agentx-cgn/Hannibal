@@ -14,20 +14,18 @@
 
 HANNIBAL = (function(H){
 
-  var deb = H.deb;
-
-  H.Groups = H.Groups || {};
-
   H.extend(H.Groups, {
 
     "g.supplier" : {
 
       /*
-        a group without units solely for the first/biggest CC
+        a group to gather many kind of resources (wood, food.fruit, etc.)
 
         Behaviour: 
-          to exploit resources like ruins, trees, mines
+          to request a resource list
+          to dissolve on empty list
           to build a dropsite if needed
+          to stay calm
           
       */
 
@@ -55,44 +53,18 @@ HANNIBAL = (function(H){
 
           w.resources = ["resource", supply];
 
-          w.units = (
-            supply === "metal"      ? ["exclusive", "metal.ore  GATHEREDBY"] :
-            supply === "stone"      ? ["exclusive", "stone.rock GATHEREDBY"] :
-            supply === "wood"       ? ["exclusive", "wood.tree  GATHEREDBY"] :
-            supply === "food.fruit" ? ["exclusive", "food.fruit GATHEREDBY"] :
-            supply === "food.meat"  ? ["exclusive", "food.meat  GATHEREDBY"] :
-              deb(" ERROR: exclusives: unknown supply '%s' for g.supplier", supply)
-          );
+          w.data = [
+            ["metal"     , "exclusive", "metal.ore  GATHEREDBY", "shared", "metal ACCEPTEDBY",  1, 10],
+            ["stone"     , "exclusive", "stone.rock GATHEREDBY", "shared", "stone ACCEPTEDBY",  1, 10],
+            ["wood"      , "exclusive", "wood.tree  GATHEREDBY", "shared", "wood  ACCEPTEDBY", 10, 10],
+            ["food.fruit", "exclusive", "food.fruit GATHEREDBY", "shared", "food  ACCEPTEDBY",  1,  5],
+            ["food.meat" , "exclusive", "food.meat  GATHEREDBY", "shared", "food  ACCEPTEDBY",  1,  2],
+          ];
 
-          w.dropsite = (
-            supply === "metal"      ?  ["shared", "metal ACCEPTEDBY"] :
-            supply === "stone"      ?  ["shared", "stone ACCEPTEDBY"] :
-            supply === "wood"       ?  ["shared", "wood ACCEPTEDBY"]  :
-            supply === "food.fruit" ?  ["shared", "food ACCEPTEDBY"]  :
-            supply === "food.meat"  ?  ["shared", "food ACCEPTEDBY"]  :
-              deb(" ERROR: unknown supply '%s' for supply group", supply)
-          );
-
-          w.resources.size = (
-            config.quantity         ? config.quantity : 
-            supply === "metal"      ?  1  :
-            supply === "stone"      ?  1  :
-            supply === "wood"       ?  10 :
-            supply === "food.fruit" ?  5  :
-            supply === "food.meat"  ?  5  :
-              deb(" ERROR: unknown supply '%s' for supply group", config.supply)
-          );
-
-          w.units.size = (
-            config.size             ? config.size : 
-            supply === "metal"      ?  10 :
-            supply === "stone"      ?  10 :
-            supply === "wood"       ?  10 :
-            supply === "food.fruit" ?  5  :
-            supply === "food.meat"  ?  2  :
-              deb(" ERROR: unknown supply '%s' for supply group", config.supply)
-          );
-
+          w.units          = w.data.find(d => d[0] === supply).slice(1, 3);
+          w.dropsite       = w.data.find(d => d[0] === supply).slice(3, 5);
+          w.resources.size = w.data.find(d => d[0] === supply)[5];
+          w.units.size     = w.data.find(d => d[0] === supply)[6];
           w.dropsite.size  = 1;
 
           w.nounify("units", "resources", "dropsite");
@@ -104,7 +76,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: assign: %s, %s", this, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // got empty resource, transfer units to idle, dissolve group
           w.resources.on
@@ -177,23 +149,24 @@ HANNIBAL = (function(H){
 
           w.deb("     G: destroy: %s, %s", this, item);
 
-          w.objectify("item", item);
+          w.nounify("item", item);
 
           // lost unit, request another
-          w.units
+          w.units.on
             .member(w.item)
             .request()
           ;
 
           // lost dropsite, request another
-          w.dropsite
+          w.dropsite.on
             .member(w.item)
             .request()
           ;
 
+
         }, attack: function attack (w, item, enemy, type, damage) {
 
-          w.deb("     G: destroy: %s, %s, %s, %s, %s", this, item, enemy, type, damage);
+          w.deb("     G: attack: %s, %s, %s, %s, %s", this, item, enemy, type, damage);
 
 
         }, radio: function radio (w, msg) {
@@ -203,7 +176,7 @@ HANNIBAL = (function(H){
 
         }, interval:  function interval(w, secs, tick) {
 
-          w.deb("     G: interval: %s, %s secs", this, secs);
+          // w.deb("     G: interval: %s, secs: %s, intv: %s", this, secs, this.interval);
 
           // // test, transfer units, exits
           // w.units.on
@@ -224,6 +197,7 @@ HANNIBAL = (function(H){
           // idle units should gather
           w.units.on
             .doing("idle")
+            .gt(w.units.count, 0)
             .gather(w.resources)
             .echo("interval.idle, have %s resources", w.resources.count)
           ;

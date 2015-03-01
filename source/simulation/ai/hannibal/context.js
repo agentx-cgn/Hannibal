@@ -52,7 +52,7 @@ HANNIBAL = (function(H){
       "diplomacy",   // 
       "brain",       // keep information uptodate
       "scripter",    // boot up groups
-      // "bot",      // make decisions
+      "bot",         // make decisions
     ];
 
     // this props need an update each tick, because sharedscript changed
@@ -91,7 +91,7 @@ HANNIBAL = (function(H){
       "comms",       // policies
       // "military", 
       // "brain", 
-      // "bot", 
+      "bot", 
     ];
 
     // importer register here to update later on ticks

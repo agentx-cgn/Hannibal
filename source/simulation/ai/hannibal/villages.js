@@ -3,8 +3,8 @@
 
 /*--------------- V I L L A G E S ---------------------------------------------
 
-  Organizes structures around civic centres,
-  appoints mayor and custodians
+  Organizes buildings to settlements,
+
 
   tested with 0 A.D. Alpha 17 Quercus
   V: 0.1, agentx, CGN, Nov, 2014
@@ -16,13 +16,46 @@ HANNIBAL = (function (H){
 
   const 
     PI     = Math.PI,
-    TAU    = Math.PI * 2,
-    PI2    = Math.PI / 2,
-    RADDEG = Math.PI / 180,
-    DEGRAD = 1 / RADDEG,
+    TAU    = PI + PI,
+    PI2    = PI / 2,
+    RADDEG = PI / 180,
+    DEGRAD = 180 / PI,
     SQRT2  = Math.sqrt(2);
 
-  // H.LIB.Centre = function (context){  };
+  H.LIB.Settlement = function (context){  
+
+    // a set of building around a dropsite
+
+     H.extend(this, {
+
+       context:  context,
+
+       imports:  [
+         "query",
+         "groups",
+         "entities",      
+         "templates",     
+         "metadata",
+       ],
+
+       main:        NaN,        // id of dropsite
+       buildings:   null,       
+
+    });
+
+
+  };
+
+  H.LIB.Settlement.prototype = H.mixin( 
+    H.LIB.Serializer.prototype, {
+    contructor: H.LIB.Settlement, 
+
+  });
+
+  /* Internals
+
+    */ 
+
 
   H.LIB.Villages = function (context){
 
@@ -41,24 +74,24 @@ HANNIBAL = (function (H){
         "config",
         "player",
         "objects",
+        "culture",
         "entities",      // hasClass
         "templates",     // obstructionRadius
         "metadata",
         "passabilityClasses",
       ],
 
-      main:      NaN,        // id of first centre
-      centres:   null,       // list of centres
-      theta:     NaN,        // rads of main to center of map
-      angle:     NaN,        // theta in degrees
-      orient:    NaN,        // rads of main on map (missing on API?)
+      claimed:         null,
 
-      claimed:    null,
+      settlements:     null,
+      startBuildings:    [],       // temporaraly used while startup
+      seedTemplates:     [],       // templates suitable as settlement seed
 
       counter: {
         units:  0,
         mayors: 0,
         shared: 0,
+        seeds:  0,
         other:  0,
       },
 
@@ -71,6 +104,14 @@ HANNIBAL = (function (H){
         walls:    {},
       },
 
+      settlement: {                // object template
+        id:               NaN,
+        theta:            NaN,       // rads of main to center of map
+        angle:            NaN,       // theta in degrees
+        orient:           NaN,       // rads of main on map (missing on API?)
+        buildings:         [],       // list of ids
+      }
+
    });
 
   };
@@ -78,82 +119,114 @@ HANNIBAL = (function (H){
   H.LIB.Villages.prototype = H.mixin( 
     H.LIB.Serializer.prototype, {
     contructor: H.LIB.Villages,
+
+  /* Internals
+
+    */ 
+
     log: function () {
       this.deb();
-      this.deb("  VILL:    main: %s, angle: %s, theta: %s, counts: %s", this.main, this.angle.toFixed(1), this.theta, JSON.stringify(this.counter));
-      this.deb("     V: centres: %s", JSON.stringify(this.centres));
+      this.deb("  VILL:    main: %s, settlements: %s", this.findMain(), H.count(this.settlements));
     },
-    // import: function () {
-    //   this.imports.forEach(imp => this[imp] = this.context[imp]);
-    //   return this;
-    // },
-    // clone: function (context){
-    //   context.data[this.name] = this.serialize();
-    //   return new H.LIB[H.noun(this.name)](context);
-    // },
-    deserialize: function () {
-      var data;
-      if (this.context.data[this.name]){
-        data = this.context.data[this.name];
-        this.main    = data.main;
-        this.centres = data.centres;
+    deserialize: function (data) {
+      if (data){
+        this.settlements = data.settlements;
       }
-      // deb("  VILL: deserialized: %s", uneval(data));
     },
     serialize: function () {
       return {
-        main:    this.main,
-        centres: H.deepcopy(this.centres),
+        settlements: H.deepcopy(this.settlements),
       };
     },
     initialize: function () {
-      // deb("  VILL: initializing: %s", uneval(this.centres));
-      if (this.centres === null){
-        this.centres = {};
-        this.organizeVillages(); // set metadata.cc to nearest cc
-        this.initializeMeta();
-        this.updateStreets();
+      // deb("  VILL: initializing: %s", uneval(this.settlements));
+      if (this.settlements === null){
+        this.settlements = {};
+        this.findSeedTemplates();
+        this.analyzeBuildings();
+        this.organizeSettlements();
+        this.updateStreets(this.findMain());
       }
 
       return this;
     },
+    findSettlement: function (fn) {
+
+      var found = false, hit = null;
+
+      H.each(this.settlements, (id, sett) => {
+        if(!found && fn(sett)){
+          found = true;
+          hit   = sett;
+        }
+      });
+
+      if(hit === null){this.deb("  VILL: Settlement not found with: %s", H.fnBody(fn));}
+
+      return hit;
+
+    },
     activate: function () {
 
-      var sizeBuilder = tpl => {
+      var sid, sett, sizeBuilder = tpl => {
         // something between 1 and 20
         return Math.min(20, ~~(H.test(this.templates[tpl], "Cost.BuildTime") / 20) +1);
       };
 
-      this.events.on("PhaseChanged", msg => {
+      this.events.on("PhaseChanged", () => {
         this.updateStreets();
       });
 
       this.events.on("ConstructionFinished", msg => {
-        if (this.isShared(msg.data.classes)){
-          this.entities[msg.id].opmode = "shared";
-          this.entities[msg.id].opname = "village";
-          this.deb("  VILL: ConstructionFinished: classes: %s, meta: %s", msg.data.classes, uneval(this.metadata[msg.id]));
-        }
+        sid = this.metadata[msg.id].sid;
+        this.settlements[sid].buildings.push(msg.id);
+        this.deb("  VILL: added %s to sett: %s", msg.data.templatename, sid);
       });
 
       this.events.on("StructureDestroyed", msg => {
-        // launch group to rebuild, if shared and not foundation
-        this.deb("  VILL: StructureDestroyed: msg: %s", uneval(msg));
-        if (this.isShared(msg.data.classes) && !msg.data.foundation){
-          this.groups.launch({
-            groupname: "g.builder", 
-            cc: this.main, 
-            building: H.saniTemplateName(msg.data.templatename), 
-            quantity: 1, 
-            size: sizeBuilder(msg.data.templatename)
-          });
-          this.deb("  VILL: StructureDestroyed: %s, classes: %s, meta: %s, time: %s", 
-            msg.data.templatename,
-            msg.data.classes, 
-            uneval(this.metadata[msg.id]),
-            H.test(this.templates[msg.data.templatename], "Cost.BuildTime")
-          );
+
+        // was it a seed?
+
+        if(this.settlements[msg.id]){
+
+          // TODO
+          this.deb("  VILL: Settlement Destroyed: msg: %s, meta: %s", uneval(msg), uneval(this.metadata[msg.id]));
+
+        } else {
+
+          // launch group to rebuild, if shared and not foundation
+          this.deb("  VILL: StructureDestroyed: msg: %s, meta: %s", uneval(msg), uneval(this.metadata[msg.id]));
+
+          // remove from settlement, if registered
+          sett = this.findSettlement(s => H.contains(s.buildings, msg.id));
+          if (sett){
+            sid = sett.id;
+            H.delete(sett.buildings, id => msg.id);
+          }
+          
+          // build a new one if registered
+          if (sett && !msg.data.foundation){
+            this.groups.launch({
+              groupname: "g.builder", 
+              sid: sid, 
+              building: H.saniTemplateName(msg.data.templatename), 
+              quantity: 1, 
+              size: sizeBuilder(msg.data.templatename)
+            });
+
+            this.deb("  VILL: StructureDestroyed: %s, classes: %s, meta: %s, time: %s", 
+              msg.data.templatename,
+              msg.data.classes, 
+              uneval(this.metadata[msg.id]),
+              H.test(this.templates[msg.data.templatename], "Cost.BuildTime")
+            );
+          
+          } else {
+            this.deb("  VILL: Did not rebuild: %s", msg.data.templatename);
+          }
+
         }
+
       });
 
     },
@@ -164,160 +237,159 @@ HANNIBAL = (function (H){
       return Date.now() - t0;
 
     },    
+
+  /* Helper
+
+    */ 
+
+    isSeed: function (id){
+      return H.contains(this.seedTemplates, this.entities[id]._templateName);
+    },
     isShared: function (klasses){
       return this.config.villages.sharedBuildingClasses.some(function (klass){
         return H.contains(klasses, klass);
       });
-    },
-    getPhaseNecessities: function (options){ // phase, centre, tick
-      
-      var 
-        cls = H.class2name,
-        cc  = options.centre,
-        housePopu = this.query(cls("house")).first().costs.population * -1,
-
-        messages = [],
-        technologies = [],
-        launches = {
-
-          "phase.village": [
-
-             //  tck, amount,       group,        params
-             [  3, [1, "g.mayor",       {cc: cc, size: 0}]],
-             [  3, [1, "g.custodian",   {cc: cc, size: 0}]],
-
-          ],
-          "phase.town" :   [],
-          "phase.city" :   [],
-        };
-
-      return {
-        launches: launches,
-        technologies: technologies,
-        messages: messages,
-      };
-
-    },      
+    },    
     findMain: function(){
 
-      var max = -1, cic;
+      var max = -1, sid;
 
-      H.each(this.centres, (id, list) => {
-        if (list.length > max){cic = id; max = list.length;}
+      H.each(this.settlements, (id, sett) => {
+        if (sett.buildings.length > max){sid = id; max = sett.buildings.length;}
       });
-      return ~~cic;
+      return ~~sid;
 
     },
-    organizeVillages: function () {
+
+  /* Startup/Initialize
+
+    */ 
+
+    organizeSettlements: function () {
 
       var 
-        ccNodes, ccId, posMain, posCenter;
+        dis, pos, distance,
+        seeds = [], nonSeeds = [], 
+        ents = this.entities,
+        center = this.map.center();
 
-      // first find all CC
-      ccNodes = this
-        .query("civcentre CONTAIN INGAME")
-        .forEach( node => {
-          this.centres[node.id] = [];
-          this.deb("  VILL: organizeVillages centre id: %s, pos: %s", node.id, node.position);
-        })
-      ;
+      // collect seeds and nonSeeds
+      this.startBuildings.forEach(id => {
 
-      if (!ccNodes.length){
-        this.deb("WARN  : organizeVillage No CC found with: civcentre CONTAIN INGAME");
-        return;
-      } else {
-        this.deb("  VILL: organizeVillage CCs found: %s", uneval(this.centres));
-      }
+        if (this.isSeed(id)){
 
-      // update metadata with closest CC id
-      this.query("structure CONTAIN INGAME")
-        .parameter({fmt: "metadata", deb: 5, max: 80, cmt: "organizeVillages: ingame structures"})
-        .forEach( node => {
+          seeds.push(id);
+          
+          // seeds have themself as settlement id
+          this.metadata[id].sid = id;
+          
+          // init a settlement
+          this.settlements[id] = H.deepcopy(this.settlement);
+          this.settlements[id].id = id;
 
-          var dis, distance = 1e7;
+          // get orientation
+          pos = ents[id].position();
+          this.settlements[id].theta = Math.atan2(center[1] - pos[1], center[0] - pos[0]);
+          this.settlements[id].angle = this.settlements[id].theta * DEGRAD;
 
-          // is not cc
-          if (!this.centres[node.id]){
 
-            // find nearest CC
-            ccNodes.forEach( cc => {
+        } else {
+          nonSeeds.push(id);
 
-              // this.deb("  VILL: distances: %s, %s", cc.position, node.position);
-              dis = this.map.distance(cc.position, node.position);
-              if (dis < distance){
-                ccId = cc.id;
-                this.metadata[node.id].cc = cc.id;
-                distance = dis;
-              }
-            });
+        }
 
-            // store building to find largest village
-            this.centres[ccId].push(node.id);
+      });
 
-          } else {
-            // CCs have themself as cc
-            this.metadata[node.id].cc = node.id;
-
+      // find nearest seed for all non seed and set SID
+      nonSeeds.forEach(id => {
+        distance = 1e7;
+        seeds.forEach(sid => {
+          dis = this.map.distance(ents[id].position(), ents[sid].position());
+          if (dis < distance){
+            this.metadata[id].sid = sid;
+            distance = dis;
           }
+        });
+      });
+
+      this.deb("  VILL: organizeSettlements: have %s seeds, %s non seed", seeds.length, nonSeeds.length);
+
+    },
+
+    findSeedTemplates: function () {
+
+      // find all buildings with these properties:
+      // not outpost AND not farmstead, builds in neutral OR dropsite
+      // own civ and exists in tree
+      // move to culture??
+
+      var terr, decay, drops, civ, influ, u = uneval, tree = this.culture.tree.nodes;
+
+      H.each(this.templates, (tpln, tpl) => {
+
+        terr  = H.test(tpl, "BuildRestrictions.Territory");     // own neutral enemy
+        decay = H.test(tpl, "TerritoryDecay.HealthDecayRate");  // int
+        influ = H.test(tpl, "TerritoryInfluence");              // root, radius weight
+        drops = H.test(tpl, "ResourceDropsite.Types");          // food, wood, etc
+        civ   = H.test(tpl, "Identity.Civ");                    // athen, maur, etc
+
+        if (
+          civ === this.player.civ && 
+          !tpln.contains("outpost") && 
+          !tpln.contains("farmstead") && 
+          tree[H.saniTemplateName(tpln)] && (
+            drops !== undefined || 
+            (terr !== undefined && terr.contains("neutral")) 
+          )
+          ){
+
+          this.seedTemplates.push(tpln);
+          this.deb("  VILL: findSeedTemplates %s > %s, %s, %s, %s", tpln, u(terr), u(decay), u(influ), u(drops));
+
+        }
 
       });
 
-      this.main  = this.findMain();
-      posMain    = this.entities[this.main].position();
-      posCenter  = this.map.center();
-      this.theta = Math.atan2(posCenter[1] - posMain[1], posCenter[0] - posMain[0]);
-      this.angle = this.theta * 180 / Math.PI;
+      this.deb("  VILL: findSeedTemplates: %s for %s", this.seedTemplates.length, this.player.civ);
+      this.seedTemplates.forEach(tpln => this.deb("     V: %s", tpln));
 
-      H.each(this.centres, (id, amount) => {
-        // deb("     V: CC [%s] has %s entities, main: %s", id, amount, (~~id === this.main ? "X" : ""));
-      });
+    },
+    analyzeBuildings: function () {
 
-    },    
+      // collects buildings
+      // and inits meta to none/NaN
 
-    initializeMeta: function () {
-
-      // deb("     V: setting operators for shared buildings and Main CC in metadata");
-
-      //TODO: test for multiple villages
-      // find units and buildings not belonging to a group and
-      // set opname to "none", should only happen in a fresh game
+      var meta;
 
       H.each(this.entities, (id, ent) => {
 
         if (ent.owner() === this.id){
 
-          if (ent.hasClass("Unit") && !this.metadata[id].opname){
-            this.metadata[id].opname = "none";
-            this.counter.units += 1;
-            // deb("     V: set opname to 'none' %s", ent);
+          meta = this.metadata[id];
 
-          } else if (ent.hasClass("Structure") && !this.metadata[id].opname){
+          if (ent.hasClass("Unit") || ent.hasClass("Structure")){
 
-            // deb("     V: id: %s, entid: %s mainid: %s", id, ent.id(), this.main);
-
-            if (~~id === this.main){
-              this.counter.mayors += 1;
-              this.counter.shared += 1;
-              this.metadata[id].opname = "g.mayor";
-              this.metadata[id].opmode = "shared";
-              // deb("     V: set opname to 'g.mayor' for %s", ent);
-
-            } else if (this.isShared(ent.classes().map(String.toLowerCase))){
-              this.counter.shared += 1;
-              this.metadata[id].opname = "g.custodian";
-              this.metadata[id].opmode = "shared";
-              // deb("     V: set opname to 'g.custodian' for %s", ent);
+            if (meta.opname){
+              if (!meta.opid){
+                this.deb("WARN  : analyzeBuildings Unit without opid: %s, %s", id, uneval(meta));
+              }
 
             } else {
-              this.counter.other += 1;
-              this.metadata[id].opname = "none"; // there is a group for that
-              // deb("     V: set opname to 'none' for %s", ent);
-            
+              meta.opname = "none";
+              meta.opid = NaN;
+
+            }
+
+            if (ent.hasClass("Structure")){
+              this.startBuildings.push(id);
+
+            } else {
+              this.counter.units += 1;
+
             }
 
           } else {
-            // happens in cloned bot
-            // deb("WARN  : prepareMeta unhandled entity: %s classes: %s", ent, uneval(this.metadata[id]));
+            this.deb("WARN  : Neither Unit Nor Structure: %s, %s", id, uneval(meta));
 
           }
 
@@ -325,15 +397,20 @@ HANNIBAL = (function (H){
 
       });
 
+      this.deb("  VILL: analyzeBuildings: found %s units, %s buildings", this.counter.units, this.startBuildings.length);
 
     },
 
+  /* Layout, Positions, Streets
+
+    */ 
+    
     findLayout: function(order){
 
       // random doesn't work with offset = -1
 
       var 
-        posCentre = this.entities[order.cc].position(),
+        posCentre = this.entities[order.sid].position(),
         template  = this.templates[order.product.key],
         placement = H.test(template, "BuildRestrictions.PlacementType"),
         size = H.test(template, "Obstruction.Static"),
@@ -473,7 +550,7 @@ HANNIBAL = (function (H){
       return value > 0 ? position : null;
 
     },
-    updateStreets: function(){
+    updateStreets: function(sid){
 
       // determines streets by running pathfinder from an inner circle
       // to an outer circle. Cells hit multiple times qualify as street
@@ -490,7 +567,7 @@ HANNIBAL = (function (H){
         i, x, y, p, result, graph, start, end, node, index, 
         heuristic = H.AI.AStar.heuristics.euclidian,
         grid = this.map.black.copy("graph").release(),
-        [cx, cz] = this.entities[this.main].position(),
+        [cx, cz] = this.entities[sid].position(),
         coords = this.map.mapPosToGridCoords([cx, cz]),
         pathInner = points + "; translate " + cx + " " + cz + "; circle 40",
         pathOuter = points + "; translate " + cx + " " + cz + "; circle 140",
@@ -548,28 +625,7 @@ HANNIBAL = (function (H){
       streets.dump("after", 255);
 
     }
+
   });
 
 return H; }(HANNIBAL));  
-
-
-// get best index
-    // .processGrids(r => r < 32 ? 0 : 32)           // remove border
-// [index, value] = restrictions.maxIndex();
-
-// center x, z in cell
-// position = this.map.gridIndexToMapPos(index, restrictions);
-
-// add angle
-
-// random, may fail with tight
-// position.push(Math.random() * Math.PI * 2);  
-
-// entrance points north
-// position.push(-this.theta + PI2));
-
-// entrance points to civil centre
-// position.push(-this.map.getTheta(posCentre, position) - PI2);
-
-// entrance points to map centre
-// position.push(this.map.getTheta(this.map.center(), position));   
