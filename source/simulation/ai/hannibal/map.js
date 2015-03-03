@@ -202,7 +202,7 @@ HANNIBAL = (function(H){
         coords = this.mapPosToGridCoords(msg.data.position);
         radius = this.config.map.DangerEventRadius / this.cellsize;
         this.danger.processCircle(coords, radius, v => v + 32);
-        this.deb("   MAP: StructureDestroyed: tpl: %s, pos: %s", msg.data.templatename, msg.data.position);
+        this.deb("   MAP: StructureDestroyed: tpl: %s, pos: %s, danger radius: 32", msg.data.templatename, msg.data.position);
         // this.danger.dump("-" + this.ticks, 255);
       });
 

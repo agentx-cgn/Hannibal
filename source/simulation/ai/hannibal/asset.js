@@ -132,6 +132,8 @@ HANNIBAL = (function(H){
 
       if (msg.name === "OrderReady"){
 
+        // this.deb("  GRPS: OrderReady.in: #%s for id: %s from source: %s", msg.data.order, this.id, msg.data.source);
+
         if (msg.data.source === this.id){
 
           // check for virtual asset: path, a list of coords
@@ -141,7 +143,6 @@ HANNIBAL = (function(H){
             tpln = "path";
             this.resources = msg.data.resources.slice();
 
-
           // check for virtual asset: find, a list of resource ids
           } else if (this.verb === "find"){
 
@@ -149,21 +150,22 @@ HANNIBAL = (function(H){
             tpln = "resources";
             this.resources = msg.data.resources.slice();
 
+          // verbs = train, build
           } else {
-
-            // verbs = train, build
 
             ids = [id];
             tpln = this.entities[id]._templateName;
             this.resources.push(id);
 
-            // take over ownership
-            this.metadata[id].opid   = this.instance.id;
-            this.metadata[id].opname = this.instance.groupname;
+            // take over ownership if not shared
+            if (!this.shared){
+              this.metadata[id].opid   = this.instance.id;
+              this.metadata[id].opname = this.instance.groupname;
+            }
 
           }
 
-          // this.deb("   AST: OrderReady: %s ids: [%s], tpl: %s", this.verb, ids, tpln);
+          // this.deb("   AST: OrderReady for %s: %s ids: [%s], tpl: %s, meta: %s", this.id, this.verb, ids, tpln, uneval(this.metadata[id]));
 
           dslItem = {
             name:        "item",
@@ -178,6 +180,7 @@ HANNIBAL = (function(H){
 
         } // else { deb("   AST: no match: %s -> %s | %s", msg.data.source, this.id, this.name);}
 
+        // this.deb("  GRPS: OrderReady.out: #%s for id: %s from source: %s", msg.data.order, this.id, msg.data.source);
 
       } else if (H.contains(this.resources, id)){
 

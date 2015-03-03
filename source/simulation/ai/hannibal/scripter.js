@@ -28,7 +28,7 @@ HANNIBAL = (function(H){
       "1": [ "... idle, 4 * 3 wood",     // size, quantity
         T.launch  ("g.idle",     3),         
         T.launch  ("g.harvester"),         
-        // T.launch  ("g.harvester"),         
+        T.launch  ("g.harvester"),         
         // T.launch  ("g.harvester"),         
         // T.launch  ("g.harvester"),         
         // T.launch  ("g.harvester"),         

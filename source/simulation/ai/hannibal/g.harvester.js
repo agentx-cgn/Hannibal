@@ -60,7 +60,7 @@ HANNIBAL = (function(H){
 
         }, assign: function assign (w, item) {
 
-          // w.deb("     G: assign.0: %s, %s", w, item);
+          w.deb("     G: assign: %s, %s", this, item);
 
           w.nounify("item", item);
 
@@ -71,7 +71,7 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // have too much units, exits
+          // have too much units, release, exits
           w.units.on
             .gt(w.units.count, w.units.size)
             .release(w.item)
@@ -178,6 +178,7 @@ HANNIBAL = (function(H){
           w.units.on
             .doing("idle")
             .lt(w.units.count, w.units.size)
+            .gt(w.units.count, 0)
             .units.on.gather(w.field)
             .exit
           ;

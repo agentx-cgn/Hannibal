@@ -103,8 +103,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: attack.0: %s, %s, %s", w, shooter, victim);
 
-          w.nounify("shooter", shooter);
-          w.nounify("victim",  victim);
+          w.nounify("shooter", shooter, "victim",  victim);
 
 
         // de-garrison

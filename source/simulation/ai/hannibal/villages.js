@@ -12,6 +12,22 @@
 */
 
 
+/*
+  At gamestart all building are shared, 
+    meta.opid = sid, 
+    meta.opname = "shared", 
+    meta.sid = sid, sid depends on distance
+  If a group requests a shared building: opid => sid, opname = "shared"
+  If a group requests an exclusive building: opid => group.id, opname = %groupname% e.g. g.harvester for fields
+  If a shared buildings got destroyed, settlements takes care, otherwise the group
+  If a group dissolves all its buildings become shared.
+  on events.ConstructionFinished meta.sid is set
+  on events.AIMetadata shared buildings are registered
+  the builder group builds only shared buildings, but takes care of destroyed foundations
+
+*/
+
+
 HANNIBAL = (function (H){
 
   const 
@@ -52,11 +68,6 @@ HANNIBAL = (function (H){
 
   });
 
-  /* Internals
-
-    */ 
-
-
   H.LIB.Villages = function (context){
 
     H.extend(this, {
@@ -78,6 +89,7 @@ HANNIBAL = (function (H){
         "entities",      // hasClass
         "templates",     // obstructionRadius
         "metadata",
+        "orderqueue",
         "passabilityClasses",
       ],
 
@@ -168,7 +180,7 @@ HANNIBAL = (function (H){
     },
     activate: function () {
 
-      var sid, sett, sizeBuilder = tpl => {
+      var sid, sett, ent, sizeBuilder = tpl => {
         // something between 1 and 20
         return Math.min(20, ~~(H.test(this.templates[tpl], "Cost.BuildTime") / 20) +1);
       };
@@ -177,10 +189,18 @@ HANNIBAL = (function (H){
         this.updateStreets();
       });
 
-      this.events.on("ConstructionFinished", msg => {
-        sid = this.metadata[msg.id].sid;
-        this.settlements[sid].buildings.push(msg.id);
-        this.deb("  VILL: added %s to sett: %s", msg.data.templatename, sid);
+      // this.events.on("ConstructionFinished", msg => {
+      //   sid = this.metadata[msg.id].sid;
+      // });
+
+      // new something
+      this.events.on("OrderReady", msg => {
+        if (msg.data.shared){
+          ent = this.entities[msg.id];
+          sid = this.metadata[msg.id].sid;
+          this.settlements[sid].buildings.push(msg.id);
+          this.deb("  VILL: added ent: %s to sett: %s", ent, sid);
+        }
       });
 
       this.events.on("StructureDestroyed", msg => {
@@ -197,32 +217,35 @@ HANNIBAL = (function (H){
           // launch group to rebuild, if shared and not foundation
           this.deb("  VILL: StructureDestroyed: msg: %s, meta: %s", uneval(msg), uneval(this.metadata[msg.id]));
 
-          // remove from settlement, if registered
+          // remove from settlement, if shared
           sett = this.findSettlement(s => H.contains(s.buildings, msg.id));
           if (sett){
-            sid = sett.id;
-            H.delete(sett.buildings, id => msg.id);
-          }
-          
-          // build a new one if registered
-          if (sett && !msg.data.foundation){
-            this.groups.launch({
-              groupname: "g.builder", 
-              sid: sid, 
-              building: H.saniTemplateName(msg.data.templatename), 
-              quantity: 1, 
-              size: sizeBuilder(msg.data.templatename)
-            });
 
-            this.deb("  VILL: StructureDestroyed: %s, classes: %s, meta: %s, time: %s", 
-              msg.data.templatename,
-              msg.data.classes, 
-              uneval(this.metadata[msg.id]),
-              H.test(this.templates[msg.data.templatename], "Cost.BuildTime")
-            );
+            H.delete(sett.buildings, id => id === msg.id);
           
+            // build a new one if registered
+            if (!msg.data.foundation){
+              this.groups.launch({
+                groupname: "g.builder", 
+                sid: sett.id, 
+                building: H.saniTemplateName(msg.data.templatename), 
+                quantity: 1, 
+                size: sizeBuilder(msg.data.templatename)
+              });
+
+              this.deb("  VILL: StructureDestroyed: %s, classes: %s, meta: %s, time: %s", 
+                msg.data.templatename,
+                msg.data.classes, 
+                uneval(this.metadata[msg.id]),
+                H.test(this.templates[msg.data.templatename], "Cost.BuildTime")
+              );
+            
+            }
+
           } else {
-            this.deb("  VILL: Did not rebuild: %s", msg.data.templatename);
+            this.deb("  VILL: Did not rebuild: %s %s", msg.id, msg.data.templatename);
+            this.deb("  VILL: settlements: %s", uneval(this.settlements));
+
           }
 
         }
@@ -255,8 +278,12 @@ HANNIBAL = (function (H){
       var max = -1, sid;
 
       H.each(this.settlements, (id, sett) => {
-        if (sett.buildings.length > max){sid = id; max = sett.buildings.length;}
+        if (sett.buildings.length > max){
+          sid = id; 
+          max = sett.buildings.length;
+        }
       });
+      
       return ~~sid;
 
     },
@@ -306,7 +333,9 @@ HANNIBAL = (function (H){
         seeds.forEach(sid => {
           dis = this.map.distance(ents[id].position(), ents[sid].position());
           if (dis < distance){
-            this.metadata[id].sid = sid;
+            this.metadata[id].sid  = sid;
+            this.metadata[id].opid = sid;
+            this.metadata[id].opname = "shared";
             distance = dis;
           }
         });

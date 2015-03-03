@@ -41,6 +41,7 @@ HANNIBAL = (function(H){
       imports: [
         "id",
         "players",
+        "metadata",
         "entities", // owner
       ],
 
@@ -340,20 +341,26 @@ HANNIBAL = (function(H){
       var 
         id     = e.entity, 
         tpln   = this.entities[id] ? this.entities[id]._templateName : "unknown",
-        player = this.entities[id] ? this.entities[id].owner() : NaN;
+        player = this.entities[id] ? this.entities[id].owner() : NaN,
+        meta   = this.metadata[id];
 
       if (!this.entities[id]){
         this.createEvents[id] = tpln;
 
       } else if (player === this.id) {
-        this.deb("   EVT: Create ent: %s, own: %s, tpl: %s, mats: %s", id, player, tpln, H.attribs(e));
+        this.deb("   EVT: Create ent: %s, own: %s, tpl: %s, mats: %s, meta: %s", id, player, tpln, H.attribs(e), uneval(meta));
+        // mark
+        // meta.opid = NaN;
+        // meta.opname = "none";
+        // fire
         this.fire("EntityCreated", {
           player: player,
           id:     id,
         });
 
       } else {
-        // ignore other bots
+        // don't cheat on other bots or player
+
       }
 
     }, 
@@ -456,7 +463,7 @@ HANNIBAL = (function(H){
       this.fire("AIMetadata", {
         player: e.owner,
         id:     e.id,
-        data:   e.metadata,
+        data:   {templatename: this.entities[e.id]._templateName},
       });
 
     },

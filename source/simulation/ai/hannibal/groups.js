@@ -202,32 +202,24 @@ HANNIBAL = (function(H){
 
     */
 
-    findAsset: function (idOrFn){
+    findAsset: function (fn){
 
-      // this.deb("findAsset: %s", uneval(idOrFn));
+      var i, a, al, asset, il = this.instances.length;
 
-      var 
-        i, a, il, al, asset, 
-        fn = H.isInteger(idOrFn) ? ast => ast.id === idOrFn : idOrFn;
-
-      il = this.instances.length;
       for (i=0; i<il; i++){
 
         al = this.instances[i].assets.length;
-        for (a=0; a<al; a++){
 
+        for (a=0; a<al; a++){
           asset = this.instances[i].assets[a];
-          // this.deb("findAsset: try %s, %s", asset.id, asset);
           if (fn(asset)){
-            // this.deb("findAsset: found %s, %s", asset.id, asset);
             return asset;
           }
-
-
         }
+
       }
       
-      this.deb("WARN  : no asset found: with %s", idOrFn);
+      this.deb("WARN  : no asset found: with %s", H.fnBodyfn());
       return undefined;
 
     },

@@ -306,7 +306,7 @@ HANNIBAL = (function(H){
 
       var 
         t0 = Date.now(), result = [],
-        asset = this.groups.findAsset(asset => asset.id === order.source),
+        asset = this.groups.findAsset(a => a.id === order.source),
         generic = order.hcq.split(".")[0];
         
       this.deb("  RESS: FIND.in: %s of %s, near: %s, from: %s", 

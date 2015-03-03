@@ -544,7 +544,7 @@ HANNIBAL = (function(H){
     constructor: H.LIB.Order,
     log: function(){
       var
-        source = this.groups.findAsset(this.source),  // this is an asset id
+        source = this.groups.findAsset(a => a.id === this.source),  // this is an asset id
         loc = (this.location === undefined) ? "undefined" : H.fixed1(this.location);
 
       this.deb("   ORD: log #%s, %s amount: %s, sid: %s, loc: %s, from: %s, shared: %s, hcq: %s",
@@ -787,11 +787,11 @@ HANNIBAL = (function(H){
         // looking for unit not assigned to a group
         verb === "train" ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
         
-        // looking for a structure in same settlement
-        verb === "build" ? this.hcq + " INGAME WITH metadata.sid = " + this.sid :
+        // looking for structure not assigned to a group  in same settlement
+        verb === "build" ? this.hcq + " INGAME WITH metadata.sid = " + this.sid + ", metadata.opname = 'none'":
 
-        // // looking for abandoned structure not assigned to a group
-        // verb === "build" && !this.shared ? this.hcq + " INGAME WITH metadata.opname = 'none'" :
+        // // looking for shared structure
+        verb === "build" && !this.shared ? this.hcq + " INGAME WITH metadata.opname = 'shared'" :
 
         // error
           H.throw("assignExisting run into unhandled case: verb: %s, shared: %s", this.verb, this.shared)
@@ -1194,10 +1194,11 @@ HANNIBAL = (function(H){
       var 
         order,
         id = this.id,
+        events = this.events,
         producers = this.producers,
         orderqueue = this.orderqueue;
 
-      this.events.on("EntityRenamed", msg => {
+      events.on("EntityRenamed", msg => {
         if (this.entities[msg.id2].hasClass("Unit")){
           producers.remove(msg.id);
           producers.register(msg.id2);
@@ -1205,7 +1206,7 @@ HANNIBAL = (function(H){
       });
 
       // new technology
-      this.events.on("Advance", msg => {
+      events.on("Advance", msg => {
         if (orderqueue.delete(order => order.hcq === msg.data.technology)){
           producers.unqueue("research", msg.data.technology);
           this.deb("   ECO: onAdvance: removed order with tech: %s", msg.data.technology);
@@ -1213,12 +1214,12 @@ HANNIBAL = (function(H){
       });
 
       // new producer/building
-      this.events.on("ConstructionFinished", msg => {
+      events.on("ConstructionFinished", msg => {
         producers.register(msg.id);
       });
 
       // new producer/unit
-      this.events.on("TrainingFinished", msg => {
+      events.on("TrainingFinished", msg => {
 
         this.deb("   ECO: TrainingFinished id: %s, meta: %s", msg.id, uneval(this.metadata[msg.id]));
 
@@ -1236,38 +1237,40 @@ HANNIBAL = (function(H){
         order.remaining  -= 1;
         order.processing -= 1;
         
-        this.events.fire("OrderReady", {
+        events.fire("OrderReady", {
           player: id,
           id:     msg.id,
-          data:   {order: msg.data.order, source: order.source}
+          data:   {order: msg.data.order, source: order.source, shared: order.shared}
         });
 
       });
 
       // new metadata
-      this.events.on("AIMetadata", msg => {
+      events.on("AIMetadata", msg => {
 
         // this.deb("   ECO: on AIMetadata, msg.data.order: %s", msg.data.order);
 
-        order = orderqueue.find(order => order.id === msg.data.order);
+        order = orderqueue.find(o => o.id === this.metadata[msg.id].order);
         order.remaining  -= 1;
         order.processing -= 1;
 
-        // this.deb("   ECO: on AIMetadata order: #%s from %s", order.id, this.groups.findAsset(order.source).name);
+        this.deb("   ECO: AIMetadata.in order: #%s from %s", order.id, this.groups.findAsset(a => a.id === order.source));
         
-        this.events.fire("OrderReady", {
+        events.fire("OrderReady", {
           player: id,
           id:     msg.id,
-          data:   {order: msg.data.order, source: order.source}
+          data:   {order: msg.data.order, source: order.source, shared: order.shared}
         });
+
+        this.deb("   ECO: AIMetadata.done order: #%s from %s", order.id, this.groups.findAsset(a => a.id === order.source));
 
       });
 
       // remove entity
-      this.events.on("UnitDestroyed", msg => {
+      events.on("UnitDestroyed", msg => {
         producers.remove(msg.id);
       });
-      this.events.on("StructureDestroyed", msg => {
+      events.on("StructureDestroyed", msg => {
         if (!msg.data.foundation){
           producers.remove(msg.id);
         }
@@ -1309,7 +1312,7 @@ HANNIBAL = (function(H){
       var  
         objorder,
         // debug
-        source = this.groups.findAsset(order.source),  // this is an asset id
+        source = this.groups.findAsset(a => a.id === order.source),  
         loc = (order.location === undefined) ? "undefined" : H.fixed1(order.location);
 
       if (order.verb === "build" && order.location.length !== 2){

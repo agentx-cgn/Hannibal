@@ -42,7 +42,7 @@ HANNIBAL = (function(H){
 
           w.deb("     G: launch %s %s", this, uneval(config));
 
-          w.buildings = ["exclusive", config.building];
+          w.buildings = ["shared",    config.building];
           w.units     = ["exclusive", config.building + " BUILDBY"];
 
           w.units.size     = w.units.size     || config.size     ||  5;
@@ -137,7 +137,8 @@ HANNIBAL = (function(H){
           // lost foundation, request another
           w.buildings.on
             .member(w.item)
-            .match(!w.item.foundation)
+            .match(w.item.foundation)
+            .echo("requesting foundation")
             .request()
           ;
 
