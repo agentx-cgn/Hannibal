@@ -6,8 +6,8 @@
   Collects, processes and dispatches incoming events.
 
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, NOV, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -275,7 +275,7 @@ HANNIBAL = (function(H){
           dispatcher["*"],
           dispatcher[msg.player]["*"],
           dispatcher[msg.player][msg.name] ? dispatcher[msg.player][msg.name] : [],
-          dispatcher[msg.player][msg.id]   ? dispatcher[msg.player][msg.id] : []
+          dispatcher[msg.player][msg.id]   ? dispatcher[msg.player][msg.id]   : []
         )).filter(l => typeof l === "function");
 
       // this.deb("   EVT: dispatch %s|%s/%s/%s to %s listeners", msg.player, msg.name, msg.id, msg.id2, listeners.length);
@@ -349,10 +349,6 @@ HANNIBAL = (function(H){
 
       } else if (player === this.id) {
         this.deb("   EVT: Create ent: %s, own: %s, tpl: %s, mats: %s, meta: %s", id, player, tpln, H.attribs(e), uneval(meta));
-        // mark
-        // meta.opid = NaN;
-        // meta.opname = "none";
-        // fire
         this.fire("EntityCreated", {
           player: player,
           id:     id,
@@ -404,10 +400,11 @@ HANNIBAL = (function(H){
 
       // this.deb("   EVT: EntityRenamed %s" , uneval(e));
 
-      // if (!eold || !enew){
       if (!enew){
         this.deb("   EVT: ignored EntityRenamed: %s => %s, %s => %s ", e.entity, e.newentity, told, tnew);
         return;
+      } else {
+        this.deb("   EVT: EntityRenamed.in: %s => %s", eold, enew);
       }
 
       var msg = this.fire("EntityRenamed", {
@@ -444,7 +441,9 @@ HANNIBAL = (function(H){
 
       var 
         ent  = this.entities[e.newentity],
-        tpln = ent._templateName;
+        tpln = ent._templateName || "unknown template";
+
+      this.deb("   EVT: ConstructionFinished.in: %s, id: %s, mats: %s", ent, e.newentity, H.attribs(e));
 
       this.fire("ConstructionFinished", {
         player: ent.owner(),
@@ -469,16 +468,15 @@ HANNIBAL = (function(H){
     },
     Attacked: function(e){
 
-      // listener: assets, grids, mili?
+      var ents = this.entities;
 
+      // listener: assets, grids, mili?
       // this.deb("   EVT: got attacked: %s", uneval(e));
 
       if (
-        this.entities[e.target]   && 
-        this.entities[e.attacker] && 
-         (this.entities[e.target].owner()   === this.id   || 
-          this.entities[e.attacker].owner() === this.id
-        )){
+        (ents[e.target] || ents[e.attacker]) && 
+        (ents[e.target].owner() === this.id || ents[e.attacker].owner() === this.id)
+        ){
 
         this.fire("EntityAttacked", {
           player: this.id,
@@ -489,9 +487,11 @@ HANNIBAL = (function(H){
 
       } else {
 
-        this.deb("   EVT: attacked suppressed: ids: %s, %s",
-          this.entities[e.target]   ? this.entities[e.target].owner()   : "unknown owner" ,
-          this.entities[e.attacker] ? this.entities[e.attacker].owner() : "unknown owner" 
+        this.deb("   EVT: attacked suppressed (t/a) : ids: %s, %s, ents: %s, %s",
+          ents[e.target]   ? ents[e.target].owner()   : "unknown owner" ,
+          ents[e.attacker] ? ents[e.attacker].owner() : "unknown owner" .
+          ents[e.target],
+          ents[e.attacker]
         );
 
       }

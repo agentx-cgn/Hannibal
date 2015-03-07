@@ -5,10 +5,12 @@
 
   A list of coordinates [ [x, z], [x, z], ... ]
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, Nov, 2014
+
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
+
 
 HANNIBAL = (function(H){
 

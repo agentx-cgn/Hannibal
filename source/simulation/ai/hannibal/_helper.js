@@ -4,10 +4,10 @@
 /*--------------- H E L P E R -------------------------------------------------
 
   these are Helpers, not solutions. No external stuff needed
-
-
   everything non domain H.[lowercase] should be here.
-  V: 0.1, agentx, CGN, Feb, 2014
+
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
   Credits: 
     http://www.140byt.es
@@ -249,7 +249,7 @@ H.extend(H, {
     return out;
   },
 
-  peakNext: function (arr, num, fn){
+  peekNext: function (arr, num, fn){
     
     var 
      pointer = 0, len = arr.length, copy = [...arr, ...Array(num)],

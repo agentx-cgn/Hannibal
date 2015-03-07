@@ -6,8 +6,8 @@
   builds a DSL with a fluent interface used in e.g. groups, 
   based on method chaining/cascading
 
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -121,7 +121,7 @@ HANNIBAL = (function(H){
         // open a can of worms
         // TODO: make this debug/dev only
         "__noSuchMethod__": (name, args) => {
-          this.deb("ERROR  : world %s does not implement method '%s' with: [%s]", this.name, name, args);
+          H.throw("world %s does not implement method/verb '%s' with: [%s]", this.name, name, args);
           return world[name];
         },
 
@@ -139,44 +139,33 @@ HANNIBAL = (function(H){
           });
 
         },
-
-        // objectify:  (name, obj) => {
-
-        //   // this.deb("   DSL: objectifying: %s for %s", name, world.actor);
-        //   this.setnoun(world, name, new this.corpus.nouns[name](obj, name));
-
-        // },
         nounify:  () => {
 
           var host, args = H.toArray(arguments);
 
-          H.peakNext(args, 2, (noun, obj, next) => {
+          H.peekNext(args, 2, (noun, obj, next) => {
+
+            if (this.corpus.nouns[noun]){
             
-            if (typeof noun === "string" && typeof obj === "object"){
-              this.setnoun(world, noun, new this.corpus.nouns[noun](obj, noun));
-              next(2);
-              
+              if (typeof noun === "string" && typeof obj === "object"){
+                this.setnoun(world, noun, new this.corpus.nouns[noun](obj, noun));
+                next(2);
+                
+              } else {
+                host = this.handler.nounify(world, actor, noun);
+                this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
+                next(1);
+                
+              }
+
             } else {
-              host = this.handler.nounify(world, actor, noun);
-              this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
-              next(1);
-              
+              H.throw("Language: unknown noun: '%s'", noun);
+
             }
             
           });
 
         },
-        // nounifyX:  () => {
-
-        //   H.toArray(arguments).forEach( noun => {
-
-        //     // this.deb("   DSL: nounifying: %s for %s", noun, world.actor);
-            
-        //     var host = this.handler.nounify(world, actor, noun);
-        //     this.setnoun(world, noun, new this.corpus.nouns[noun](host, noun));
-
-        //   });
-        // },
 
         // debug
         sentence: [],
@@ -489,19 +478,26 @@ HANNIBAL = (function(H){
       name: "groups",
       // verbs are defined in groups.js
       nouns : {
+
+        // devices, special
         "group":       H.DSL.Nouns.Group,
         "path":        H.DSL.Nouns.Entities,
         "village":     H.DSL.Nouns.Village, 
         "scanner":     H.DSL.Nouns.Scanner,   
         "resources":   H.DSL.Nouns.Resources, 
 
+        // based on entities
+        "item":        H.DSL.Nouns.Entities,   
         "attacker":    H.DSL.Nouns.Entities,   
+        "victim":      H.DSL.Nouns.Entities,   
         "buildings":   H.DSL.Nouns.Entities, 
         "centre":      H.DSL.Nouns.Entities, 
         "dropsite":    H.DSL.Nouns.Entities,   
+        "corral":      H.DSL.Nouns.Entities,   
         "field":       H.DSL.Nouns.Entities,   
-        "item":        H.DSL.Nouns.Entities,   
         "units":       H.DSL.Nouns.Entities,   
+        "flock":       H.DSL.Nouns.Entities,   
+
       },
       methods: {
         points: function(s, o, selector){
@@ -509,16 +505,15 @@ HANNIBAL = (function(H){
         },
       },
       attributes: {
-        // health:       function(s, o){return H.DSL.Helper.health(o.list);}, 
         health:       function(s, o){return this.health(o.list);}, 
-        // vision:       function(s, o){return H.DSL.Helper.vision(o.list);}, 
         count:        function(s, o){return o.list.length;}, 
+        first:        function(s, o){return o.list[0];}, 
         size:         function(s, o){return o.size;}, 
         foundation:   function(s, o){return o.foundation;}, 
         distance:     function(s, o){
           return this.dsl.map.distance (
-            this.map.dsl.getCenter(s.list), 
-            this.map.dsl.getCenter(o.list)
+            this.dsl.map.getCenter(s.list), 
+            this.dsl.map.getCenter(o.list)
           );
         }, 
         direction:    function(s, o){

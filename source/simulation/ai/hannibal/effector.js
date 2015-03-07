@@ -6,8 +6,8 @@
   Interface to the current engine (0AD or simulator)
 
 
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 

@@ -7,8 +7,8 @@
   c) the Explorer. Most importantly contexts differ in sensors and effectors,
   0AD saves and loads serialized contexts.
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, NOV, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 

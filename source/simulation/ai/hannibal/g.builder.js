@@ -6,8 +6,8 @@
   a group to build any buildings
 
 
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -124,7 +124,7 @@ HANNIBAL = (function(H){
 
         }, destroy: function destroy (w, item) {
 
-          w.deb("     G: destroy: %s, %s", this, item);
+          w.deb("     G: destroy: %s, %s", this, uneval(item));
 
           w.nounify("item", item);
 
@@ -136,24 +136,26 @@ HANNIBAL = (function(H){
 
           // lost foundation, request another
           w.buildings.on
+            .echo("requesting foundation 00")
             .member(w.item)
+            .echo("requesting foundation 01: %s", w.item.foundation)
             .match(w.item.foundation)
-            .echo("requesting foundation")
+            .echo("requesting foundation 02")
             .request()
           ;
 
 
         // there are enemies and gaya
 
-        }, attack: function attack (w, item, enemy, type, damage) {
+        }, attack: function attack (w, attacker, victim, type, damage){
 
-          w.deb("     G: attack: %s, %s, %s, %s, %s", this, item, enemy, type, damage);
+          w.deb("     G: attack: %s, %s, %s", this, attacker, victim);
 
-          w.nounify("item",  item);
+          w.nounify("attacker",  attacker, "victim", victim);
 
           // don't care about buildings, exits
           w.buildings.on
-            .member(w.item)
+            .member(w.victim)
             .exit
           ;
 

@@ -6,11 +6,11 @@
   handles a group's economic resources like estate, units, techs, buildings.
   provides the semantics for the DSL used in plugins
 
-
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, Nov, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
+
 
 HANNIBAL = (function(H){
 
@@ -312,18 +312,18 @@ HANNIBAL = (function(H){
       this.deb("  RESS: FIND.in: %s of %s, near: %s, from: %s", 
         order.amount, 
         order.hcq, 
-        order.location.map(p => p.toFixed(1)), 
+        order.target.map(p => p.toFixed(1)), 
         asset
       );
 
-      // first look for resources close to order.location
+      // first look for resources close to order.target
 
       this.eachType(order.hcq, (generic, specific, id, res) => {
 
         if (result.length < order.amount){
           if (this.entities[id]){
             if (res.found && !res.consumed && !res.claimed){
-              if (this.map.distance(res.position, order.location) < 60){
+              if (this.map.distance(res.position, order.target) < 60){
                 res.claimed = true;
                 result.push(~~id);
               }
@@ -338,7 +338,7 @@ HANNIBAL = (function(H){
       if (!result.length){
 
         result = this
-          .nearest(order.location, order.hcq)
+          .nearest(order.target, order.hcq)
           .slice(0, order.amount)
         ;
         result.forEach(res => res.claimed = true);
@@ -353,7 +353,7 @@ HANNIBAL = (function(H){
             this.map.resources
               .read("resources", this.resourcemaps[generic].map)
               .markEntities(result)
-              .markPositions([order.location])
+              .markPositions([order.target])
               .dump(this.context.tick + "-" + generic)
             ;
         }
@@ -365,7 +365,7 @@ HANNIBAL = (function(H){
         order.amount, 
         order.hcq, 
         Date.now() - t0,
-        order.location.map(p => p.toFixed(1)), 
+        order.target.map(p => p.toFixed(1)), 
         asset
       );
       this.deb("  RESS: FIND.out: %s", uneval(result));

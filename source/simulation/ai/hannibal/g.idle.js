@@ -1,13 +1,13 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL */
 
-/*--------------- P L U G I N S -----------------------------------------------
+/*--------------- GROUP:  I D L E  --------------------------------------------
+
+  a group to buffer unit requests
 
 
-
-
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -99,11 +99,11 @@ HANNIBAL = (function(H){
 
         // there are enemies and gaia
 
-        }, attack: function attack (w, shooter, victim, type, damage){
+        }, attack: function attack (w, attacker, victim, type, damage){
 
-          w.deb("     G: attack.0: %s, %s, %s", w, shooter, victim);
+          w.deb("     G: attack: %s, %s, %s", this, attacker, victim);
 
-          w.nounify("shooter", shooter, "victim",  victim);
+          w.nounify("attacker",  attacker, "victim", victim);
 
 
         // de-garrison

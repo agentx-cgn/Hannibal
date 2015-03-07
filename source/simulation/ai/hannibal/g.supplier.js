@@ -1,13 +1,13 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL, deb, uneval */
 
-/*--------------- GROUP: M I N E R --------------------------------------------
+/*--------------- GROUP:  S U P P L I E R -------------------------------------
+
+  a group gather wood, stone or metal
 
 
-
-
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -56,9 +56,9 @@ HANNIBAL = (function(H){
           w.data = [
             ["metal"     , "exclusive", "metal.ore  GATHEREDBY", "shared", "metal ACCEPTEDBY",  1, 10],
             ["stone"     , "exclusive", "stone.rock GATHEREDBY", "shared", "stone ACCEPTEDBY",  1, 10],
-            ["wood"      , "exclusive", "wood.tree  GATHEREDBY", "shared", "wood  ACCEPTEDBY", 10, 10],
-            ["food.fruit", "exclusive", "food.fruit GATHEREDBY", "shared", "food  ACCEPTEDBY",  1,  5],
-            ["food.meat" , "exclusive", "food.meat  GATHEREDBY", "shared", "food  ACCEPTEDBY",  1,  2],
+            ["wood"      , "exclusive", "wood.tree  GATHEREDBY", "shared", "wood ACCEPTEDBY",  10, 10],
+            ["food.fruit", "exclusive", "food.fruit GATHEREDBY", "shared", "food ACCEPTEDBY",   1,  5],
+            ["food.meat" , "exclusive", "food.meat  GATHEREDBY", "shared", "food ACCEPTEDBY",   1,  2],
           ];
 
           w.units          = w.data.find(d => d[0] === supply).slice(1, 3);
@@ -87,10 +87,11 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // got initial resources, request unit, exits
+          // got initial resources, relocate, request unit, exits
           w.resources.on
             .member(w.item)
             .match(w.units.count, 0)
+            .group.do.relocate(w.resources.position)
             .units.do.request()
             .exit
           ;
@@ -105,23 +106,25 @@ HANNIBAL = (function(H){
           // got initial unit, request dropsite
           w.units.on
             .member(w.item)
+            .match(w.units.count, 1)
             .match(w.dropsite.count, 0)
-            .dropsite.do.request()
+            .dropsite.do.request({distance: 10})
           ;
 
-          // got initial dropsite foundation, units repair
+          // got initial dropsite foundation, relocate, units repair
           w.dropsite.on
             .member(w.item)
             .match(w.item.foundation)
+            .group.do.relocate(w.dropsite.position)
             .units.do.repair(w.dropsite)
           ;
 
-          // got dropsite, units gather, group relocate
+          // got dropsite, relocate, units gather
           w.dropsite.on
             .member(w.item)
             .match(!w.item.foundation)
-            .units.do.gather(w.resources)
             .group.do.relocate(w.dropsite.position)
+            .units.do.gather(w.resources)
           ;
 
           // got unit, keep requesting until size
@@ -138,9 +141,10 @@ HANNIBAL = (function(H){
             .item.do.gather(w.resources)
           ;
 
-          // got another resource, all units gather
+          // got another resource, relocate, all units gather
           w.resources.on
             .member(w.item)
+            .group.do.relocate(w.dropsite.position)
             .units.do.gather(w.resources)
           ;
 
@@ -164,9 +168,11 @@ HANNIBAL = (function(H){
           ;
 
 
-        }, attack: function attack (w, item, enemy, type, damage) {
+        }, attack: function attack (w, attacker, victim, type, damage){
 
-          w.deb("     G: attack: %s, %s, %s, %s, %s", this, item, enemy, type, damage);
+          w.deb("     G: attack: %s, %s, %s", this, attacker, victim);
+
+          w.nounify("attacker",  attacker, "victim", victim);
 
 
         }, radio: function radio (w, msg) {

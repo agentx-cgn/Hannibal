@@ -6,8 +6,8 @@
   handles a group's economic resources like estate, units, techs, buildings.
   provides the semantics for the DSL used in plugins
 
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -173,7 +173,7 @@ HANNIBAL = (function(H){
             ispath:      tpln.contains("path"),      // mark for world.member
             isresource:  tpln.contains("resources"), // mark for world.member
             foundation:  tpln.contains("foundation"),
-            toString :   () => H.format("[dslobject item[%s]]", id || tpln)
+            toString :   () => H.format("[dsl%s item[%s]]", H.noun(this.property), id || tpln)
           };
 
           this.groups.callWorld(this.instance, "assign", [dslItem]);
@@ -191,7 +191,8 @@ HANNIBAL = (function(H){
           dslItem = {
             name:        "item",
             resources:   [id], 
-            toString :   () => H.format("[dslobject item[%s]]", id)
+            foundation:  msg.data.foundation,
+            toString :   () => H.format("[dsl%s [%s]]", H.noun(this.property), id)
           };
 
           this.groups.callWorld(this.instance, "destroy", [dslItem]);
@@ -205,13 +206,14 @@ HANNIBAL = (function(H){
           dslAttacker = {
             name:        "attacker",
             resources:   [id], 
-            toString :   () => H.format("[dslobject attacker[%s]]", id)
+            toString :   () => H.format("[dslAttacker [%s]]", id)
           };
 
           dslVictim = {
             name:        "victim",
             resources:   [msg.id2], 
-            toString :   () => H.format("[dslobject victim[%s]]", msg.id2)
+            foundation:  msg.data.foundation,
+            toString :   () => H.format("[dslVictim [%s]]", msg.id2)
           };
 
           this.groups.callWorld(this.instance, "attack", [dslAttacker, dslVictim, msg.data.damage, msg.data.type]);
@@ -228,7 +230,7 @@ HANNIBAL = (function(H){
             name:        "item",
             resources:   [id], 
             foundation:  false,
-            toString :   () => H.format("[dslobject item[%s]]", id)
+            toString :   () => H.format("[dsl%s item[%s]]", H.noun(this.property), id)
           };
 
           this.groups.callWorld(this.instance, "assign", [dslItem]);

@@ -7,9 +7,8 @@
   sequence keys are documented in maps/readme-maps.md
   active sequence comes from 
 
-
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -27,8 +26,8 @@ HANNIBAL = (function(H){
 
       "1": [ "... idle, 4 * 3 wood",     // size, quantity
         T.launch  ("g.idle",     3),         
-        T.launch  ("g.harvester"),         
-        T.launch  ("g.harvester"),         
+        T.launch  ("g.shepherds"),         
+        // T.launch  ("g.harvester"),         
         // T.launch  ("g.harvester"),         
         // T.launch  ("g.harvester"),         
         // T.launch  ("g.harvester"),         
@@ -39,14 +38,13 @@ HANNIBAL = (function(H){
         // T.supplier("food.fruit", 2), 
         // T.supplier("food.meat",  2), 
 
-      ], "2": [ "... speed",
-        T.builder ("house",      4,  2), 
-        // T.builder ("house",      4,  2),
-        // T.builder ("house",      4,  2),
-        // T.builder ("house",      4,  2),
+      ], "2": [ "... house",
+        // T.builder ("house",      4,  4), 
+        // T.builder ("house",      4,  4),
+        // T.builder ("house",      4,  4),
 
       ], "3": [ "... speed",
-        T.speed(3),
+        // T.speed(3),
 
       ],
     

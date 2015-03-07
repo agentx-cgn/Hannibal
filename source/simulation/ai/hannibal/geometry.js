@@ -6,15 +6,10 @@
   Deals with points, rectangke, circles, polygons
 
 
-
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
-
-// abs,acos,asin,atan,atan2,ceil,clz32,cos,exp,floor,imul,fround,log,max,min,pow,
-// random,round,sin,sqrt,tan,log10,log2,log1p,expm1,cosh,sinh,tanh,acosh,asinh,atanh,
-// hypot,trunc,sign,cbrt,E,LOG2E,LOG10E,LN2,LN10,PI,SQRT2,SQRT1_2
 
 
 HANNIBAL = (function(H){

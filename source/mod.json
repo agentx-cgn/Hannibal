@@ -5,5 +5,5 @@
   "description": "Adaptive Bot ",
   "dependencies": ["0ad"],
   "type": "bot addon",
-  "version": "0.0.17"
+  "version": "0.0.18"
 }

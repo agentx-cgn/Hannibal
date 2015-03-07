@@ -6,8 +6,8 @@
   Priotizes requests for resources. Trains, researches and construct them.
   includes stats, producers, order, orderqueue
 
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -524,14 +524,19 @@ HANNIBAL = (function(H){
 
       imports: [
         "bot",
+        "map",
         "query",
         "events",
         "groups",
         "culture",
         "economy",
         "resources",
+        "templates",
         "technologies",
       ],
+
+      // templates excluded by territorry (own, land, shore)
+      excluded: null,
 
     });
 
@@ -545,7 +550,7 @@ HANNIBAL = (function(H){
     log: function(){
       var
         source = this.groups.findAsset(a => a.id === this.source),  // this is an asset id
-        loc = (this.location === undefined) ? "undefined" : H.fixed1(this.location);
+        loc = (this.target === undefined) ? "undefined" : H.fixed1(this.target);
 
       this.deb("   ORD: log #%s, %s amount: %s, sid: %s, loc: %s, from: %s, shared: %s, hcq: %s",
         this.id, 
@@ -566,8 +571,6 @@ HANNIBAL = (function(H){
         processing: 0,
         remaining:  order.remaining  || order.amount,
         product:    null,
-        x:          order.location ? order.location[0] : NaN,
-        z:          order.location ? order.location[1] : NaN,
       });
       this.name = H.format("%s:order#%s", this.context.name, this.id);
       return this;
@@ -575,12 +578,11 @@ HANNIBAL = (function(H){
     serialize: function(){
       return {
         id:         this.id,
-        x:          this.x,
-        z:          this.z,
         sid:        this.sid,
         amount:     this.amount,
         remaining:  this.remaining,
         processing: this.processing,
+        target:     this.target,
         verb:       this.verb, 
         hcq:        this.hcq, 
         source:     this.source, 
@@ -620,6 +622,14 @@ HANNIBAL = (function(H){
         };
       });
 
+      // remove nodes not allowed on territory
+      if (this.verb === "build"){
+        if (this.excluded === null){
+          this.excluded = this.findImpossibleBuildings();
+        }
+        this.nodes = this.nodes.filter(node => !H.contains(this.excluded, node.name));
+      }
+
       // assigns idle citizens ingames if available and matching
       this.assignIdle();      
       if(this.remaining - this.processing < 1){
@@ -655,48 +665,46 @@ HANNIBAL = (function(H){
       }
 
       // any unmet techs
-      this.nodes
-        .filter( node => node.qualifies)
-        .forEach( node => {
+      this.nodes.forEach( node => {
 
-          var 
-            req    = this.culture.tree.nodes[node.name].requires,
-            phase  = this.culture.tree.nodes[node.name].phase,
-            phases = this.culture.phases;
+        var 
+          req    = this.culture.tree.nodes[node.name].requires,
+          phase  = this.culture.tree.nodes[node.name].phase,
+          phases = this.culture.phases;
 
-          // this.deb("   ORD: eval: %s req: %s, phs: %s", node.name, req, phase);  
-          
-          if (!phases.achieved(phase)){
-            /*
-              units.athen.support.female.citizen.house
-            */
-            node.qualifies = false; 
-            node.info = "needs phase " + phase; 
-            // this.deb("   ORD: eval: %s phase: %s, not achieved", node.name, phase);
+        // this.deb("   ORD: eval: %s req: %s, phs: %s", node.name, req, phase);  
+        
+        if (!phases.achieved(phase)){
+          /*
+            units.athen.support.female.citizen.house
+          */
+          node.qualifies = false; 
+          node.info = "needs phase " + phase; 
+          // this.deb("   ORD: eval: %s phase: %s, not achieved", node.name, phase);
 
-            // this.deb("   ORD: #%s needs phase %s | %s > %s | %s, %s", 
-            //   this.id, 
-            //   phase, 
-            //   phases.find(phase).idx,
-            //   phases.find(phases.current).idx,
-            //   node.name,
-            //   this.hcq
-            // );
-            return;
-          }
+          // this.deb("   ORD: #%s needs phase %s | %s > %s | %s, %s", 
+          //   this.id, 
+          //   phase, 
+          //   phases.find(phase).idx,
+          //   phases.find(phases.current).idx,
+          //   node.name,
+          //   this.hcq
+          // );
+          return;
+        }
 
-          // req might be phase
-          if (req && phases.achieved(req)){
-            // this.deb("   ORD: eval: %s req: %s, achieved", node.name, req);
-            return;
-          }
+        // req might be phase
+        if (req && phases.achieved(req)){
+          // this.deb("   ORD: eval: %s req: %s, achieved", node.name, req);
+          return;
+        }
 
-          if (req && !this.technologies.available([req])){
-            node.qualifies = false; 
-            node.info = "needs req " + req; 
-            this.deb("   ORD: #%s needs req %s", this.id, req);
-            return;
-          }
+        if (req && !this.technologies.available([req])){
+          node.qualifies = false; 
+          node.info = "needs req " + req; 
+          this.deb("   ORD: #%s needs req %s", this.id, req);
+          return;
+        }
 
       });  
 
@@ -728,6 +736,23 @@ HANNIBAL = (function(H){
         return;
       }
 
+
+    },
+    findImpossibleBuildings: function(){
+
+      var 
+        template, placement, territories, excludes = [];
+
+      this.nodes.forEach(node => {
+
+        if (!this.map.canBuildHere(node.key, this.target, this.distance)){
+          excludes.push(node.name);
+          this.deb("     O: findImpossibleBuildings: excluded: %s", node.name);
+        }
+
+      });
+
+      return excludes;
 
     },
     assignIdle: function(){
@@ -821,9 +846,26 @@ HANNIBAL = (function(H){
         });
 
 
-      } else if (verb === "train" || verb === "build"){
+      } else if (verb === "train"){
         this.query(hcq)
           .execute()
+          .slice(0, this.remaining - this.processing)
+          .forEach( node => {
+            this.remaining -= 1; 
+            this.events.fire("OrderReady", {
+              player: this.context.id,
+              id:     node.id,
+              data:   {order: this.id, source: this.source}
+          });
+        });
+
+      } else if (verb === "build"){
+        this.query(hcq)
+          .filter(node => {
+            var d = this.map.distance(node.position, this.target);
+            this.deb("     O: distance: %s, ", d, this.distance);
+            return d < this.distance;
+          })
           .slice(0, this.remaining - this.processing)
           .forEach( node => {
             this.remaining -= 1; 
@@ -900,7 +942,6 @@ HANNIBAL = (function(H){
           no:       o => o.flags || "_",
           tim:      o => o.time !== undefined ? o.time : "_",
           source:   o => o.source, //this.groups.findAsset(o.source).name || "no source :(",
-          template: o => "tplXXXXXX",
         };
 
       if (this.queue.length){
@@ -920,28 +961,25 @@ HANNIBAL = (function(H){
       }
 
     },
-    serialize: function(tick, secs){
-      return this.queue.map( order => order.serialize());
+    serialize: function(){
+      return this.queue.map(order => order.serialize());
     },
     deserialize: function(data){
       if(data){
-        this.queue = [];
-        data.forEach( order => {
-          this.queue.push(
-            new H.LIB.Order(this.context)
-              .import()
-              .initialize(order)
-          );
+        this.queue = data.map(order => {
+          new H.LIB.Order(this.context)
+            .import()
+            .initialize(order);
         });
       }
       return this;
     },
-    initialize: function(data){
+    initialize: function(){
       this.queue = this.queue || [];
       return this;
     },
     delete: function(fn){return H.delete(this.queue, fn);},
-    find: function(fn){
+    findOrder: function(fn){
       var i, il = this.queue.length;
       for (i=0; i<il; i++){
         if (fn(this.queue[i])){
@@ -949,7 +987,7 @@ HANNIBAL = (function(H){
         }
       }
       this.deb("   ORQ: have %s, %s", this.queue.length, this.queue.map(o => o.id).join("|"));
-      H.throw("WARN  : no order found in queue with: %s", fn);
+      // H.throw("WARN  : no order found in queue with: %s", fn);
       return undefined;
     },
     // prepare: function(){
@@ -1229,19 +1267,29 @@ HANNIBAL = (function(H){
           return;
         }
 
+        // update producers
         producers.register(msg.id);
         producers.unqueue("train", msg.data.task); 
 
         // this.deb("   ECO: findOrder: %s, %s", msg.data.order, typeof msg.data.order);
-        order = orderqueue.find(order => order.id === msg.data.order);
-        order.remaining  -= 1;
-        order.processing -= 1;
-        
-        events.fire("OrderReady", {
-          player: id,
-          id:     msg.id,
-          data:   {order: msg.data.order, source: order.source, shared: order.shared}
-        });
+        order = orderqueue.findOrder(order => order.id === msg.data.order);
+        if (order){
+          order.remaining  -= 1;
+          order.processing -= 1;
+          
+          events.fire("OrderReady", {
+            player: id,
+            id:     msg.id,
+            data:   {order: msg.data.order, source: order.source, shared: order.shared}
+          });
+
+        } else {
+          this.metadata[msg.id].opid = NaN;
+          this.metadata[msg.id].opname = "none";
+          this.metadata[msg.id].sid = msg.data.sid;
+          this.deb("   ECO: TrainingFinished: no order %s", uneval(msg));
+
+        }
 
       });
 
@@ -1250,7 +1298,7 @@ HANNIBAL = (function(H){
 
         // this.deb("   ECO: on AIMetadata, msg.data.order: %s", msg.data.order);
 
-        order = orderqueue.find(o => o.id === this.metadata[msg.id].order);
+        order = orderqueue.findOrder(o => o.id === this.metadata[msg.id].order);
         order.remaining  -= 1;
         order.processing -= 1;
 
@@ -1313,21 +1361,22 @@ HANNIBAL = (function(H){
         objorder,
         // debug
         source = this.groups.findAsset(a => a.id === order.source),  
-        loc = (order.location === undefined) ? "undefined" : H.fixed1(order.location);
+        tgt = (order.target === undefined) ? "undefined" : H.fixed1(order.target);
 
-      if (order.verb === "build" && order.location.length !== 2){
+      if (order.verb === "build" && order.target.length !== 2){
         H.throw("ERROR : %s order without position, source: %s", order.verb, source);
       }
 
       objorder = new H.LIB.Order(this.context).import().initialize(order);
       this.orderqueue.queue.push(objorder);
 
-      this.deb("  ECOR: #%s, %s amount: %s, sid: %s, loc: %s, from: %s, shared: %s, hcq: %s",
+      this.deb("  ECOR: #%s, %s amt: %s, dist: %s, sid: %s, tgt: %s, from: %s, shared: %s, hcq: %s",
         objorder.id, 
         objorder.verb, 
         objorder.amount, 
+        objorder.distance, 
         objorder.sid || "NO SID" , 
-        loc, 
+        tgt, 
         source,  // that's an asset
         objorder.shared, 
         objorder.hcq.slice(0, 40)
@@ -1365,8 +1414,7 @@ HANNIBAL = (function(H){
         this.effector.construct([id], product.key, position, {order: order.id, sid:order.sid});
         this.deb("   EDO: build: pos: %s, ord: %s, key: %s", 
           position.map(p => p.toFixed(1)),
-          [order.x, order.z].map(p => p.toFixed(1)), 
-          // [order.x || NaN, order.z || NaN], 
+          H.fixed1(order.target), 
           product.key
         );
 

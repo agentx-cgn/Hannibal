@@ -6,11 +6,10 @@
   Organizes buildings to settlements,
 
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, Nov, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
-
 
 /*
   At gamestart all building are shared, 
@@ -502,8 +501,7 @@ HANNIBAL = (function (H){
         fltFirst, fltFinal,
         buildable, restrictions, territory, danger, distances, streets,
 
-        pos      = [order.x, order.z],
-        coords   = this.map.mapPosToGridCoords(pos),
+        coords   = this.map.mapPosToGridCoords(order.target),
         cellsize = this.map.cellsize,
         tpln     = order.product.key,
         template = this.templates[tpln],

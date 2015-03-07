@@ -6,8 +6,8 @@
   Deals with map aspects in coordinates, contains all grids and fields
 
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, Nov, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -354,7 +354,7 @@ HANNIBAL = (function(H){
       return -(theta < 0 ? theta + TAU : theta) - PI2;
 
 
-  /* simple infos about positions or index
+  /* infos about positions or index
 
     */
 
@@ -388,6 +388,25 @@ HANNIBAL = (function(H){
 
       return this.players.isEnemy[player];
 
+    }, canBuildHere: function(tpln, pos, distance){
+
+      var 
+        coords = this.mapPosToGridCoords(pos),
+        index  = this.mapPosToGridIndex(pos),
+        radius = ~~(distance / this.cellsize),
+        template = this.templates[tpln],
+        placement = H.test(template, "BuildRestrictions.PlacementType"),          // land, shore, land-shore
+        territories = H.test(template, "BuildRestrictions.Territory").split(" "); // own, ally, enemy, neutral
+
+      this.deb("   MAP: canBuildHere testing: %s pl: %s, tr: %s", tpln, placement, territories);
+
+      // shortcut for now
+      if (placement === "shore"){
+        return false;
+      }
+
+      return true;
+
 
   /* advanced computations on grids
 
@@ -400,9 +419,11 @@ HANNIBAL = (function(H){
 
       var 
         t1, t0 = Date.now(), src, tgt, t, s, w = this.gridsize, h = w, i = w * h,
-        pass, terr, regl, regw, buil, tori, 
+        mask, counter = 0, 
+        terr, regl, regw, 
+        buil, tori, pass, 
         path1, path2, pos1, pos2,
-        check, mask, counter = 0, id = this.context.id;
+        check, id = this.context.id;
 
       if (name === "terrain"){
 

@@ -1,9 +1,9 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL */
 
-/*--------------- GROUP:  H A R V E S T E R  ----------------------------------
+/*--------------- GROUP:  S H E P H E R D S  ----------------------------------
 
-  a group to generate food from fields
+  a group to generate food from corrals
 
 
   tested with 0 A.D. Alpha 18 Rhododactylus
@@ -16,26 +16,25 @@ HANNIBAL = (function(H){
 
   H.extend(H.Groups, {
 
-    "g.harvester" : {
+    "g.shepherds" : {
 
       /* Behaviour: 
-          to maintain one field resource (food.grain), 
-          to return gathered food to dropsite
+          to build a corral
+          to use corral to breed sheeps (food.meat), 
+          to return gathered meat to dropsite
           to shelter from violence (garrison)
           to help with nearby repair
       */
 
       // variables available in listener with *this*. All optional
-
       active:         true,           // ready to init/launch ...
-      description:    "harvester",    // text field for humans 
+      description:    "shepherds",    // text field for humans 
       civilisations:  ["*"],          // lists all supported cics
       interval:       10,             // call onInterval every x ticks
 
-      technologies: [                 // these techs help
-        "gather.capacity.wheelbarrow",
-        "celts.special.gather.crop.rotation",
-        "gather.farming.plows"
+      // these techs help
+      technologies: [                 
+        "gather_animals_stockbreeding",
       ],
 
       scripts: {
@@ -44,14 +43,16 @@ HANNIBAL = (function(H){
         launch: function launch (w, config) {
 
           w.units    = ["exclusive", "food.grain GATHEREDBY WITH costs.metal = 0, costs.stone = 0"];
-          w.field    = ["exclusive", "food.grain PROVIDEDBY"];
+          w.corral   = ["exclusive", "gaia.fauna.sheep TRAINEDBY"];
           w.dropsite = ["shared",    "food ACCEPTEDBY"]; //TODO: exclude docks
+          w.flock    = ["exclusive", "gaia.fauna.sheep"];
 
-          w.units.size    = 5;
-          w.field.size    = 1;
+          w.units.size    = 8;
+          w.corral.size   = 1;
           w.dropsite.size = 1;
+          w.flock.size    = 100; // infinty
 
-          w.nounify("units", "field", "dropsite");
+          w.nounify("units", "corral", "dropsite", "flock");
 
           w.dropsite.on.request();   
 
@@ -85,25 +86,25 @@ HANNIBAL = (function(H){
             .request()
           ;
 
-          //  the first unit requests field, exits
+          //  the first unit requests corral, exits
           w.units.on
             .member(w.item)
             .match(w.units.count, 1)
-            .match(w.field.count, 0)
-            .field.do.request() 
+            .match(w.corral.count, 0)
+            .corral.do.request() 
             .exit
           ;
 
           //  got unit let repair/gather, exits
           w.units.on
             .member(w.item)
-            .match(w.field.count, 1)
-            .item.do.repair(w.field)  // relies on autocontinue
+            .match(w.corral.count, 1)
+            .item.do.repair(w.corral)  // relies on autocontinue
             .exit
           ;
 
-          // got the field foundation, update position, all units repair, exits
-          w.field.on
+          // got the corral foundation, update position, all units repair, exits
+          w.corral.on
             .member(w.item)
             .match(w.item.foundation)
             .units.do.repair(w.item)
@@ -111,11 +112,19 @@ HANNIBAL = (function(H){
             .exit
           ;
 
-          // got the field, units gather exits
-          w.field.on
+          // got the corral, request 2 sheeps
+          w.corral.on
             .member(w.item)
             .match(!w.item.foundation)
-            .units.do.gather(w.field)
+            // .flock.do.request({amount: 2, producer: w.corral.first})
+            .flock.do.request()
+            .exit
+          ;
+
+          // got a sheep, gather, exit
+          w.flock.on
+            .member(w.item)
+            .units.do.gather(w.flock)
             .exit
           ;
 
@@ -134,14 +143,18 @@ HANNIBAL = (function(H){
             .request()
           ;
 
-          // lost field, request another
-          w.field.on
+          // lost corral, request another
+          w.corral.on
             .member(w.item)
             .request()
           ;
 
+          // killed sheep, request another
+          w.flock.on
+            .member(w.item)
+            .flock.do.request({producer: w.corral.first})
+          ;
 
-        // there are enemies and gaia
 
         }, attack: function attack (w, attacker, victim, type, damage){
 
@@ -149,46 +162,48 @@ HANNIBAL = (function(H){
 
           w.nounify("attacker",  attacker, "victim", victim);
 
-          w.field.on
-            .member(w.item)
-            .units.on.repair(w.item)
+          w.corral.on
+            .member(w.victim)
+            .units.on.repair(w.victim)
+            .echo("corral attack")
           ;
 
-        // de-garrison
 
         }, release: function release (w, item) {
+
+          // de-garrison
 
           w.deb("     G: release.0: %s, %s", this, item);
 
 
-        // group radio
-
         }, radio: function radio (w, source, msg){
+
+          // group radio
 
           w.deb("     G: %s onBroadcast from: %s, msg: %s", this, source, msg);
 
 
-        // defined by this.interval
-
         }, interval: function interval (w, tick, secs){
+
+          // defined by this.interval
 
           // w.deb("     G: interval: %s, secs: %s, intv: %s", this, secs, this.interval);
 
-          // send few idle unit to gather, exits
-          w.units.on
-            .doing("idle")
-            .lt(w.units.count, w.units.size)
-            .gt(w.units.count, 0)
-            .units.on.gather(w.field)
-            .exit
-          ;
+          // // send few idle unit to gather, exits
+          // w.units.on
+          //   .doing("idle")
+          //   .lt(w.units.count, w.units.size)
+          //   .gt(w.units.count, 0)
+          //   .units.on.gather(w.field)
+          //   .exit
+          // ;
 
-          // if all idle, release group
-          w.units.on
-            .doing("idle")
-            .match(w.units.count, w.units.size)
-            .group.release()
-          ;
+          // // if all idle, release group
+          // w.units.on
+          //   .doing("idle")
+          //   .match(w.units.count, w.units.size)
+          //   .group.release()
+          // ;
 
 
         }

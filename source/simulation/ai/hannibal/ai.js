@@ -13,7 +13,8 @@
                 License: http://creativecommons.org/licenses/by/3.0/
   Flow Field  : Corey Birnbaum, Credit: https://github.com/vonWolfehaus/FlowField
 
-  V: 0.1, agentx, CGN, JUl, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 

@@ -3,23 +3,16 @@
 
 /*--------------- T O O L S ---------------------------------------------------
 
-  Some useful objects for Hanninbal
+  Some useful objects/functions
 
 
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
 
 HANNIBAL = (function(H) {
-
-  var deb = H.deb;
-
-  H.Tools = H.Tools || {};
-
-  // a NOP function
-  H.FNULL = function(){};
 
   // sanitizes template names to dot notaton
   H.saniTemplateName = function(nameTemplate){
@@ -28,28 +21,6 @@ HANNIBAL = (function(H) {
     nameTemplate = H.replace(nameTemplate,  "/", ".");
     return nameTemplate.toLowerCase();
   };
-
-  H.Damper = function(fnDamper){
-    this.level = 0;
-    this.last = 0;
-    this.damper = fnDamper;
-    };
-
-    H.Damper.prototype = {
-      constructor: H.Damper,
-      increase: function(value){this.level += value;},
-      tick: function(time){
-        this.level = this.damper.call(this, time);
-        this.last = time;
-      }
-    };
-
-    H.Dampers = {
-      quadratic: function(time){
-        var diff = time - this.damper.last;
-        return Math.sqrt((this.level + 1)/diff) -1;
-      }
-    };
 
   H.cost2flow = function (cost){
     return {

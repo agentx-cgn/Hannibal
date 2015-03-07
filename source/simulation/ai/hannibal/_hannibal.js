@@ -6,8 +6,8 @@
   This is loaded first by 0 A.D.
   Home: https://github.com/noiv/Hannibal/blob/master/README.md
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, Nov, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
   Credits:
 

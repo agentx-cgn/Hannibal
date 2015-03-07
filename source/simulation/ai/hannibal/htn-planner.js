@@ -7,8 +7,8 @@
   https://bitbucket.org/dananau/pyhop
   http://www.cs.umd.edu/projects/shop/
 
-  expects ES6 (e.g. FF30+), uses spread, fat arrow, of
-  V: 1.1, noiv11, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 

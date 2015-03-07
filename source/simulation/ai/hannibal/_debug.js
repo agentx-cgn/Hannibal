@@ -1,5 +1,5 @@
 var HANNIBAL_DEBUG = {
-  "map": "random/brainland", 
+  "map": "scenarios/test_res", 
   "bots": {
     "1": {
       "dmp": 1, 

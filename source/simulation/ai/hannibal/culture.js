@@ -6,8 +6,8 @@
   Models features of 0 A.D. civilisations as mesh network based on a triple store.
   
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, NOV, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -359,8 +359,6 @@ HANNIBAL = (function(H){
 
 
       // setting research as verb for all phase alternatives
-
-      // H.range(1, 4).forEach(n => {
       H.loop(3, n => {
         phases[n].alternates.forEach(a => {
           name = H.saniTemplateName(a);
@@ -371,7 +369,6 @@ HANNIBAL = (function(H){
       });
 
       // setting producers for all phase alternatives
-
       H.loop(3, n => {
         producers = null;
         phases[n].alternates.forEach(a => {
@@ -380,19 +377,15 @@ HANNIBAL = (function(H){
             producers = nodes[name].producers;
           }
         });
-        // deb("  TREE: phase: %s, producers: %s", phases[n].abbr, uneval(producers));
         phases[n].alternates.forEach(a => {
           name = H.saniTemplateName(a);
           if (nodes[name] && !H.count(nodes[name].producers)){
-            // nodes[name].producers = H.deepcopy(producers);
             nodes[name].producers = producers;
-            // deb("tree: set %s", name);
           }
         });
       });
 
       // setting max resource flow for all trainer
-
       H.each(nodes, (name, node) => {
         node.flow = ( H.count(node.products.train) ?
           this.getFlowFromTrainer(name) :
@@ -752,20 +745,6 @@ HANNIBAL = (function(H){
         this.loadById(msg.id);
       });
 
-      // this.events.on("TrainingFinished", msg => {
-      //   this.loadById(msg.id);
-      // });
-
-      // this.events.on("EntityRenamed", msg => {
-        // covered by create/destroy
-        // this.loadById(msg.id2);
-        // this.removeById(msg.id);
-      // });
-
-      // this.events.on("AIMetadata", msg => {
-      //   this.loadById(msg.id);
-      // });
-
       this.events.on("UnitDestroyed", msg => {
         this.removeById(msg.id);
       });
@@ -773,10 +752,6 @@ HANNIBAL = (function(H){
       this.events.on("StructureDestroyed", msg => {
         this.removeById(msg.id);
       });
-
-      // this.events.on("Advance", this.tree.id, msg => {
-        // this.loadByName(msg.data.technology);
-      // });
 
     },
 
@@ -1034,11 +1009,13 @@ HANNIBAL = (function(H){
 
       var 
         sani = function(name){
-          name = H.replace(name,  "_", ".");
-          name = H.replace(name,  "|", ".");
-          name = H.replace(name,  "/", ".").toLowerCase();
+          name = H.saniTemplateName(name);
           // HACK: foundations
           if (name.split(".")[0] === "foundation"){
+            name = name.split(".").slice(1).join(".");
+          }
+          // HACK: resources
+          if (name.split(".")[0] === "resource"){
             name = name.split(".").slice(1).join(".");
           }
           return name;

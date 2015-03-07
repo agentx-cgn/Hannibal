@@ -6,9 +6,8 @@
   Define goals, depending on victory conditions, civilisation
 
 
-
-  tested with 0 A.D. Alpha 15 Osiris
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 

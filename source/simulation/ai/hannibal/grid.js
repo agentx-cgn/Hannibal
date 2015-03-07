@@ -6,9 +6,8 @@
   An API onto typed arrays, used for map analysis, path finding, attack planning
   can blur and other grahic methods
 
-
-
-  V: 1.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 

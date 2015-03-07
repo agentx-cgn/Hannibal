@@ -3,9 +3,11 @@
 
 /*--------------- C O M M U N I C A T I O N -----------------------------------
 
+  Short range communication between citizens
 
 
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -140,7 +142,7 @@ HANNIBAL = (function(H){
             [oldx, oldz] = actor;
 
             // with new position ?
-            if (oldx !== curx && oldz !== curz){
+            if (oldx !== curx || oldz !== curz){
 
               // update in raster
               H.delete(this.raster[oldx][oldz], id => id === node.id);

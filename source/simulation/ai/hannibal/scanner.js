@@ -6,8 +6,8 @@
   keeps track of visited map regions (land/water), provides list of points to scan 
   and scans around a point for mines, treasure, (not trees) etc.
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, NOV, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 

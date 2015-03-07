@@ -1,13 +1,13 @@
 /*jslint bitwise: true, browser: true, evil:true, devel: true, debug: true, nomen: true, plusplus: true, sloppy: true, vars: true, white: true, indent: 2 */
 /*globals HANNIBAL */
 
-/*--------------- P L U G I N S -----------------------------------------------
+/*--------------- GROUP:  P A T R O L  ----------------------------------------
+
+  a group to control and observe a settlment
 
 
-
-
-
-  V: 0.1, agentx, CGN, Feb, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -103,19 +103,17 @@ HANNIBAL = (function(H){
           ;
 
 
-        }, attack: function attack (w, shooter, victim, type, damage){
+        }, attack: function attack (w, attacker, victim, type, damage){
 
-          // there are enemies and gaia
+          w.deb("     G: attack: %s, %s, %s", this, attacker, victim);
 
-          w.deb("     G: attack.0: %s, %s, %s", w, shooter, victim);
-
-          w.nounify("shooter", shooter, "victim",  victim);
+          w.nounify("attacker",  attacker, "victim", victim);
 
           // we hit someone, I'm good
           w.units.on
-            .member(w.shooter)
+            .member(w.attacker)
             .stance("denfensive")
-            .path.do.modify("center E" + w.shooter.id)
+            .path.do.modify("center E" + w.attacker.id)
             .spread(w.path)
           ;
 

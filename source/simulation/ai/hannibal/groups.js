@@ -6,8 +6,8 @@
   Container for Groups, allows bot to query capabilities and launch instances
 
 
-  tested with 0 A.D. Alpha 17 Quercus
-  V: 0.1, agentx, CGN, NOV, 2014
+  tested with 0 A.D. Alpha 18 Rhododactylus
+  V: 0.1.1, agentx, CGN, Mar, 2015
 
 */
 
@@ -19,6 +19,10 @@ HANNIBAL = (function(H){
     H.extend(this, {
 
       context: context,
+      
+      klass:    "groups",
+      parent:   context,
+      name:     context.name + ":groups",
 
       imports: [
         "map",
@@ -87,47 +91,12 @@ HANNIBAL = (function(H){
         this.context.data.groups.forEach(config => {
           this.launch(config);
         });
-      
-      } else {
-        // load mayors and custodians from metadata
-        // this.launchOperators();
-
       }
 
       return this;
 
     },
     activate: function(){
-
-      var host, order, instance;
-
-      this.events.on("AIMetadata", msg => {
-
-        // this.deb("  GRPS: on AIMetadata, looking for order id: %s/%s", msg.data.order, typeof msg.data.order);
-        // this.deb("  GRPS: meta: %s", uneval(this.metadata[msg.id]));
-
-        // order = this.orderqueue.find(order => order.id === msg.data.order);
-
-        // if (order && order.shared){
-
-        //   host = this.launch({name: "g.custodian", cc: order.cc});
-        //   host.structure = ["private", "INGAME WITH id = " + msg.id];
-        //   host.structure = this.createAsset({
-        //     id: this.context.idgen++,
-        //     instance: host,
-        //     property: "structure",
-        //   });
-
-        //   this.metadata[msg.id].opname = host.name;
-        //   this.metadata[msg.id].opid   = host.id;
-
-        //   instance = this.instances.find(i => i.id === order.instance);
-        //   host.listener.onConnect(instance.listener);
-
-        // }
-
-      });
-
 
     },
     tick: function(secs, ticks){
@@ -149,41 +118,41 @@ HANNIBAL = (function(H){
 
     },
 
-    launchOperators: function () {
+    // launchOperators: function () {
 
-      var opname;
+    //   var opname;
 
-      // deb("  GRPS: launching operators for structures");
+    //   // deb("  GRPS: launching operators for structures");
 
-      this.query("INGAME").forEach(node => {
+    //   this.query("INGAME").forEach(node => {
 
-        // deb("launchOperators: id: %s, key: ", node.id, node.key);
+    //     // deb("launchOperators: id: %s, key: ", node.id, node.key);
 
-        // logObject(node, "launchOperators.node");
+    //     // logObject(node, "launchOperators.node");
         
-        opname = node.metadata.opname;
+    //     opname = node.metadata.opname;
 
-        // deb("     V: 1 %s %s", node.name, uneval(node.metadata));
+    //     // deb("     V: 1 %s %s", node.name, uneval(node.metadata));
         
-        if (opname === "none"){
-          // deb("  GRPS: appOps %s for %s", opname, node.name);
+    //     if (opname === "none"){
+    //       // deb("  GRPS: appOps %s for %s", opname, node.name);
 
-        } else if (opname === "g.custodian"){
-          // deb("  GRPS: appOps %s for %s", opname, node.name);
-          this.appoint(node.id, {groupname: "g.custodian", sid: this.metadata[node.id].sid});
+    //     } else if (opname === "g.custodian"){
+    //       // deb("  GRPS: appOps %s for %s", opname, node.name);
+    //       this.appoint(node.id, {groupname: "g.custodian", sid: this.metadata[node.id].sid});
 
-        } else if (opname === "g.mayor"){
-          // deb("  GRPS: appOps %s for %s", opname, node.name);
-          this.appoint(node.id, {groupname: "g.mayor", sid: this.metadata[node.id].sid});
+    //     } else if (opname === "g.mayor"){
+    //       // deb("  GRPS: appOps %s for %s", opname, node.name);
+    //       this.appoint(node.id, {groupname: "g.mayor", sid: this.metadata[node.id].sid});
 
-        } else {
-          // deb("  GRPS: appOps ignored %s for %s", opname, node.name);
+    //     } else {
+    //       // deb("  GRPS: appOps ignored %s for %s", opname, node.name);
 
-        }
+    //     }
 
-      });
+    //   });
 
-    },    
+    // },    
     findGroup: function (fn){
 
       var i, il = this.instances.length;
@@ -219,7 +188,7 @@ HANNIBAL = (function(H){
 
       }
       
-      this.deb("WARN  : no asset found: with %s", H.fnBodyfn());
+      this.deb("WARN  : no asset found: with %s", fn);
       return undefined;
 
     },
@@ -368,17 +337,17 @@ HANNIBAL = (function(H){
 
       return {
 
-        request:   (act, sub, obj, n)      => this.request(act, n || 1, sub.host, act.position),
-        move:      (act, sub, obj, path)   => this.effector.move(sub.list, path),
-        spread:    (act, sub, obj, path)   => this.effector.spread(sub.list, obj.list),
-        gather:    (act, sub, obj)         => this.effector.gather(sub.list, obj.list),
-        stance:    (act, sub, obj, stance) => this.effector.stance(sub.list, stance),      
-        format:    (act, sub, obj, format) => this.effector.format(sub.list, format),
-        attack:    (act, sub, obj)         => this.attack(sub.list, obj.list),
-        dissolve:  (act, sub)              => this.dissolve(sub.host),
-        shelter:   (act, sub, obj)         => H.throw("Shelter not yet implemented"),
-        doing:     (act, sub, obj, filter) => sub.list = this.doing(sub, filter),
-        repair:    (act, sub, obj)         => {
+        request:   (act, sub, obj, options) => this.request(act, sub.host, act.position, options || {}),
+        move:      (act, sub, obj, path)    => this.effector.move(sub.list, path),
+        spread:    (act, sub, obj, path)    => this.effector.spread(sub.list, obj.list),
+        gather:    (act, sub, obj)          => this.effector.gather(sub.list, obj.list),
+        stance:    (act, sub, obj, stance)  => this.effector.stance(sub.list, stance),      
+        format:    (act, sub, obj, format)  => this.effector.format(sub.list, format),
+        attack:    (act, sub, obj)          => this.attack(sub.list, obj.list),
+        dissolve:  (act, sub)               => this.dissolve(sub.host),
+        shelter:   (act, sub, obj)          => H.throw("Shelter not yet implemented"),
+        doing:     (act, sub, obj, filter)  => sub.list = this.doing(sub, filter),
+        repair:    (act, sub, obj)          => {
 
           // TODO: skip buildings with health > 90%
           // this.deb("  GRPS: repair: s: %s, o: %s", sub, obj);
@@ -409,6 +378,10 @@ HANNIBAL = (function(H){
           }
           this.deb("  GRPS: relocate: act: %s, sub: %s, obj: %s, item: %s", act, sub, obj, uneval(path));
         },
+        include:  (act, sub, obj)   => {
+          this.deb("  GRPS: grab.in: %s => %s", obj.list, sub.list);
+          sub.list.concat(obj.list);
+        },
         transfer:  (act, sub, obj, groupname)   => {
           if ((group = this.findGroup(g => g.groupname === groupname))){
             this.transfer(act, sub, group);
@@ -423,6 +396,9 @@ HANNIBAL = (function(H){
         }
 
       };
+
+    },
+    transferIdle: function(source, assetsource, target){
 
     },
     transfer: function(source, assetsource, target){
@@ -476,22 +452,9 @@ HANNIBAL = (function(H){
         });
 
       } else {
-
         H.throw("Transfer failed %s, %s, %s", source, assetsource, target);
 
       }
-
-
-      // dslItem = {
-      //   name:        "item",
-      //   resources:   ids, 
-      //   ispath:      tpln.contains("path"),      // mark for world.member
-      //   isresource:  tpln.contains("resources"), // mark for world.member
-      //   foundation:  tpln.contains("foundation"),
-      //   toString :   () => H.format("[dslobject item[%s]]", id)
-      // };
-
-      // this.groups.callWorld(this.instance, "assign", [dslItem]);
 
     },
     dissolve: function(instance){
@@ -504,31 +467,6 @@ HANNIBAL = (function(H){
       this.deb("  GRPS: dissolved %s", instance);
 
     },
-    // appoint: function(id, config){
-
-    //   // shared assets are handled by unitless groups like custodian or mayor
-    //   // they keep a list of users = other groups to radio repair, etc
-
-    //   // launches and inits a group instance to manage a shared ingame structure/building
-    //   // called at init ??and during game??, if an order for a shared asset is ready
-
-    //   var 
-    //     instance = this.launch(config),
-    //     node = this.query("INGAME WITH id = " + id, 0).first(),
-    //     nodename = node.name.split("#")[0];
-
-    //   this.metadata[id].opmode = "shared";
-    //   this.metadata[id].opid   = instance.id;
-    //   this.metadata[id].opname = instance.groupname;
-
-    //   instance.structure = ["private", nodename];
-    //   instance.register("structure");
-      
-    //   // this.deb("  GRPS: appointed %s for %s, sid: %s", instance.name, this.entities[id], config.sid);
-
-    //   return instance;
-
-    // },
     doing: function(subject, filter){ 
 
       // filters ids in list on unit ai state
@@ -581,26 +519,27 @@ HANNIBAL = (function(H){
     },
     claim: function( /* instance */ ){},
 
-    request: function(instance, amount, asset, position){
+    request: function(instance, asset, target, options){
+
+      var 
+        amount   = options.amount   || 1,
+        distance = options.distance || 256;
       
-      if (!(instance && amount && asset.id && position.length === 2)){
-
-        H.throw("groups.request incomplete: %s, %s, %s, %s", instance, amount, asset, position);
-
+      if (!(instance && asset.id && target.length === 2)){
+        H.throw("groups.request incomplete: %s, %s, %s, %s", instance, amount, asset, target);
       }
 
-      // this.deb("  GRPS: request: instance: %s, amount: %s, asset: %s, assetid: %s", instance, amount, asset, asset.id);
-
-      asset.isRequested = true;
+      // this.deb("  GRPS: request.in: instance: %s, amount: %s, asset: %s, assetid: %s", instance, amount, asset, asset.id);
 
       this.economy.request({
-        amount:     amount,
-        sid:        instance.sid,
-        location:   position,
-        verb:       asset.verb, 
-        hcq:        asset.hcq, 
-        source:     asset.id, 
-        shared:     asset.shared,
+        amount:     amount,        // how much
+        sid:        instance.sid,  // belongs to settlement
+        target:     target,        // prefered location for verb = build
+        distance:   distance,      // max distance from target (m)
+        verb:       asset.verb,    // train, build, path, 
+        hcq:        asset.hcq,     // definition
+        source:     asset.id,      // purchaser
+        shared:     asset.shared,  // exclusive or shared
       });
 
     },
