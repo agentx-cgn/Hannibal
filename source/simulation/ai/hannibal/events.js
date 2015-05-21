@@ -474,8 +474,8 @@ HANNIBAL = (function(H){
       // this.deb("   EVT: got attacked: %s", uneval(e));
 
       if (
-        (ents[e.target] || ents[e.attacker]) && 
-        (ents[e.target].owner() === this.id || ents[e.attacker].owner() === this.id)
+        ents[e.target] && ents[e.target].owner() === this.id
+        || ents[e.attacker] && ents[e.attacker].owner() === this.id
         ){
 
         this.fire("EntityAttacked", {
