@@ -9,7 +9,7 @@ DIFFICULTY SETTINGS
 
 0 : Sandbox
 
-Hannibal will not rush or attack you. It only builds a village, gathers resources and advanves to city phase. If more resources are needed it may expand its territory. However, if *you* attack Hannibal the unit AI will kick in and may shoot arrows or slaughter your units. Also, the towers may be manned. If you kill the scouts exploring the map some more will come. No ships. 
+Hannibal will not rush or attack you. It only builds a village, gathers resources and advances to city phase. If more resources are needed it may expand its territory. However, if *you* attack Hannibal the unit AI will kick in and may shoot arrows or slaughter your units. Also, the towers may be manned. If you kill the scouts exploring the map some more will come. No ships. 
 
 1 : Easy
 

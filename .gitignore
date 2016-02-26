@@ -8,3 +8,9 @@ paths.py
 
 ## filter
 *.pyc
+
+## paths
+## exports/*
+## logs/*
+
+last.log

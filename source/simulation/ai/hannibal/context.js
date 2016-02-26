@@ -257,10 +257,9 @@ HANNIBAL = (function(H){
     connectEngine: function(launcher, gameState, sharedScript, settings){
 
       var 
-        t0, item,
+        t0,
         ss = sharedScript,
         gs = gameState, 
-        entities = gs.entities._entities,
         sanitize = H.saniTemplateName;
 
       this.updateEngine = (sharedScript, secs) => {
@@ -284,25 +283,27 @@ HANNIBAL = (function(H){
         this.player             = sharedScript.playersData[this.id];
         this.players            = sharedScript.playersData;
         this.resourcemaps       = sharedScript.resourceMaps;
+
+        // Mmmh
+        this.territory.cellsize   = this.territory.cellSize;
+        this.passability.cellsize = this.passability.cellSize;
         
         // this.metadata           = ss._entityMetadata[this.id];
 
-        // H.logObject(ss.playersData[this.id], "ss.playersData[this.id]");
-
+        // expose Map as Object
         this.entities = new Proxy(sharedScript._entities, {
           get: (proxy, attr) => {
             return (
-              H.isInteger(+attr)        ? proxy.get(+attr) :
-              proxy[attr] !== undefined ? proxy[attr]      :
+              H.isInteger(+attr)                ? proxy.get(+attr)         :
+              typeof proxy[attr] === "function" ? proxy[attr].bind(proxy)  :
+              proxy[attr] !== undefined         ? proxy[attr]              :
                 H.throw("entities no attr: '%s'", uneval(attr))
             );
           }
         });
 
         // escalate down
-        // for (item of this.importer){
         H.each(this.importer, (index, item) => {
-          // this.deb("   CTX: import %s %s", item.name, item.imports.sort());
           if (!item.name || !item.klass){
             this.deb("   CTX: update import, unknown: n: '%s', k: '%s', props: %s", item.name || "", item.klass || "", H.attribs(item));
           }
@@ -332,9 +333,7 @@ HANNIBAL = (function(H){
         difficulty:          settings.difficulty,               // Sandbox 0, easy 1, or nightmare or ....
 
         phase:               gs.currentPhase(),          // num
-        cellsize:            gs.cellSize, 
-        width:               ss.passabilityMap.width  *4, 
-        height:              ss.passabilityMap.height *4, 
+        mapsize:             ss.mapSize,
         circular:            ss.circularMap,
         territory:           ss.territoryMap,
         passability:         ss.passabilityMap,
@@ -347,10 +346,6 @@ HANNIBAL = (function(H){
         modifications:       ss._techModifications[settings.player],
         player:              ss.playersData[settings.player],
         players:             ss.playersData,
-
-        // entities:            new Proxy({}, {get: (proxy, id) => {
-        //   return ss._entities.get(~~id);
-        // }}),
 
         // API read/write
         metadata:            new Proxy({}, {get: (proxy, id) => {

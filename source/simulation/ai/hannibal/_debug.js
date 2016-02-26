@@ -1,5 +1,5 @@
 var HANNIBAL_DEBUG = {
-  "map": "scenarios/test_res", 
+  "map": "random/brainland", 
   "bots": {
     "1": {
       "dmp": 1, 
@@ -93,5 +93,5 @@ var HANNIBAL_DEBUG = {
     }
   }, 
   "counter": [], 
-  "export": "/home/noiv/.local/share/0ad/mods/hannibal/explorer/data/"
+  "export": "/media/noiv/OS/Octets/Projects/GIT/Hannibal/exports/"
 };

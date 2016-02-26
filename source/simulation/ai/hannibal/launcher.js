@@ -102,6 +102,17 @@ HANNIBAL = (function(H) {
     */
 
     var lines1, lines2, lines3, diff;
+
+    // H.logObject(sharedScript.passabilityClasses, "sharedScript.passabilityClasses");
+
+    // H.logObject(Engine, "Engine");
+
+    // H.logObject(global, "global");
+    // H.logObject(API3, "API3");
+    // H.logObject(gameState, "gameState");
+    // H.logObject(gameState, "sharedScript");
+    // H.logObject(Map, "Map");
+
     // this.context.log();
 
     // lines1 = exportJSON(this.context.serialize(), "ctx1.serialized");
@@ -352,13 +363,14 @@ HANNIBAL = (function(H) {
 
     deb("------: LAUNCHER.CustomInit: PID: %s, Players: %s, difficulty: %s", id, H.count(ss.playersData), settings.difficulty);
     deb("      :");
-    deb("     A:     map from DEBUG: %s / %s", this.map, ss.gameType);
-    deb("     A:        passability: w: %s, l: %s, c: %s, cells: %s", ss.passabilityMap.width, ss.passabilityMap.data.length, ss.circularMap, gs.cellSize);
-    deb("     A:          territory: w: %s, l: %s, c: %s, cells: %s", ss.territoryMap.width, ss.territoryMap.data.length, ss.circularMap, gs.cellSize);
+    deb("     A:     map from DEBUG: %s", this.map);
+    deb("     A:                map: %s, circ: %s, size: %s", ss.gameType, ss.circularMap, ss.mapSize);
+    deb("     A:        passability: w: %s, len: %s, cellsize: %s", ss.passabilityMap.width, ss.passabilityMap.data.length, ss.passabilityMap.cellSize);
+    deb("     A:          territory: w: %s, len: %s, cellsize: %s", ss.territoryMap.width, ss.territoryMap.data.length, ss.territoryMap.cellSize);
     deb("     A:          _entities: %s [  ]", H.count(ss._entities));
     deb("     A:         _templates: %s [  ]", H.count(ss._templates));
     deb("     A:     _techTemplates: %s [  ]", H.count(ss._techTemplates));
-    deb("     H: _techModifications: %s [XX]", H.count(ss._techModifications[id])); // , H.attribs(ss._techModifications[id]));
+    deb("     H: _techModifications: %s [XX]", H.count(ss._techModifications[id]));
     deb("     H:     researchQueued: %s [  ]", H.count(ss.playersData[id].researchQueued));
     deb("     H:    researchStarted: %s [  ]", H.count(ss.playersData[id].researchStarted));
     deb("     H:    researchedTechs: %s [%s]", H.count(ss.playersData[id].researchedTechs), H.attribs(ss.playersData[id].researchedTechs).join(", "));
@@ -396,9 +408,9 @@ HANNIBAL = (function(H) {
 
     this.deb();
 
-    head   = "name, team, civ, phase,      pop,   ally,   enemy,      neut, colour".split(", ");
-    props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral, colour".split(", ");
-    tabs   = [  10,    6,   8,    10,        5,      3,       4,         3,     12];
+    head   = "name, team, civ, phase,      pop,   ally,   enemy,      neut,      color".split(", ");
+    props  = "name, team, civ, phase, popCount, isAlly, isEnemy, isNeutral".split(", ");
+    tabs   = [  10,    6,   8,    10,        5,      3,       4,         3,         12];
     format = {
       isAlly:    fmtAEN,
       isEnemy:   fmtAEN,

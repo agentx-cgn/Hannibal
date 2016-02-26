@@ -85,7 +85,7 @@ HANNIBAL = (function(H){
         map = this.context.launcher.map,
         filename = H.format("%s-%s-%s.png", id, map, name);
       if (this.checkDebug("dmp")){
-        Engine.DumpImage(filename, grid.toArray(), grid.width, grid.height, threshold);    
+        // Engine.DumpImage(filename, grid.toArray(), grid.size, grid.size, threshold);    
       }
     },
     dumparray: function(name, array, width, height, threshold){
@@ -94,7 +94,7 @@ HANNIBAL = (function(H){
         map = this.context.launcher.map,
         filename = H.format("%s-%s-%s.png", id, map, name);
       if (this.checkDebug("dmp")){
-        Engine.DumpImage(filename, array, width, height, threshold);    
+        // Engine.DumpImage(filename, array, width, height, threshold);    
       }
     },
     execute: function(command){

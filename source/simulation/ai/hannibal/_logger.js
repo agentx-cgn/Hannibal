@@ -130,18 +130,30 @@ HANNIBAL = (function(H){
     },
 
     logObject: function(o, msg){
-      var inst = "unidentified";
+      
       msg = msg || "";
+
       H.deb();
-      H.deb("Object [%s] : attributes: %s, comment: %s", inst, Object.keys(o).length, msg);
-      if (o.constructor){
-        H.deb("Object: %s", H.getAttribType("constructor", o.constructor));
+
+      if (o instanceof Set){
+        H.deb("Object [Set] : attributes: %s, comment: %s", o.length, msg);
+      
+      } else if (o instanceof Map) {
+        H.deb("Object [Map] : attributes: %s, comment: %s", o.size, msg);
+
+      }  else {
+        H.deb("Object [Object] : attributes: %s, comment: %s", Object.keys(o).length, msg);
+        if (o.constructor){
+          H.deb("Object: %s", H.getAttribType("constructor", o.constructor));
+        }
+        H.logObjectShort(o);
+        H.deb("Object.prototype: %s attributes", H.count(Object.getPrototypeOf(o)));
+        if (H.count(Object.getPrototypeOf(o))){
+          H.logObjectShort(Object.getPrototypeOf(o));
+        }
+
       }
-      H.logObjectShort(o);
-      H.deb("Object.prototype: %s attributes", H.count(Object.getPrototypeOf(o)));
-      if (H.count(Object.getPrototypeOf(o))){
-        H.logObjectShort(Object.getPrototypeOf(o));
-      }
+
       H.deb("------: logObject end");
     },
     logObjectShort: function(o){
@@ -201,6 +213,10 @@ HANNIBAL = (function(H){
           } else if (o[a] instanceof Map) {
             keys = [...o[a].keys()];
             return H.format("  %s: MAP [%s](%s, ...)", attr, keys.length, keys.slice(0, 5).join(", "));
+
+          } else if (o[a] instanceof Set) {
+            keys = [...o[a].values()];
+            return H.format("  %s: SET [%s](%s, ...)", attr, keys.length, keys.slice(0, 5).join(", "));
 
           } else if (o[a] === null) {
             return H.format("  %s: NULL", attr);

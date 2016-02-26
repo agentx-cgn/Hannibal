@@ -727,16 +727,19 @@ HANNIBAL = (function(H){
         currentNode = openlist.shift();
         currentNode.closed = true;         
 
-        x = currentNode.x;           
-        z = currentNode.y;           
+        // x = currentNode.x;           
+        // z = currentNode.y;          
 
         graph.setNeighbors8(neighbors, currentNode);
+
+        // H.deb("%s %s %s", x, z, uneval(neighbors.map(n => ({x: n.x, y: n.y}) ) ) ); 
 
         for (i = 0; i < 8; i++) {
 
           neighbor = neighbors[i];
 
-          if (neighbor.closed || neighbor.weight === 0 || neighbor.visited) {continue;}
+          // if (neighbor.closed || neighbor.weight === 0 || neighbor.visited) {continue;}
+          if (!neighbor || neighbor.closed || neighbor.weight === 0 || neighbor.visited) {continue;}
 
           distance = (
             currentNode.x === neighbor.x ? 1 :

@@ -77,6 +77,7 @@ HANNIBAL = (function (H){
         "id",
         "civ",
         "map",
+        "mapsize",
         "query",
         "claims",
         "events",
@@ -156,7 +157,7 @@ HANNIBAL = (function (H){
         this.findSeedTemplates();
         this.analyzeBuildings();
         this.organizeSettlements();
-        this.updateStreets(this.findMain());
+        // this.updateStreets(this.findMain()); 0ad19
       }
 
       return this;
@@ -372,7 +373,7 @@ HANNIBAL = (function (H){
           ){
 
           this.seedTemplates.push(tpln);
-          this.deb("  VILL: findSeedTemplates %s > %s, %s, %s, %s", tpln, u(terr), u(decay), u(influ), u(drops));
+          // this.deb("  VILL: findSeedTemplates %s > %s, %s, %s, %s", tpln, u(terr), u(decay), u(influ), u(drops));
 
         }
 
@@ -444,7 +445,7 @@ HANNIBAL = (function (H){
         size = H.test(template, "Obstruction.Static"),
         r = Math.max(+size["@width"], +size["@depth"]),
 
-        mapsize = this.map.gridsize <= 256 ? "small"  : "big",
+        mapsize = this.mapsize/4 <= 256 ? "small"  : "big",
         bldsize = r < 15  ? "small" : r < 21 ? "middle" : "big",
 
         angles = {
@@ -501,7 +502,7 @@ HANNIBAL = (function (H){
         fltFirst, fltFinal,
         buildable, restrictions, territory, danger, distances, streets,
 
-        coords   = this.map.mapPosToGridCoords(order.target),
+        coords   = this.map.mapPosToGridCoords(order.target, {cellsize: 1}),
         cellsize = this.map.cellsize,
         tpln     = order.product.key,
         template = this.templates[tpln],
@@ -548,7 +549,7 @@ HANNIBAL = (function (H){
       [buildable, value, position, index] = new H.LIB.Grid(this.context)
         .import()
         .release()
-        .initialize({label: "buildable", data: H.lowerbyte(this.map.passability.data)})
+        .initialize({label: "buildable", data: H.lowerbyte(this.map.passability.data), cellsize: 8})
         .filter(streets, fltFirst)
         .distanceTransform()
         .filter(v => v <= radius ? 0 : 255)

@@ -24,6 +24,7 @@ HANNIBAL = (function(H){
 
       imports:  [
         "map",
+        "mapsize",
         "query",
         "events",
         "entities",
@@ -31,6 +32,7 @@ HANNIBAL = (function(H){
 
       actors: null,   // Map
       raster: null,   // Array
+      cellsize: 8,    // 
 
     });
 
@@ -41,7 +43,7 @@ HANNIBAL = (function(H){
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Comms,
     log: function(){
-      this.deb("  COMM: %s citizens", this.actors.size);
+      this.deb(); this.deb("  COMM: %s citizens", this.actors.size);
     },
     serialize: function(){
       return {
@@ -60,7 +62,7 @@ HANNIBAL = (function(H){
 
     initialize: function(){
 
-      var x, y, size = this.map.gridsize;
+      var x, y, size = this.mapsize / this.cellsize;
 
       if(this.actors === null){
 
@@ -78,14 +80,9 @@ HANNIBAL = (function(H){
 
       }
 
-
       return this;
 
-
     },
-
-
-
     activate: function(){
 
       var actor, x, z;
@@ -130,7 +127,9 @@ HANNIBAL = (function(H){
       this.query("citizen CONTAIN INGAME").forEach(node => {
         
           // current coords
-          [curx, curz] = this.map.mapPosToGridCoords(this.entities[node.id].position());
+          [curx, curz] = this.map.mapPosToGridCoords(this.entities[node.id].position(), {cellsize: this.cellsize});
+
+          // this.deb("coms.update: x: %s, y: %s, pos: %s", curx, curz, this.entities[node.id].position());
 
           actor = this.actors.get(node.id);
 

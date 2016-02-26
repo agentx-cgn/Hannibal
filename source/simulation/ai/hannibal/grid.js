@@ -25,17 +25,18 @@ HANNIBAL = (function(H){
 
       imports: [
         "map",         // width, height
-        "cellsize",
+        "mapsize",
         "effector",
         "entities",
       ],
 
-      label:  "",
-      data:   null,
-      width:  0,
-      height: 0,
-      bits:   "",
-      length: 0,
+      label:     "",  // human readable
+      bits:      "",  // 8, 16, etc
+      data:    null,  // typed Array
+      width:      0,  // 
+      height:     0,  // 
+      length:     0,  // length = width * height
+      cellsize: NaN   // factor to get positions
 
     });
 
@@ -65,52 +66,57 @@ HANNIBAL = (function(H){
     },
     serialize: function(){
       return {
-        label:  this.label,
-        bits:   this.bits,
-        bytes:  H.toRLE(this.data),
+        label:    this.label,
+        bits:     this.bits,
+        bytes:    H.toRLE(this.data),
+        size:     this.size,
+        length:   this.length,
+        cellsize: this.cellsize,
       };
     },
     deserialize: function(data){
-      this.label = data.label;
-      this.bits  = data.bits;
-      this.data  = H.fromRLE(data.bytes);
+      this.label =    data.label;
+      this.bits =     data.bits;
+      this.data =     H.fromRLE(data.bytes);
+      this.size =     data.size;
+      this.length =   data.length;
+      this.cellsize = data.cellsize;
     },
-    initialize: function(config){ // label, bits, grid, data
+    initialize: function(config){ // label, bits, grid, data, cellsize
       // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray
 
-      this.label  = config.label;
-      this.bits   = config.bits || "c8";
+      this.label  = config.label || "anonymous grid";
 
-      if (!config.grid && !config.data){
-        this.width  = ~~(this.map.width  / this.cellsize);
-        this.height = ~~(this.map.height / this.cellsize);
-        this.data   = new Uint8ClampedArray(this.width * this.height);
+      // specs incomplete
+      if (!config.cellsize && !config.grid){
+        H.throw("grid.initilaize: no cellsize");
 
+      // copy grid
       } else if (config.grid && !config.data){
         this.cellsize = config.grid.cellsize;
-        this.width  = config.grid.width;
-        this.height = config.grid.height;
-        this.data   = new Uint8ClampedArray(config.grid.data);
+        this.data     = new Uint8ClampedArray(config.grid.data);
 
-      } else if (!config.grid && config.data){
-        this.cellsize = this.map.cellsize;
-        this.size   = ~~Math.sqrt(config.data.length);
-        this.width  = this.size;
-        this.height = this.size;
-        this.data   = new Uint8ClampedArray(config.data);
-      
+      // clone grid
       } else if (config.grid && config.data){
         this.cellsize = config.grid.cellsize;
-        this.width  = config.grid.width;
-        this.height = config.grid.height;
-        this.data   = new Uint8ClampedArray(config.data);
+        this.data     = new Uint8ClampedArray(config.data);
+
+      // all from config
+      } else if (config.data){
+        this.cellsize = config.cellsize;
+        this.data     = new Uint8ClampedArray(config.data);
+      
+      // empty from specs
+      } else {
+        this.cellsize = config.cellsize;
+        this.data     = new Uint8ClampedArray((this.mapsize / this.cellsize) * (this.mapsize / this.cellsize));
       
       }
 
       this.name   = this.context.name + ":grid:" + config.label || "grid" + this.context.idgen++;
-      this.length = this.width * this.height;
-      this.size   = this.width;
-
+      this.size   = this.mapsize / this.cellsize;
+      this.length = this.size * this.size;
+      this.bits   = "c8"; // config.bits || config.grid.bits || "c8";
 
       // this.deb("   GRD: init: %s cellsize: %s, size: %s, len: %s", 
       //   this.label,
@@ -389,7 +395,6 @@ HANNIBAL = (function(H){
       return this;
 
     },
-
     setCoords: function(coords) {
 
       // destructive, computes the distance to coords up to 255
@@ -427,51 +432,7 @@ HANNIBAL = (function(H){
 
       return this;
 
-
     },
-    // addInfluence: function(coords, strength, maxDist, type="linear") {
-
-    //   maxDist = maxDist || this.size;
-
-    //   var 
-    //     t0 = Date.now(),
-    //     r = 0.0, x = 0, y = 0, dx = 0, dy = 0, r2 = 0,
-    //     [cx, cy] = coords,
-    //     data = this.data, 
-    //     size = this.size,
-    //     maxDist2 = maxDist * maxDist,
-    //     x0 = ~~(Math.max(0, cx - maxDist)),
-    //     y0 = ~~(Math.max(0, cy - maxDist)),
-    //     x1 = ~~(Math.min(size -1, cx + maxDist)),  
-    //     y1 = ~~(Math.min(size -1, cy + maxDist)),
-    //     str = (
-    //       type === "linear"    ? (strength || maxDist) / maxDist  :
-    //       type === "quadratic" ? (strength || maxDist) / maxDist2 :
-    //       type === "constant"  ? strength :
-    //         H.throw("addInfluence: unknown type: '%s'", type)
-    //     ),
-    //     fnQuant = ( 
-    //       type === "linear"    ? (r) => str * (maxDist  - Math.sqrt(r)) :
-    //       type === "quadratic" ? (r) => str * (maxDist2 - r) : 
-    //       type === "constant"  ? ( ) => str :
-    //         H.throw("addInfluence: unknown type: '%s'", type)
-    //     );
-
-    //   for ( y = y0; y < y1; ++y) {
-    //     for ( x = x0; x < x1; ++x) {
-    //       dx = x - cx; 
-    //       dy = y - cy; 
-    //       r2 = dx * dx + dy * dy;
-    //       if (r2 < maxDist2) {
-    //         data[x + y * size] += fnQuant(r2);
-    //       }
-    //   }}
-
-    //   // this.deb("   GRD: %s %s addInfluence", this.label, Date.now() - t0);
-
-    //   return this;
-
-    // },    
     blur: function (radius){
 
       // http://blog.ivank.net/fastest-gaussian-blur.html
@@ -918,3 +879,15 @@ return H; }(HANNIBAL));
 //   default: NUMBER (16)
 //   ship: NUMBER (32)
 //   unrestricted: NUMBER (64)
+
+
+// Object [Object] : attributes: 9, comment: sharedScript.passabilityClasses
+//   building-land: NUMBER (1)
+//   building-shore: NUMBER (2)
+//   default: NUMBER (4)
+//   default-terrain-only: NUMBER (8)
+//   large: NUMBER (16)
+//   ship: NUMBER (32)
+//   ship-small: NUMBER (64)
+//   ship-terrain-only: NUMBER (128)
+//   unrestricted: NUMBER (256)

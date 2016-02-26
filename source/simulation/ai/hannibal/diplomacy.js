@@ -56,7 +56,7 @@ HANNIBAL = (function(H){
     H.LIB.Serializer.prototype, {
     constructor: H.LIB.Diplomacy,
     log: function(){
-      this.deb(" DIPLO: ---------");
+      this.deb(); this.deb(" DIPLO: mood: %s", this.mood);
       H.each(this.policies, (id, policy) => {
         if(policy.color){
           this.deb("     D: %s : %s", id, uneval(policy));
@@ -109,7 +109,7 @@ HANNIBAL = (function(H){
     readPlayerColors: function () {
 
       var colorName = (id) => {
-        return this.context.launcher.colorFromRGBA(this.players[id].colour);
+        return this.context.launcher.colorFromRGBA(this.players[id].color);
       };
 
       H.each(this.policies, (id, policy) => {

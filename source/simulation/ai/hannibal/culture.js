@@ -279,8 +279,10 @@ HANNIBAL = (function(H){
     finalize: function(){
 
       // after initialize AND deserialize
+      // Can't handle Athen
 
       var 
+        t0 = Date.now(),
         tech, name, producers, nodes = this.nodes,
         phases = this.culture.phases,
         operMapper = {
@@ -379,7 +381,7 @@ HANNIBAL = (function(H){
         });
         phases[n].alternates.forEach(a => {
           name = H.saniTemplateName(a);
-          if (nodes[name] && !H.count(nodes[name].producers)){
+          if (nodes[name] !== undefined && !H.count(nodes[name].producers)){
             nodes[name].producers = producers;
           }
         });
@@ -394,7 +396,7 @@ HANNIBAL = (function(H){
       });
 
       // last time was 254 ms and 125 nodes on brain/athen 
-      // deb();deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
+      this.deb();this.deb("  TREE: finalized %s msecs, %s nodes", Date.now() - t0, H.count(nodes));
 
     },
     getFlowFromClass: function(klass){
@@ -446,7 +448,7 @@ HANNIBAL = (function(H){
         phase = test;
       } else if ((test = H.test(tpl, "requirements.any"))){
 
-        this.deb("  TREE: req.any: %s", uneval(test));
+        this.deb("  TREE: req.any: %s %s", uneval(test), tpln);
         // phase = test[0].tech;
       
       } else if ((test = H.test(tpl, "requirements.tech"))){
@@ -802,7 +804,6 @@ HANNIBAL = (function(H){
 
       });
 
-
     },
     loadNodes: function(){
 
@@ -1000,7 +1001,6 @@ HANNIBAL = (function(H){
       });
 
       // deb("     C: loaded %s nodes %s edges as tech: [%s]", H.tab(counter, 4), counter*2, names);  
-
 
     },
     loadById: function(id){
@@ -1231,8 +1231,6 @@ HANNIBAL = (function(H){
       return !!t.affects ? !t.affects.map(String.toLowerCase) : undefined;
     },
     getRadius: function(t){
-
-
 
     },
     getType: function(template, type){

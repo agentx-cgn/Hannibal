@@ -330,18 +330,21 @@ H.extend(H, {
   values:     function (o){
     return (
       o instanceof Map ? [...o.values()] : 
+      o instanceof Set ? [...o.values()] : 
         Object.keys(o).map(k => o[k])
     );
   },
   attribs:    function (o){
     return (
       o instanceof Map ? [...o.keys()] : 
+      o instanceof Set ? [...o.keys()] : 
         Object.keys(o)
     );
   },
   count:      function (o){
     return (
       o instanceof Map ? o.size : 
+      o instanceof Set ? o.length : 
         Object.keys(o).length
     );
   },
@@ -360,8 +363,13 @@ H.extend(H, {
             fn(key, value);
           });
 
-        } else if (item instanceof Map || item instanceof Set){
+        } else if (item instanceof Map){
           item.forEach( (value, key) => {
+            fn(key, value);
+          });
+
+        } else if (item instanceof Set){
+          [...item.values()].forEach( (value, key) => {
             fn(key, value);
           });
 
