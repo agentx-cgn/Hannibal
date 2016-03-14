@@ -22,13 +22,13 @@ Read development notes at [agentx.svbtle.com](http://agentx.svbtle.com/)
   (grain-picker, hunter, warrior, guerrilla, miner, etc) 
 
 * A **domain specific language** called group script, based on JavaScript 
-  method and property chaining to define a fluent interface and decribe 
+  method and property chaining to define a fluent interface and describe 
   the behaviour of groups in a near natural language 
 
 * An **economy model** with an order queue, a cost analyzer and  
   a statistic module providing metrics based on resource flows with trends and forecast. 
 
-* A **HTN PLanner** to calculate economic development, advancing to next phase 
+* A **HTN Planner** to calculate economic development, advancing to next phase 
   and planning attack strategies
 
 * **Map Analysis &amp; Pathfinder** for intelligent and adequate game play
@@ -48,7 +48,7 @@ Read development notes at [agentx.svbtle.com](http://agentx.svbtle.com/)
 * Select single player/new game, and choose Hannibal as bot
 * Choose a difficulty from the settings dialog
 
-**Test &amp; Developemt**
+**Test &amp; Development**
 
 * Start 0 A.D. with params: -quickstart -autostart=aitest03 -autostart-ai=1:hannibal
 * Customize launcher.py and launch 0 A.D. from commadline (Linux only)
@@ -70,7 +70,7 @@ Hannibal extensively logs against standard output until switched off in config.j
 
 **A18**
 
-* Saved games, given engine support ([cancelled](http://trac.wildfiregames.com/ticket/2495#comment:15), for the time beeing)
+* Saved games, given engine support ([cancelled](http://trac.wildfiregames.com/ticket/2495#comment:15), for the time being)
 * Shared, dynamic and exclusive buildings
 * Plan based economy, taking resource availability into account
 * Advanced map analysis
