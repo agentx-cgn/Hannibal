@@ -22,7 +22,7 @@ Read development notes at [agentx.svbtle.com](http://agentx.svbtle.com/)
   (grain-picker, hunter, warrior, guerrilla, miner, etc) 
 
 * A **domain specific language** called group script, based on JavaScript 
-  method and property chaining to define a fluenent interface and decribe 
+  method and property chaining to define a fluent interface and decribe 
   the behaviour of groups in a near natural language 
 
 * An **economy model** with an order queue, a cost analyzer and  
