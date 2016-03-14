@@ -140,7 +140,7 @@ Hannibal extensively logs against standard output until switched off in config.j
 * [A HTN Planner For A Real-Time Strategy Game](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.406.8722&rep=rep1&type=pdf)  
   Jasper Laagland
   
-* [Wall Building in RTS Games](www.cse.lehigh.edu/~munoz/CSE497/classes/Patrick2.ppt‎)  
+* [Wall Building in RTS Games](http://www.cse.lehigh.edu/~munoz/CSE497/classes/Patrick2.ppt)  
   Patrick Schmid
 
 ## License ##
